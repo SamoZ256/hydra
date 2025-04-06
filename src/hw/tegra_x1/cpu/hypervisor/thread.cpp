@@ -11,7 +11,8 @@ constexpr u32 MAX_STACK_TRACE_DEPTH = 32;
 
 constexpr u64 INTERRUPT_TIME = 16 * 1000 * 1000; // 16ms
 
-Thread::Thread(MMU* mmu_, CPU* cpu_) : mmu{mmu_}, cpu{cpu_} {
+Thread::Thread(MMU* mmu_, MemoryBase* tls_mem)
+    : ThreadBase(tls_mem), mmu{mmu_} {
     // Create
     HV_ASSERT_SUCCESS(hv_vcpu_create(&vcpu, &exit, NULL));
 

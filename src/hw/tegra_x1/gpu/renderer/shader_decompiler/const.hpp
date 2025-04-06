@@ -120,7 +120,7 @@ enum class LoadStoreMode {
     B128,
 };
 
-inline u32 GetLoadStoreCount(LoadStoreMode mode) {
+inline u32 get_load_store_count(LoadStoreMode mode) {
     switch (mode) {
     case LoadStoreMode::B32:
         return 1;
@@ -136,7 +136,21 @@ inline u32 GetLoadStoreCount(LoadStoreMode mode) {
     }
 }
 
-inline const SV GetSVFromAddr(u64 addr) {
+enum class MathFunc {
+    Invalid,
+
+    Cos,
+    Sin,
+    Ex2,
+    Lg2,
+    Rcp,
+    Rsq,
+    Rcp64h,
+    Rsq64h,
+    Sqrt,
+};
+
+inline const SV get_sv_from_addr(u64 addr) {
     ASSERT_ALIGNMENT_DEBUG(addr, 4, ShaderDecompiler, "Address");
 
     struct SVBase {
@@ -180,3 +194,8 @@ ENABLE_ENUM_FORMATTING(
 ENABLE_ENUM_FORMATTING(
     Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::LoadStoreMode, Invalid,
     "invalid", B32, "b32", B64, "b64", B96, "b96", B128, "b128")
+
+ENABLE_ENUM_FORMATTING(
+    Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::MathFunc, Cos, "cos",
+    Sin, "sin", Ex2, "ex2", Lg2, "lg2", Rcp, "rcp", Rsq, "rsq", Rcp64h,
+    "rcp64h", Rsq64h, "rsq64h", Sqrt, "sqrt")

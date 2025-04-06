@@ -18,6 +18,7 @@ class ISelfController : public ServiceBase {
     STUB_REQUEST_COMMAND(SetOperationModeChangedNotification);
     STUB_REQUEST_COMMAND(SetPerformanceModeChangedNotification);
     STUB_REQUEST_COMMAND(SetFocusHandlingMode);
+    STUB_REQUEST_COMMAND(SetOutOfFocusSuspendingEnabled);
     void CreateManagedDisplayLayer(REQUEST_COMMAND_PARAMS);
 };
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "horizon/const.hpp"
+#include "horizon/kernel.hpp"
 
 namespace Hydra::Horizon {
 
@@ -29,12 +29,15 @@ class StateManager {
     void SendMessage(AppletMessage msg) {
         std::unique_lock<std::mutex> lock(mutex);
         msg_queue.push(msg);
+
+        // Signal event
+        msg_event.handle->Signal();
     }
 
     void SetFocusState(AppletFocusState focus_state_) {
-        std::unique_lock<std::mutex> lock(mutex);
+        SendMessage(AppletMessage::FocusStateChanged);
+        // TODO: lock
         focus_state = focus_state_;
-        msg_queue.push(AppletMessage::FocusStateChanged);
     }
 
     void LockExit() {
@@ -61,7 +64,6 @@ class StateManager {
 
         AppletMessage msg = msg_queue.front();
         msg_queue.pop();
-        LOG_DEBUG(Horizon, "Msg: {}", (u32)msg);
 
         return msg;
     }
@@ -103,6 +105,11 @@ class StateManager {
         }
     }
 
+    // Getters
+    const KernelHandleWithId<SynchronizationHandle>& GetMsgEvent() {
+        return msg_event;
+    }
+
   private:
     std::mutex mutex;
     std::queue<AppletMessage> msg_queue;
@@ -111,6 +118,9 @@ class StateManager {
 
     // TODO: is stack correct?
     std::stack<u128> account_uids;
+
+    // Events
+    KernelHandleWithId<SynchronizationHandle> msg_event;
 };
 
 } // namespace Hydra::Horizon

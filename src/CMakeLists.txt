@@ -138,8 +138,12 @@ add_executable(hydra
     horizon/services/lm/logger.hpp
     horizon/services/aocsrv/add_on_content_manager.cpp
     horizon/services/aocsrv/add_on_content_manager.hpp
+    horizon/services/pctl/ipc/parental_control_service.cpp
+    horizon/services/pctl/ipc/parental_control_service.hpp
     horizon/services/pctl/ipc/parental_control_service_factory.cpp
     horizon/services/pctl/ipc/parental_control_service_factory.hpp
+    horizon/services/account/profile.cpp
+    horizon/services/account/profile.hpp
     horizon/services/account/account_service_for_application.cpp
     horizon/services/account/account_service_for_application.hpp
     horizon/services/account/account_service_for_system_service.cpp
@@ -160,6 +164,7 @@ add_executable(hydra
     hw/tegra_x1/cpu/mmu_base.cpp
     hw/tegra_x1/cpu/mmu_base.hpp
     hw/tegra_x1/cpu/thread_base.hpp
+    hw/tegra_x1/cpu/cpu_base.cpp
     hw/tegra_x1/cpu/cpu_base.hpp
     hw/tegra_x1/cpu/hypervisor/const.hpp
     hw/tegra_x1/cpu/hypervisor/page_allocator.cpp
@@ -246,6 +251,8 @@ add_executable(hydra
     hw/tegra_x1/gpu/renderer/metal/pipeline.hpp
     hw/tegra_x1/gpu/renderer/metal/depth_stencil_state_cache.cpp
     hw/tegra_x1/gpu/renderer/metal/depth_stencil_state_cache.hpp
+    hw/tegra_x1/gpu/renderer/metal/blit_pipeline_cache.cpp
+    hw/tegra_x1/gpu/renderer/metal/blit_pipeline_cache.hpp
     hw/tegra_x1/gpu/renderer/metal/clear_color_pipeline_cache.cpp
     hw/tegra_x1/gpu/renderer/metal/clear_color_pipeline_cache.hpp
     hw/tegra_x1/gpu/renderer/metal/clear_depth_pipeline_cache.cpp
@@ -266,7 +273,6 @@ target_include_directories(hydra PRIVATE . /Users/samuliak/Documents/nx-parser/s
 target_link_libraries(hydra PUBLIC "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" fmt::fmt SDL3::SDL3 glfw)
 
 # Signing
-set(CODESIGN_IDENTITY "Apple Development: samuliak@icloud.com (RMHRRGUDTQ)") # TODO: don't hardcode
 set(ENTITLEMENTS_FILE "${PROJECT_SOURCE_DIR}/hydra.entitlements")
 
 add_custom_command(TARGET hydra POST_BUILD VERBATIM

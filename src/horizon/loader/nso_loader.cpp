@@ -92,8 +92,8 @@ void NSOLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
 
     // Create executable memory
     uptr base;
-    auto ptr =
-        Kernel::GetInstance().CreateExecutableMemory(executable_size, base);
+    auto ptr = Kernel::GetInstance().CreateExecutableMemory(
+        executable_size, base, MemoryPermission::ReadExecute);
     LOG_DEBUG(HorizonLoader, "Base: 0x{:08x}", base);
 
     // Segments
@@ -106,11 +106,12 @@ void NSOLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
 
     if (is_entry_point) {
         // Set entrypoint
-        Kernel::GetInstance().SetEntryPoint(base + header.text.memory_offset);
+        Kernel::GetInstance().SetMainThreadEntryPoint(
+            base + header.text.memory_offset);
 
         // Args
-        Kernel::GetInstance().SetArg(0, 0x0);
-        Kernel::GetInstance().SetArg(
+        Kernel::GetInstance().SetMainThreadArg(0, 0x0);
+        Kernel::GetInstance().SetMainThreadArg(
             1, 0x0000000f); // TODO: what thread handle should be used?
     }
 

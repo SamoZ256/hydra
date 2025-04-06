@@ -13,6 +13,11 @@ class IPsmServer : public ServiceBase {
 
   private:
     // Commands
+    void GetBatteryChargePercentage(REQUEST_COMMAND_PARAMS);
+    void GetChargerType(REQUEST_COMMAND_PARAMS);
+    void GetRawBatteryChargePercentage(REQUEST_COMMAND_PARAMS);
+    void IsEnoughPowerSupplied(REQUEST_COMMAND_PARAMS);
+    void GetBatteryAgePercentage(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Psm

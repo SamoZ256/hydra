@@ -124,13 +124,19 @@ Horizon::MemoryInfo MMU::QueryMemory(vaddr va) const {
         info.addr = region.va;
         info.size = region.size;
         info.state = region.state;
+        if (info.addr == 0x0)
+            break;
 
         region = user_page_table.QueryRegion(info.addr - 1);
     } while (region.state == info.state);
 
     // Resize to the right
     do {
-        region = user_page_table.QueryRegion(info.addr + info.size);
+        vaddr addr = info.addr + info.size;
+        if (addr >= ADDRESS_SPACE_SIZE)
+            break;
+
+        region = user_page_table.QueryRegion(addr);
         info.size += region.size;
     } while (region.state == info.state);
 

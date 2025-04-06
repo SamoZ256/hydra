@@ -10,36 +10,23 @@
 #include "hw/tegra_x1/gpu/renderer/metal/texture.hpp"
 
 // TODO: define in a separate file
+/*
 const std::string utility_shader_source = R"(
 #include <metal_stdlib>
 using namespace metal;
-
-constant float2 vertices[3] = {
-    float2(-1.0, -3.0),
-    float2(-1.0,  1.0),
-    float2( 3.0,  1.0)
-};
-
-struct FullscreenVertexOut {
-    float4 position [[position]];
-    float2 tex_coord;
-};
-
-vertex FullscreenVertexOut vertex_fullscreen(ushort vid [[vertex_id]]) {
-    FullscreenVertexOut out;
-    out.position = float4(vertices[vid], 0.0, 1.0);
-    out.tex_coord = vertices[vid] * 0.5 + 0.5;
-    out.tex_coord.y = 1.0 - out.tex_coord.y;
-
-    return out;
-}
-
-fragment float4 fragment_texture(FullscreenVertexOut in [[stage_in]], texture2d<float> tex [[texture(0)]], sampler samplr [[sampler(0)]]) {
-    return float4(tex.sample(samplr, in.tex_coord).rgb, 1.0);
-}
 )";
+*/
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
+
+namespace {
+
+struct BlitParams {
+    float2 src_offset;
+    float2 src_scale;
+};
+
+} // namespace
 
 SINGLETON_DEFINE_GET_INSTANCE(Renderer, MetalRenderer, "Metal renderer")
 
@@ -50,36 +37,15 @@ Renderer::Renderer() {
     device = MTL::CreateSystemDefaultDevice();
     command_queue = device->newCommandQueue();
 
+    /*
     // Library
     MTL::Library* library =
         CreateLibraryFromSource(device, utility_shader_source);
 
     // Functions
-    auto vertex_fullscreen =
-        library->newFunction(ToNSString("vertex_fullscreen"));
-    auto fragment_texture =
-        library->newFunction(ToNSString("fragment_texture"));
+    */
 
     // Objects
-
-    // Pipeline states
-
-    // Present pipeline
-    auto pipeline_descriptor = MTL::RenderPipelineDescriptor::alloc()->init();
-    pipeline_descriptor->setVertexFunction(vertex_fullscreen);
-    pipeline_descriptor->setFragmentFunction(fragment_texture);
-    pipeline_descriptor->colorAttachments()->object(0)->setPixelFormat(
-        MTL::PixelFormatBGRA8Unorm); // TODO: get from layer
-
-    NS::Error* error;
-    present_pipeline =
-        device->newRenderPipelineState(pipeline_descriptor, &error);
-    pipeline_descriptor->release();
-    if (error) {
-        LOG_ERROR(GPU, "Failed to create present pipeline state: {}",
-                  error->localizedDescription()->utf8String());
-        error->release(); // TODO: release?
-    }
 
     // Depth stencil states
 
@@ -105,6 +71,7 @@ Renderer::Renderer() {
 
     // Caches
     depth_stencil_state_cache = new DepthStencilStateCache();
+    blit_pipeline_cache = new BlitPipelineCache();
     clear_color_pipeline_cache = new ClearColorPipelineCache();
     clear_depth_pipeline_cache = new ClearDepthPipelineCache();
 
@@ -117,10 +84,6 @@ Renderer::Renderer() {
             state.textures[shader_type][i] = nullptr;
     }
 
-    // Release
-    vertex_fullscreen->release();
-    fragment_texture->release();
-
     // Info
     info = {
         .supports_quads_primitive = false,
@@ -129,6 +92,7 @@ Renderer::Renderer() {
 
 Renderer::~Renderer() {
     delete depth_stencil_state_cache;
+    delete blit_pipeline_cache;
     delete clear_color_pipeline_cache;
     delete clear_depth_pipeline_cache;
 
@@ -136,8 +100,6 @@ Renderer::~Renderer() {
     nearest_sampler->release();
 
     depth_stencil_state_always_and_write->release();
-
-    present_pipeline->release();
 
     command_queue->release();
     device->release();
@@ -156,6 +118,7 @@ void Renderer::Present(TextureBase* texture) {
 
     // TODO: acquire drawable earlier?
     auto drawable = layer->nextDrawable();
+    auto dst = drawable->texture();
 
     // Command buffer
     MTL::CommandBuffer* command_buffer = command_queue->commandBuffer();
@@ -164,15 +127,25 @@ void Renderer::Present(TextureBase* texture) {
     auto render_pass_descriptor = MTL::RenderPassDescriptor::alloc()->init();
     auto color_attachment =
         render_pass_descriptor->colorAttachments()->object(0);
-    color_attachment->setTexture(drawable->texture());
-    color_attachment->setLoadAction(MTL::LoadActionDontCare);
+    color_attachment->setTexture(dst);
+    color_attachment->setLoadAction(
+        MTL::LoadActionDontCare); // TODO: use load if not blitting to the whole
+                                  // texture
     color_attachment->setStoreAction(MTL::StoreActionStore);
 
     auto encoder = command_buffer->renderCommandEncoder(render_pass_descriptor);
     render_pass_descriptor->release();
 
     // Draw
-    encoder->setRenderPipelineState(present_pipeline);
+    encoder->setRenderPipelineState(
+        blit_pipeline_cache->Find({dst->pixelFormat()}));
+    u32 zero = 0;
+    encoder->setVertexBytes(&zero, sizeof(zero), 0);
+    BlitParams params = {
+        .src_offset = {0.0f, 0.0f},
+        .src_scale = {1.0f, 1.0f},
+    };
+    encoder->setFragmentBytes(&params, sizeof(params), 0);
     encoder->setFragmentTexture(texture_impl->GetTexture(), NS::UInteger(0));
     encoder->setFragmentSamplerState(linear_sampler, NS::UInteger(0));
     encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0),
@@ -541,6 +514,50 @@ void Renderer::SetTexture(ShaderType shader_type, u32 index) {
         return;
 
     SetTexture(texture->GetTexture(), shader_type, index);
+}
+
+void Renderer::BlitTexture(MTL::Texture* src, const float3 src_origin,
+                           const usize3 src_size, MTL::Texture* dst,
+                           const u32 dst_layer, const float3 dst_origin,
+                           const usize3 dst_size) {
+    // Render pass
+    auto render_pass_descriptor = MTL::RenderPassDescriptor::alloc()->init();
+    auto color_attachment =
+        render_pass_descriptor->colorAttachments()->object(0);
+    color_attachment->setTexture(dst);
+    color_attachment->setLoadAction(
+        MTL::LoadActionLoad); // TODO: use don't care if blitting to the whole
+                              // texture
+    color_attachment->setStoreAction(MTL::StoreActionStore);
+
+    auto encoder = CreateRenderCommandEncoder(render_pass_descriptor);
+    render_pass_descriptor->release();
+
+    // Draw
+    encoder->setRenderPipelineState(
+        blit_pipeline_cache->Find({src->pixelFormat()}));
+    // TODO: viewport
+    encoder->setVertexBytes(&dst_layer, sizeof(dst_layer), 0);
+    // TODO: correct?
+    float2 scale = (float2(src_size) / float2(dst_size)) *
+                   (float2({static_cast<f32>(dst->width()),
+                            static_cast<f32>(dst->height())}) /
+                    float2({static_cast<f32>(src->width()),
+                            static_cast<f32>(src->height())}));
+    BlitParams params = {
+        .src_offset = {static_cast<f32>(src_origin.x()) /
+                           static_cast<f32>(src_size.x()),
+                       static_cast<f32>(src_origin.y()) /
+                           static_cast<f32>(src_size.y())},
+        .src_scale = scale,
+    };
+    encoder->setFragmentBytes(&params, sizeof(params), 0);
+    encoder->setFragmentTexture(src, NS::UInteger(0));
+    encoder->setFragmentSamplerState(
+        linear_sampler, NS::UInteger(0)); // TODO: use the correct sampler
+
+    encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0),
+                            NS::UInteger(3));
 }
 
 void Renderer::BeginCapture() {

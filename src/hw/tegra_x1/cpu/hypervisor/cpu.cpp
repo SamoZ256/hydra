@@ -25,8 +25,8 @@ CPU::CPU() {
 
 CPU::~CPU() { hv_vm_destroy(); }
 
-ThreadBase* CPU::CreateThread() {
-    Thread* thread = new Thread(mmu, this);
+ThreadBase* CPU::CreateThread(MemoryBase* tls_mem) {
+    Thread* thread = new Thread(mmu, tls_mem);
     thread->SetupVTimer();
 
     return thread;

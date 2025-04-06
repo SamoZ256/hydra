@@ -60,7 +60,7 @@ enum class TextureFormat {
     RGBA4Unorm,
     RGB5Unorm,
     RGB5A1Unorm,
-    RGB565Unorm,
+    R5G6B5Unorm,
     RGB10A2Unorm,
     RGB10A2Uint,
     RG11B10Float,
@@ -162,6 +162,13 @@ struct TextureDescriptor {
     // TODO: more
 };
 
+struct TextureViewDescriptor {
+    Renderer::TextureFormat format;
+    // TODO: swizzle
+
+    u32 GetHash() const { return (u32)format; }
+};
+
 struct RenderTargetDescriptor {
     TextureBase* texture;
     bool load_action_clear = false;
@@ -253,7 +260,7 @@ ENABLE_ENUM_FORMATTING(
     "z32float", Z24Unorm_S8Uint, "z24unorm s8uint", Z32Float_X24S8Uint,
     "z32float x24s8uint", RGBX8Unorm_sRGB, "rgbx8unorm_srgb", RGBA8Unorm_sRGB,
     "rgba8unorm_srgb", RGBA4Unorm, "rgba4unorm", RGB5Unorm, "rgb5unorm",
-    RGB5A1Unorm, "rgb5a1unorm", RGB565Unorm, "rgb565unorm", RGB10A2Unorm,
+    RGB5A1Unorm, "rgb5a1unorm", R5G6B5Unorm, "r5g6b5unorm", RGB10A2Unorm,
     "rgb10a2unorm", RGB10A2Uint, "rgb10a2uint", RG11B10Float, "rg11b10float",
     E5BGR9Float, "e5bgr9float", BC1_RGB, "bc1_rgb", BC1_RGBA, "bc1_rgba",
     BC2_RGBA, "bc2_rgba", BC3_RGBA, "bc3_rgba", BC1_RGB_sRGB, "bc1_rgb_srgb",

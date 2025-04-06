@@ -12,6 +12,7 @@ class IHOSBinderDriver : public ServiceBase {
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
+    // Commands
     void TransactParcel(REQUEST_COMMAND_PARAMS);
     void AdjustRefcount(REQUEST_COMMAND_PARAMS);
     void GetNativeHandle(REQUEST_COMMAND_PARAMS);

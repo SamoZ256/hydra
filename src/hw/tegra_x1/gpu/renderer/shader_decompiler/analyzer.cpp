@@ -6,7 +6,7 @@ namespace {
 
 void push_sv(std::vector<SVSemantic>& svs, std::vector<u8>& stage_in_outs,
              u64 addr) {
-    const auto sv = GetSVFromAddr(addr);
+    const auto sv = get_sv_from_addr(addr);
     if (sv.semantic == SVSemantic::UserInOut)
         push_unique(stage_in_outs, sv.index);
     else

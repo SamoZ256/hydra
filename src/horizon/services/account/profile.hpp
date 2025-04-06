@@ -4,17 +4,20 @@
 
 namespace Hydra::Horizon::Services::Account {
 
-class IAccountServiceForApplication : public ServiceBase {
+class IProfile : public ServiceBase {
   public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IAccountServiceForApplication)
+    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IProfile)
+
+    IProfile(u128 account_uid_) : account_uid{account_uid_} {}
 
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
+    u128 account_uid;
+
     // Commands
-    void GetProfile(REQUEST_COMMAND_PARAMS);
-    STUB_REQUEST_COMMAND(InitializeApplicationInfoV0)
+    void Get(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Account

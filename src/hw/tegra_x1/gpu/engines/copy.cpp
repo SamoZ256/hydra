@@ -23,8 +23,8 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
             // TODO: use layer as origin Z in case of 3D textures
             texture->CopyFrom(
                 buffer, regs.stride_in, regs.dst.layer,
-                uint3({regs.dst.origin.x, regs.dst.origin.y, 0}),
-                usize3({descriptor.width, descriptor.height, regs.dst.depth}));
+                {regs.dst.origin.x, regs.dst.origin.y, 0},
+                {descriptor.width, descriptor.height, regs.dst.depth});
         }
     } else {
         if (data.dst_memory_layout == MemoryLayout::Pitch) {
@@ -64,7 +64,7 @@ Renderer::TextureBase* Copy::GetTexture(const u32 gpu_addr_lo,
         .stride = info.stride,
     };
 
-    return RENDERER->GetTextureCache().Find(descriptor);
+    return RENDERER->GetTextureCache().GetTextureView(descriptor);
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::Engines

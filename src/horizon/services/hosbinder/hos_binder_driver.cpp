@@ -1,12 +1,10 @@
 #include "horizon/services/hosbinder/hos_binder_driver.hpp"
 
+#include "horizon/kernel.hpp"
 #include "horizon/os.hpp"
 #include "hw/tegra_x1/gpu/const.hpp"
 
 namespace Hydra::Horizon::Services::HosBinder {
-
-DEFINE_SERVICE_COMMAND_TABLE(IHOSBinderDriver, 0, TransactParcel, 1,
-                             AdjustRefcount, 2, GetNativeHandle)
 
 namespace {
 
@@ -98,6 +96,9 @@ struct AdjustRefcountIn {
 };
 
 } // namespace
+
+DEFINE_SERVICE_COMMAND_TABLE(IHOSBinderDriver, 0, TransactParcel, 1,
+                             AdjustRefcount, 2, GetNativeHandle)
 
 void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
     auto& reader = readers.send_buffers_readers[0];
@@ -265,10 +266,8 @@ void IHOSBinderDriver::GetNativeHandle(REQUEST_COMMAND_PARAMS) {
     const u32 code =
         readers.reader.Read<u32>(); // TODO: should this be TransactCode?
 
-    LOG_FUNC_STUBBED(HorizonServices);
-
-    // HACK
-    writers.move_handles_writer.Write(0xffffffff);
+    writers.copy_handles_writer.Write(
+        OS::GetInstance().GetDisplayBinderManager().GetEventHandle().id);
 }
 
 } // namespace Hydra::Horizon::Services::HosBinder

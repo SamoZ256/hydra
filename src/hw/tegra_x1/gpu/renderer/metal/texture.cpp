@@ -18,7 +18,19 @@ Texture::Texture(const TextureDescriptor& descriptor)
     mtl_texture = Renderer::GetInstance().GetDevice()->newTexture(desc);
 }
 
+Texture::Texture(const TextureDescriptor& descriptor,
+                 MTL::Texture* mtl_texture_)
+    : TextureBase(descriptor), mtl_texture{mtl_texture_} {}
+
 Texture::~Texture() { mtl_texture->release(); }
+
+TextureBase* Texture::CreateView(const TextureViewDescriptor& descriptor) {
+    auto mtl_view =
+        mtl_texture->newTextureView(to_mtl_pixel_format(descriptor.format));
+
+    // TODO: don't pass this descriptor
+    return new Texture(GetDescriptor(), mtl_view);
+}
 
 void Texture::CopyFrom(const void* data) {
     // TODO: do a GPU copy
@@ -31,16 +43,40 @@ void Texture::CopyFrom(const void* data) {
 void Texture::CopyFrom(const BufferBase* src, const usize src_stride,
                        const u32 dst_layer, const uint3 dst_origin,
                        const usize3 size) {
-    const auto buffer_impl = static_cast<const Buffer*>(src);
-    const auto mtl_buffer = buffer_impl->GetBuffer();
+    const auto mtl_src = static_cast<const Buffer*>(src)->GetBuffer();
 
     auto encoder = Renderer::GetInstance().GetBlitCommandEncoder();
 
     // TODO: bytes per image
     encoder->copyFromBuffer(
-        mtl_buffer, 0, src_stride, 0, MTL::Size(size.x(), size.y(), size.z()),
+        mtl_src, 0, src_stride, 0, MTL::Size(size.x(), size.y(), size.z()),
         mtl_texture, dst_layer, 0,
         MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
+}
+
+void Texture::CopyFrom(const TextureBase* src, const u32 src_layer,
+                       const uint3 src_origin, const u32 dst_layer,
+                       const uint3 dst_origin, const usize3 size) {
+    const auto mtl_src = static_cast<const Texture*>(src)->GetTexture();
+
+    auto encoder = Renderer::GetInstance().GetBlitCommandEncoder();
+
+    // TODO: bytes per image
+    encoder->copyFromTexture(
+        mtl_src, src_layer, 0,
+        MTL::Origin(src_origin.x(), src_origin.y(), src_origin.z()),
+        MTL::Size(size.x(), size.y(), size.z()), mtl_texture, dst_layer, 0,
+        MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
+}
+
+void Texture::BlitFrom(const TextureBase* src, const u32 src_layer,
+                       const float3 src_origin, const usize3 src_size,
+                       const u32 dst_layer, const float3 dst_origin,
+                       const usize3 dst_size) {
+    // TODO: src layer
+    Renderer::GetInstance().BlitTexture(
+        static_cast<const Texture*>(src)->GetTexture(), src_origin, src_size,
+        mtl_texture, dst_layer, dst_origin, dst_size);
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal

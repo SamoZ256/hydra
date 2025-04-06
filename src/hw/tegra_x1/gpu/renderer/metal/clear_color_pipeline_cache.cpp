@@ -47,15 +47,20 @@ void ClearColorPipelineCache::Destroy() { pipeline_descriptor->release(); }
 MTL::RenderPipelineState* ClearColorPipelineCache::Create(
     const ClearColorPipelineDescriptor& descriptor) {
     // Source
-    auto shader_source = R"(
+    auto shader_source = fmt::format(R"(
         #include <metal_stdlib>
         using namespace metal;
 
+        struct FragmentClearColorOut {{
+            float4 color [[color({})]];
+        }};
+
         // TODO: choose the correct color data type
-        fragment float4 fragment_clear_color(constant float4& col [[buffer(0)]]) {
+        fragment float4 fragment_clear_color(constant float4& col [[buffer(0)]]) {{
             return col;
-        }
-    )";
+        }}
+    )",
+                                     descriptor.render_target_id);
 
     // Function
     auto fragment_clear_color =

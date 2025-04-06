@@ -1,9 +1,31 @@
 #pragma once
 
 #include "common/common.hpp"
-#include "common/macros.hpp"
+
+// TODO: correct?
+#define IS_TIMEOUT_INFINITE(timeout) (timeout == -1 || timeout == 0)
 
 namespace Hydra::Horizon {
+
+// TODO: how does this work?
+constexpr uptr ADDRESS_SPACE_BASE = 0x10000000;
+constexpr usize ADDRESS_SPACE_SIZE = 0x200000000 - ADDRESS_SPACE_BASE;
+
+constexpr uptr STACK_REGION_BASE = 0x10000000;
+constexpr usize STACK_REGION_SIZE = 0x10000000;
+constexpr usize STACK_MEM_SIZE = 0x2000000;
+
+constexpr uptr ALIAS_REGION_BASE = 0x30000000;
+constexpr usize ALIAS_REGION_SIZE = STACK_REGION_SIZE;
+
+constexpr uptr TLS_REGION_BASE = 0x20000000;
+constexpr usize TLS_REGION_SIZE = 0x10000000;
+constexpr usize TLS_MEM_SIZE = 0x20000;
+
+constexpr uptr HEAP_REGION_BASE = 0x100000000;
+constexpr usize HEAP_REGION_SIZE = 0x100000000;
+constexpr usize DEFAULT_HEAP_MEM_SIZE = 0x1000000;
+constexpr usize HEAP_MEM_ALIGNMENT = 0x200000;
 
 struct FirmwareVersion {
     u8 major;

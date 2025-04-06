@@ -27,12 +27,6 @@ enum class InterruptType : u32 {
     NonBlocking,
 };
 
-// Pitch - buffer, block linear - texture
-enum class MemoryLayout : u32 {
-    BlockLinear,
-    Pitch,
-};
-
 enum class SemaphoreReduction : u32 {
     Imin,
     Imax,
@@ -48,16 +42,6 @@ enum class SemaphoreReduction : u32 {
 enum class BypassL2 {
     UsePteSetting,
     ForceVolatile,
-};
-
-enum class BlockDim : u32 {
-    OneGob,
-    TwoGobs,
-    FourGobs,
-    EightGobs,
-    SixteenGobs,
-    ThirtyTwoGobs,
-    QuarterGob = 14,
 };
 
 enum class GobHeight : u32 {

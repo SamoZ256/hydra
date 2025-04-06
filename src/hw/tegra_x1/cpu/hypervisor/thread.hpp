@@ -18,7 +18,7 @@ class CPU;
 
 class Thread : public ThreadBase {
   public:
-    Thread(MMU* mmu_, CPU* cpu_);
+    Thread(MMU* mmu_, MemoryBase* tls_mem);
     ~Thread() override;
 
     void Configure(const std::function<bool(ThreadBase*, u64)>& svc_handler_,
@@ -87,7 +87,6 @@ class Thread : public ThreadBase {
 
   private:
     MMU* mmu;
-    CPU* cpu;
 
     std::function<bool(ThreadBase*, u64)> svc_handler;
 

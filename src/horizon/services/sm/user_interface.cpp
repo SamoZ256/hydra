@@ -26,58 +26,43 @@ DEFINE_SERVICE_COMMAND_TABLE(IUserInterface, 0, RegisterProcess, 1,
                              GetServiceHandle)
 
 void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
-    // auto in = *reinterpret_cast<GetServiceHandleIn*>(in_ptr);
-    // std::string name(in.name);
-    u64 name_u64 = readers.reader.Read<u64>();
-    const char* name_c = (const char*)(&name_u64);
-    std::string name(name_c, std::min(strlen(name_c), (usize)8));
+    u64 name = readers.reader.Read<u64>();
 
-    if (name == "") {
+    if (name == 0) {
         result = MAKE_KERNEL_RESULT(NotFound);
         return;
     }
 
-    if (name == "hid") {
-        add_service(new Hid::IHidServer());
-    } else if (name == "fsp-srv") {
-        add_service(new Fssrv::IFileSystemProxy());
-    } else if (name == "time:u" || name == "time:a" || name == "time:s") {
-        add_service(new TimeSrv::IStaticService());
-    } else if (name == "nvdrv") {
-        add_service(new NvDrv::INvDrvServices());
-    } else if (name == "set:sys") {
-        add_service(new Settings::ISystemSettingsServer());
-    } else if (name == "apm" || name == "apm:am") {
-        add_service(new Am::IApmManager());
-    } else if (name == "appletOE") {
-        add_service(new Am::IApplicationProxyService());
-    } else if (name == "vi:m") {
-        add_service(new ViSrv::IManagerRootService());
-    } else if (name == "pl:u") {
-        add_service(new Pl::SharedResource::IPlatformSharedResourceManager());
-    } else if (name == "psm") {
-        add_service(new Psm::IPsmServer());
-    } else if (name == "lm") {
-        add_service(new Lm::ILogService());
-    } else if (name == "aoc:u") {
-        add_service(new AocSrv::IAddOnContentManager());
-    } else if (name == "pctl:s" || name == "pctl:r" || name == "pctl:a" ||
-               name == "pctl") {
-        add_service(new Pctl::Ipc::IParentalControlServiceFactory());
-    } else if (name == "acc:u0") {
-        add_service(new Account::IAccountServiceForApplication());
-    } else if (name == "apm:p") {
-        add_service(new Apm::IManagerPrivileged());
-    } else if (name == "bsd:u" || name == "bsd:s" || name == "bsd:a") {
-        add_service(new Socket::IClient());
-    } else if (name == "set") {
-        add_service(new Settings::ISettingsServer());
-    } else if (name == "acc:u1") {
-        add_service(new Account::IAccountServiceForSystemService());
-    } else if (name == "audout:u") {
-        add_service(new Audio::IAudioOutManager());
-    } else {
-        LOG_WARNING(HorizonServices, "Unknown service \"{}\"", name);
+#define SERVICE_CASE_CASE(str) case str_to_u64(str):
+#define SERVICE_CASE(name, ...)                                                \
+    FOR_EACH_0_1(SERVICE_CASE_CASE, __VA_ARGS__)                               \
+    add_service(new name());                                                   \
+    break;
+
+    switch (name) {
+        SERVICE_CASE(Hid::IHidServer, "hid")
+        SERVICE_CASE(Fssrv::IFileSystemProxy, "fsp-srv")
+        SERVICE_CASE(TimeSrv::IStaticService, "time:u", "time:a", "time:s")
+        SERVICE_CASE(NvDrv::INvDrvServices, "nvdrv")
+        SERVICE_CASE(Settings::ISystemSettingsServer, "set:sys")
+        SERVICE_CASE(Am::IApmManager, "apm", "apm:am")
+        SERVICE_CASE(Am::IApplicationProxyService, "appletOE")
+        SERVICE_CASE(ViSrv::IManagerRootService, "vi:m")
+        SERVICE_CASE(Pl::SharedResource::IPlatformSharedResourceManager, "pl:u")
+        SERVICE_CASE(Psm::IPsmServer, "psm")
+        SERVICE_CASE(Lm::ILogService, "lm")
+        SERVICE_CASE(AocSrv::IAddOnContentManager, "aoc:u")
+        SERVICE_CASE(Pctl::Ipc::IParentalControlServiceFactory, "pctl:s",
+                     "pctl:r", "pctl:a", "pctl")
+        SERVICE_CASE(Account::IAccountServiceForApplication, "acc:u0")
+        SERVICE_CASE(Apm::IManagerPrivileged, "apm:p")
+        SERVICE_CASE(Socket::IClient, "bsd:u", "bsd:s", "bsd:a")
+        SERVICE_CASE(Settings::ISettingsServer, "set")
+        SERVICE_CASE(Account::IAccountServiceForSystemService, "acc:u1")
+        SERVICE_CASE(Audio::IAudioOutManager, "audout:u")
+    default:
+        LOG_WARNING(HorizonServices, "Unknown service \"{}\"",
+                    u64_to_str(name));
         result = MAKE_KERNEL_RESULT(NotFound);
         // TODO: don't throw
         throw;

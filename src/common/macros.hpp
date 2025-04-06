@@ -1,5 +1,7 @@
 #pragma once
 
+#define sizeof_array(array) (sizeof(array) / sizeof(array[0]))
+
 #define THIS ((SubclassT*)this)
 
 #define SINGLETON_DEFINE_GET_INSTANCE(type, logging_class, name)               \

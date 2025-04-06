@@ -147,14 +147,14 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0xf0a8000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "bar");
     INST(0xeff0000000000000, 0xfff8000000000000) {
-        const auto mode = GetOperand_eff0_0(inst);
+        const auto mode = get_operand_eff0_0(inst);
         auto amem = GET_AMEM_IDX(20);
         const auto src = GET_REG(0);
         const auto todo = GET_REG(39); // TODO: what is this?
         LOG_DEBUG(ShaderDecompiler, "st {} a[r{} + 0x{:08x}] r{} r{}", mode,
                   amem.reg, amem.imm, src, todo);
 
-        for (u32 i = 0; i < GetLoadStoreCount(mode); i++) {
+        for (u32 i = 0; i < get_load_store_count(mode); i++) {
             observer->OpStore(amem, src + i);
             amem.imm += sizeof(u32);
         }
@@ -162,14 +162,14 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0xefe8000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "pixld");
     INST(0xefd8000000000000, 0xfff8000000000000) {
-        const auto mode = GetOperand_eff0_0(inst);
+        const auto mode = get_operand_eff0_0(inst);
         const auto dst = GET_REG(0);
         auto amem = GET_AMEM_IDX(20);
         const auto todo = GET_REG(39); // TODO: what is this?
         LOG_DEBUG(ShaderDecompiler, "ld {} r{} a[r{} + 0x{:08x}] r{}", mode,
                   dst, amem.reg, amem.imm, todo);
 
-        for (u32 i = 0; i < GetLoadStoreCount(mode); i++) {
+        for (u32 i = 0; i < get_load_store_count(mode); i++) {
             observer->OpLoad(dst + i, Operand::AttributeMemory(amem));
             amem.imm += sizeof(u32);
         }
@@ -448,12 +448,24 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dmul");
     INST(0x5c70000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dadd");
-    INST(0x5c68000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmul");
+    INST(0x5c68000000000000, 0xfff8000000000000) {
+        const auto dst = GET_REG(0);
+        const auto src1 = GET_REG(8);
+        const auto src2 = GET_REG(20);
+        LOG_DEBUG(ShaderDecompiler, "fmul r{} r{} r{}", dst, src1, src2);
+
+        observer->OpFloatMultiply(dst, src1, Operand::Register(src2));
+    }
     INST(0x5c60000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmnmx");
-    INST(0x5c58000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fadd");
+    INST(0x5c58000000000000, 0xfff8000000000000) {
+        const auto dst = GET_REG(0);
+        const auto src1 = GET_REG(8);
+        const auto src2 = GET_REG(20);
+        LOG_DEBUG(ShaderDecompiler, "fadd r{} r{} r{}", dst, src1, src2);
+
+        observer->OpFloatAdd(dst, src1, Operand::Register(src2));
+    }
     INST(0x5c50000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dmnmx");
     INST(0x5c48000000000000, 0xfff8000000000000)
@@ -508,8 +520,16 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "imadsp");
     INST(0x5a00000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "imad");
-    INST(0x5980000000000000, 0xff80000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "ffma");
+    INST(0x5980000000000000, 0xff80000000000000) {
+        const auto dst = GET_REG(0);
+        const auto src1 = GET_REG(8);
+        const auto src2 = GET_REG(20);
+        const auto src3 = GET_REG(39);
+        LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} r{} r{}", dst, src1, src2,
+                  src3);
+
+        observer->OpFloatFma(dst, src1, Operand::Register(src2), src3);
+    }
     INST(0x5900000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dset");
     INST(0x5800000000000000, 0xff00000000000000)
@@ -565,8 +585,14 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "psetp");
     INST(0x5088000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "pset");
-    INST(0x5080000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "mufu");
+    INST(0x5080000000000000, 0xfff8000000000000) {
+        const auto func = get_operand_5080_0(inst);
+        const auto dst = GET_REG(0);
+        const auto src = GET_REG(8);
+        LOG_DEBUG(ShaderDecompiler, "mufu {} r{} r{}", func, dst, src);
+
+        observer->OpMathFunction(func, dst, src);
+    }
     INST(0x5000000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "vabsdiff4");
     INST(0x4e00000000000000, 0xfe00000000000000)
@@ -587,8 +613,15 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "f2f");
     INST(0x4ca0000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "sel");
-    INST(0x4c98000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "mov");
+    INST(0x4c98000000000000, 0xfff8000000000000) {
+        const auto dst = GET_REG(0);
+        const auto src = GET_CMEM(34, 14);
+        const auto todo = GET_VALUE_U32(39, 4);
+        LOG_DEBUG(ShaderDecompiler, "mov r{} c{}[0x{:x}] 0x{:x}", dst, src.idx,
+                  src.imm, todo);
+
+        observer->OpMove(dst, Operand::ConstMemory(src));
+    }
     INST(0x4c90000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "rro");
     INST(0x4c88000000000000, 0xfff8000000000000)
@@ -715,8 +748,14 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmul");
     INST(0x3860000000000000, 0xfef8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmnmx");
-    INST(0x3858000000000000, 0xfef8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fadd");
+    INST(0x3858000000000000, 0xfef8000000000000) {
+        const auto dst = GET_REG(0);
+        const auto src1 = GET_REG(8);
+        const auto src2 = GET_VALUE_U32_EXTEND(20, 20); // TODO: extend?
+        LOG_DEBUG(ShaderDecompiler, "fadd r{} r{} 0x{:x}", dst, src1, src2);
+
+        observer->OpFloatAdd(dst, src1, Operand::Immediate(src2));
+    }
     INST(0x3850000000000000, 0xfef8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dmnmx");
     INST(0x3848000000000000, 0xfef8000000000000) {

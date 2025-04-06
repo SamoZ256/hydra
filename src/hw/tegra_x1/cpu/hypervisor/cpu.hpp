@@ -17,7 +17,7 @@ class CPU : public CPUBase {
     CPU();
     ~CPU();
 
-    ThreadBase* CreateThread() override;
+    ThreadBase* CreateThread(MemoryBase* tls_mem) override;
 
     // Getters
     MMUBase* GetMMU() const override;

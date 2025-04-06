@@ -14,7 +14,8 @@
                 .internal_state.style_set &                                    \
             HID::NpadStyleSet::style_upper)) {                                 \
         GET_NPAD_LIFO(type, style_lower);                                      \
-        lifo.header.tail = (lifo.header.tail + 1) % 17;                        \
+        /* TODO: set the tail properly */                                      \
+        lifo.header.tail = 0; /*(lifo.header.tail + 1) % 17;*/                 \
         lifo.storage[lifo.header.tail].state.entry_dst = entry_src;            \
         lifo.header.count = 1;                                                 \
     }

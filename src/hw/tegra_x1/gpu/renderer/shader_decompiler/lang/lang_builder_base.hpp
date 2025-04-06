@@ -28,6 +28,7 @@ class LangBuilderBase : public BuilderBase {
     void OpFloatMultiply(reg_t dst, reg_t src1, Operand src2) override;
     void OpFloatFma(reg_t dst, reg_t src1, Operand src2, reg_t src3) override;
     void OpShiftLeft(reg_t dst, reg_t src, u32 shift) override;
+    void OpMathFunction(MathFunc func, reg_t dst, reg_t src) override;
     void OpLoad(reg_t dst, Operand src) override;
     void OpStore(AMem dst, reg_t src) override;
     void OpInterpolate(reg_t dst, AMem src) override;
@@ -78,7 +79,7 @@ class LangBuilderBase : public BuilderBase {
     std::string GetReg(reg_t reg, bool write = false,
                        DataType data_type = DataType::UInt) {
         if (reg == RZ && !write)
-            return fmt::format("0{}", GetTypePrefix(data_type));
+            return GetImmediate(0, data_type);
 
         return fmt::format("r[{}].{}", reg, GetTypePrefix(data_type));
     }
@@ -134,8 +135,66 @@ class LangBuilderBase : public BuilderBase {
         }
     }
 
+    std::string GetMathFunc(MathFunc func) {
+        // TODO: check
+        switch (func) {
+        case MathFunc::Cos:
+            return "cos";
+        case MathFunc::Sin:
+            return "sin";
+        case MathFunc::Ex2:
+            return "exp2";
+        case MathFunc::Lg2:
+            return "log2";
+        case MathFunc::Rcp:
+            return "1.0 / ";
+        case MathFunc::Rsq:
+            return "1.0 / sqrt"; // TODO: isn's there a better way?
+        case MathFunc::Rcp64h:
+            return "TODO"; // TODO
+        case MathFunc::Rsq64h:
+            return "TODO"; // TODO
+        case MathFunc::Sqrt:
+            return "sqrt";
+        default:
+            return INVALID_VALUE;
+        }
+    }
+
+    template <typename T> std::string GetImmediate(const T imm) {
+        if constexpr (std::is_same_v<T, i32>)
+            return fmt::format("0x{:08x}i", imm);
+        if constexpr (std::is_same_v<T, i64>)
+            return fmt::format("0x{:08x}ill", imm);
+        else if constexpr (std::is_same_v<T, u32>)
+            return fmt::format("0x{:08x}u", imm);
+        else if constexpr (std::is_same_v<T, u64>)
+            return fmt::format("0x{:08x}ull", imm);
+        else if constexpr (std::is_same_v<T, f32>)
+            return fmt::format("{:#}f", imm);
+        else if constexpr (std::is_same_v<T, f64>)
+            return fmt::format("{:#}f", imm);
+        else
+            LOG_ERROR(ShaderDecompiler, "Invalid immediate type {}",
+                      typeid(T).name());
+    }
+
+    std::string GetImmediate(const u32 imm, DataType data_type) {
+        switch (data_type) {
+        case DataType::Int:
+            return GetImmediate(bit_cast<i32>(imm));
+        case DataType::UInt:
+            return GetImmediate(imm);
+        case DataType::Float:
+            return GetImmediate(bit_cast<f32>(imm));
+        default:
+            return INVALID_VALUE;
+        }
+    }
+
     // template <typename... T>
-    // std::string GetQualifiedSVName(const SV sv, bool output, WRITE_ARGS) {
+    // std::string GetQualifiedSVName(const SV sv, bool output, WRITE_ARGS)
+    // {
     //     // TODO: support qualifiers before the name as well
     //     return fmt::format("{} {}", FMT, GetSVQualifierName(sv, output));
     // }

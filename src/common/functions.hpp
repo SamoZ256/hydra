@@ -58,6 +58,20 @@ template <typename T> inline T ceil_divide(T dividend, T divisor) {
     return (dividend + divisor - 1) / divisor;
 }
 
+inline constexpr uint64_t str_to_u64(const char* str, size_t idx = 0,
+                                     uint64_t result = 0) {
+    return (str[idx] == '\0' || idx >= 8)
+               ? result
+               : str_to_u64(str, idx + 1,
+                            result |
+                                (static_cast<uint64_t>(str[idx]) << (idx * 8)));
+}
+
+inline std::string u64_to_str(u64 value) {
+    char* str = reinterpret_cast<char*>(&value);
+    return std::string(str, std::min(strlen(str), (usize)8));
+}
+
 template <typename T> void push_unique(std::vector<T>& vec, T value) {
     auto it = std::find_if(vec.begin(), vec.end(),
                            [&](const T v) { return v == value; });

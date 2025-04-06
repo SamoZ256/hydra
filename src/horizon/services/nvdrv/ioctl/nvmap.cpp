@@ -20,6 +20,7 @@ void NvMap::FromId(FromIdData& data, NvResult& result) {
 void NvMap::Alloc(AllocData& data, NvResult& result) {
     HW::TegraX1::GPU::GPU::GetInstance().AllocateMap(data.handle_id, data.addr,
                                                      data.flags == 1);
+    data.alignment = HW::TegraX1::GPU::PAGE_SIZE; // TODO: correct?
 }
 
 void NvMap::Free(FreeData& data, NvResult& result) {

@@ -4,7 +4,7 @@ namespace Hydra::Horizon {
 
 SINGLETON_DEFINE_GET_INSTANCE(StateManager, Horizon, "State manager")
 
-StateManager::StateManager() {
+StateManager::StateManager() : msg_event(new SynchronizationHandle()) {
     SINGLETON_SET_INSTANCE(Horizon, "State manager");
 }
 

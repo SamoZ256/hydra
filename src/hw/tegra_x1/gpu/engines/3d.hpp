@@ -23,8 +23,7 @@ namespace Hydra::HW::TegraX1::GPU::Engines {
 struct RegsInline {
     u32 line_length_in;
     u32 line_count;
-    u32 offset_out_hi;
-    u32 offset_out_lo;
+    Iova offset_out;
     u32 pitch_out;
     u32 dst_block_size;
     u32 dst_width;
@@ -71,10 +70,10 @@ struct TextureImageControl {
     ImageFormatWord format_word;
 
     // 0x04
-    u32 address_lo;
+    u32 addr_lo;
 
     // 0x08
-    u32 address_hi : 16;
+    u32 addr_hi : 16;
     u32 view_layer_base_3_7 : 5;
     u32 hdr_version : 3;
     u32 load_store_hint_maybe : 1;
@@ -143,8 +142,7 @@ struct TextureImageControl {
 };
 
 struct RenderTarget {
-    u32 addr_hi;
-    u32 addr_lo;
+    Iova addr;
     u32 width;
     u32 height;
     ColorSurfaceFormat format;
@@ -269,8 +267,7 @@ union Regs3D {
         u32 padding_0x3f0[0x8];
 
         // 0x3f8 depth target
-        u32 depth_target_addr_hi;
-        u32 depth_target_addr_lo;
+        Iova depth_target_addr;
         DepthSurfaceFormat depth_target_format;
         struct {
             u32 width : 4;
@@ -326,19 +323,21 @@ union Regs3D {
         // 0x4c3
         DepthTestFunc depth_test_func;
 
-        u32 padding_0x4c4[0x99];
+        u32 padding_0x4c4[0x8a];
+
+        // 0x54e
+        bool depth_target_enabled : 32;
+
+        u32 padding_0x54f[0xe];
 
         // 0x55d
-        u32 tex_header_pool_hi;
-        u32 tex_header_pool_lo;
+        Iova tex_header_pool;
         u32 tex_header_pool_max_index;
 
         u32 padding_0x560[0x22];
 
         // 0x582
-        u32 shader_program_region_hi;
-        u32 shader_program_region_lo;
-
+        Iova shader_program_region;
         u32 attribute_default; // TODO: what is this?
 
         u32 end;
@@ -348,9 +347,20 @@ union Regs3D {
             bool instance_ctrl : 1; // TODO: is the name correct?
         } begin;
 
-        u32 padding9[0x9];
+        u32 padding_0x587[0x9];
 
-        u32 padding10[0x90];
+        u32 padding_0x590[0x62];
+
+        // 0x5f2 indexed draws
+        Iova index_buffer_addr;
+        Iova index_buffer_limit_addr;
+
+        IndexType index_type;
+
+        u32 vertex_elements_start;
+        u32 not_a_register_0x5f8;
+
+        u32 padding_0x5f9[0x27];
 
         // 0x620
         struct {
@@ -360,8 +370,7 @@ union Regs3D {
         u32 padding_0x630[0x90];
 
         // 0x6c0 report semaphore
-        u32 report_semaphore_addr_hi;
-        u32 report_semaphore_addr_lo;
+        Iova report_semaphore_addr;
         u32 report_semaphore_payload;
         u32 report_semaphore_todo; // TODO: should this be a reg?
 
@@ -374,12 +383,16 @@ union Regs3D {
                 bool enable : 1;
                 u32 padding : 19;
             } config;
-            u32 addr_hi;
-            u32 addr_lo;
+            Iova addr;
             u32 divisor;
         } vertex_arrays[VERTEX_ARRAY_COUNT];
 
-        u32 padding12[0xc0];
+        u32 padding_0x740[0x80];
+
+        // 0x7c0 vertex array limits
+        Iova vertex_array_limits[VERTEX_ARRAY_COUNT];
+
+        u32 padding_0x7e0[0x20];
 
         // 0x800 shader programs
         struct {
@@ -399,8 +412,7 @@ union Regs3D {
 
         // 0x8e0 constant buffers
         u32 const_buffer_selector_size;
-        u32 const_buffer_selector_hi;
-        u32 const_buffer_selector_lo;
+        Iova const_buffer_selector;
 
         u32 load_const_buffer_offset;
         u32 not_a_register_0x8e4[0x10];
@@ -467,6 +479,7 @@ class ThreeD : public EngineBase {
     void LoadInlineData(const u32 index, const u32 data);
 
     void DrawVertexArray(const u32 index, u32 count);
+    void DrawVertexElements(const u32 index, u32 count);
 
     struct ClearBufferData {
         bool depth : 1;
@@ -487,8 +500,7 @@ class ThreeD : public EngineBase {
     void BindGroup(const u32 index, const u32 data);
 
     // Helpers
-    Renderer::BufferBase* GetVertexBuffer(u32 vertex_array_index,
-                                          u32 max_vertex) const;
+    Renderer::BufferBase* GetVertexBuffer(u32 vertex_array_index) const;
     Renderer::TextureBase* GetTexture(const TextureImageControl& tic) const;
     Renderer::TextureBase* GetColorTargetTexture(u32 render_target_index) const;
     Renderer::TextureBase* GetDepthStencilTargetTexture() const;
@@ -500,6 +512,8 @@ class ThreeD : public EngineBase {
     void ConfigureShaderStage(const ShaderStage stage,
                               const GraphicsDriverCbuf& const_buffer,
                               const TextureImageControl* tex_header_pool);
+
+    void DrawInternal();
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Engines

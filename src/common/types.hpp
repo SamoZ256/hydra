@@ -67,10 +67,16 @@ template <typename T, usize component_count> class vec {
     vec(const std::initializer_list<T>& values) {
         std::copy(values.begin(), values.end(), components.begin());
     }
+    template <typename OtherT, usize other_component_count>
+    vec(const vec<OtherT, other_component_count>& other) {
+        for (usize i = 0; i < component_count; i++) {
+            components[i] = other[i];
+        }
+    }
 
-    T& operator[](int idx) { return components[index]; }
+    T& operator[](i32 index) { return components[index]; }
 
-    T operator[](int idx) const { return components[index]; }
+    const T& operator[](i32 index) const { return components[index]; }
 
     T& x() { return components[0]; }
     T& y() { return components[1]; }
@@ -85,6 +91,26 @@ template <typename T, usize component_count> class vec {
   private:
     std::array<T, component_count> components = {0};
 };
+
+template <typename T, usize component_count>
+vec<T, component_count> operator*(const vec<T, component_count>& l,
+                                  const vec<T, component_count>& r) {
+    vec<T, component_count> result = l;
+    for (usize i = 0; i < component_count; i++)
+        result[i] *= r[i];
+
+    return result;
+}
+
+template <typename T, usize component_count>
+vec<T, component_count> operator/(const vec<T, component_count>& l,
+                                  const vec<T, component_count>& r) {
+    vec<T, component_count> result = l;
+    for (usize i = 0; i < component_count; i++)
+        result[i] /= r[i];
+
+    return result;
+}
 
 using uchar2 = vec<u8, 2>;
 using ushort2 = vec<u16, 2>;
@@ -149,6 +175,50 @@ template <typename T> class readwrite {
   private:
     T value;
 } __attribute__((packed));
+
+template <typename KeyT, typename T, usize fast_cache_size = 4>
+class small_cache {
+  public:
+    T& Find(KeyT key) {
+        // Check fast cache
+        for (auto& entry : fast_cache) {
+            if (entry.key == key) {
+                return entry.value;
+            }
+        }
+
+        // Check slow cache
+        auto it = slow_cache.find(key);
+        if (it != slow_cache.end()) {
+            return it->second;
+        }
+
+        // Not found
+
+        // Attempt to add to fast cache
+        for (auto& entry : fast_cache) {
+            if (entry.key == KeyT{}) {
+                entry.key = key;
+                entry.value = T{};
+                return entry.value;
+            }
+        }
+
+        // Add to slow cache as a fallback
+        slow_cache[key] = T{};
+
+        return slow_cache[key];
+    }
+
+  private:
+    struct FastCacheEntry {
+        KeyT key;
+        T value;
+    };
+
+    std::array<FastCacheEntry, fast_cache_size> fast_cache;
+    std::map<KeyT, T> slow_cache;
+};
 
 class Reader {
   public:
@@ -258,26 +328,25 @@ template <typename SubclassT, typename T, typename DescriptorT>
 class CacheBase {
   public:
     ~CacheBase() {
-        for (const auto& [key, value] : cache) {
+        for (auto& [key, value] : cache) {
             THIS->DestroyElement(value);
         }
 
         THIS->Destroy();
     }
 
-    T Find(const DescriptorT& descriptor) {
+    T& Find(const DescriptorT& descriptor) {
         u64 hash = THIS->Hash(descriptor);
-        auto& element = cache[hash];
-        if (element) { // TODO: make this so that non-pointer types are
-                       // supported
-                       // as well
-            THIS->Update(element);
-            return element;
+        auto it = cache.find(hash);
+        if (it == cache.end()) {
+            it = cache.insert({hash, THIS->Create(descriptor)}).first;
+
+            return it->second;
         }
 
-        element = THIS->Create(descriptor);
+        THIS->Update(it->second);
 
-        return element;
+        return it->second;
     }
 
   private:

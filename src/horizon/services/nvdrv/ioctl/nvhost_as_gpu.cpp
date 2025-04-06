@@ -23,25 +23,24 @@ void NvHostAsGpu::MapBufferEx(MapBufferExData& data, NvResult& result) {
     auto& gpu = HW::TegraX1::GPU::GPU::GetInstance();
 
     if (any(data.flags & MapBufferFlags::Modify)) {
-        LOG_WARNING(
-            HorizonServices,
-            "Address space modifying is not implemented (address: 0x{:08x})",
-            data.offset.Get());
+        LOG_NOT_IMPLEMENTED(HorizonServices,
+                            "Address space modifying (address: 0x{:08x})",
+                            data.offset.Get());
         return;
     }
 
-    const auto& map = gpu.GetMap(data.nvmap_id);
+    const auto& map = gpu.GetMap(data.nvmap_handle_id);
 
     usize size = data.mapping_size;
     if (size == 0x0)
         size = map.size; // TODO: correct?
 
-    uptr gpu_addr = invalid<uptr>();
+    gpu_vaddr addr = invalid<uptr>();
     if (any(data.flags & MapBufferFlags::FixedOffset))
-        gpu_addr = data.offset;
+        addr = data.offset;
 
-    data.offset = gpu.MapBufferToAddressSpace(map.addr + data.buffer_offset,
-                                              size, gpu_addr);
+    data.offset =
+        gpu.MapBufferToAddressSpace(map.addr + data.buffer_offset, size, addr);
     // LOG_DEBUG(HorizonServices, "OFFSET: 0x{:08x}", data.offset.Get());
 }
 

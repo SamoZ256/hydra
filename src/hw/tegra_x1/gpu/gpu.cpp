@@ -103,7 +103,7 @@ Renderer::TextureBase* GPU::GetTexture(const NvGraphicsBuffer& buff) {
         .stride = buff.planes[0].pitch,
     };
 
-    return renderer->GetTextureCache().Find(descriptor);
+    return renderer->GetTextureCache().GetTextureView(descriptor);
 }
 
 } // namespace Hydra::HW::TegraX1::GPU

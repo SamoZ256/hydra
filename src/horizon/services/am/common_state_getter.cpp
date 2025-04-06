@@ -21,10 +21,8 @@ DEFINE_SERVICE_COMMAND_TABLE(ICommonStateGetter, 0, GetEventHandle, 1,
                              GetCurrentFocusState)
 
 void ICommonStateGetter::GetEventHandle(REQUEST_COMMAND_PARAMS) {
-    LOG_FUNC_STUBBED(HorizonServices);
-
-    // HACK
-    writers.writer.Write(invalid<HandleId>());
+    writers.copy_handles_writer.Write(
+        StateManager::GetInstance().GetMsgEvent().id);
 }
 
 void ICommonStateGetter::ReceiveMessage(REQUEST_COMMAND_PARAMS) {

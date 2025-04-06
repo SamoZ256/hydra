@@ -10,16 +10,22 @@ namespace Hydra::HW::TegraX1::GPU::Renderer {
 
 class TextureBase;
 
-class TextureCache
-    : public CacheBase<TextureCache, TextureBase*, TextureDescriptor> {
+struct Tex {
+    TextureBase* base;
+    small_cache<u32, TextureBase*> view_cache;
+};
+
+class TextureCache : public CacheBase<TextureCache, Tex, TextureDescriptor> {
   public:
     void Destroy() {}
 
-    TextureBase* Create(const TextureDescriptor& descriptor);
-    void Update(TextureBase* texture);
+    TextureBase* GetTextureView(const TextureDescriptor& descriptor);
+
+    Tex Create(const TextureDescriptor& descriptor);
+    void Update(Tex& texture);
     u64 Hash(const TextureDescriptor& descriptor);
 
-    void DestroyElement(TextureBase* texture);
+    void DestroyElement(Tex& texture);
 
   private:
     TextureDecoder texture_decoder;

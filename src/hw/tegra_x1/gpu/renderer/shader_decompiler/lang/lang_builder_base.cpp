@@ -205,6 +205,11 @@ void LangBuilderBase::OpShiftLeft(reg_t dst, reg_t src, u32 shift) {
                    GetReg(src, false, DataType::UInt), shift);
 }
 
+void LangBuilderBase::OpMathFunction(MathFunc func, reg_t dst, reg_t src) {
+    WriteStatement("{} = {}({})", GetReg(dst, true, DataType::Float),
+                   GetMathFunc(func), GetReg(src, false, DataType::Float));
+}
+
 void LangBuilderBase::OpLoad(reg_t dst, Operand src) {
     WriteStatement("{} = {}", GetReg(dst, true), GetOperand(src));
 }

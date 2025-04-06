@@ -8,9 +8,12 @@ namespace Hydra::HW::TegraX1::CPU::Hypervisor {
 class PageAllocator;
 
 constexpr usize BLOCK_SHIFT_DIFF = 9;
-constexpr usize ENTRY_COUNT = 1u << BLOCK_SHIFT_DIFF;
+constexpr usize ENTRY_COUNT = 1ull << BLOCK_SHIFT_DIFF;
 
 #define GET_BLOCK_SHIFT(level) (3 + (BLOCK_SHIFT_DIFF * (3 - (level))))
+
+// TODO: correct?
+constexpr usize ADDRESS_SPACE_SIZE = 1ull << GET_BLOCK_SHIFT(-1);
 
 struct PageTableLevel {
     PageTableLevel(u32 level_, const Page page_, const vaddr base_va_);

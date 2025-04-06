@@ -59,13 +59,14 @@ void NROLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
     // Create executable memory
     usize executable_size = reader.GetSize() + header.bss_size;
     uptr base;
-    auto ptr =
-        Kernel::GetInstance().CreateExecutableMemory(executable_size, base);
+    auto ptr = Kernel::GetInstance().CreateExecutableMemory(
+        executable_size, base,
+        MemoryPermission::ReadWriteExecute); // TODO: is the permission correct?
     reader.Seek(0);
     reader.Read(reinterpret_cast<u8*>(ptr), reader.GetSize());
 
     // Set entrypoint
-    Kernel::GetInstance().SetEntryPoint(
+    Kernel::GetInstance().SetMainThreadEntryPoint(
         base + sizeof(NROHeader) +
         header.GetSection(NROSectionType::Text).offset);
 
@@ -109,8 +110,8 @@ void NROLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
 #undef ADD_ENTRY_MANDATORY
 #undef ADD_ENTRY
 
-    Kernel::GetInstance().SetArg(0, base + config_offset);
-    Kernel::GetInstance().SetArg(1, UINT64_MAX);
+    Kernel::GetInstance().SetMainThreadArg(0, base + config_offset);
+    Kernel::GetInstance().SetMainThreadArg(1, UINT64_MAX);
 
     // Filesystem
     Filesystem::Filesystem::GetInstance().AddEntry(

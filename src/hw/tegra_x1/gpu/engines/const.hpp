@@ -2,7 +2,16 @@
 
 #include "hw/tegra_x1/gpu/const.hpp"
 
+#define MAKE_ADDR(addr) make_addr(addr.lo, addr.hi)
+#define UNMAP_ADDR(addr)                                                       \
+    GPU::GetInstance().GetGPUMMU().UnmapAddr(MAKE_ADDR(addr))
+
 namespace Hydra::HW::TegraX1::GPU::Engines {
+
+struct Iova {
+    u32 hi;
+    u32 lo;
+};
 
 enum class PrimitiveType {
     Points,
@@ -27,6 +36,19 @@ enum class IndexType {
     UInt16,
     UInt32,
 };
+
+inline usize get_index_type_size(IndexType type) {
+    switch (type) {
+    case IndexType::UInt8:
+        return sizeof(u8);
+    case IndexType::UInt16:
+        return sizeof(u16);
+    case IndexType::UInt32:
+        return sizeof(u32);
+    default:
+        return 0;
+    }
+}
 
 enum class VertexAttribType : u32 {
     None,
@@ -95,6 +117,22 @@ enum class DepthTestFunc : u32 {
     NotEqual,
     GreaterEqual,
     Always,
+};
+
+// Pitch - buffer, block linear - texture
+enum class MemoryLayout : u32 {
+    BlockLinear,
+    Pitch,
+};
+
+enum class BlockDim : u32 {
+    OneGob,
+    TwoGobs,
+    FourGobs,
+    EightGobs,
+    SixteenGobs,
+    ThirtyTwoGobs,
+    QuarterGob = 14,
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Engines

@@ -12,6 +12,10 @@ class ISettingsServer : public ServiceBase {
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
+    // Commands
+    void GetLanguageCode(REQUEST_COMMAND_PARAMS);
+    void GetAvailableLanguageCodes(REQUEST_COMMAND_PARAMS);
+    void GetAvailableLanguageCodeCount(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Settings
