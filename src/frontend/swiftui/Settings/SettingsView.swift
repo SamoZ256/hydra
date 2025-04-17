@@ -19,7 +19,7 @@ struct SettingsView: View {
                 .tag(Tabs.graphics)
             DebugSettingsView()
                 .tabItem {
-                    Label("Debug", systemImage: "ant")
+                    Label("Debug", systemImage: "memorychip")
                 }
                 .tag(Tabs.debug)
         }
