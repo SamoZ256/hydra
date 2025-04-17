@@ -1,10 +1,10 @@
 import Foundation
 
 enum SidebarSelectionState: Identifiable, CaseIterable, Hashable {
-
+    
     case nowPlaying
     case gamelist
-
+    
     var id: String {
         switch self {
         case .nowPlaying:
@@ -13,7 +13,7 @@ enum SidebarSelectionState: Identifiable, CaseIterable, Hashable {
             "gamelist"
         }
     }
-
+    
     var displayName: String {
         switch self {
         case .nowPlaying:
@@ -22,7 +22,7 @@ enum SidebarSelectionState: Identifiable, CaseIterable, Hashable {
             "Game List"
         }
     }
-
+    
     var iconName: String {
         switch self {
         case .nowPlaying:

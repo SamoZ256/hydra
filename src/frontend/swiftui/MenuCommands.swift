@@ -8,7 +8,7 @@ struct MenuCommands: Commands {
             Button("Boot Game") {
 
             }
-            .keyboardShortcut(KeyEquivalent("b"), modifiers: /*@START_MENU_TOKEN@*/.command/*@END_MENU_TOKEN@*/)
+            .keyboardShortcut(KeyEquivalent("b"), modifiers: .command)
         }
 
         // This is an example of removing menu items, in this case from the help menu
