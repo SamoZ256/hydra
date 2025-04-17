@@ -11,5 +11,9 @@ struct MyApp: App {
         .commands {
             MenuCommands()
         }
+
+        Settings {
+            SettingsView()
+        }
     }
 }
