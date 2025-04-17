@@ -6,7 +6,7 @@ struct ContentView: View {
     var body: some View {
         NavigationSplitView(sidebar: {
             SidebarView(selection: $selection)
-                .frame(minWidth: 200)
+                .frame(minWidth: 180)
         }, detail: {
             DetailView(selection: $selection)
         })
