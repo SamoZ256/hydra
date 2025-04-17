@@ -17,6 +17,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/HydraApp.swift
         swiftui/ContentView.swift
         swiftui/MenuCommands.swift
+        swiftui/ToolbarItems.swift
         swiftui/Settings/GeneralSettingsView.swift
         swiftui/Settings/GraphicsSettingsView.swift
         swiftui/Settings/DebugSettingsView.swift

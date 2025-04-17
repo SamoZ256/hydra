@@ -10,8 +10,8 @@ struct ContentView: View {
         }, detail: {
             DetailView(selection: $selection)
         })
-//        .toolbar {
-//            ToolbarItems()
-//        }
+        .toolbar {
+            ToolbarItems()
+        }
     }
 }
