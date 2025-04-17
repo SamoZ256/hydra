@@ -16,6 +16,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
     set(SOURCE_FILES
         swiftui/HydraApp.swift
         swiftui/ContentView.swift
+        swiftui/MenuCommands.swift
     )
 else ()
     message(FATAL_ERROR "Unknown frontend \"${FRONTEND}\". Valid options are \"SDL3\" and \"SwiftUI\".")
