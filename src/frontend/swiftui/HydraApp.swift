@@ -3,7 +3,7 @@ import SwiftUI
 @main
 struct MyApp: App {
     var body: some Scene {
-        WindowGroup {
+        Window("Hydra", id: "main") {
             ContentView()
                 .frame(minWidth: 1280, minHeight: 720)
         }
