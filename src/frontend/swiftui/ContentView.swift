@@ -13,5 +13,6 @@ struct ContentView: View {
         .toolbar {
             ToolbarItems()
         }
+        .windowToolbarFullScreenVisibility(.onHover)
     }
 }
