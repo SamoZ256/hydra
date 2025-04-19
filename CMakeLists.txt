@@ -8,7 +8,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # TODO: only enable Swift if SwiftUI is enabled
-project(hydra VERSION 1.0 LANGUAGES CXX Swift)
+project(hydra VERSION "0.0.1" LANGUAGES CXX Swift)
+
+# This is used when bundling the app. 
+# TODO: Change the build hash based on github
+set(BUILD_HASH "Hash")
 
 if (NOT CMAKE_BUILD_TYPE)
     message("Build Type not set, defaulting to Debug...")
