@@ -32,7 +32,26 @@ else ()
     message(FATAL_ERROR "Unknown frontend \"${FRONTEND}\". Valid options are \"SDL3\" and \"SwiftUI\".")
 endif ()
 
-add_executable(hydra ${SOURCE_FILES})
+add_executable(hydra MACOSX_BUNDLE ${SOURCE_FILES})
+
+if (MACOS_BUNDLE)
+    set(RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/hydra.icns)
+    target_sources(hydra PRIVATE "${RESOURCE_FILES}")
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        RESOURCE "${RESOURCE_FILES}"
+        MACOSX_BUNDLE_GUI_IDENTIFIER com.github.${PROJECT_NAME}
+        MACOSX_BUNDLE_ICON_FILE "hydra.icns"
+        MACOSX_BUNDLE_INFO_STRING "Hydra"
+        MACOSX_BUNDLE_BUNDLE_VERSION "${BUILD_HASH}"
+        MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
+    )
+    set(MACOSX_MINIMUM_SYSTEM_VERSION "12.0")
+    set(MACOSX_BUNDLE_CATEGORY "public.app-category.games")
+    set(MACOSX_BUNDLE_BUNDLE_NAME "Hydra")
+    set(MACOSX_BUNDLE_COPYRIGHT "Copyright© Hydra Project")
+    set(MACOSX_BUNDLE_SHORT_VERSION_STRING "${EMULATOR_VERSION_MAJOR}.${EMULATOR_VERSION_MINOR}.${EMULATOR_VERSION_PATCH}")
+    
+endif()
 
 target_link_libraries(hydra PRIVATE hydra-common hydra-core ${LINK_LIBS})
 
