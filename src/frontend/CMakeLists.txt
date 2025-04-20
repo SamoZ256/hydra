@@ -10,6 +10,8 @@ if (FRONTEND STREQUAL "SDL3")
 
     find_package(SDL3 CONFIG REQUIRED)
     set(LINK_LIBS SDL3::SDL3)
+    
+    add_executable(hydra ${SOURCE_FILES})
 elseif (FRONTEND STREQUAL "SwiftUI")
     message(STATUS "Using SwiftUI frontend")
 
@@ -28,13 +30,9 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/Sidebar/SidebarSelectionState.swift
         swiftui/Sidebar/SidebarView.swift
     )
-else ()
-    message(FATAL_ERROR "Unknown frontend \"${FRONTEND}\". Valid options are \"SDL3\" and \"SwiftUI\".")
-endif ()
-
-add_executable(hydra MACOSX_BUNDLE ${SOURCE_FILES})
-
-if (FRONTEND STREQUAL "SwiftUI")
+    
+    add_executable(hydra MACOSX_BUNDLE ${SOURCE_FILES})
+    
     set(RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/hydra.icns)
     target_sources(hydra PRIVATE "${RESOURCE_FILES}")
     set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -50,7 +48,9 @@ if (FRONTEND STREQUAL "SwiftUI")
     set(MACOSX_BUNDLE_COPYRIGHT "Copyright© Hydra Project")
     set(MACOSX_BUNDLE_SHORT_VERSION_STRING "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}.${${PROJECT_NAME}_VERSION_PATCH}")
     
-endif()
+else ()
+    message(FATAL_ERROR "Unknown frontend \"${FRONTEND}\". Valid options are \"SDL3\" and \"SwiftUI\".")
+endif ()
 
 target_link_libraries(hydra PRIVATE hydra-common hydra-core ${LINK_LIBS})
 
