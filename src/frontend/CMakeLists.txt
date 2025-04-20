@@ -37,6 +37,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
     target_sources(hydra PRIVATE "${RESOURCE_FILES}")
     set_target_properties(${PROJECT_NAME} PROPERTIES
         RESOURCE "${RESOURCE_FILES}"
+        OUTPUT_NAME "Hydra"
         MACOSX_BUNDLE_GUI_IDENTIFIER com.github.${PROJECT_NAME}
         MACOSX_BUNDLE_ICON_FILE "hydra.icns"
         MACOSX_BUNDLE_BUNDLE_VERSION "${BUILD_HASH}"
