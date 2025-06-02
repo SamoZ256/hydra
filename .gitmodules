@@ -1,3 +1,18 @@
 [submodule "externals/metal-cpp"]
 	path = externals/metal-cpp
 	url = https://github.com/bkaradzic/metal-cpp.git
+[submodule "externals/dynarmic"]
+	path = externals/dynarmic
+	url = https://github.com/SamoZ256/dynarmic.git
+[submodule "externals/toml11"]
+	path = externals/toml11
+	url = https://github.com/ToruNiina/toml11.git
+[submodule "externals/luft"]
+	path = externals/luft
+	url = https://github.com/SamoZ256/luft.git
+[submodule "externals/hatch"]
+	path = externals/hatch
+	url = https://github.com/SamoZ256/hatch.git
+[submodule "externals/cubeb"]
+	path = externals/cubeb
+	url = https://github.com/mozilla/cubeb.git

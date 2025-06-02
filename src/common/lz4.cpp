@@ -1,6 +1,6 @@
 #include "common/lz4.hpp"
 
-namespace Hydra {
+namespace hydra {
 
 namespace {
 
@@ -59,4 +59,4 @@ void decompress_lz4(const u8* src, usize src_size, u8* dst, usize dst_size) {
     } while (cmp_pos < src_size && dec_pos < dst_size);
 }
 
-} // namespace Hydra
+} // namespace hydra

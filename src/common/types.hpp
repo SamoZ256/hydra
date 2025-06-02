@@ -1,42 +1,32 @@
 #pragma once
 
-#include <cstdint>
-#include <fstream>
 #include <map>
-#include <stdint.h>
 #include <string>
 
+#include "common/functions.hpp"
+#include "common/log.hpp"
 #include "common/macros.hpp"
+#include "common/type_aliases.hpp"
 
-namespace Hydra {
-
-using i8 = int8_t;
-using i16 = int16_t;
-using i32 = int32_t;
-using i64 = int64_t;
-using i128 = __int128_t;
-using u8 = uint8_t;
-using u16 = uint16_t;
-using u32 = uint32_t;
-using u64 = uint64_t;
-using u128 = __uint128_t;
-using usize = size_t;
-using uptr = uintptr_t;
-using f32 = float;
-using f64 = double;
-
-using paddr = uptr;
-using vaddr = uptr;
-using gpu_vaddr = uptr;
-using HandleId = u32;
+namespace hydra {
 
 template <typename T> struct range {
   public:
-    T base;
-    usize size;
+    T begin;
+    T end;
 
-    range() : base{0}, size{0} {}
-    range(T base_, usize size_) : base{base_}, size{size_} {}
+    range() : begin{0}, end{0} {}
+    range(T begin_) : begin{begin_}, end{invalid<T>()} {}
+    range(T begin_, T end_) : begin{begin_}, end{end_} {}
+
+    bool operator==(const range& other) const {
+        return begin == other.begin && end == other.end;
+    }
+
+    // Getters
+    T GetBegin() const { return begin; }
+    T GetEnd() const { return end; }
+    T GetSize() const { return end - begin; }
 };
 
 struct sized_ptr {
@@ -56,9 +46,40 @@ struct sized_ptr {
     usize size;
 };
 
+template <typename T> class nullable {
+  public:
+    nullable() : obj{}, is_valid{false} {}
+    nullable(const nullable<T>& other)
+        : obj{other.obj}, is_valid{other.is_valid} {}
+    nullable(const T& obj_) : obj{obj_}, is_valid{true} {}
+    nullable(const T* obj_)
+        : obj{obj_ ? *obj_ : T{}}, is_valid{obj_ != nullptr} {}
+
+    operator bool() const { return is_valid; }
+    operator T() { return obj; }
+    operator T() const { return obj; }
+
+    void operator=(const T& other) {
+        obj = other;
+        is_valid = true;
+    }
+    void operator=(const T* other) {
+        if (other)
+            obj = *other;
+        is_valid = other != nullptr;
+    }
+
+    T* operator->() { return &obj; }
+    const T* operator->() const { return &obj; }
+
+  private:
+    T obj;
+    bool is_valid;
+};
+
 template <typename T, usize component_count> class vec {
   public:
-    vec() {}
+    vec() = default;
     vec(const T& value) {
         for (usize i = 0; i < component_count; i++) {
             components[i] = value;
@@ -133,48 +154,24 @@ using ulong4 = vec<u64, 4>;
 using usize4 = vec<usize, 4>;
 using float4 = vec<float, 4>;
 
-template <typename T> class readonly {
+template <typename T, usize alignment> class aligned {
   public:
-    readonly() {}
-    readonly(const T& value_) : value{value_} {}
-    void operator=(const T&) = delete;
+    static_assert(sizeof(T) <= alignment);
 
-    operator T() const { return value; }
-
-    // Getters
-    const T& Get() const { return value; }
-
-  private:
-    T value;
-} __attribute__((packed));
-
-template <typename T> class writeonly {
-  public:
-    writeonly() {}
-    writeonly(const T& value_) : value{value_} {}
+    aligned() {}
+    aligned(const T& value_) : value{value_} {}
     void operator=(const T& new_value) { value = new_value; }
 
-    // Getters
-    const T& Get() const { return value; }
-
-  private:
-    T value;
-} __attribute__((packed));
-
-template <typename T> class readwrite {
-  public:
-    readwrite() {}
-    readwrite(const T& value_) : value{value_} {}
-    void operator=(const T& new_value) { value = new_value; }
-
-    operator T() const { return value; }
+    operator T&() { return value; }
+    operator const T&() const { return value; }
 
     // Getters
     const T& Get() const { return value; }
 
   private:
     T value;
-} __attribute__((packed));
+    u8 _pad[alignment - sizeof(T)];
+} PACKED;
 
 template <typename KeyT, typename T, usize fast_cache_size = 4>
 class small_cache {
@@ -220,110 +217,6 @@ class small_cache {
     std::map<KeyT, T> slow_cache;
 };
 
-class Reader {
-  public:
-    Reader(u8* base_) : base{base_}, ptr{base_} {}
-
-    u64 Tell() { return static_cast<u64>(ptr - base); }
-
-    void Seek(u64 pos) { ptr = base + pos; }
-
-    template <typename T> T* ReadPtr() {
-        T* result = reinterpret_cast<T*>(ptr);
-        ptr += sizeof(T);
-
-        return result;
-    }
-
-    template <typename T> T Read() { return *ReadPtr<T>(); }
-
-    template <typename T> T* Read(usize count) {
-        T* result = reinterpret_cast<T*>(ptr);
-        ptr += sizeof(T) * count;
-
-        return result;
-    }
-
-    std::string ReadString() {
-        std::string result(reinterpret_cast<char*>(ptr));
-        ptr += result.size();
-
-        return result;
-    }
-
-    // Getters
-    u8* GetBase() const { return base; }
-
-  private:
-    u8* base;
-    u8* ptr;
-};
-
-class Writer {
-  public:
-    Writer(u8* base_) : base{base_}, ptr{base_} {}
-
-    template <typename T> T* Write(const T& value) {
-        T* result = reinterpret_cast<T*>(ptr);
-        *result = value;
-        ptr += sizeof(T);
-
-        return result;
-    }
-
-    template <typename T> T* Write(const T* write_ptr, usize count) {
-        T* result = reinterpret_cast<T*>(ptr);
-        memcpy(result, write_ptr, sizeof(T) * count);
-        ptr += sizeof(T) * count;
-
-        return result;
-    }
-
-    // Getters
-    u8* GetBase() const { return base; }
-
-    usize GetWrittenSize() const { return ptr - base; }
-
-  private:
-    u8* base;
-    u8* ptr;
-};
-
-class FileReader {
-  public:
-    FileReader(std::ifstream& stream_, u64 offset_, usize size_)
-        : stream{stream_}, offset{offset_}, size{size_} {}
-
-    FileReader CreateSubReader(usize new_size) {
-        return FileReader(stream, stream.tellg(), new_size);
-    }
-
-    u64 Tell() { return static_cast<u64>(stream.tellg()) - offset; }
-
-    void Seek(u64 pos) { stream.seekg(offset + pos, std::ios::beg); }
-
-    template <typename T> T Read() {
-        T result;
-        stream.read(reinterpret_cast<char*>(&result), sizeof(T));
-
-        return result;
-    }
-
-    template <typename T> void Read(T* ptr, usize count) {
-        stream.read(reinterpret_cast<char*>(ptr), count * sizeof(T));
-    }
-
-    // Getters
-    u64 GetOffset() const { return offset; }
-
-    usize GetSize() const { return size; }
-
-  private:
-    std::ifstream& stream;
-    u64 offset;
-    usize size;
-};
-
 template <typename SubclassT, typename T, typename DescriptorT>
 class CacheBase {
   public:
@@ -353,4 +246,13 @@ class CacheBase {
     std::map<u64, T> cache;
 };
 
-} // namespace Hydra
+} // namespace hydra
+
+template <typename T>
+struct fmt::formatter<hydra::range<T>> : formatter<string_view> {
+    template <typename FormatContext>
+    auto format(hydra::range<T> range, FormatContext& ctx) const {
+        return formatter<string_view>::format(
+            fmt::format("<{}...{})", range.begin, range.end), ctx);
+    }
+};
