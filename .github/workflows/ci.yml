@@ -1,0 +1,92 @@
+name: macOS
+
+on:
+  workflow_dispatch:
+  push:
+	paths:
+	  - '**'
+	  - '!.github/**'
+	  - '!**.yml'
+	  - '.github/workflows/ci.yml'
+	  - '!**.md'
+
+  pull_request:
+	paths:
+	  - '**'
+	  - '!.github/**'
+	  - '!**.yml'
+	  - '.github/workflows/macos.yml'
+	  - '!**.md'
+
+jobs:
+  macOS:
+	
+	strategy:
+	  fail-fast: false
+	  matrix:
+		include:
+			- suffix: SwiftUI-Release
+			- suffix: SwiftUI-Debug
+			- suffix: SDL-Release
+			- suffix: SDL-Debug
+
+	runs-on: macos-latest
+
+	steps:
+	- name: Checkout Hydra
+	  uses: actions/checkout@v4
+	  with:
+		repository: SamoZ256/hydra
+		submodules: recursive
+		path: hydra
+
+	- name: Install Dependencies
+	  run: brew install boost fmt sdl3
+
+	- name: Verify CMake Version
+	  run: cmake --version
+
+	- name: "Select Xcode 16.2"
+	  run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+	  
+	- name: Verify Xcode Version
+	  run: xcodebuild -version
+
+	- name: Set Build Flags
+	  run: |
+		if [[ ${{ matrix.suffix }} == *'Release'* ]]; then
+		  echo "BUILD_MODE=Release" >> $GITHUB_ENV
+		else 
+		  echo "BUILD_MODE=RelWithDebInfo" >> $GITHUB_ENV
+		fi
+		if [[ ${{ matrix.suffix }} == *'SwiftUI'* ]]; then
+		  echo "BUNDLE_MODE=ON" >> $GITHUB_ENV
+		else 
+		  echo "BUNDLE_MODE=OFF" >> $GITHUB_ENV
+		fi
+
+	- name: Build Hydra
+	  run: |
+		cmake hydra -B build \
+		-DCMAKE_BUILD_TYPE=${{ env.BUILD_MODE }} \
+		-DMACOS_BUNDLE=${{ env.BUNDLE_MODE }} \
+		-GNinja
+		ninja -C build
+		
+	- name: Create Archive
+	  run: |
+		if [[ ${{ matrix.suffix }} == *'SwiftUI'* ]]; then
+		  mv build/bin/Hydra.app Hydra.app
+		  tar cv Hydra.app | gzip -9 > Hydra-${{ matrix.suffix }}.tar.gz
+		else
+		  mkdir Hydra-${{ matrix.suffix }}
+		  mv build/bin/hydra Hydra-${{ matrix.suffix }}/hydra
+		  tar cv Hydra-${{ matrix.suffix }}/hydra | gzip -9 > Hydra-${{ matrix.suffix }}.tar.gz
+		fi
+	
+	- name: Upload Artifacts - ${{ matrix.suffix }}
+	  uses: actions/upload-artifact@v4
+	  with:
+		name: Hydra-${{ matrix.suffix }}
+		path: Hydra-${{ matrix.suffix }}.tar.gz
+		if-no-files-found: error
