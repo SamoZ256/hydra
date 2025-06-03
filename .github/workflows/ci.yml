@@ -76,10 +76,10 @@ jobs:
         ln -s /Applications image/Applications
         if [[ ${{ matrix.suffix }} == *'SwiftUI'* ]]; then
           mv build/bin/Hydra.app image/Hydra.app
-          hdiutil create -volname "Hydra" -srcfolder image/Hydra.app Hydra-${{ matrix.suffix }}
+          hdiutil create -volname "Hydra" -srcfolder image Hydra-${{ matrix.suffix }}
         else
           mv build/bin/Hydra.app image/HydraSDL.app
-          hdiutil create -volname "HydraSDL" -srcfolder image/HydraSDL.app Hydra-${{ matrix.suffix }}
+          hdiutil create -volname "HydraSDL" -srcfolder image Hydra-${{ matrix.suffix }}
         fi
     
     - name: Upload Artifacts - ${{ matrix.suffix }}
