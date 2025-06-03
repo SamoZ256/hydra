@@ -65,10 +65,8 @@ jobs:
         fi
         if [[ ${{ matrix.suffix }} == *'SwiftUI'* ]]; then
           echo "FRONTEND_MODE=SwiftUI" >> $GITHUB_ENV
-          echo "BUNDLE_MODE=ON" >> $GITHUB_ENV
         else
           echo "FRONTEND_MODE=SDL3" >> $GITHUB_ENV
-          echo "BUNDLE_MODE=OFF" >> $GITHUB_ENV
         fi
   
     - name: Build Hydra
@@ -76,24 +74,25 @@ jobs:
         cmake hydra -B build \
         -DCMAKE_BUILD_TYPE=${{ env.BUILD_MODE }} \
         -DFRONTEND=${{ env.FRONTEND_MODE }} \
-        -DMACOS_BUNDLE=${{ env.BUNDLE_MODE }} \
+        -DMACOS_BUNDLE=ON \
         -GNinja
         ninja -C build
       
     - name: Create Archive
       run: |
+        mkdir image
+        ln -s /Applications image/Applications
         if [[ ${{ matrix.suffix }} == *'SwiftUI'* ]]; then
-          mv build/bin/Hydra.app Hydra.app
-          tar cv Hydra.app | gzip -9 > Hydra-${{ matrix.suffix }}.tar.gz
+          mv build/bin/Hydra.app image/Hydra.app
+          hdiutil create -volname "Hydra" -srcfolder image/Hydra.app Hydra-${{ matrix.suffix }}
         else
-          mkdir Hydra-${{ matrix.suffix }}
-          mv build/bin/hydra Hydra-${{ matrix.suffix }}/hydra
-          tar cv Hydra-${{ matrix.suffix }}/hydra | gzip -9 > Hydra-${{ matrix.suffix }}.tar.gz
+          mv build/bin/Hydra.app image/HydraSDL.app
+          hdiutil create -volname "HydraSDL" -srcfolder image/HydraSDL.app Hydra-${{ matrix.suffix }}
         fi
     
     - name: Upload Artifacts - ${{ matrix.suffix }}
       uses: actions/upload-artifact@v4
       with:
         name: Hydra-${{ matrix.suffix }}
-        path: Hydra-${{ matrix.suffix }}.tar.gz
+        path: Hydra-${{ matrix.suffix }}.dmg
         if-no-files-found: error
