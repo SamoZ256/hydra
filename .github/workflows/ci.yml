@@ -53,7 +53,7 @@ jobs:
         if [[ ${{ matrix.suffix }} == *'Release'* ]]; then
           echo "BUILD_MODE=Release" >> $GITHUB_ENV
         else 
-          echo "BUILD_MODE=RelWithDebInfo" >> $GITHUB_ENV
+          echo "BUILD_MODE=Debug" >> $GITHUB_ENV
         fi
         if [[ ${{ matrix.suffix }} == *'SwiftUI'* ]]; then
           echo "FRONTEND_MODE=SwiftUI" >> $GITHUB_ENV
