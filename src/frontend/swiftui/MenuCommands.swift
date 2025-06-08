@@ -13,8 +13,11 @@ struct MenuCommands: Commands {
         }
         */
 
-        // This is an example of removing menu items, in this case from the help menu
+        // This removes/replaces menu items
         CommandGroup(replacing: CommandGroupPlacement.help) {}
+        CommandGroup(replacing: CommandGroupPlacement.pasteboard) {}
+        CommandGroup(replacing: CommandGroupPlacement.systemServices) {}
+        CommandGroup(replacing: CommandGroupPlacement.undoRedo) {}
 
         // Add the show/hide sidebar command and shortcut to the menu
         SidebarCommands()
