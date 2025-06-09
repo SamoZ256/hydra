@@ -7,6 +7,7 @@
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/nro_loader.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
+#include "core/horizon/loader/xci_loader.hpp"
 #include "core/horizon/state_manager.hpp"
 #include "core/hw/tegra_x1/cpu/dynarmic/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
@@ -103,6 +104,8 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
         loader = new horizon::loader::NsoLoader(reader, true);
     } else if (extension == "nca") {
         loader = new horizon::loader::NcaLoader(reader);
+    } else if (extension == "xci") {
+        loader = new horizon::loader::XciLoader(reader);
     } else {
         // TODO: return an error instead
         LOG_FATAL(Other, "Unknown ROM extension \"{}\"", extension);

@@ -49,6 +49,8 @@ add_library(hydra-core
     horizon/loader/pfs0_loader.hpp
     horizon/loader/nca_loader.cpp
     horizon/loader/nca_loader.hpp
+    horizon/loader/xci_loader.cpp
+    horizon/loader/xci_loader.hpp
     horizon/services/const.hpp
     horizon/services/sm/user_interface.cpp
     horizon/services/sm/user_interface.hpp
