@@ -1,28 +1,27 @@
 #pragma once
 
 #include "core/hw/tegra_x1/cpu/hypervisor/const.hpp"
-#include "core/hw/tegra_x1/cpu/thread_base.hpp"
+#include "core/hw/tegra_x1/cpu/thread.hpp"
 
 namespace hydra::horizon {
 class OS;
 }
 
 namespace hydra::hw::tegra_x1::cpu {
-class Memory;
+class IMemory;
 }
 
 namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
-class MMU;
-class CPU;
+class Cpu;
+class Mmu;
 
-class Thread : public ThreadBase {
+class Thread : public IThread {
   public:
-    Thread(MMU* mmu_, MemoryBase* tls_mem) : ThreadBase(tls_mem), mmu{mmu_} {}
+    Thread(IMmu* mmu, const svc_handler_fn_t& svc_handler,
+           const stop_requested_fn_t& stop_requested, IMemory* tls_mem,
+           vaddr_t tls_mem_base, vaddr_t stack_mem_end);
     ~Thread() override;
-
-    void Initialize(const std::function<bool(ThreadBase*, u64)>& svc_handler_,
-                    uptr tls_mem_base, uptr stack_mem_end) override;
 
     void Run() override;
 
@@ -39,7 +38,7 @@ class Thread : public ThreadBase {
     u64 GetFP() override { return GetReg(HV_REG_FP); }
     u64 GetLR() override { return GetReg(HV_REG_LR); }
     u64 GetSP() override { return GetSysReg(HV_SYS_REG_SP_EL0); }
-    u64 GetELR() override { return GetSysReg(HV_SYS_REG_ELR_EL1); }
+    u64 GetElr() override { return GetSysReg(HV_SYS_REG_ELR_EL1); }
 
     void SetupVTimer();
 
@@ -86,10 +85,6 @@ class Thread : public ThreadBase {
     void LogRegisters(bool simd = false, u32 count = 32) override;
 
   private:
-    MMU* mmu;
-
-    std::function<bool(ThreadBase*, u64)> svc_handler;
-
     hv_vcpu_t vcpu;
     hv_vcpu_exit_t* exit;
 

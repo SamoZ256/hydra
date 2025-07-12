@@ -4,15 +4,18 @@
 
 namespace hydra::hw::tegra_x1::cpu {
 
-class MemoryBase {
+class IMemory {
   public:
-    MemoryBase(usize size_) : size{size_} {}
+    IMemory(usize size_) : size{size_} {}
+    virtual ~IMemory() = default;
 
-    // Getters
-    usize GetSize() const { return size; }
+    virtual uptr GetPtr() const = 0;
 
   private:
     usize size;
+
+  public:
+    GETTER(size, GetSize);
 };
 
 } // namespace hydra::hw::tegra_x1::cpu

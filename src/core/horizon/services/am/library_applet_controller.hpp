@@ -25,15 +25,15 @@ class StorageQueue {
 class LibraryAppletController {
   public:
     LibraryAppletController(const LibraryAppletMode mode_)
-        : mode{mode_},
-          state_changed_event(new kernel::Event(
-              kernel::EventFlags::None, "Library applet state changed event")),
-          interactive_in_data_event(
+        : mode{mode_}, state_changed_event{new kernel::Event(
+                           kernel::EventFlags::None,
+                           "Library applet state changed event")},
+          interactive_in_data_event{
               new kernel::Event(kernel::EventFlags::AutoClear,
-                                "Library applet interactive in data event")),
-          interactive_out_data_event(
+                                "Library applet interactive in data event")},
+          interactive_out_data_event{
               new kernel::Event(kernel::EventFlags::None,
-                                "Library applet interactive out data event")) {}
+                                "Library applet interactive out data event")} {}
 
     // Data
 
@@ -50,7 +50,7 @@ class LibraryAppletController {
     // Interactive in
     void PushInteractiveInData(IStorage* data) {
         interactive_in_data.PushData(data);
-        interactive_in_data_event.handle->Signal();
+        interactive_in_data_event->Signal();
     }
 
     IStorage* PopInteractiveInData() { return interactive_in_data.PopData(); }
@@ -58,30 +58,28 @@ class LibraryAppletController {
     // Interactive out
     void PushInteractiveOutData(IStorage* data) {
         interactive_out_data.PushData(data);
-        interactive_out_data_event.handle->Signal();
+        interactive_out_data_event->Signal();
     }
 
     IStorage* PopInteractiveOutData() { return interactive_out_data.PopData(); }
 
     // Events
-    kernel::HandleWithId<kernel::Event>& GetStateChangedEvent() {
-        return state_changed_event;
-    }
+    kernel::Event* GetStateChangedEvent() { return state_changed_event; }
 
-    kernel::HandleWithId<kernel::Event>& GetInteractiveInDataEvent() {
+    kernel::Event* GetInteractiveInDataEvent() {
         return interactive_in_data_event;
     }
 
-    kernel::HandleWithId<kernel::Event>& GetInteractiveOutDataEvent() {
+    kernel::Event* GetInteractiveOutDataEvent() {
         return interactive_out_data_event;
     }
 
   private:
     LibraryAppletMode mode;
 
-    kernel::HandleWithId<kernel::Event> state_changed_event;
-    kernel::HandleWithId<kernel::Event> interactive_in_data_event;
-    kernel::HandleWithId<kernel::Event> interactive_out_data_event;
+    kernel::Event* state_changed_event;
+    kernel::Event* interactive_in_data_event;
+    kernel::Event* interactive_out_data_event;
 
     StorageQueue in_data;
     StorageQueue out_data;

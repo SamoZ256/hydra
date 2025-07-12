@@ -8,8 +8,8 @@ namespace hydra::horizon::display {
 class Display {
   public:
     Display()
-        : vsync_event(new kernel::Event(kernel::EventFlags::AutoClear,
-                                        "V-Sync event")) {}
+        : vsync_event{new kernel::Event(kernel::EventFlags::AutoClear,
+                                        "V-Sync event")} {}
 
     // TODO
     void Open() {}
@@ -34,7 +34,7 @@ class Display {
 
   private:
     std::mutex mutex;
-    kernel::HandleWithId<kernel::Event> vsync_event;
+    kernel::Event* vsync_event;
 
     std::vector<Layer*> layers;
 

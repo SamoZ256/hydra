@@ -1,7 +1,7 @@
 #include "core/horizon/services/am/common_state_getter.hpp"
 
+#include "core/horizon/kernel/process.hpp"
 #include "core/horizon/os.hpp"
-#include "core/horizon/services/const.hpp"
 
 namespace hydra::horizon::services::am {
 
@@ -13,16 +13,19 @@ DEFINE_SERVICE_COMMAND_TABLE(
     SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled)
 
 result_t
-ICommonStateGetter::GetEventHandle(OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = StateManager::GetInstance().GetMsgEvent().id;
+ICommonStateGetter::GetEventHandle(kernel::Process* process,
+                                   OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = process->AddHandle(process->GetAppletState().GetMsgEvent());
     return RESULT_SUCCESS;
 }
 
-result_t ICommonStateGetter::ReceiveMessage(AppletMessage* out_message) {
-    const auto msg = StateManager::GetInstance().ReceiveMessage();
-    if (msg == AppletMessage::None)
+result_t
+ICommonStateGetter::ReceiveMessage(kernel::Process* process,
+                                   kernel::AppletMessage* out_message) {
+    const auto msg = process->GetAppletState().ReceiveMessage();
+    if (msg == kernel::AppletMessage::None)
         return MAKE_RESULT(Am, 0x3);
-    LOG_DEBUG(Services, "MESSAGE: {}", msg);
+    LOG_DEBUG(Services, "Message: {}", msg);
 
     *out_message = msg;
     return RESULT_SUCCESS;
@@ -43,13 +46,15 @@ result_t ICommonStateGetter::GetDefaultDisplayResolution(i32* out_width,
 }
 
 result_t ICommonStateGetter::GetDefaultDisplayResolutionChangeEvent(
-    OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = default_display_resolution_change_event.id;
+    kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = process->AddHandle(default_display_resolution_change_event);
     return RESULT_SUCCESS;
 }
 
-result_t ICommonStateGetter::GetCurrentFocusState(AppletFocusState* out_state) {
-    *out_state = StateManager::GetInstance().GetFocusState();
+result_t
+ICommonStateGetter::GetCurrentFocusState(kernel::Process* process,
+                                         kernel::AppletFocusState* out_state) {
+    *out_state = process->GetAppletState().GetFocusState();
     return RESULT_SUCCESS;
 }
 

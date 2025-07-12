@@ -5,6 +5,8 @@
 
 namespace hydra::horizon::kernel {
 
+class Process;
+
 class Session : public AutoObject {
   public:
     Session(ServiceBase* service_,
@@ -13,7 +15,8 @@ class Session : public AutoObject {
 
     void Close();
     void Request(RequestContext& context);
-    void Control(hipc::Readers& readers, hipc::Writers& writers);
+    void Control(Process* process, hipc::Readers& readers,
+                 hipc::Writers& writers);
     void TipcRequest(RequestContext& context, const u32 command_id);
 
     // Getters

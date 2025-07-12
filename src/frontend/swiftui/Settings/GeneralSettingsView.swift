@@ -61,14 +61,14 @@ struct GeneralSettingsView: View {
     func save() {
         // TODO: simplify this?
         let gamePathsOption = hydra_config_get_game_paths()
-        hydra_string_array_option_resize(gamePathsOption, self.gamePaths.count)
+        hydra_string_array_option_resize(gamePathsOption, UInt64(self.gamePaths.count))
         for i in 0..<self.gamePaths.count {
             hydra_string_array_option_set(
                 gamePathsOption, UInt32(i), self.gamePaths[i].cString(using: .ascii))
         }
 
         let patchPathsOption = hydra_config_get_patch_paths()
-        hydra_string_array_option_resize(patchPathsOption, self.patchPaths.count)
+        hydra_string_array_option_resize(patchPathsOption, UInt64(self.patchPaths.count))
         for i in 0..<self.patchPaths.count {
             hydra_string_array_option_set(
                 patchPathsOption, UInt32(i), self.patchPaths[i].cString(using: .ascii))

@@ -15,20 +15,19 @@ enum class EventId {
 
 }
 
-NvResult NvHostGpu::QueryEvent(u32 event_id_u32, handle_id_t& out_handle_id) {
+NvResult NvHostGpu::QueryEvent(u32 event_id_u32, kernel::Event*& out_event) {
     auto event_id = static_cast<EventId>(event_id_u32);
     switch (event_id) {
     case EventId::SmExceptionBptIntReport:
-        out_handle_id = sm_exception_bpt_int_report_event.id;
+        out_event = sm_exception_bpt_int_report_event;
         break;
     case EventId::SmExceptionBptPauseReport:
-        out_handle_id = sm_exception_bpt_pause_report_event.id;
+        out_event = sm_exception_bpt_pause_report_event;
         break;
     case EventId::ErrorNotifierEvent:
-        out_handle_id = error_notifier_event.id;
+        out_event = error_notifier_event;
         break;
     default:
-        out_handle_id = INVALID_HANDLE_ID;
         return NvResult::NotSupported;
     }
 

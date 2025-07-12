@@ -17,7 +17,7 @@ void AppletBase::Start() {
     thread = new std::thread([&]() {
         DEBUGGER_INSTANCE.RegisterThisThread("Applet");
         result = Run();
-        controller.GetStateChangedEvent().handle->Signal();
+        controller.GetStateChangedEvent()->Signal();
         DEBUGGER_INSTANCE.UnregisterThisThread();
     });
 }

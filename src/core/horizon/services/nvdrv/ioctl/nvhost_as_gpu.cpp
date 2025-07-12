@@ -1,5 +1,6 @@
 #include "core/horizon/services/nvdrv/ioctl/nvhost_as_gpu.hpp"
 
+#include "core/horizon/kernel/process.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 
 namespace hydra::horizon::services::nvdrv::ioctl {
@@ -38,7 +39,8 @@ NvResult NvHostAsGpu::UnmapBuffer(gpu_vaddr_t addr) {
     return NvResult::Success;
 }
 
-NvResult NvHostAsGpu::MapBufferEX(MapBufferFlags flags,
+NvResult NvHostAsGpu::MapBufferEX(kernel::Process* process,
+                                  MapBufferFlags flags,
                                   hw::tegra_x1::gpu::NvKind kind,
                                   handle_id_t nvmap_handle_id, u32 reserved,
                                   u64 buffer_offset, u64 mapping_size,
@@ -46,7 +48,7 @@ NvResult NvHostAsGpu::MapBufferEX(MapBufferFlags flags,
     if (any(flags & MapBufferFlags::Modify)) {
         LOG_NOT_IMPLEMENTED(
             Services,
-            "Address space modifying (GPU addr: 0x{:08x}, size: 0x{:08x})",
+            "Address space modifying (Gpu addr: 0x{:08x}, size: 0x{:08x})",
             *inout_addr.data, mapping_size);
         return NvResult::Success;
     }
@@ -61,8 +63,8 @@ NvResult NvHostAsGpu::MapBufferEX(MapBufferFlags flags,
     if (any(flags & MapBufferFlags::FixedOffset))
         addr = inout_addr;
 
-    inout_addr = GPU_INSTANCE.MapBufferToAddressSpace(map.addr + buffer_offset,
-                                                      size, addr);
+    inout_addr = GPU_INSTANCE.MapBufferToAddressSpace(
+        process->GetMmu()->UnmapAddr(map.addr + buffer_offset), size, addr);
     return NvResult::Success;
 }
 

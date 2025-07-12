@@ -1,18 +1,16 @@
-#include "core/hw/tegra_x1/cpu/thread_base.hpp"
+#include "core/hw/tegra_x1/cpu/thread.hpp"
 
-#include "core/hw/tegra_x1/cpu/mmu_base.hpp"
+#include "core/hw/tegra_x1/cpu/mmu.hpp"
 
 namespace hydra::hw::tegra_x1::cpu {
 
-void ThreadBase::GetStackTrace(stack_frame_callback_fn_t callback) {
-    auto& mmu = MMUBase::GetInstance();
-
+void IThread::GetStackTrace(stack_frame_callback_fn_t callback) {
     u64 fp = GetFP();
     u64 lr = GetLR();
     u64 sp = GetSP();
 
     callback(GetPC());
-    callback(GetELR());
+    callback(GetElr());
 
     for (uint64_t frame = 0; fp != 0; frame++) {
         callback(lr - 0x4);
@@ -23,12 +21,12 @@ void ThreadBase::GetStackTrace(stack_frame_callback_fn_t callback) {
 
         // HACK
         // if (fp < 0x10000000 || fp >= 0x20000000) {
-        //    LOG_WARN(CPU, "Currputed stack");
+        //    LOG_WARN(Mmu, "Currputed stack");
         //    break;
         //}
 
-        u64 new_fp = mmu.Load<u64>(fp);
-        lr = mmu.Load<u64>(fp + 8);
+        u64 new_fp = mmu->Load<u64>(fp);
+        lr = mmu->Load<u64>(fp + 8);
 
         fp = new_fp;
     }

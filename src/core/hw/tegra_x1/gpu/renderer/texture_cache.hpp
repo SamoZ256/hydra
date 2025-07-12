@@ -3,7 +3,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/texture_decoder.hpp"
 
 namespace hydra::hw::tegra_x1::cpu {
-class MMUBase;
+class IMmu;
 }
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
@@ -27,7 +27,7 @@ struct TextureMem {
     void MarkModified() { last_modified = {get_absolute_time()}; }
 };
 
-// TODO: track GPU modifications as well?
+// TODO: track Gpu modifications as well?
 class TextureCache {
   public:
     ~TextureCache();

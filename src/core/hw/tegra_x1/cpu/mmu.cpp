@@ -1,14 +1,8 @@
-#include "core/hw/tegra_x1/cpu/mmu_base.hpp"
+#include "core/hw/tegra_x1/cpu/mmu.hpp"
 
 namespace hydra::hw::tegra_x1::cpu {
 
-SINGLETON_DEFINE_GET_INSTANCE(MMUBase, MMU)
-
-MMUBase::MMUBase() { SINGLETON_SET_INSTANCE(MMU, MMU); }
-
-MMUBase::~MMUBase() { SINGLETON_UNSET_INSTANCE(); }
-
-horizon::kernel::MemoryInfo MMUBase::QueryMemory(vaddr_t va) const {
+horizon::kernel::MemoryInfo IMmu::QueryMemory(vaddr_t va) const {
     horizon::kernel::MemoryInfo info;
     info.size = 0x0;
 

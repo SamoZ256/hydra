@@ -1,6 +1,6 @@
 #include "core/horizon/services/hosbinder/hos_binder_driver.hpp"
 
-#include "core/horizon/kernel/kernel.hpp"
+#include "core/horizon/kernel/process.hpp"
 #include "core/horizon/os.hpp"
 #include "core/horizon/services/hosbinder/parcel.hpp"
 #include "core/hw/tegra_x1/gpu/const.hpp"
@@ -103,10 +103,11 @@ result_t IHOSBinderDriver::AdjustRefcount(i32 binder_id, i32 add_value,
 }
 
 result_t
-IHOSBinderDriver::GetNativeHandle(i32 binder_id, u32 code,
+IHOSBinderDriver::GetNativeHandle(kernel::Process* process, i32 binder_id,
+                                  u32 code,
                                   OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle =
-        OS::GetInstance().GetDisplayDriver().GetBinder(binder_id).GetEvent().id;
+    out_handle = process->AddHandle(
+        OS::GetInstance().GetDisplayDriver().GetBinder(binder_id).GetEvent());
     return RESULT_SUCCESS;
 }
 

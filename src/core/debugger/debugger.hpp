@@ -3,7 +3,7 @@
 #define DEBUGGER_INSTANCE debugger::Debugger::GetInstance()
 
 namespace hydra::hw::tegra_x1::cpu {
-class ThreadBase;
+class IThread;
 }
 
 namespace hydra::debugger {
@@ -45,7 +45,7 @@ class Thread {
 
   public:
     Thread(const std::string_view name_,
-           hw::tegra_x1::cpu::ThreadBase* guest_thread_ = nullptr);
+           hw::tegra_x1::cpu::IThread* guest_thread_ = nullptr);
 
     // API
     void Lock() { msg_mutex.lock(); }
@@ -61,7 +61,7 @@ class Thread {
 
   private:
     std::string name;
-    hw::tegra_x1::cpu::ThreadBase* guest_thread;
+    hw::tegra_x1::cpu::IThread* guest_thread;
 
     ThreadStatus status{ThreadStatus::Running};
     std::string break_reason;
@@ -114,9 +114,8 @@ class Debugger {
     void Enable();
     void Disable();
 
-    void
-    RegisterThisThread(const std::string_view name,
-                       hw::tegra_x1::cpu::ThreadBase* guest_thread = nullptr);
+    void RegisterThisThread(const std::string_view name,
+                            hw::tegra_x1::cpu::IThread* guest_thread = nullptr);
     void UnregisterThisThread();
 
     void BreakOnThisThread(const std::string_view reason);

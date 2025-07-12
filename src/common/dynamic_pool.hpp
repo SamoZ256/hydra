@@ -42,7 +42,6 @@ class DynamicPool {
                free_slots.end();
     }
 
-    // Getters
     T Get(u32 index) const {
         AssertIndex(index);
         return objects[index];
@@ -52,6 +51,8 @@ class DynamicPool {
         AssertIndex(index);
         return objects[index];
     }
+
+    usize GetCapacity() const { return objects.size(); }
 
   private:
     std::vector<T> objects;

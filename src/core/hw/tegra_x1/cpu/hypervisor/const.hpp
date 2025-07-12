@@ -8,7 +8,19 @@ namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 constexpr usize APPLE_PAGE_SIZE = 0x4000;
 
-#define HV_ASSERT_SUCCESS(ret) assert((hv_return_t)(ret) == HV_SUCCESS)
+constexpr u64 PAGE_TABLE_RESERVED_SIZE = 0x01000000;
+constexpr paddr_t KERNEL_PAGE_TABLE_REGION_BASE = 0x100000000;
+constexpr paddr_t USER_PAGE_TABLE_REGION_BASE =
+    KERNEL_PAGE_TABLE_REGION_BASE + PAGE_TABLE_RESERVED_SIZE;
+
+constexpr uptr EXCEPTION_TRAMPOLINE_OFFSET = 0x800;
+
+#define HV_ASSERT_SUCCESS(ret)                                                 \
+    {                                                                          \
+        auto res = hv_return_t(ret);                                           \
+        ASSERT(res == HV_SUCCESS, Hypervisor, #ret " failed: 0x{:x}",          \
+               u64(res));                                                      \
+    }
 
 // From Ryujinx
 enum class ApFlags : u64 {

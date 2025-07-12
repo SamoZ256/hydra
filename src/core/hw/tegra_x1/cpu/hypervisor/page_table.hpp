@@ -45,16 +45,12 @@ struct PageTableLevel {
 
     PageTableLevel& GetNext(PageAllocator& allocator, u32 index);
 
-    // Getters
-    u32 GetLevel() const { return level; }
-
     u32 GetBlockShift() const { return GET_BLOCK_SHIFT(level); }
 
     const horizon::kernel::MemoryState GetLevelState(u32 index) const {
         return level_states[index];
     }
 
-    // Setters
     void SetLevelState(u32 index, const horizon::kernel::MemoryState state) {
         level_states[index] = state;
     }
@@ -65,6 +61,9 @@ struct PageTableLevel {
     const vaddr_t base_va;
     PageTableLevel* next_levels[ENTRY_COUNT] = {nullptr};
     horizon::kernel::MemoryState level_states[ENTRY_COUNT] = {};
+
+  public:
+    GETTER(level, GetLevel);
 };
 
 struct PageRegion {
@@ -88,7 +87,6 @@ class PageTable {
     PageRegion QueryRegion(vaddr_t va) const;
     paddr_t UnmapAddr(vaddr_t va) const;
 
-    // Getters
     paddr_t GetBase() const { return allocator.GetBase(); }
 
   private:

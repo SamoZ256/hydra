@@ -11,7 +11,17 @@ class HandlePool {
                   "Type does not inherit from AutoObject");
 
   public:
+    ~HandlePool() { CleanUp(); }
+
+    void CleanUp() {
+        for (u32 i = 0; i < pool.GetCapacity(); i++) {
+            if (!pool.IsFree(i))
+                pool.Get(i)->Release(); // Decrement ref count
+        }
+    }
+
     handle_id_t Add(T* handle) {
+        handle->Retain(); // Increment ref count
         u32 index = pool.AllocateForIndex();
         pool.GetRef(index) = handle;
         return IndexToHandleID(index);
@@ -19,9 +29,8 @@ class HandlePool {
 
     void Free(handle_id_t handle_id) {
         u32 index = HandleIdToIndex(handle_id);
-        // TODO: should deallocation be enforced?
-        if (pool.Get(index)->Release())
-            pool.Free(index);
+        pool.Get(index)->Release(); // Decrement ref count
+        pool.Free(index);
     }
 
     T* Get(handle_id_t handle_id) const {

@@ -5,57 +5,20 @@
 #include "core/horizon/kernel/process.hpp"
 #include "core/horizon/kernel/session.hpp"
 #include "core/horizon/kernel/thread.hpp"
-#include "core/hw/tegra_x1/cpu/cpu_base.hpp"
-#include "core/hw/tegra_x1/cpu/mmu_base.hpp"
-#include "core/hw/tegra_x1/cpu/thread_base.hpp"
+#include "core/hw/tegra_x1/cpu/cpu.hpp"
+#include "core/hw/tegra_x1/cpu/mmu.hpp"
+#include "core/hw/tegra_x1/cpu/thread.hpp"
 
 namespace hydra::horizon::kernel {
 
 SINGLETON_DEFINE_GET_INSTANCE(Kernel, Kernel)
 
-Kernel::Kernel(hw::tegra_x1::cpu::MMUBase* mmu_) : mmu{mmu_} {
-    SINGLETON_SET_INSTANCE(Kernel, Kernel);
-}
+Kernel::Kernel() { SINGLETON_SET_INSTANCE(Kernel, Kernel); }
 
-Kernel::~Kernel() {
-    // TODO: also unmap
-    mmu->FreeMemory(heap_mem);
-    for (auto mem : executable_mems)
-        mmu->FreeMemory(mem);
+Kernel::~Kernel() { SINGLETON_UNSET_INSTANCE(); }
 
-    SINGLETON_UNSET_INSTANCE();
-}
-
-uptr Kernel::CreateMemory(usize size, MemoryType type, MemoryPermission perm,
-                          bool add_guard_page, vaddr_t& out_base) {
-    size = align(size, hw::tegra_x1::cpu::GUEST_PAGE_SIZE);
-    auto mem = mmu->AllocateMemory(size);
-    mmu->Map(mem_base, mem, {type, MemoryAttribute::None, perm});
-    executable_mems.push_back(mem);
-
-    out_base = mem_base;
-    if (add_guard_page)
-        size += hw::tegra_x1::cpu::GUEST_PAGE_SIZE; // One guard page
-    mem_base += size;
-
-    return mmu->GetMemoryPtr(mem);
-}
-
-uptr Kernel::CreateExecutableMemory(const std::string_view module_name,
-                                    usize size, MemoryPermission perm,
-                                    bool add_guard_page, vaddr_t& out_base) {
-    // TODO: use MemoryType::Static
-    auto ptr = CreateMemory(size, static_cast<MemoryType>(3), perm,
-                            add_guard_page, out_base);
-    DEBUGGER_INSTANCE.GetModuleTable().RegisterSymbol(
-        {std::string(module_name), range<vaddr_t>(out_base, out_base + size)});
-
-    return ptr;
-}
-
-bool Kernel::SupervisorCall(Thread* thread,
-                            hw::tegra_x1::cpu::ThreadBase* guest_thread,
-                            u64 id) {
+void Kernel::SupervisorCall(Process* process, Thread* thread,
+                            hw::tegra_x1::cpu::IThread* guest_thread, u64 id) {
     result_t res;
     i32 tmp_i32;
     u32 tmp_u32;
@@ -64,7 +27,7 @@ bool Kernel::SupervisorCall(Thread* thread,
     handle_id_t tmp_handle_id;
     switch (id) {
     case 0x1:
-        res = svcSetHeapSize(guest_thread->GetRegX(1), tmp_uptr);
+        res = svcSetHeapSize(process, guest_thread->GetRegX(1), tmp_uptr);
         guest_thread->SetRegW(0, res);
         guest_thread->SetRegX(1, tmp_uptr);
         break;
@@ -81,30 +44,31 @@ bool Kernel::SupervisorCall(Thread* thread,
         guest_thread->SetRegW(0, res);
         break;
     case 0x4:
-        res = svcMapMemory(guest_thread->GetRegX(0), guest_thread->GetRegX(1),
-                           guest_thread->GetRegX(2));
+        res = svcMapMemory(process, guest_thread->GetRegX(0),
+                           guest_thread->GetRegX(1), guest_thread->GetRegX(2));
         guest_thread->SetRegW(0, res);
         break;
     case 0x5:
-        res = svcUnmapMemory(guest_thread->GetRegX(0), guest_thread->GetRegX(1),
-                             guest_thread->GetRegX(2));
+        res =
+            svcUnmapMemory(process, guest_thread->GetRegX(0),
+                           guest_thread->GetRegX(1), guest_thread->GetRegX(2));
         guest_thread->SetRegW(0, res);
         break;
     case 0x6:
-        res = svcQueryMemory(guest_thread->GetRegX(2),
-                             *reinterpret_cast<MemoryInfo*>(
-                                 mmu->UnmapAddr(guest_thread->GetRegX(0))),
-                             tmp_u32);
+        res = svcQueryMemory(
+            process, guest_thread->GetRegX(2),
+            *reinterpret_cast<MemoryInfo*>(
+                process->GetMmu()->UnmapAddr(guest_thread->GetRegX(0))),
+            tmp_u32);
         guest_thread->SetRegW(0, res);
         guest_thread->SetRegX(1, tmp_u32);
         break;
     case 0x7:
-        svcExitProcess();
-        // TODO: exit all threads?
-        return false;
+        svcExitProcess(process);
+        break;
     case 0x8:
         res = svcCreateThread(
-            guest_thread->GetRegX(1), guest_thread->GetRegX(2),
+            process, guest_thread->GetRegX(1), guest_thread->GetRegX(2),
             guest_thread->GetRegX(3),
             std::bit_cast<i32>(guest_thread->GetRegW(4)),
             std::bit_cast<i32>(guest_thread->GetRegW(5)), tmp_handle_id);
@@ -112,33 +76,34 @@ bool Kernel::SupervisorCall(Thread* thread,
         guest_thread->SetRegX(1, tmp_handle_id);
         break;
     case 0x9:
-        res = svcStartThread(guest_thread->GetRegW(0));
+        res = svcStartThread(process, guest_thread->GetRegW(0));
         guest_thread->SetRegW(0, res);
         break;
     case 0xa:
         svcExitThread(thread);
-        return false;
+        break;
     case 0xb:
         svcSleepThread(std::bit_cast<i64>(guest_thread->GetRegX(0)));
         break;
     case 0xc:
-        res = svcGetThreadPriority(guest_thread->GetRegX(1), tmp_i32);
+        res = svcGetThreadPriority(process, guest_thread->GetRegX(1), tmp_i32);
         guest_thread->SetRegW(0, res);
         guest_thread->SetRegW(1, std::bit_cast<u32>(tmp_i32));
         break;
     case 0xd:
-        res = svcSetThreadPriority(guest_thread->GetRegX(0),
+        res = svcSetThreadPriority(process, guest_thread->GetRegX(0),
                                    guest_thread->GetRegX(1));
         guest_thread->SetRegW(0, res);
         break;
     case 0xe:
-        res = svcGetThreadCoreMask(guest_thread->GetRegW(2), tmp_i32, tmp_u64);
+        res = svcGetThreadCoreMask(process, guest_thread->GetRegW(2), tmp_i32,
+                                   tmp_u64);
         guest_thread->SetRegW(0, res);
         guest_thread->SetRegW(1, tmp_i32);
         guest_thread->SetRegW(2, tmp_u64);
         break;
     case 0xf:
-        res = svcSetThreadCoreMask(guest_thread->GetRegW(0),
+        res = svcSetThreadCoreMask(process, guest_thread->GetRegW(0),
                                    std::bit_cast<i32>(guest_thread->GetRegW(1)),
                                    guest_thread->GetRegX(2));
         guest_thread->SetRegW(0, res);
@@ -148,68 +113,69 @@ bool Kernel::SupervisorCall(Thread* thread,
         guest_thread->SetRegW(0, tmp_u32);
         break;
     case 0x11:
-        res = svcSignalEvent(guest_thread->GetRegW(0));
+        res = svcSignalEvent(process, guest_thread->GetRegW(0));
         guest_thread->SetRegW(0, res);
         break;
     case 0x12:
-        res = svcClearEvent(guest_thread->GetRegW(0));
+        res = svcClearEvent(process, guest_thread->GetRegW(0));
         guest_thread->SetRegW(0, res);
         break;
     case 0x13:
         res = svcMapSharedMemory(
-            guest_thread->GetRegX(0), guest_thread->GetRegX(1),
+            process, guest_thread->GetRegX(0), guest_thread->GetRegX(1),
             guest_thread->GetRegX(2),
             static_cast<MemoryPermission>(guest_thread->GetRegX(3)));
         guest_thread->SetRegW(0, res);
         break;
     case 0x14:
-        res = svcUnmapSharedMemory(guest_thread->GetRegX(0),
+        res = svcUnmapSharedMemory(process, guest_thread->GetRegX(0),
                                    guest_thread->GetRegX(1),
                                    guest_thread->GetRegX(2));
         guest_thread->SetRegW(0, res);
         break;
     case 0x15:
         res = svcCreateTransferMemory(
-            guest_thread->GetRegX(1), guest_thread->GetRegX(2),
+            process, guest_thread->GetRegX(1), guest_thread->GetRegX(2),
             static_cast<MemoryPermission>(guest_thread->GetRegX(3)),
             tmp_handle_id);
         guest_thread->SetRegW(0, res);
         guest_thread->SetRegX(1, tmp_handle_id);
         break;
     case 0x16:
-        res = svcCloseHandle(guest_thread->GetRegX(0));
+        res = svcCloseHandle(process, guest_thread->GetRegX(0));
         guest_thread->SetRegW(0, res);
         break;
     case 0x17:
-        res = svcResetSignal(guest_thread->GetRegX(0));
+        res = svcResetSignal(process, guest_thread->GetRegX(0));
         guest_thread->SetRegW(0, res);
         break;
     case 0x18:
         res = svcWaitSynchronization(
+            process,
             reinterpret_cast<handle_id_t*>(
-                mmu->UnmapAddr(guest_thread->GetRegX(1))),
+                process->GetMmu()->UnmapAddr(guest_thread->GetRegX(1))),
             std::bit_cast<i64>(guest_thread->GetRegX(2)),
             std::bit_cast<i64>(guest_thread->GetRegX(3)), tmp_u64);
         guest_thread->SetRegW(0, res);
         guest_thread->SetRegX(1, tmp_u64);
         break;
     case 0x19:
-        res = svcCancelSynchronization(guest_thread->GetRegW(0));
+        res = svcCancelSynchronization(process, guest_thread->GetRegW(0));
         guest_thread->SetRegW(0, res);
         break;
     case 0x1a:
-        res =
-            svcArbitrateLock(guest_thread->GetRegX(0), guest_thread->GetRegX(1),
-                             guest_thread->GetRegX(2));
+        res = svcArbitrateLock(process, guest_thread->GetRegX(0),
+                               guest_thread->GetRegX(1),
+                               guest_thread->GetRegX(2));
         guest_thread->SetRegW(0, res);
         break;
     case 0x1b:
-        res = svcArbitrateUnlock(guest_thread->GetRegX(0));
+        res = svcArbitrateUnlock(process, guest_thread->GetRegX(0));
         guest_thread->SetRegW(0, res);
         break;
     case 0x1c:
         res = svcWaitProcessWideKeyAtomic(
-            guest_thread->GetRegX(0), guest_thread->GetRegX(1),
+            process, guest_thread->GetRegX(0), guest_thread->GetRegX(1),
             guest_thread->GetRegX(2),
             std::bit_cast<i64>(guest_thread->GetRegX(3)));
         guest_thread->SetRegW(0, res);
@@ -224,64 +190,67 @@ bool Kernel::SupervisorCall(Thread* thread,
         guest_thread->SetRegX(0, tmp_u64);
         break;
     case 0x1f:
-        res =
-            svcConnectToNamedPort(reinterpret_cast<const char*>(
-                                      mmu->UnmapAddr(guest_thread->GetRegX(1))),
-                                  tmp_handle_id);
+        res = svcConnectToNamedPort(
+            process,
+            reinterpret_cast<const char*>(
+                process->GetMmu()->UnmapAddr(guest_thread->GetRegX(1))),
+            tmp_handle_id);
         guest_thread->SetRegW(0, res);
         guest_thread->SetRegX(1, tmp_handle_id);
         break;
     case 0x21:
-        res = svcSendSyncRequest(guest_thread->GetTlsMemory(),
+        res = svcSendSyncRequest(process, guest_thread->GetTlsMemory(),
                                  guest_thread->GetRegX(0));
         guest_thread->SetRegW(0, res);
         break;
     case 0x25:
-        res = svcGetThreadId(static_cast<handle_id_t>(guest_thread->GetRegX(1)),
+        res = svcGetThreadId(process,
+                             static_cast<handle_id_t>(guest_thread->GetRegX(1)),
                              tmp_u64);
         guest_thread->SetRegW(0, res);
         guest_thread->SetRegX(1, tmp_u64);
         break;
     case 0x26:
         res = svcBreak(BreakReason(guest_thread->GetRegX(0)),
-                       mmu->UnmapAddr(guest_thread->GetRegX(1)),
+                       process->GetMmu()->UnmapAddr(guest_thread->GetRegX(1)),
                        guest_thread->GetRegX(2));
         guest_thread->SetRegW(0, res);
         break;
     case 0x27:
-        res = svcOutputDebugString(reinterpret_cast<const char*>(mmu->UnmapAddr(
-                                       guest_thread->GetRegX(0))),
-                                   guest_thread->GetRegX(1));
+        res = svcOutputDebugString(
+            reinterpret_cast<const char*>(
+                process->GetMmu()->UnmapAddr(guest_thread->GetRegX(0))),
+            guest_thread->GetRegX(1));
         guest_thread->SetRegW(0, res);
         break;
     case 0x29:
-        res = svcGetInfo(static_cast<InfoType>(guest_thread->GetRegX(1)),
-                         guest_thread->GetRegX(2), guest_thread->GetRegX(3),
-                         tmp_u64);
+        res = svcGetInfo(
+            process, static_cast<InfoType>(guest_thread->GetRegX(1)),
+            guest_thread->GetRegX(2), guest_thread->GetRegX(3), tmp_u64);
         guest_thread->SetRegW(0, res);
         guest_thread->SetRegX(1, tmp_u64);
         break;
     case 0x2c:
-        res = svcMapPhysicalMemory(guest_thread->GetRegX(0),
+        res = svcMapPhysicalMemory(process, guest_thread->GetRegX(0),
                                    guest_thread->GetRegX(1));
         guest_thread->SetRegW(0, res);
         break;
     case 0x32:
         res = svcSetThreadActivity(
-            guest_thread->GetRegW(0),
+            process, guest_thread->GetRegW(0),
             static_cast<ThreadActivity>(guest_thread->GetRegW(1)));
         guest_thread->SetRegW(0, res);
         break;
     case 0x33:
-        res =
-            svcGetThreadContext3(guest_thread->GetRegW(1),
-                                 *reinterpret_cast<ThreadContext*>(
-                                     mmu->UnmapAddr(guest_thread->GetRegX(0))));
+        res = svcGetThreadContext3(
+            process, guest_thread->GetRegW(1),
+            *reinterpret_cast<ThreadContext*>(
+                process->GetMmu()->UnmapAddr(guest_thread->GetRegX(0))));
         guest_thread->SetRegW(0, res);
         break;
     case 0x34:
         res = svcWaitForAddress(
-            mmu->UnmapAddr(guest_thread->GetRegX(0)),
+            process, process->GetMmu()->UnmapAddr(guest_thread->GetRegX(0)),
             static_cast<ArbitrationType>(guest_thread->GetRegW(1)),
             guest_thread->GetRegW(2), guest_thread->GetRegX(3));
         guest_thread->SetRegW(0, res);
@@ -292,24 +261,23 @@ bool Kernel::SupervisorCall(Thread* thread,
         guest_thread->SetRegW(0, res);
         break;
     }
-
-    return true;
 }
 
-result_t Kernel::svcSetHeapSize(usize size, uptr& out_base) {
+result_t Kernel::svcSetHeapSize(Process* process, usize size, uptr& out_base) {
     LOG_DEBUG(Kernel, "svcSetHeapSize called (size: 0x{:08x})", size);
 
     if ((size % HEAP_MEM_ALIGNMENT) != 0)
         return MAKE_RESULT(Svc, Error::InvalidSize); // TODO: correct?
 
     // TODO: handle this more cleanly?
+    auto& heap_mem = process->GetHeapMemory();
     if (!heap_mem) {
-        heap_mem = mmu->AllocateMemory(size);
-        mmu->Map(HEAP_REGION_BASE, heap_mem,
-                 {MemoryType::Normal_1_0_0, MemoryAttribute::None,
-                  MemoryPermission::ReadWriteExecute});
+        heap_mem = CPU_INSTANCE.AllocateMemory(size);
+        process->GetMmu()->Map(HEAP_REGION_BASE, heap_mem,
+                               {MemoryType::Normal_1_0_0, MemoryAttribute::None,
+                                MemoryPermission::ReadWriteExecute});
     } else {
-        mmu->ResizeHeap(heap_mem, HEAP_REGION_BASE, size);
+        process->GetMmu()->ResizeHeap(heap_mem, HEAP_REGION_BASE, size);
     }
 
     out_base = HEAP_REGION_BASE;
@@ -345,19 +313,21 @@ result_t Kernel::svcSetMemoryAttribute(uptr addr, usize size, u32 mask,
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcMapMemory(uptr dst_addr, uptr src_addr, usize size) {
+result_t Kernel::svcMapMemory(Process* process, uptr dst_addr, uptr src_addr,
+                              usize size) {
     LOG_DEBUG(
         Kernel,
         "svcMapMemory called (dst_addr: 0x{:08x}, src_addr: 0x{:08x}, size: "
         "0x{:08x})",
         dst_addr, src_addr, size);
 
-    mmu->Map(dst_addr, src_addr, size);
+    process->GetMmu()->Map(dst_addr, src_addr, size);
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcUnmapMemory(uptr dst_addr, uptr src_addr, usize size) {
+result_t Kernel::svcUnmapMemory(Process* process, uptr dst_addr, uptr src_addr,
+                                usize size) {
     LOG_DEBUG(
         Kernel,
         "svcUnmapMemory called (dst_addr: 0x{:08x}, src_addr: 0x{:08x}, size: "
@@ -366,16 +336,16 @@ result_t Kernel::svcUnmapMemory(uptr dst_addr, uptr src_addr, usize size) {
 
     // TODO: check if src_addr is the same as the one used in svcMapMemory
 
-    mmu->Unmap(dst_addr, size);
+    process->GetMmu()->Unmap(dst_addr, size);
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
-                                u32& out_page_info) {
+result_t Kernel::svcQueryMemory(Process* process, uptr addr,
+                                MemoryInfo& out_mem_info, u32& out_page_info) {
     LOG_DEBUG(Kernel, "svcQueryMemory called (addr: 0x{:08x})", addr);
 
-    out_mem_info = mmu->QueryMemory(addr);
+    out_mem_info = process->GetMmu()->QueryMemory(addr);
 
     // TODO: what is this?
     out_page_info = 0;
@@ -383,11 +353,16 @@ result_t Kernel::svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
     return RESULT_SUCCESS;
 }
 
-void Kernel::svcExitProcess() { LOG_DEBUG(Kernel, "svcExitProcess called"); }
+void Kernel::svcExitProcess(Process* process) {
+    LOG_DEBUG(Kernel, "svcExitProcess called");
 
-result_t Kernel::svcCreateThread(vaddr_t entry_point, vaddr_t args_addr,
-                                 vaddr_t stack_top_addr, i32 priority,
-                                 i32 processor_id,
+    // Request stop
+    process->RequestStop();
+}
+
+result_t Kernel::svcCreateThread(Process* process, vaddr_t entry_point,
+                                 vaddr_t args_addr, vaddr_t stack_top_addr,
+                                 i32 priority, i32 processor_id,
                                  handle_id_t& out_thread_handle_id) {
     LOG_DEBUG(Kernel,
               "svcCreateThread called (entry_point: 0x{:08x}, args_addr: "
@@ -397,32 +372,36 @@ result_t Kernel::svcCreateThread(vaddr_t entry_point, vaddr_t args_addr,
 
     // Thread
     // TODO: processor ID
-    auto thread = new Thread(stack_top_addr, priority);
+    auto thread = new Thread(process, stack_top_addr, priority);
     thread->SetEntryPoint(entry_point);
     thread->SetArg(0, args_addr);
-    out_thread_handle_id = AddHandle(thread);
+    out_thread_handle_id = process->AddHandle(thread);
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcStartThread(handle_id_t thread_handle_id) {
+result_t Kernel::svcStartThread(Process* process,
+                                handle_id_t thread_handle_id) {
     LOG_DEBUG(Kernel, "svcStartThread called (thread: 0x{:08x})",
               thread_handle_id);
 
     // Start thread
-    auto thread = dynamic_cast<Thread*>(GetHandle(thread_handle_id));
+    auto thread = dynamic_cast<Thread*>(process->GetHandle(thread_handle_id));
     ASSERT_DEBUG(thread, Kernel, "Handle 0x{:x} is not a Thread",
                  thread_handle_id);
-    thread->Run();
+    thread->Start();
 
     return RESULT_SUCCESS;
 }
 
-void Kernel::svcExitThread(Thread* current_thread) {
+void Kernel::svcExitThread(Thread* thread) {
     LOG_DEBUG(Kernel, "svcExitThread called");
 
+    // Request stop
+    thread->RequestStop();
+
     // Threads are signalled on exit
-    current_thread->Signal();
+    thread->Signal();
 }
 
 void Kernel::svcSleepThread(i64 nano) {
@@ -434,7 +413,8 @@ void Kernel::svcSleepThread(i64 nano) {
         std::this_thread::sleep_for(std::chrono::nanoseconds(nano));
 }
 
-result_t Kernel::svcGetThreadPriority(handle_id_t thread_handle_id,
+result_t Kernel::svcGetThreadPriority(Process* process,
+                                      handle_id_t thread_handle_id,
                                       i32& out_priority) {
     LOG_DEBUG(Kernel, "svcGetThreadPriority called (thread: 0x{:08x})",
               thread_handle_id);
@@ -448,7 +428,8 @@ result_t Kernel::svcGetThreadPriority(handle_id_t thread_handle_id,
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcSetThreadPriority(handle_id_t thread_handle_id,
+result_t Kernel::svcSetThreadPriority(Process* process,
+                                      handle_id_t thread_handle_id,
                                       i32 priority) {
     LOG_DEBUG(
         Kernel,
@@ -461,7 +442,8 @@ result_t Kernel::svcSetThreadPriority(handle_id_t thread_handle_id,
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcGetThreadCoreMask(handle_id_t thread_handle_id,
+result_t Kernel::svcGetThreadCoreMask(Process* process,
+                                      handle_id_t thread_handle_id,
                                       i32& out_core_mask0,
                                       u64& out_core_mask1) {
     LOG_DEBUG(Kernel, "svcGetThreadCoreMask called (thread: 0x{:08x})",
@@ -477,7 +459,8 @@ result_t Kernel::svcGetThreadCoreMask(handle_id_t thread_handle_id,
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcSetThreadCoreMask(handle_id_t thread_handle_id,
+result_t Kernel::svcSetThreadCoreMask(Process* process,
+                                      handle_id_t thread_handle_id,
                                       i32 core_mask0, u64 core_mask1) {
     LOG_DEBUG(Kernel,
               "svcSetThreadCoreMask called (thread: 0x{:08x}, core_mask0: "
@@ -500,11 +483,11 @@ void Kernel::svcGetCurrentProcessorNumber(u32& out_number) {
     out_number = 0;
 }
 
-result_t Kernel::svcSignalEvent(handle_id_t event_handle_id) {
+result_t Kernel::svcSignalEvent(Process* process, handle_id_t event_handle_id) {
     LOG_DEBUG(Kernel, "svcSignalEvent called (event: 0x{:08x})",
               event_handle_id);
 
-    auto handle = dynamic_cast<Event*>(GetHandle(event_handle_id));
+    auto handle = dynamic_cast<Event*>(process->GetHandle(event_handle_id));
     ASSERT_DEBUG(handle, Kernel, "Handle {} is not an event handle",
                  event_handle_id);
 
@@ -513,11 +496,11 @@ result_t Kernel::svcSignalEvent(handle_id_t event_handle_id) {
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcClearEvent(handle_id_t event_handle_id) {
+result_t Kernel::svcClearEvent(Process* process, handle_id_t event_handle_id) {
     LOG_DEBUG(Kernel, "svcClearEvent called (event: 0x{:08x})",
               event_handle_id);
 
-    auto event = dynamic_cast<Event*>(GetHandle(event_handle_id));
+    auto event = dynamic_cast<Event*>(process->GetHandle(event_handle_id));
     ASSERT_DEBUG(event, Kernel, "Handle {} is not an event handle",
                  event_handle_id);
 
@@ -527,7 +510,8 @@ result_t Kernel::svcClearEvent(handle_id_t event_handle_id) {
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcMapSharedMemory(handle_id_t shared_mem_handle_id, uptr addr,
+result_t Kernel::svcMapSharedMemory(Process* process,
+                                    handle_id_t shared_mem_handle_id, uptr addr,
                                     usize size, MemoryPermission perm) {
     LOG_DEBUG(
         Kernel,
@@ -537,16 +521,18 @@ result_t Kernel::svcMapSharedMemory(handle_id_t shared_mem_handle_id, uptr addr,
 
     // Map
     auto shared_mem =
-        dynamic_cast<SharedMemory*>(handle_pool.Get(shared_mem_handle_id));
+        dynamic_cast<SharedMemory*>(process->GetHandle(shared_mem_handle_id));
     ASSERT_DEBUG(shared_mem, Kernel,
                  "Handle 0x{:x} is not a shared memory handle",
                  shared_mem_handle_id);
-    shared_mem->MapToRange(range(addr, addr + size), perm);
+    shared_mem->MapToRange(process->GetMmu(), range(addr, uptr(addr + size)),
+                           perm);
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcUnmapSharedMemory(handle_id_t shared_mem_handle_id,
+result_t Kernel::svcUnmapSharedMemory(Process* process,
+                                      handle_id_t shared_mem_handle_id,
                                       uptr addr, usize size) {
     LOG_DEBUG(
         Kernel,
@@ -556,7 +542,7 @@ result_t Kernel::svcUnmapSharedMemory(handle_id_t shared_mem_handle_id,
 
     // Map
     auto shared_mem =
-        dynamic_cast<SharedMemory*>(handle_pool.Get(shared_mem_handle_id));
+        dynamic_cast<SharedMemory*>(process->GetHandle(shared_mem_handle_id));
     ASSERT_DEBUG(shared_mem, Kernel,
                  "Handle 0x{:x} is not a shared memory handle",
                  shared_mem_handle_id);
@@ -567,7 +553,8 @@ result_t Kernel::svcUnmapSharedMemory(handle_id_t shared_mem_handle_id,
 }
 
 result_t
-Kernel::svcCreateTransferMemory(uptr addr, u64 size, MemoryPermission perm,
+Kernel::svcCreateTransferMemory(Process* process, uptr addr, u64 size,
+                                MemoryPermission perm,
                                 handle_id_t& out_transfer_mem_handle_id) {
     LOG_DEBUG(
         Kernel,
@@ -576,19 +563,19 @@ Kernel::svcCreateTransferMemory(uptr addr, u64 size, MemoryPermission perm,
         addr, size, perm);
 
     out_transfer_mem_handle_id =
-        AddHandle(new TransferMemory(addr, size, perm));
+        process->AddHandle(new TransferMemory(addr, size, perm));
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcCloseHandle(handle_id_t handle_id) {
+result_t Kernel::svcCloseHandle(Process* process, handle_id_t handle_id) {
     LOG_DEBUG(Kernel, "svcCloseHandle called (handle: 0x{:x})", handle_id);
 
-    FreeHandle(handle_id);
+    process->FreeHandle(handle_id);
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcResetSignal(handle_id_t handle_id) {
+result_t Kernel::svcResetSignal(Process* process, handle_id_t handle_id) {
     LOG_DEBUG(Kernel, "svcResetSignal called (handle: 0x{:x})", handle_id);
 
     // HACK
@@ -598,7 +585,8 @@ result_t Kernel::svcResetSignal(handle_id_t handle_id) {
     }
 
     // TODO: can only be ReadableEvent or Process?
-    auto handle = dynamic_cast<SynchronizationObject*>(GetHandle(handle_id));
+    auto handle =
+        dynamic_cast<SynchronizationObject*>(process->GetHandle(handle_id));
     ASSERT_DEBUG(handle, Kernel, "Handle {} is not a SynchronizationObject",
                  handle_id);
 
@@ -608,7 +596,8 @@ result_t Kernel::svcResetSignal(handle_id_t handle_id) {
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcWaitSynchronization(handle_id_t* handle_ids,
+result_t Kernel::svcWaitSynchronization(Process* process,
+                                        handle_id_t* handle_ids,
                                         i32 handle_count, i64 timeout,
                                         u64& out_handle_index) {
     LOG_DEBUG(
@@ -635,7 +624,7 @@ result_t Kernel::svcWaitSynchronization(handle_id_t* handle_ids,
                 for (u32 i = 0; i < handle_count; i++) {
                     handle_id_t handle_id = handle_ids[i];
                     auto handle = dynamic_cast<SynchronizationObject*>(
-                        GetHandle(handle_id));
+                        process->GetHandle(handle_id));
 
                     // HACK
                     if (!handle) {
@@ -672,14 +661,14 @@ result_t Kernel::svcWaitSynchronization(handle_id_t* handle_ids,
         handle_id_t handle_id = handle_ids[0];
 
         // HACK
-        if (handle_id == 0x0) {
+        if (handle_id == 0x0 || handle_id == 0x45ad76c0) {
             LOG_WARN(Kernel, "Invalid handle");
             out_handle_index = 0;
             return RESULT_SUCCESS;
         }
 
         auto handle =
-            dynamic_cast<SynchronizationObject*>(GetHandle(handle_id));
+            dynamic_cast<SynchronizationObject*>(process->GetHandle(handle_id));
 
         // HACK
         if (!handle) {
@@ -703,7 +692,8 @@ result_t Kernel::svcWaitSynchronization(handle_id_t* handle_ids,
     }
 }
 
-result_t Kernel::svcCancelSynchronization(handle_id_t thread_handle_id) {
+result_t Kernel::svcCancelSynchronization(Process* process,
+                                          handle_id_t thread_handle_id) {
     LOG_DEBUG(Kernel, "svcCancelSynchronization called (thread: 0x{:x})",
               thread_handle_id);
 
@@ -713,7 +703,8 @@ result_t Kernel::svcCancelSynchronization(handle_id_t thread_handle_id) {
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcArbitrateLock(u32 wait_tag, uptr mutex_addr, u32 self_tag) {
+result_t Kernel::svcArbitrateLock(Process* process, u32 wait_tag,
+                                  uptr mutex_addr, u32 self_tag) {
     LOG_DEBUG(Kernel,
               "svcArbitrateLock called (wait: 0x{:08x}, mutex: 0x{:08x}, self: "
               "0x{:08x})",
@@ -722,19 +713,22 @@ result_t Kernel::svcArbitrateLock(u32 wait_tag, uptr mutex_addr, u32 self_tag) {
     sync_mutex.lock();
     auto& mutex = mutex_map[mutex_addr];
     sync_mutex.unlock();
-    mutex.Lock(*reinterpret_cast<u32*>(mmu->UnmapAddr(mutex_addr)), self_tag);
+    mutex.Lock(
+        *reinterpret_cast<u32*>(process->GetMmu()->UnmapAddr(mutex_addr)),
+        self_tag);
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcArbitrateUnlock(uptr mutex_addr) {
+result_t Kernel::svcArbitrateUnlock(Process* process, uptr mutex_addr) {
     LOG_DEBUG(Kernel, "svcArbitrateUnlock called (mutex: 0x{:08x})",
               mutex_addr);
 
     sync_mutex.lock();
     auto& mutex = mutex_map[mutex_addr];
     sync_mutex.unlock();
-    mutex.Unlock(*reinterpret_cast<u32*>(mmu->UnmapAddr(mutex_addr)));
+    mutex.Unlock(
+        *reinterpret_cast<u32*>(process->GetMmu()->UnmapAddr(mutex_addr)));
 
     // HACK
     /*
@@ -750,8 +744,9 @@ result_t Kernel::svcArbitrateUnlock(uptr mutex_addr) {
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,
-                                             u32 self_tag, i64 timeout) {
+result_t Kernel::svcWaitProcessWideKeyAtomic(Process* process, uptr mutex_addr,
+                                             uptr var_addr, u32 self_tag,
+                                             i64 timeout) {
     LOG_DEBUG(
         Kernel,
         "svcWaitProcessWideKeyAtomic called (mutex: 0x{:08x}, var: 0x{:08x}, "
@@ -764,7 +759,8 @@ result_t Kernel::svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,
     sync_mutex.unlock();
 
     // TODO: correct?
-    auto& value = *reinterpret_cast<u32*>(mmu->UnmapAddr(mutex_addr));
+    auto& value =
+        *reinterpret_cast<u32*>(process->GetMmu()->UnmapAddr(mutex_addr));
     mutex.Unlock(value);
 
     {
@@ -808,7 +804,8 @@ void Kernel::svcGetSystemTick(u64& out_tick) {
     out_tick = get_absolute_time();
 }
 
-result_t Kernel::svcConnectToNamedPort(const std::string& name,
+result_t Kernel::svcConnectToNamedPort(Process* process,
+                                       const std::string& name,
                                        handle_id_t& out_session_handle_id) {
     LOG_DEBUG(Kernel, "svcConnectToNamedPort called (name: {})", name);
 
@@ -819,17 +816,19 @@ result_t Kernel::svcConnectToNamedPort(const std::string& name,
         return MAKE_RESULT(Svc, Error::NotFound);
     }
 
-    out_session_handle_id = AddHandle(new Session(it->second));
+    out_session_handle_id = process->AddHandle(new Session(it->second));
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcSendSyncRequest(hw::tegra_x1::cpu::MemoryBase* tls_mem,
+result_t Kernel::svcSendSyncRequest(Process* process,
+                                    hw::tegra_x1::cpu::IMemory* tls_mem,
                                     handle_id_t session_handle_id) {
     LOG_DEBUG(Kernel, "svcSendSyncRequest called (handle: 0x{:x})",
               session_handle_id);
 
-    auto session = dynamic_cast<Session*>(GetHandle(session_handle_id));
+    auto session =
+        dynamic_cast<Session*>(process->GetHandle(session_handle_id));
 
     // HACK
     if (!session) {
@@ -840,7 +839,7 @@ result_t Kernel::svcSendSyncRequest(hw::tegra_x1::cpu::MemoryBase* tls_mem,
 
     ASSERT_DEBUG(session, Kernel, "Handle 0x{:x} is not a session handle",
                  session_handle_id);
-    auto tls_ptr = reinterpret_cast<void*>(mmu->GetMemoryPtr(tls_mem));
+    auto tls_ptr = reinterpret_cast<void*>(tls_mem->GetPtr());
 
     // Request
 
@@ -859,21 +858,23 @@ result_t Kernel::svcSendSyncRequest(hw::tegra_x1::cpu::MemoryBase* tls_mem,
     u8 scratch_buffer_move_handles[0x100];
 
     // Request context
-    hipc::Readers readers(mmu, hipc_in);
-    hipc::Writers writers(mmu, hipc_in, scratch_buffer, scratch_buffer_objects,
-                          scratch_buffer_copy_handles,
+    hipc::Readers readers(process->GetMmu(), hipc_in);
+    hipc::Writers writers(process->GetMmu(), hipc_in, scratch_buffer,
+                          scratch_buffer_objects, scratch_buffer_copy_handles,
                           scratch_buffer_move_handles);
     RequestContext context{
+        process,
         readers,
         writers,
         [&](ServiceBase* service) {
             auto session = new Session(service);
-            handle_id_t handle_id = AddHandle(session);
+            handle_id_t handle_id = process->AddHandle(session);
             session->SetHandleId(handle_id);
             writers.move_handles_writer.Write(handle_id);
         },
         [&](handle_id_t handle_id) {
-            return static_cast<Session*>(GetHandle(handle_id))->GetService();
+            return static_cast<Session*>(process->GetHandle(handle_id))
+                ->GetService();
         },
     };
 
@@ -897,7 +898,7 @@ result_t Kernel::svcSendSyncRequest(hw::tegra_x1::cpu::MemoryBase* tls_mem,
     case cmif::CommandType::Control:
     case cmif::CommandType::ControlWithContext:
         // TODO: how is ControlWithContext different?
-        session->Control(readers, writers);
+        session->Control(process, readers, writers);
         break;
     default:
         if (command_type >= cmif::CommandType::TipcCommandRegion) {
@@ -956,7 +957,7 @@ result_t Kernel::svcSendSyncRequest(hw::tegra_x1::cpu::MemoryBase* tls_mem,
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcGetThreadId(handle_id_t thread_handle_id,
+result_t Kernel::svcGetThreadId(Process* process, handle_id_t thread_handle_id,
                                 u64& out_thread_id) {
     LOG_DEBUG(Kernel, "svcGetThreadId called (thread: 0x{:08x})",
               thread_handle_id);
@@ -1008,15 +1009,12 @@ result_t Kernel::svcOutputDebugString(const char* str, usize len) {
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
-                            u64 info_sub_type, u64& out_info) {
+result_t Kernel::svcGetInfo(Process* process, InfoType info_type,
+                            handle_id_t handle_id, u64 info_sub_type,
+                            u64& out_info) {
     LOG_DEBUG(Kernel,
               "svcGetInfo called (type: {}, handle: 0x{:08x}, subtype: {})",
               info_type, handle_id, info_sub_type);
-
-#define GET_PROCESS()                                                          \
-    auto process = dynamic_cast<Process*>(GetHandle(handle_id));               \
-    ASSERT_DEBUG(process, Kernel, "Invalid process handle 0x{:x}", handle_id);
 
     switch (info_type) {
     case InfoType::CoreMask:
@@ -1074,7 +1072,6 @@ result_t Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
         out_info = STACK_REGION_SIZE;
         return RESULT_SUCCESS;
     case InfoType::TotalSystemResourceSize: {
-        GET_PROCESS();
         out_info = process->GetSystemResourceSize();
         return RESULT_SUCCESS;
     }
@@ -1107,11 +1104,10 @@ result_t Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
         LOG_WARN(Kernel, "Unknown info type {}", info_type);
         return MAKE_RESULT(Svc, 0x78);
     }
-
-#undef GET_PROCESS
 }
 
-result_t Kernel::svcMapPhysicalMemory(vaddr_t addr, usize size) {
+result_t Kernel::svcMapPhysicalMemory(Process* process, vaddr_t addr,
+                                      usize size) {
     LOG_DEBUG(Kernel,
               "svcMapPhysicalMemory called (addr: 0x{:08x}, size: 0x{:08x})",
               addr, size);
@@ -1126,16 +1122,17 @@ result_t Kernel::svcMapPhysicalMemory(vaddr_t addr, usize size) {
           addr < ALIAS_REGION_BASE + ALIAS_REGION_SIZE))
         return MAKE_RESULT(Svc, 110); // Invalid memory region
 
-    auto mem = mmu->AllocateMemory(size);
+    auto mem = CPU_INSTANCE.AllocateMemory(size);
     // TODO: keep track of the memory
-    mmu->Map(addr, mem,
-             {MemoryType::Alias, MemoryAttribute::None,
-              MemoryPermission::ReadWrite});
+    process->GetMmu()->Map(addr, mem,
+                           {MemoryType::Alias, MemoryAttribute::None,
+                            MemoryPermission::ReadWrite});
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcSetThreadActivity(handle_id_t thread_handle_id,
+result_t Kernel::svcSetThreadActivity(Process* process,
+                                      handle_id_t thread_handle_id,
                                       ThreadActivity activity) {
     LOG_DEBUG(Kernel,
               "svcSetThreadActivity called (thread: 0x{:x}, activity: {})",
@@ -1147,7 +1144,8 @@ result_t Kernel::svcSetThreadActivity(handle_id_t thread_handle_id,
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcGetThreadContext3(handle_id_t thread_handle_id,
+result_t Kernel::svcGetThreadContext3(Process* process,
+                                      handle_id_t thread_handle_id,
                                       ThreadContext& out_thread_context) {
     LOG_DEBUG(Kernel, "svcSetThreadActivity called (thread: 0x{:x})",
               thread_handle_id);
@@ -1160,7 +1158,7 @@ result_t Kernel::svcGetThreadContext3(handle_id_t thread_handle_id,
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcWaitForAddress(vaddr_t addr,
+result_t Kernel::svcWaitForAddress(Process* process, vaddr_t addr,
                                    ArbitrationType arbitration_type, u32 value,
                                    u64 timeout) {
     LOG_DEBUG(Kernel,
@@ -1176,7 +1174,7 @@ result_t Kernel::svcWaitForAddress(vaddr_t addr,
     {
         std::unique_lock lock(mutex.GetNativeHandle());
 
-        const auto current_value = mmu->Load<u32>(addr);
+        const auto current_value = process->GetMmu()->Load<u32>(addr);
         bool wait{false};
         switch (arbitration_type) {
         case ArbitrationType::WaitIfLessThan:
@@ -1184,7 +1182,8 @@ result_t Kernel::svcWaitForAddress(vaddr_t addr,
             break;
         case ArbitrationType::DecrementAndWaitIfLessThan:
             wait = (current_value < value);
-            mmu->Store<u32>(addr, current_value - 1); // TODO: decrement after?
+            process->GetMmu()->Store<u32>(
+                addr, current_value - 1); // TODO: decrement after?
             break;
         case ArbitrationType::WaitIfEqual:
             wait = (current_value == value);
@@ -1192,27 +1191,14 @@ result_t Kernel::svcWaitForAddress(vaddr_t addr,
         }
 
         if (wait) {
-            cond_var.wait_for(lock, std::chrono::nanoseconds(timeout),
-                              [=, this]() {
-                                  return mmu->Load<u32>(addr) == value;
-                              }); // TODO: is the timeout correct?
+            cond_var.wait_for(
+                lock, std::chrono::nanoseconds(timeout), [=, this]() {
+                    return process->GetMmu()->Load<u32>(addr) == value;
+                }); // TODO: is the timeout correct?
         }
     }
 
     return RESULT_SUCCESS;
-}
-
-hw::tegra_x1::cpu::MemoryBase* Kernel::CreateTlsMemory(vaddr_t& base) {
-    constexpr usize TLS_MEM_SIZE = 0x20000;
-
-    auto mem = mmu->AllocateMemory(TLS_MEM_SIZE);
-    base = tls_mem_base;
-    mmu->Map(base, mem,
-             {MemoryType::ThreadLocal, MemoryAttribute::None,
-              MemoryPermission::ReadWrite});
-    tls_mem_base += TLS_MEM_SIZE;
-
-    return mem;
 }
 
 } // namespace hydra::horizon::kernel

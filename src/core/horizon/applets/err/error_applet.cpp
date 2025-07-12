@@ -18,7 +18,7 @@ result_t ErrorApplet::Run() {
         const auto param = param_reader.Read<ParamForApplicationError>();
 
         // TODO: handle empty messages
-        OS_INSTANCE.GetUiHandler().ShowMessageDialog(
+        OS_INSTANCE.GetUIHandler().ShowMessageDialog(
             ui::MessageDialogType::Error,
             fmt::format("Error (0x{:x})", param.error_code_number),
             fmt::format("{}\n{}", param.dialog_message,

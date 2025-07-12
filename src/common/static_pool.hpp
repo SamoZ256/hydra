@@ -48,7 +48,6 @@ class StaticPool {
         return is_free;
     }
 
-    // Getters
     T Get(u32 index) const {
         AssertIndex(index);
         return objects[index];
@@ -58,6 +57,8 @@ class StaticPool {
         AssertIndex(index);
         return objects[index];
     }
+
+    usize GetCapacity() const { return size; }
 
   private:
     T objects[size];

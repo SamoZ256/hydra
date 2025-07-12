@@ -15,11 +15,10 @@
 #include "core/horizon/loader/nro_loader.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
 #include "core/horizon/services/am/library_applet_controller.hpp"
-#include "core/horizon/state_manager.hpp"
 #include "core/hw/tegra_x1/cpu/dynarmic/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
-#include "core/hw/tegra_x1/cpu/mmu_base.hpp"
-#include "core/hw/tegra_x1/cpu/thread_base.hpp"
+#include "core/hw/tegra_x1/cpu/mmu.hpp"
+#include "core/hw/tegra_x1/cpu/thread.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 #include "core/input/device_manager.hpp"
 
@@ -43,10 +42,10 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
     // Initialize
     switch (CONFIG_INSTANCE.GetCpuBackend()) {
     case CpuBackend::AppleHypervisor:
-        cpu = new hw::tegra_x1::cpu::hypervisor::CPU();
+        cpu = new hw::tegra_x1::cpu::hypervisor::Cpu();
         break;
     case CpuBackend::Dynarmic:
-        cpu = new hw::tegra_x1::cpu::dynarmic::CPU();
+        cpu = new hw::tegra_x1::cpu::dynarmic::Cpu();
         break;
     default:
         // TODO: return an error instead
@@ -55,7 +54,7 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
         break;
     }
 
-    gpu = new hw::tegra_x1::gpu::GPU(cpu->GetMMU());
+    gpu = new hw::tegra_x1::gpu::Gpu();
 
     switch (CONFIG_INSTANCE.GetAudioBackend()) {
     case AudioBackend::Null:
@@ -71,7 +70,7 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
         break;
     }
 
-    os = new horizon::OS(cpu->GetMMU(), *audio_core, ui_handler);
+    os = new horizon::OS(*audio_core, ui_handler);
     os->GetDisplayDriver().CreateDisplay();
 
     // Filesystem
@@ -102,7 +101,7 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
     };
 
     const auto& firmware_path = CONFIG_INSTANCE.GetFirmwarePath().Get();
-    if (!firmware_path.empty()) {
+    if (std::filesystem::exists(firmware_path)) {
         // Iterate over the directory
         for (const auto& entry :
              std::filesystem::directory_iterator(firmware_path)) {
@@ -123,21 +122,26 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
             ASSERT(res == horizon::filesystem::FsResult::Success, Other,
                    "Failed to add firmware entry: {}", res);
         }
+    } else {
+        LOG_ERROR(Other, "Firmware path does not exist");
     }
 }
 
 EmulationContext::~EmulationContext() {
-    // TODO: delete objects
+    delete os;
+    delete audio_core;
+    delete gpu;
+    delete cpu;
 
     LOGGER_INSTANCE.SetOutput(LogOutput::StdOut);
 }
 
-void EmulationContext::Load(horizon::loader::LoaderBase* loader) {
+void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
     // Process
-    const auto process_params = loader->LoadProcess();
-
-    process = new horizon::kernel::Process(process_params.value());
-    os->GetKernel().AddProcessHandle(process);
+    // TODO: make sure the process is destroyed
+    auto process =
+        os->GetKernel().GetProcessManager().CreateProcess("Guest process");
+    loader->LoadProcess(process);
 
     // Check for firmware applets
     auto controller = new horizon::services::am::LibraryAppletController(
@@ -330,28 +334,32 @@ void EmulationContext::Load(horizon::loader::LoaderBase* loader) {
     }
 
     LOG_INFO(Other, "-------- Title info --------");
-    LOG_INFO(Other, "Title ID: {:016x}", os->GetKernel().GetTitleID());
+    LOG_INFO(Other, "Title ID: {:016x}", loader->GetTitleID());
 
     // Patch
     const auto target_patch_filename =
-        fmt::format("{:016x}.hatch", os->GetKernel().GetTitleID());
+        fmt::format("{:016x}.hatch", loader->GetTitleID());
     // TODO: iterate recursively
     for (const auto& patch_path : CONFIG_INSTANCE.GetPatchPaths().Get()) {
+        if (!std::filesystem::exists(patch_path)) {
+            LOG_ERROR(Other, "Patch path does not exist: {}", patch_path);
+            continue;
+        }
+
         if (!std::filesystem::is_directory(patch_path)) {
             // File
-            TryApplyPatch(target_patch_filename, patch_path);
+            TryApplyPatch(process, target_patch_filename, patch_path);
         } else {
             // Directory
             // TODO: iterate recursively
             for (const auto& dir_entry :
                  std::filesystem::directory_iterator{patch_path}) {
-                TryApplyPatch(target_patch_filename, dir_entry.path().string());
+                TryApplyPatch(process, target_patch_filename,
+                              dir_entry.path().string());
             }
         }
     }
-}
 
-void EmulationContext::Run() {
     LOG_INFO(Other, "-------- Config --------");
     CONFIG_INSTANCE.Log();
 
@@ -361,10 +369,11 @@ void EmulationContext::Run() {
     INPUT_DEVICE_MANAGER_INSTANCE.ConnectDevices();
 
     // Enter focus
-    auto& state_manager = horizon::StateManager::GetInstance();
     // HACK: games expect focus change to be the second message?
-    state_manager.SendMessage(horizon::AppletMessage::Resume);
-    state_manager.SetFocusState(horizon::AppletFocusState::InFocus);
+    process->GetAppletState().SendMessage(
+        horizon::kernel::AppletMessage::Resume);
+    process->GetAppletState().SetFocusState(
+        horizon::kernel::AppletFocusState::InFocus);
 
     // Preselected user
     auto user_id = CONFIG_INSTANCE.GetUserID().Get();
@@ -379,19 +388,44 @@ void EmulationContext::Run() {
     }
 
     if (user_id != horizon::services::account::INVALID_USER_ID) {
-        state_manager.PushPreselectedUser(user_id);
+        process->GetAppletState().PushPreselectedUser(user_id);
         LOG_INFO(Other, "Preselected user with ID {:032x}", user_id);
     }
 
-    process->Run();
+    process->Start();
 
-    running = true;
     loading = true;
 
     const auto crnt_time = clock_t::now();
     next_startup_movie_frame_time = crnt_time + STARTUP_MOVIE_FADE_IN_DURATION +
                                     STARTUP_MOVIE_BREAK_AFTER_FADE_IN_DURATION;
     startup_movie_fade_in_time = crnt_time + STARTUP_MOVIE_FADE_IN_DURATION;
+}
+
+void EmulationContext::RequestStop() {
+    // We don't request the processes to stop yet, instead we send a message to
+    // all of them and give them some time to react
+    // TODO: send an exit message to all processes
+    for (auto it = os->GetKernel().GetProcessManager().Begin();
+         it != os->GetKernel().GetProcessManager().End(); ++it)
+        (*it)->GetAppletState().SendMessage(
+            horizon::kernel::AppletMessage::Exit);
+}
+
+void EmulationContext::ForceStop() {
+    // Request all processes to stop immediately
+    for (auto it = os->GetKernel().GetProcessManager().Begin();
+         it != os->GetKernel().GetProcessManager().End(); ++it)
+        (*it)->RequestStop();
+
+    // Wait a small amount of time for all threads to catch up
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    // Check if all processes have stopped
+    if (IsRunning()) {
+        // If some processes are still running, just abort
+        LOG_FATAL(Other, "Failed to stop process all processes");
+    }
 }
 
 void EmulationContext::ProgressFrame(u32 width, u32 height,
@@ -502,6 +536,7 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
     }
 }
 
+// TODO: rework this to support multiple layers and multiple processes
 bool EmulationContext::Present(
     u32 width, u32 height, std::vector<std::chrono::nanoseconds>& out_dt_list) {
     // TODO: don't hardcode the display id
@@ -514,7 +549,7 @@ bool EmulationContext::Present(
         return false;
 
     // Signal V-Sync
-    display.GetVSyncEvent().handle->Signal();
+    display.GetVSyncEvent()->Signal();
 
     // Get the buffer to present
     u32 binder_id = layer->GetBinderID();
@@ -578,7 +613,9 @@ bool EmulationContext::Present(
     auto renderer = gpu->GetRenderer();
 
     renderer->LockMutex();
-    auto texture = gpu->GetTexture(buffer.nv_buffer);
+    auto texture = gpu->GetTexture(
+        (*os->GetKernel().GetProcessManager().Begin())->GetMmu(),
+        buffer.nv_buffer); // HACK
     if (!renderer->AcquireNextSurface()) {
         renderer->UnlockMutex();
         return false;
@@ -592,7 +629,8 @@ bool EmulationContext::Present(
     return true;
 }
 
-void EmulationContext::TryApplyPatch(const std::string_view target_filename,
+void EmulationContext::TryApplyPatch(horizon::kernel::Process* process,
+                                     const std::string_view target_filename,
                                      const std::filesystem::path path) {
     if (to_lower(path.filename().string()) != target_filename)
         return;
@@ -609,7 +647,7 @@ void EmulationContext::TryApplyPatch(const std::string_view target_filename,
 
     // Memory patch
     for (const auto& entry : hatch.GetMemoryPatch())
-        cpu->GetMMU()->Store<u32>(entry.addr, entry.value);
+        process->GetMmu()->Store<u32>(entry.addr, entry.value);
 
     ifs.close();
 }

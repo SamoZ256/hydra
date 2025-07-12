@@ -14,7 +14,7 @@ using u16 = uint16_t;
 using u32 = uint32_t;
 using u64 = uint64_t;
 using u128 = __uint128_t;
-using usize = size_t;
+using usize = u64;
 using uptr = uintptr_t;
 using f32 = float;
 using f64 = double;
@@ -23,9 +23,9 @@ using bool32 = u32;
 
 using uuid_t = u128;
 using magic4_t = u32;
-using paddr_t = uptr;
-using vaddr_t = uptr;
-using gpu_vaddr_t = uptr;
+using paddr_t = u64;
+using vaddr_t = u64;
+using gpu_vaddr_t = u64;
 using handle_id_t = u32;
 
 constexpr handle_id_t INVALID_HANDLE_ID = 0;

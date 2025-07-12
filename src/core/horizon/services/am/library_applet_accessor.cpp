@@ -2,6 +2,7 @@
 
 #include "core/horizon/applets/err/error_applet.hpp"
 #include "core/horizon/applets/swkbd/software_keyboard.hpp"
+#include "core/horizon/kernel/process.hpp"
 #include "core/horizon/services/am/storage.hpp"
 
 namespace hydra::horizon::services::am {
@@ -32,8 +33,8 @@ ILibraryAppletAccessor::ILibraryAppletAccessor(const AppletId id,
 ILibraryAppletAccessor::~ILibraryAppletAccessor() { delete applet; }
 
 result_t ILibraryAppletAccessor::GetAppletStateChangedEvent(
-    OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = controller.GetStateChangedEvent().id;
+    kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = process->AddHandle(controller.GetStateChangedEvent());
     return RESULT_SUCCESS;
 }
 
@@ -72,8 +73,8 @@ ILibraryAppletAccessor::PopInteractiveOutData(add_service_fn_t add_service) {
 }
 
 result_t ILibraryAppletAccessor::GetPopInteractiveOutDataEvent(
-    OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = controller.GetInteractiveOutDataEvent().id;
+    kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = process->AddHandle(controller.GetInteractiveOutDataEvent());
     return RESULT_SUCCESS;
 }
 

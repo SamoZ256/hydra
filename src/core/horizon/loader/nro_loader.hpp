@@ -8,7 +8,7 @@ class NroLoader : public LoaderBase {
   public:
     NroLoader(filesystem::FileBase* file_);
 
-    std::optional<kernel::ProcessParams> LoadProcess() override;
+    void LoadProcess(kernel::Process* process) override;
 
   private:
     filesystem::FileBase* file;

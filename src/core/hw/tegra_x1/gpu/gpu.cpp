@@ -1,6 +1,6 @@
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 
-#include "core/hw/tegra_x1/cpu/mmu_base.hpp"
+#include "core/hw/tegra_x1/cpu/mmu.hpp"
 #include "core/hw/tegra_x1/gpu/const.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
 
@@ -15,10 +15,10 @@ struct SetObjectArg {
 
 } // namespace
 
-SINGLETON_DEFINE_GET_INSTANCE(GPU, GPU)
+SINGLETON_DEFINE_GET_INSTANCE(Gpu, Gpu)
 
-GPU::GPU(cpu::MMUBase* mmu_) : mmu{mmu_}, gpu_mmu(mmu), pfifo(gpu_mmu) {
-    SINGLETON_SET_INSTANCE(GPU, GPU);
+Gpu::Gpu() : pfifo(gpu_mmu) {
+    SINGLETON_SET_INSTANCE(Gpu, Gpu);
 
     const auto renderer_type = CONFIG_INSTANCE.GetGpuRenderer();
     switch (renderer_type) {
@@ -26,12 +26,12 @@ GPU::GPU(cpu::MMUBase* mmu_) : mmu{mmu_}, gpu_mmu(mmu), pfifo(gpu_mmu) {
         renderer = new renderer::metal::Renderer();
         break;
     default:
-        LOG_FATAL(GPU, "Unknown GPU renderer {}", renderer_type);
+        LOG_FATAL(Gpu, "Unknown Gpu renderer {}", renderer_type);
         break;
     }
 }
 
-GPU::~GPU() {
+Gpu::~Gpu() {
     for (u32 i = 0; i < SUBCHANNEL_COUNT; i++) {
         if (subchannels[i])
             delete subchannels[i];
@@ -42,9 +42,9 @@ GPU::~GPU() {
     SINGLETON_UNSET_INSTANCE();
 }
 
-void GPU::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
+void Gpu::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
     if (method == 0x0) { // SetEngine
-        ASSERT_DEBUG(subchannel <= SUBCHANNEL_COUNT, GPU,
+        ASSERT_DEBUG(subchannel <= SUBCHANNEL_COUNT, Gpu,
                      "Invalid subchannel {}", subchannel);
 
         const auto set_object_arg = std::bit_cast<SetObjectArg>(arg);
@@ -68,10 +68,10 @@ void GPU::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
             break;
         case 0xb06f:
             // TODO: implement
-            LOG_NOT_IMPLEMENTED(GPU, "GPFIFO engine");
+            LOG_NOT_IMPLEMENTED(Gpu, "GPFIFO engine");
             break;
         default:
-            LOG_ERROR(GPU, "Unknown engine class ID 0x{:08x}",
+            LOG_ERROR(Gpu, "Unknown engine class ID 0x{:08x}",
                       set_object_arg.class_id);
             break;
         }
@@ -84,8 +84,9 @@ void GPU::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
     GetEngineAtSubchannel(subchannel)->Method(method, arg);
 }
 
-renderer::TextureBase* GPU::GetTexture(const NvGraphicsBuffer& buff) {
-    LOG_DEBUG(GPU,
+renderer::TextureBase* Gpu::GetTexture(cpu::IMmu* mmu,
+                                       const NvGraphicsBuffer& buff) {
+    LOG_DEBUG(Gpu,
               "Map id: {}, width: {}, "
               "height: {}",
               buff.nvmap_id, buff.planes[0].width, buff.planes[0].height);

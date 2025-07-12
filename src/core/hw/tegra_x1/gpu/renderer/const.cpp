@@ -14,7 +14,7 @@ TextureFormat to_texture_format(NvColorFormat color_format) {
         NV_COLOR_FORMAT_CASE(B5G6R5, B5G6R5Unorm)
         NV_COLOR_FORMAT_CASE(A8R8G8B8, RGBA8Unorm) // TODO
     default:
-        LOG_NOT_IMPLEMENTED(GPU, "NV color format {}", color_format);
+        LOG_NOT_IMPLEMENTED(Gpu, "NV color format {}", color_format);
         return TextureFormat::Invalid;
     }
 
@@ -58,7 +58,7 @@ TextureFormat to_texture_format(const ImageFormatWord image_format_word) {
     IMAGE_FORMAT_CASE(RGBA32, Float, Float, Float, Float, RGBA32Float)
     else {
         LOG_NOT_IMPLEMENTED(
-            GPU, "Image format {}, components: {}, {}, {}, {}",
+            Gpu, "Image format {}, components: {}, {}, {}, {}",
             image_format_word.image_format, image_format_word.component_r,
             image_format_word.component_g, image_format_word.component_b,
             image_format_word.component_a);
@@ -138,7 +138,7 @@ TextureFormat to_texture_format(ColorSurfaceFormat color_surface_format) {
         COLOR_SURFACE_FORMAT_CASE(BGRX8UnormUnknownFE, Invalid)
         COLOR_SURFACE_FORMAT_CASE(Y32UintUnknownFF, Invalid)
     default:
-        LOG_NOT_IMPLEMENTED(GPU, "Color surface format {}",
+        LOG_NOT_IMPLEMENTED(Gpu, "Color surface format {}",
                             color_surface_format);
         return TextureFormat::Invalid;
     }
@@ -164,7 +164,7 @@ TextureFormat to_texture_format(DepthSurfaceFormat depth_surface_format) {
         DEPTH_SURFACE_FORMAT_CASE(Z32X8C8X16Float, Invalid)
         DEPTH_SURFACE_FORMAT_CASE(Z32S8C8X16Float, Invalid)
     default:
-        LOG_NOT_IMPLEMENTED(GPU, "Depth surface format {}",
+        LOG_NOT_IMPLEMENTED(Gpu, "Depth surface format {}",
                             depth_surface_format);
         // TODO: don't throw
         throw;
@@ -576,7 +576,7 @@ SwizzleChannels::SwizzleChannels(const TextureFormat format,
     case TextureFormat::BGRX8Unorm_sRGB:
         SWIZZLE(z, y, x, ImageSwizzle::OneFloat);
     default:
-        LOG_NOT_IMPLEMENTED(GPU, "Swizzle for format {}", format);
+        LOG_NOT_IMPLEMENTED(Gpu, "Swizzle for format {}", format);
         break;
     }
 
@@ -741,7 +741,7 @@ get_texture_format_default_swizzle_channels(const TextureFormat format) {
     case TextureFormat::BC3_RGBA:
         return SWIZZLE(R, G, B, A);
     default:
-        ONCE(LOG_NOT_IMPLEMENTED(GPU, "{} default swizzle", format));
+        ONCE(LOG_NOT_IMPLEMENTED(Gpu, "{} default swizzle", format));
         return SWIZZLE(R, G, B, A);
     }
 

@@ -124,7 +124,7 @@ inline constexpr uint64_t str_to_u64(const char* str, size_t idx = 0,
 
 inline std::string u64_to_str(u64 value) {
     char* str = reinterpret_cast<char*>(&value);
-    return std::string(str, std::min(strlen(str), (usize)8));
+    return std::string(str, std::min(strlen(str), size_t(8)));
 }
 
 template <typename T>

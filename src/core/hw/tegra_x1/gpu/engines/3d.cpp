@@ -287,7 +287,7 @@ void ThreeD::DrawVertexElements(const u32 index, u32 count) {
          .count = count,
          .src_index_buffer = index_buffer},
         index_type, primitive_type, count);
-    ASSERT_DEBUG(index_buffer, GPU, "Index buffer not found");
+    ASSERT_DEBUG(index_buffer, Gpu, "Index buffer not found");
     RENDERER_INSTANCE->BindIndexBuffer(index_buffer, index_type);
 
     // Draw
@@ -296,7 +296,7 @@ void ThreeD::DrawVertexElements(const u32 index, u32 count) {
 }
 
 void ThreeD::ClearBuffer(const u32 index, const ClearBufferData data) {
-    LOG_DEBUG(GPU,
+    LOG_DEBUG(Gpu,
               "Depth: {}, stencil: {}, color mask: 0x{:x}, target id: {}, "
               "layer id: {}",
               data.depth, data.stencil, data.color_mask, data.target_id,
@@ -339,7 +339,7 @@ void ThreeD::LoadConstBuffer(const u32 index, const u32 data) {
     const uptr const_buffer_gpu_addr = MAKE_ADDR(regs.const_buffer_selector);
     const uptr gpu_addr = const_buffer_gpu_addr + regs.load_const_buffer_offset;
 
-    GPU::GetInstance().GetGPUMMU().Store(gpu_addr, data);
+    Gpu::GetInstance().GetGpuMmu().Store(gpu_addr, data);
 
     regs.load_const_buffer_offset += sizeof(u32);
 }
@@ -431,7 +431,7 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
     }
 
     const renderer::TextureDescriptor descriptor(
-        GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr), format, kind,
+        Gpu::GetInstance().GetGpuMmu().UnmapAddr(gpu_addr), format, kind,
         static_cast<usize>(tic.width_minus_one + 1),
         static_cast<usize>(tic.height_minus_one + 1),
         tic.tile_height_gobs_log2, // TODO: correct?
@@ -474,7 +474,7 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
 
     const auto format = renderer::to_texture_format(render_target.format);
     const renderer::TextureDescriptor descriptor(
-        GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr), format,
+        Gpu::GetInstance().GetGpuMmu().UnmapAddr(gpu_addr), format,
         NvKind::Pitch, // TODO: correct?
         render_target.width, render_target.height,
         0, // TODO
@@ -493,7 +493,7 @@ renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture() const {
 
     const auto format = renderer::to_texture_format(regs.depth_target_format);
     const renderer::TextureDescriptor descriptor(
-        GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr), format,
+        Gpu::GetInstance().GetGpuMmu().UnmapAddr(gpu_addr), format,
         NvKind::Pitch, // TODO: correct?
         regs.depth_target_width, regs.depth_target_height,
         0, // TODO
@@ -532,7 +532,7 @@ renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) {
         return nullptr;
 
     uptr gpu_addr = MAKE_ADDR(regs.shader_program_region) + program.offset;
-    uptr ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr);
+    uptr ptr = Gpu::GetInstance().GetGpuMmu().UnmapAddr(gpu_addr);
 
     renderer::GuestShaderDescriptor descriptor{
         .stage = stage,
@@ -710,9 +710,9 @@ bool ThreeD::DrawInternal() {
     // TODO: remove the condition
     if (tex_header_pool_gpu_addr != 0x0 && tex_sampler_pool_gpu_addr != 0x0) {
         const auto tex_header_pool = reinterpret_cast<TextureImageControl*>(
-            GPU::GetInstance().GetGPUMMU().UnmapAddr(tex_header_pool_gpu_addr));
+            Gpu::GetInstance().GetGpuMmu().UnmapAddr(tex_header_pool_gpu_addr));
         const auto tex_sampler_pool = reinterpret_cast<TextureSamplerControl*>(
-            GPU::GetInstance().GetGPUMMU().UnmapAddr(
+            Gpu::GetInstance().GetGpuMmu().UnmapAddr(
                 tex_sampler_pool_gpu_addr));
 
         // TODO: configure all stages

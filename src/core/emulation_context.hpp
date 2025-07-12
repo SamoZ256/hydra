@@ -2,7 +2,7 @@
 
 #include "core/horizon/kernel/process.hpp"
 #include "core/horizon/os.hpp"
-#include "core/hw/tegra_x1/cpu/cpu_base.hpp"
+#include "core/hw/tegra_x1/cpu/cpu.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 
 namespace hydra {
@@ -19,30 +19,24 @@ class EmulationContext {
     ~EmulationContext();
 
     void SetSurface(void* surface) { gpu->GetRenderer()->SetSurface(surface); }
-    void Load(horizon::loader::LoaderBase* loader);
-    void Run();
+    void LoadAndStart(horizon::loader::LoaderBase* loader);
+    void RequestStop();
+    void ForceStop();
 
     // TODO: rename?
     void ProgressFrame(u32 width, u32 height, bool& out_dt_average_updated);
 
-    // Getters
-    hw::tegra_x1::cpu::CPUBase* GetCPU() const { return cpu; }
-    hw::tegra_x1::gpu::GPU* GetGPU() const { return gpu; }
-    horizon::OS* GetOS() const { return os; }
-
-    u64 GetTitleID() const { return os->GetKernel().GetTitleID(); }
-
-    bool IsRunning() const { return running; }
+    bool IsRunning() const {
+        return os->GetKernel().GetProcessManager().HasRunningProcesses();
+    }
     f32 GetLastDeltaTimeAverage() const { return last_dt_average; }
 
   private:
     // Objects
-    hw::tegra_x1::cpu::CPUBase* cpu;
-    hw::tegra_x1::gpu::GPU* gpu;
-    audio::CoreBase* audio_core;
+    hw::tegra_x1::cpu::ICpu* cpu;
+    hw::tegra_x1::gpu::Gpu* gpu;
+    audio::ICore* audio_core;
     horizon::OS* os;
-
-    horizon::kernel::Process* process;
 
     // Loading screen assets
     hw::tegra_x1::gpu::renderer::TextureBase* nintendo_logo = nullptr;
@@ -53,12 +47,10 @@ class EmulationContext {
     clock_t::time_point startup_movie_fade_in_time;
     i32 startup_movie_frame{0};
 
-    std::atomic_bool running{false};
     bool loading{false};
 
     // Delta time
     f32 last_dt_average{0.0f};
-
     std::chrono::nanoseconds accumulated_dt{0};
     u32 dt_sample_count{0};
     clock_t::time_point last_dt_averaging_time{clock_t::now()};
@@ -67,7 +59,8 @@ class EmulationContext {
                  std::vector<std::chrono::nanoseconds>& out_dt_ns_list);
 
     // Helpers
-    void TryApplyPatch(const std::string_view target_filename,
+    void TryApplyPatch(horizon::kernel::Process* process,
+                       const std::string_view target_filename,
                        const std::filesystem::path path);
 };
 

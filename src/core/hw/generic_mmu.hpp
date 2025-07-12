@@ -5,7 +5,7 @@
 namespace hydra::hw {
 
 template <typename SubclassT, typename Impl>
-class GenericMMU {
+class GenericMmu {
   public:
     void Map(uptr base, Impl impl) {
         mapped_ranges[base] = impl;
@@ -14,7 +14,7 @@ class GenericMMU {
 
     void Unmap(uptr base) {
         auto it = mapped_ranges.find(base);
-        ASSERT_DEBUG(it != mapped_ranges.end(), MMU,
+        ASSERT_DEBUG(it != mapped_ranges.end(), Mmu,
                      "Failed to unmap with base 0x{:08x}", base);
         THIS->UnmapImpl(base, it->second);
         mapped_ranges.erase(it);
@@ -41,8 +41,8 @@ class GenericMMU {
 
     const Impl& FindAddrImpl(uptr addr, uptr& out_base) const {
         auto impl =
-            const_cast<GenericMMU*>(this)->FindAddrImplRef(addr, out_base);
-        DEBUGGER_ASSERT_DEBUG(impl, MMU,
+            const_cast<GenericMmu*>(this)->FindAddrImplRef(addr, out_base);
+        DEBUGGER_ASSERT_DEBUG(impl, Mmu,
                               "Failed to find impl for addr 0x{:08x}", addr);
 
         return *impl;

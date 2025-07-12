@@ -64,7 +64,8 @@ HYDRA_EXPORT const char* hydra_string_array_option_get(const void* option,
         .c_str();
 }
 
-HYDRA_EXPORT void hydra_string_array_option_resize(void* option, size_t size) {
+HYDRA_EXPORT void hydra_string_array_option_resize(void* option,
+                                                   uint64_t size) {
     static_cast<hydra::ArrayOption<std::string>*>(option)->Resize(size);
 }
 
@@ -172,7 +173,7 @@ HYDRA_EXPORT uint64_t hydra_loader_get_title_id(void* loader) {
 }
 
 HYDRA_EXPORT void hydra_loader_load_icon(void* loader, void** data,
-                                         size_t* width, size_t* height) {
+                                         uint64_t* width, uint64_t* height) {
     return static_cast<hydra::horizon::loader::LoaderBase*>(loader)->LoadIcon(
         *reinterpret_cast<hydra::uchar4**>(data), *width, *height);
 }
@@ -218,23 +219,24 @@ HYDRA_EXPORT void hydra_emulation_context_set_surface(void* ctx,
     static_cast<hydra::EmulationContext*>(ctx)->SetSurface(surface);
 }
 
-HYDRA_EXPORT void hydra_emulation_context_load(void* ctx, void* loader) {
-    static_cast<hydra::EmulationContext*>(ctx)->Load(
+HYDRA_EXPORT void hydra_emulation_context_load_and_start(void* ctx,
+                                                         void* loader) {
+    static_cast<hydra::EmulationContext*>(ctx)->LoadAndStart(
         static_cast<hydra::horizon::loader::LoaderBase*>(loader));
 }
 
-HYDRA_EXPORT void hydra_emulation_context_run(void* ctx) {
-    static_cast<hydra::EmulationContext*>(ctx)->Run();
+HYDRA_EXPORT void hydra_emulation_context_request_stop(void* ctx) {
+    static_cast<hydra::EmulationContext*>(ctx)->RequestStop();
+}
+
+HYDRA_EXPORT void hydra_emulation_context_force_stop(void* ctx) {
+    static_cast<hydra::EmulationContext*>(ctx)->ForceStop();
 }
 
 HYDRA_EXPORT void hydra_emulation_context_progress_frame(
     void* ctx, uint32_t width, uint32_t height, bool* out_dt_average_updated) {
     static_cast<hydra::EmulationContext*>(ctx)->ProgressFrame(
         width, height, *out_dt_average_updated);
-}
-
-HYDRA_EXPORT uint64_t hydra_emulation_context_get_title_id(void* ctx) {
-    return static_cast<hydra::EmulationContext*>(ctx)->GetTitleID();
 }
 
 HYDRA_EXPORT bool hydra_emulation_context_is_running(void* ctx) {
@@ -268,7 +270,7 @@ HYDRA_EXPORT void hydra_debugger_unregister_this_thread() {
     hydra::DEBUGGER_INSTANCE.UnregisterThisThread();
 }
 
-HYDRA_EXPORT size_t hydra_debugger_get_thread_count() {
+HYDRA_EXPORT uint64_t hydra_debugger_get_thread_count() {
     return hydra::DEBUGGER_INSTANCE.GetThreadCount();
 }
 
@@ -301,7 +303,7 @@ HYDRA_EXPORT const char* hydra_debugger_thread_get_break_reason(void* thread) {
         .c_str();
 }
 
-HYDRA_EXPORT size_t hydra_debugger_thread_get_message_count(void* thread) {
+HYDRA_EXPORT uint64_t hydra_debugger_thread_get_message_count(void* thread) {
     return static_cast<hydra::debugger::Thread*>(thread)->GetMessageCount();
 }
 

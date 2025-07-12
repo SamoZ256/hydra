@@ -10,7 +10,8 @@ class IAppletResource : public ServiceBase {
 
   private:
     // Commands
-    result_t GetSharedMemoryHandle(OutHandle<HandleAttr::Copy> out_handle);
+    result_t GetSharedMemoryHandle(kernel::Process* process,
+                                   OutHandle<HandleAttr::Copy> out_handle);
 };
 
 } // namespace hydra::horizon::services::hid

@@ -62,20 +62,17 @@ struct GameListView: View {
     }
 
     func tryAddGame(path: String) {
-        // TODO: ask the core for supported extensions
+        // TODO: handle this differently
         if !path.hasSuffix("nro") && !path.hasSuffix("nso")
             && !path.hasSuffix("nca")
         {
             return
         }
 
-        guard let loader = hydra_create_loader_from_file(path) else {
+        guard let game = createGameFromFile(path: path) else {
             return
         }
 
-        // TODO: get from NACP
-        let name = URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent
-
-        self.games.append(Game(loader: loader, name: name))
+        self.games.append(game)
     }
 }

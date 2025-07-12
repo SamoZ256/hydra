@@ -1,5 +1,6 @@
 #include "core/horizon/services/timesrv/static_service.hpp"
 
+#include "core/horizon/kernel/process.hpp"
 #include "core/horizon/services/timesrv/steady_clock.hpp"
 #include "core/horizon/services/timesrv/system_clock.hpp"
 #include "core/horizon/services/timesrv/time_zone_service.hpp"
@@ -21,7 +22,7 @@ DEFINE_SERVICE_COMMAND_TABLE(IStaticService, 0, GetStandardUserSystemClock, 1,
                              CalculateMonotonicSystemClockBaseTimePoint)
 
 IStaticService::IStaticService()
-    : shared_memory_handle(new kernel::SharedMemory(SHARED_MEMORY_SIZE)) {}
+    : shared_memory{new kernel::SharedMemory(SHARED_MEMORY_SIZE)} {}
 
 result_t
 IStaticService::GetStandardUserSystemClock(add_service_fn_t add_service) {
@@ -58,8 +59,8 @@ IStaticService::GetEphemeralNetworkSystemClock(add_service_fn_t add_service) {
 }
 
 result_t IStaticService::GetSharedMemoryNativeHandle(
-    OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = shared_memory_handle.id;
+    kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = process->AddHandle(shared_memory);
     return RESULT_SUCCESS;
 }
 

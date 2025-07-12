@@ -5,9 +5,6 @@
 #include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 
-// TODO: remove
-#include "core/horizon/kernel/kernel.hpp"
-
 // HACK
 bool g_uses_gpu = false;
 
@@ -78,18 +75,20 @@ void TextureCache::Update(Tex& tex, const ModifyInfo& mem_last_modified) {
     bool force_upload = false;
 
     // HACK: if homebrew
-    if (KERNEL_INSTANCE.GetTitleID() == 0xffffffffffffffff && !g_uses_gpu) {
+    if (/*KERNEL_INSTANCE.GetTitleID() == 0xffffffffffffffff && */
+        !g_uses_gpu) {
         force_upload = true;
         ONCE(LOG_WARN(
-            GPU, "Homebrew framebuffer API detected, forcing texture upload"));
+            Gpu, "Homebrew framebuffer API detected, forcing texture upload"));
     }
 
+    /*
     // HACK: if Sonic Mania
     if (KERNEL_INSTANCE.GetTitleID() == 0x01009aa000faa000 &&
         tex.base->GetDescriptor().width == 512 &&
         tex.base->GetDescriptor().height == 256) {
         force_upload = true;
-        ONCE(LOG_WARN(GPU, "Sonic Mania detected, forcing texture upload"));
+        ONCE(LOG_WARN(Gpu, "Sonic Mania detected, forcing texture upload"));
     }
 
     // HACK: if flog
@@ -97,8 +96,9 @@ void TextureCache::Update(Tex& tex, const ModifyInfo& mem_last_modified) {
         tex.base->GetDescriptor().width == 3712 &&
         tex.base->GetDescriptor().height == 2160) {
         force_upload = true;
-        ONCE(LOG_WARN(GPU, "Flog detected, forcing texture upload"));
+        ONCE(LOG_WARN(Gpu, "Flog detected, forcing texture upload"));
     }
+    */
 
     if (tex.upload_timestamp < mem_last_modified.timestamp || force_upload) {
         DecodeTexture(tex.base);

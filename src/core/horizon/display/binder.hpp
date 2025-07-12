@@ -88,8 +88,8 @@ struct Binder {
 
     // TODO: autoclear event?
     Binder()
-        : event(new kernel::Event(kernel::EventFlags::Signalled,
-                                  "Display event")) {}
+        : event{new kernel::Event(kernel::EventFlags::Signalled,
+                                  "Display event")} {}
 
     // Buffers
     void AddBuffer(i32 slot, const GraphicBuffer& buff);
@@ -105,12 +105,10 @@ struct Binder {
         return buffers[slot].buffer;
     }
 
-    const kernel::HandleWithId<kernel::Event>& GetEvent() const {
-        return event;
-    }
+    kernel::Event* GetEvent() const { return event; }
 
   private:
-    kernel::HandleWithId<kernel::Event> event;
+    kernel::Event* event;
 
     Buffer buffers[MAX_BINDER_BUFFER_COUNT]; // TODO: what should be the
                                              // max number of buffers?

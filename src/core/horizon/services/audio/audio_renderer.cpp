@@ -1,6 +1,7 @@
 #include "core/horizon/services/audio/audio_renderer.hpp"
 
 #include "core/debugger/debugger.hpp"
+#include "core/horizon/kernel/process.hpp"
 
 namespace hydra::horizon::services::audio {
 
@@ -155,15 +156,15 @@ DEFINE_SERVICE_COMMAND_TABLE(IAudioRenderer, 4, RequestUpdate, 5, Start, 6,
 IAudioRenderer::IAudioRenderer(const AudioRendererParameters& params_,
                                const usize work_buffer_size_)
     : params{params_}, work_buffer_size{work_buffer_size_},
-      event(new kernel::Event(kernel::EventFlags::AutoClear,
-                              "IAudioRenderer event")) {
+      event{new kernel::Event(kernel::EventFlags::AutoClear,
+                              "IAudioRenderer event")} {
     voices.resize(params.voice_count);
 
     // HACK: create a thread that signals the handle every so often
     auto t = new std::thread([&]() {
         DEBUGGER_INSTANCE.RegisterThisThread("Audren signal");
         while (true) {
-            event.handle->Signal();
+            event->Signal();
             std::this_thread::sleep_for(std::chrono::microseconds(2));
         }
         DEBUGGER_INSTANCE.UnregisterThisThread();
@@ -179,8 +180,9 @@ IAudioRenderer::RequestUpdate(InBuffer<BufferAttr::MapAlias> in_buffer,
 }
 
 result_t
-IAudioRenderer::QuerySystemEvent(OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = event.id;
+IAudioRenderer::QuerySystemEvent(kernel::Process* process,
+                                 OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = process->AddHandle(event);
     return RESULT_SUCCESS;
 }
 

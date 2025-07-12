@@ -1,8 +1,8 @@
 #include "core/horizon/services/am/library_applet_creator.hpp"
 
-#include "core/horizon/kernel/kernel.hpp"
+#include "core/horizon/kernel/process.hpp"
 #include "core/horizon/services/am/storage.hpp"
-#include "core/hw/tegra_x1/cpu/mmu_base.hpp"
+#include "core/hw/tegra_x1/cpu/mmu.hpp"
 
 namespace hydra::horizon::services::am {
 
@@ -26,16 +26,16 @@ result_t ILibraryAppletCreator::CreateStorage(add_service_fn_t add_service,
 }
 
 result_t ILibraryAppletCreator::CreateTransferMemoryStorage(
-    add_service_fn_t add_service, InHandle<HandleAttr::Copy> tmem_handle,
-    bool writable, i64 size) {
-    auto tmem = dynamic_cast<kernel::TransferMemory*>(
-        KERNEL_INSTANCE.GetHandle(tmem_handle));
+    kernel::Process* process, add_service_fn_t add_service,
+    InHandle<HandleAttr::Copy> tmem_handle, bool writable, i64 size) {
+    auto tmem =
+        dynamic_cast<kernel::TransferMemory*>(process->GetHandle(tmem_handle));
     ASSERT_DEBUG(tmem, Services,
                  "Handle 0x{:x} is not a transfer memory handle",
                  (handle_id_t)tmem_handle);
 
-    add_service(new IStorage(sized_ptr(
-        KERNEL_INSTANCE.GetMMU()->UnmapAddr(tmem->GetAddress()), size)));
+    add_service(new IStorage(
+        sized_ptr(process->GetMmu()->UnmapAddr(tmem->GetAddress()), size)));
     return RESULT_SUCCESS;
 }
 

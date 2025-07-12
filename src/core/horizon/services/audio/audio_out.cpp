@@ -1,7 +1,8 @@
 #include "core/horizon/services/audio/audio_out.hpp"
 
+#include "core/horizon/kernel/process.hpp"
 #include "core/horizon/os.hpp"
-#include "core/hw/tegra_x1/cpu/mmu_base.hpp"
+#include "core/hw/tegra_x1/cpu/mmu.hpp"
 
 namespace hydra::horizon::services::audio {
 
@@ -12,8 +13,8 @@ DEFINE_SERVICE_COMMAND_TABLE(IAudioOut, 1, Start, 2, Stop, 3,
                              GetReleasedAudioOutBuffersAuto)
 
 IAudioOut::IAudioOut(PcmFormat format, u32 sample_rate, u16 channel_count)
-    : buffer_event(new kernel::Event(kernel::EventFlags::AutoClear,
-                                     "IAudioOut buffer event")) {
+    : buffer_event{new kernel::Event(kernel::EventFlags::AutoClear,
+                                     "IAudioOut buffer event")} {
     stream = OS_INSTANCE.GetAudioCore().CreateStream(
         format, sample_rate, channel_count, [&](buffer_id_t buffer_id) {
             {
@@ -22,7 +23,7 @@ IAudioOut::IAudioOut(PcmFormat format, u32 sample_rate, u16 channel_count)
             }
 
             // Signal event
-            buffer_event.handle->Signal();
+            buffer_event->Signal();
         });
 }
 
@@ -37,14 +38,16 @@ result_t IAudioOut::Stop() {
 }
 
 result_t
-IAudioOut::AppendAudioOutBuffer(u64 buffer_client_ptr,
+IAudioOut::AppendAudioOutBuffer(kernel::Process* process, u64 buffer_client_ptr,
                                 InBuffer<BufferAttr::MapAlias> buffer_buffer) {
-    return AppendAudioOutBufferImpl(buffer_client_ptr, *buffer_buffer.reader);
+    return AppendAudioOutBufferImpl(process, buffer_client_ptr,
+                                    *buffer_buffer.reader);
 }
 
 result_t
-IAudioOut::RegisterBufferEvent(OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = buffer_event.id;
+IAudioOut::RegisterBufferEvent(kernel::Process* process,
+                               OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = process->AddHandle(buffer_event);
     return RESULT_SUCCESS;
 }
 
@@ -55,8 +58,10 @@ result_t IAudioOut::GetReleasedAudioOutBuffers(
 }
 
 result_t IAudioOut::AppendAudioOutBufferAuto(
-    u64 buffer_client_ptr, InBuffer<BufferAttr::AutoSelect> buffer_buffer) {
-    return AppendAudioOutBufferImpl(buffer_client_ptr, *buffer_buffer.reader);
+    kernel::Process* process, u64 buffer_client_ptr,
+    InBuffer<BufferAttr::AutoSelect> buffer_buffer) {
+    return AppendAudioOutBufferImpl(process, buffer_client_ptr,
+                                    *buffer_buffer.reader);
 }
 
 result_t IAudioOut::GetReleasedAudioOutBuffersAuto(
@@ -65,13 +70,14 @@ result_t IAudioOut::GetReleasedAudioOutBuffersAuto(
                                           *out_buffers_buffer.writer);
 }
 
-result_t IAudioOut::AppendAudioOutBufferImpl(u64 buffer_client_ptr,
+result_t IAudioOut::AppendAudioOutBufferImpl(kernel::Process* process,
+                                             u64 buffer_client_ptr,
                                              Reader buffer_reader) {
     const auto buffer = buffer_reader.Read<Buffer>();
     // TODO: correct?
     stream->EnqueueBuffer(
         buffer_client_ptr,
-        sized_ptr(KERNEL_INSTANCE.GetMMU()->UnmapAddr(buffer.sample_buffer_ptr),
+        sized_ptr(process->GetMmu()->UnmapAddr(buffer.sample_buffer_ptr),
                   buffer.sample_buffer_data_size));
 
     return RESULT_SUCCESS;

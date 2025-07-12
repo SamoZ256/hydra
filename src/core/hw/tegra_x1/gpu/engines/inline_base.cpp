@@ -22,7 +22,7 @@ void InlineBase::LoadInlineDataImpl(RegsInline& regs, const u32 index,
 
         // Buffer to buffer
         uptr dst_ptr = UNMAP_ADDR(regs.offset_out);
-        // TODO: do a GPU copy instead?
+        // TODO: do a Gpu copy instead?
         memcpy(reinterpret_cast<void*>(dst_ptr), inline_data.data(),
                inline_data.size() * sizeof(u32));
         /*

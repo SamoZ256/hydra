@@ -1,7 +1,7 @@
 #include "core/horizon/services/am/application_functions.hpp"
 
+#include "core/horizon/kernel/process.hpp"
 #include "core/horizon/services/am/storage.hpp"
-#include "core/horizon/state_manager.hpp"
 
 namespace hydra::horizon::services::am {
 
@@ -15,12 +15,14 @@ DEFINE_SERVICE_COMMAND_TABLE(IApplicationFunctions, 1, PopLaunchParameter, 20,
                              EnableApplicationCrashReport, 130,
                              GetGpuErrorDetectedSystemEvent)
 
-result_t IApplicationFunctions::PopLaunchParameter(add_service_fn_t add_service,
-                                                   LaunchParameterKind kind) {
+result_t
+IApplicationFunctions::PopLaunchParameter(kernel::Process* process,
+                                          add_service_fn_t add_service,
+                                          kernel::LaunchParameterKind kind) {
     LOG_DEBUG(Services, "Kind: {}", kind);
 
     add_service(
-        new IStorage(StateManager::GetInstance().PopLaunchParameter(kind)));
+        new IStorage(process->GetAppletState().PopLaunchParameter(kind)));
     return RESULT_SUCCESS;
 }
 
@@ -105,8 +107,8 @@ result_t IApplicationFunctions::EnableApplicationCrashReport(bool enabled) {
 }
 
 result_t IApplicationFunctions::GetGpuErrorDetectedSystemEvent(
-    OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = gpu_error_detect_event.id;
+    kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = process->AddHandle(gpu_error_detect_event);
     return RESULT_SUCCESS;
 }
 

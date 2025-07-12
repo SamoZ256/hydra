@@ -2,7 +2,7 @@
 
 #include "core/horizon/kernel/cmif.hpp"
 #include "core/horizon/kernel/domain_service.hpp"
-#include "core/horizon/kernel/kernel.hpp"
+#include "core/horizon/kernel/process.hpp"
 
 namespace hydra::horizon::kernel {
 
@@ -14,7 +14,8 @@ void Session::Close() {
 
 void Session::Request(RequestContext& context) { service->Request(context); }
 
-void Session::Control(hipc::Readers& readers, hipc::Writers& writers) {
+void Session::Control(Process* process, hipc::Readers& readers,
+                      hipc::Writers& writers) {
     auto cmif_in = readers.reader.Read<cmif::InHeader>();
     ASSERT_DEBUG(cmif_in.magic == cmif::IN_HEADER_MAGIC, Kernel,
                  "Invalid CMIF in magic 0x{:08x}", cmif_in.magic);
@@ -37,7 +38,7 @@ void Session::Control(hipc::Readers& readers, hipc::Writers& writers) {
     }
     case cmif::ControlCommandType::CloneCurrentObject: { // clone current object
         auto clone = new Session(service);
-        handle_id_t handle_id = KERNEL_INSTANCE.AddHandle(clone);
+        handle_id_t handle_id = process->AddHandle(clone);
         clone->SetHandleId(handle_id);
         writers.move_handles_writer.Write(handle_id);
         break;
@@ -49,7 +50,7 @@ void Session::Control(hipc::Readers& readers, hipc::Writers& writers) {
     case cmif::ControlCommandType::CloneCurrentObjectEx: { // clone current ex
         // TODO: u32 tag
         auto clone = new Session(service);
-        handle_id_t handle_id = KERNEL_INSTANCE.AddHandle(clone);
+        handle_id_t handle_id = process->AddHandle(clone);
         clone->SetHandleId(handle_id);
         writers.move_handles_writer.Write(handle_id);
         break;

@@ -61,7 +61,7 @@ struct CommandHeader {
 
 void Pfifo::SubmitEntries(const std::vector<GpfifoEntry>& entries,
                           GpfifoFlags flags) {
-    LOG_DEBUG(GPU, "Flags: {}", flags);
+    LOG_DEBUG(Gpu, "Flags: {}", flags);
     RENDERER_INSTANCE->LockMutex();
     for (const auto& entry : entries) {
         SubmitEntry(entry);
@@ -71,7 +71,7 @@ void Pfifo::SubmitEntries(const std::vector<GpfifoEntry>& entries,
 }
 
 void Pfifo::SubmitEntry(const GpfifoEntry entry) {
-    LOG_DEBUG(GPU,
+    LOG_DEBUG(Gpu,
               "Gpfifo entry (address: 0x{:08x}, size: 0x{:08x}, allow "
               "flush: {}, is push buffer: {}, sync: {})",
               entry.gpu_addr, entry.size, entry.allow_flush,
@@ -88,11 +88,11 @@ void Pfifo::SubmitEntry(const GpfifoEntry entry) {
 
 bool Pfifo::SubmitCommand(uptr& gpu_addr) {
     const auto header = Read<CommandHeader>(gpu_addr);
-    LOG_DEBUG(GPU, "Secondary opcode: {}", header.secondary_opcode);
+    LOG_DEBUG(Gpu, "Secondary opcode: {}", header.secondary_opcode);
 
     // HACK
     if (header.subchannel >= SUBCHANNEL_COUNT) {
-        ONCE(LOG_WARN(GPU, "Invalid subchannel {}", header.subchannel));
+        ONCE(LOG_WARN(Gpu, "Invalid subchannel {}", header.subchannel));
         return false;
     }
 
@@ -110,7 +110,7 @@ bool Pfifo::SubmitCommand(uptr& gpu_addr) {
                 ProcessMethodArg(header.subchannel, gpu_addr, offset, true);
             break;
         default:
-            LOG_NOT_IMPLEMENTED(GPU, "Tertiary opcode {}", TERTIARY_OPCODE);
+            LOG_NOT_IMPLEMENTED(Gpu, "Tertiary opcode {}", TERTIARY_OPCODE);
             break;
         }
         break;
@@ -127,7 +127,7 @@ bool Pfifo::SubmitCommand(uptr& gpu_addr) {
                 ProcessMethodArg(header.subchannel, gpu_addr, offset, false);
             break;
         default:
-            LOG_NOT_IMPLEMENTED(GPU, "Tertiary opcode {}", TERTIARY_OPCODE);
+            LOG_NOT_IMPLEMENTED(Gpu, "Tertiary opcode {}", TERTIARY_OPCODE);
             break;
         }
         break;
@@ -137,7 +137,7 @@ bool Pfifo::SubmitCommand(uptr& gpu_addr) {
             ProcessMethodArg(header.subchannel, gpu_addr, offset, false);
         break;
     case SecondaryOpcode::ImmDataMethod:
-        GPU::GetInstance().SubchannelMethod(header.subchannel, offset,
+        Gpu::GetInstance().SubchannelMethod(header.subchannel, offset,
                                             header.arg);
         break;
     case SecondaryOpcode::OneInc:
@@ -145,7 +145,7 @@ bool Pfifo::SubmitCommand(uptr& gpu_addr) {
             ProcessMethodArg(header.subchannel, gpu_addr, offset, i == 0);
         break;
     default:
-        LOG_NOT_IMPLEMENTED(GPU, "Secondary opcode {}",
+        LOG_NOT_IMPLEMENTED(Gpu, "Secondary opcode {}",
                             header.secondary_opcode);
         break;
     }
@@ -153,7 +153,7 @@ bool Pfifo::SubmitCommand(uptr& gpu_addr) {
     // TODO: is it okay to prefetch the parameters and then execute the
     // macro?
     if (header.method >= MACRO_METHODS_REGION)
-        GPU::GetInstance().SubchannelFlushMacro(header.subchannel);
+        Gpu::GetInstance().SubchannelFlushMacro(header.subchannel);
 
     return true;
 }
@@ -161,7 +161,7 @@ bool Pfifo::SubmitCommand(uptr& gpu_addr) {
 void Pfifo::ProcessMethodArg(u32 subchannel, uptr& gpu_addr, u32& method,
                              bool increment) {
     u32 arg = Read<u32>(gpu_addr);
-    GPU::GetInstance().SubchannelMethod(subchannel, method, arg);
+    Gpu::GetInstance().SubchannelMethod(subchannel, method, arg);
     if (increment)
         method++;
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/audio/core_base.hpp"
+#include "core/audio/core.hpp"
 
 namespace hydra::horizon::services::audio {
 

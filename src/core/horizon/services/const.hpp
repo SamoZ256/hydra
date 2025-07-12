@@ -95,19 +95,25 @@ class OutHandle {
 };
 
 enum class ArgumentType {
+    Process,
     InData,
     OutData,
     InBuffer,
     OutBuffer,
     InHandle,
     OutHandle,
-    AddServiceFn, // Deprecated
+    AddServiceFn,
     InService,
     OutService,
 };
 
 template <typename T>
 struct arg_traits;
+
+template <>
+struct arg_traits<kernel::Process*> {
+    static constexpr ArgumentType type = ArgumentType::Process;
+};
 
 template <typename T>
 struct arg_traits {
@@ -166,7 +172,14 @@ void read_arg(RequestContext& context, CommandArguments& args) {
 
         auto& arg = std::get<arg_index>(args);
 
-        if constexpr (traits::type == ArgumentType::InData) {
+        if constexpr (traits::type == ArgumentType::Process) {
+            arg = context.process;
+
+            // Next
+            read_arg<CommandArguments, in_buffer_index, out_buffer_index,
+                     arg_index + 1>(context, args);
+            return;
+        } else if constexpr (traits::type == ArgumentType::InData) {
             arg = context.readers.reader.Read<Arg>();
 
             // Next

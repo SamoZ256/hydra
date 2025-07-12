@@ -1,6 +1,6 @@
 #include "core/horizon/services/visrv/application_display_service.hpp"
 
-#include "core/horizon/kernel/kernel.hpp"
+#include "core/horizon/kernel/process.hpp"
 #include "core/horizon/os.hpp"
 #include "core/horizon/services/hosbinder/hos_binder_driver.hpp"
 #include "core/horizon/services/hosbinder/parcel.hpp"
@@ -151,11 +151,12 @@ result_t IApplicationDisplayService::ConvertScalingMode() {
 }
 
 result_t IApplicationDisplayService::GetDisplayVsyncEvent(
-    u64 display_id, OutHandle<HandleAttr::Move> out_handle) {
+    kernel::Process* process, u64 display_id,
+    OutHandle<HandleAttr::Move> out_handle) {
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
     std::unique_lock display_lock(display.GetMutex());
 
-    out_handle = display.GetVSyncEvent().id;
+    out_handle = process->AddHandle(display.GetVSyncEvent());
     return RESULT_SUCCESS;
 }
 

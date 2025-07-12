@@ -8,13 +8,15 @@ namespace hydra::horizon::services::audio {
 
 class IAudioDevice : public ServiceBase {
   public:
-    IAudioDevice();
+    IAudioDevice()
+        : event{new kernel::Event(kernel::EventFlags::AutoClear,
+                                  "IAudioDevice event")} {}
 
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
-    kernel::HandleWithId<kernel::Event> event;
+    kernel::Event* event;
 
     // Commands
     result_t ListAudioDeviceName(i32* out_count,
@@ -27,7 +29,8 @@ class IAudioDevice : public ServiceBase {
     // TODO: takes a name?
     // TODO: check handle attrs
     result_t
-    QueryAudioDeviceSystemEvent(OutHandle<HandleAttr::Copy> out_handle);
+    QueryAudioDeviceSystemEvent(kernel::Process* process,
+                                OutHandle<HandleAttr::Copy> out_handle);
     // TODO: params
     result_t GetActiveChannelCount(i32* out_count);
     result_t

@@ -253,7 +253,7 @@ void Config::Deserialize() {
 
     if (gpu_renderer == GpuRenderer::Invalid) {
         gpu_renderer = GetDefaultGpuRenderer();
-        LOG_WARN(Other, "Invalid GPU renderer, falling back to {}",
+        LOG_WARN(Other, "Invalid Gpu renderer, falling back to {}",
                  gpu_renderer);
     }
 
@@ -276,7 +276,7 @@ void Config::Log() {
     LOG_INFO(Other, "Game paths: [{}]", game_paths);
     LOG_INFO(Other, "Patch paths: [{}]", patch_paths);
     LOG_INFO(Other, "CPU backend: {}", cpu_backend);
-    LOG_INFO(Other, "GPU renderer: {}", gpu_renderer);
+    LOG_INFO(Other, "Gpu renderer: {}", gpu_renderer);
     LOG_INFO(Other, "Shader backend: {}", shader_backend);
     LOG_INFO(Other, "Audio backend: {}", audio_backend);
     LOG_INFO(Other, "User ID: {:032x}", user_id.Get());

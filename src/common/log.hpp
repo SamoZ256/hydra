@@ -27,8 +27,8 @@
 #endif
 
 #define LOG_INFO(c, ...) LOG(Info, c, __VA_ARGS__)
-#define LOG_STUBBED(c, fmt, ...)                                               \
-    LOG(Stub, c, fmt " stubbed" PASS_VA_ARGS(__VA_ARGS__))
+#define LOG_STUBBED(c, f, ...)                                                 \
+    LOG(Stub, c, f " stubbed" PASS_VA_ARGS(__VA_ARGS__))
 #define LOG_WARN(c, ...) LOG(Warning, c, __VA_ARGS__)
 #define LOG_ERROR(c, ...) LOG(Error, c, __VA_ARGS__)
 #define LOG_FATAL(c, ...)                                                      \
@@ -38,18 +38,19 @@
     }
 
 #define LOG_FUNC_STUBBED(c) LOG_STUBBED(c, "{}", __func__)
-#define LOG_NOT_IMPLEMENTED(c, fmt, ...)                                       \
-    LOG_WARN(c, fmt " not implemented" PASS_VA_ARGS(__VA_ARGS__))
+#define LOG_NOT_IMPLEMENTED(c, f, ...)                                         \
+    LOG_WARN(c, f " not implemented" PASS_VA_ARGS(__VA_ARGS__))
 #define LOG_FUNC_NOT_IMPLEMENTED(c) LOG_NOT_IMPLEMENTED(c, "{}", __func__)
 
 #define ASSERT(condition, c, ...)                                              \
     if (!(condition)) {                                                        \
         LOG_FATAL(c, __VA_ARGS__);                                             \
     }
-#define DEBUGGER_ASSERT(condition, c, ...)                                     \
+#define DEBUGGER_ASSERT(condition, c, f, ...)                                  \
     if (!(condition)) {                                                        \
-        LOG_ERROR(c, __VA_ARGS__);                                             \
-        DEBUGGER_INSTANCE.BreakOnThisThread("Assertion failed");               \
+        /* TODO: log class */                                                  \
+        DEBUGGER_INSTANCE.BreakOnThisThread(                                   \
+            fmt::format(f PASS_VA_ARGS(__VA_ARGS__)));                         \
     }
 #define ASSERT_ALIGNMENT(value, alignment, c, name)                            \
     ASSERT(is_aligned<decltype(value)>(value, alignment), c,                   \
@@ -108,9 +109,9 @@ enum class LogLevel {
 
 enum class LogClass {
     Common,
-    MMU,
-    CPU,
-    GPU,
+    Mmu,
+    Cpu,
+    Gpu,
     Engines,
     Macro,
     ShaderDecompiler,
@@ -134,8 +135,8 @@ enum class LogClass {
 ENABLE_ENUM_FORMATTING(hydra::LogLevel, Debug, "D", Info, "I", Stub, "S",
                        Warning, "W", Error, "E", Fatal, "F")
 
-ENABLE_ENUM_FORMATTING(hydra::LogClass, Common, "Common", MMU, "MMU", CPU,
-                       "CPU", GPU, "GPU", Engines, "Engines", Macro, "Macro",
+ENABLE_ENUM_FORMATTING(hydra::LogClass, Common, "Common", Mmu, "MMU", Cpu,
+                       "CPU", Gpu, "GPU", Engines, "Engines", Macro, "Macro",
                        ShaderDecompiler, "Shader Decompiler", MetalRenderer,
                        "Renderer::Metal", SDL3Window, "Window::SDL3", Horizon,
                        "Horizon", Kernel, "Kernel", Filesystem, "Filesystem",
@@ -166,17 +167,17 @@ class Logger {
     ~Logger();
 
     void InstallCallback(log_callback_fn_t callback_) {
-        std::unique_lock lock(mutex);
+        std::lock_guard lock(mutex);
         callback = callback_;
     }
 
     void UninstallCallback() {
-        std::unique_lock lock(mutex);
+        std::lock_guard lock(mutex);
         callback = std::nullopt;
     }
 
     void SetOutput(const LogOutput output_) {
-        std::unique_lock lock(mutex);
+        std::lock_guard lock(mutex);
         output = output_;
     }
 
@@ -184,54 +185,57 @@ class Logger {
     void Log(LogLevel level, LogClass c, const std::string_view file, u32 line,
              const std::string_view function, fmt::format_string<T...> f,
              T&&... args) {
-        std::unique_lock lock(mutex);
+        {
+            std::lock_guard lock(mutex);
 
-        switch (output) {
-        case LogOutput::None:
-            break;
-        case LogOutput::StdOut:
-            // Level
-            fmt::terminal_color color;
-            switch (level) {
-            case LogLevel::Debug:
-                color = fmt::terminal_color::cyan;
+            switch (output) {
+            case LogOutput::None:
                 break;
-            case LogLevel::Info:
-                color = fmt::terminal_color::white;
+            case LogOutput::StdOut:
+                // Level
+                fmt::terminal_color color;
+                switch (level) {
+                case LogLevel::Debug:
+                    color = fmt::terminal_color::cyan;
+                    break;
+                case LogLevel::Info:
+                    color = fmt::terminal_color::white;
+                    break;
+                case LogLevel::Stub:
+                    color = fmt::terminal_color::magenta;
+                    break;
+                case LogLevel::Warning:
+                    color = fmt::terminal_color::bright_yellow;
+                    break;
+                case LogLevel::Error:
+                    color = fmt::terminal_color::bright_red;
+                    break;
+                case LogLevel::Fatal:
+                    color = fmt::terminal_color::red;
+                    break;
+                }
+
+                // Debug info
+                fmt::print(fg(color), "{:016x} |{}| {:>17} {:>24} in {:>48}: ",
+                           std::bit_cast<u64>(std::this_thread::get_id()),
+                           level, c, function,
+                           fmt::format("{}:{}", file, line));
+
+                // Message
+                fmt::print(f, std::forward<T>(args)...);
+                fmt::print("\n");
                 break;
-            case LogLevel::Stub:
-                color = fmt::terminal_color::magenta;
+            case LogOutput::File:
+                EnsureOutputStream();
+
+                fmt::print(*ofs, "TODO(TIME) |{}| {:>17}: ", level, c);
+                fmt::print(*ofs, f, std::forward<T>(args)...);
+                fmt::print(*ofs, "\n");
                 break;
-            case LogLevel::Warning:
-                color = fmt::terminal_color::bright_yellow;
-                break;
-            case LogLevel::Error:
-                color = fmt::terminal_color::bright_red;
-                break;
-            case LogLevel::Fatal:
-                color = fmt::terminal_color::red;
+            default:
+                throw std::runtime_error("Invalid logging output");
                 break;
             }
-
-            // Debug info
-            fmt::print(fg(color), "{:016x} |{}| {:>17} {:>24} in {:>48}: ",
-                       std::bit_cast<u64>(std::this_thread::get_id()), level, c,
-                       function, fmt::format("{}:{}", file, line));
-
-            // Message
-            fmt::print(f, std::forward<T>(args)...);
-            fmt::print("\n");
-            break;
-        case LogOutput::File:
-            EnsureOutputStream();
-
-            fmt::print(*ofs, "TODO(TIME) |{}| {:>17}: ", level, c);
-            fmt::print(*ofs, f, std::forward<T>(args)...);
-            fmt::print(*ofs, "\n");
-            break;
-        default:
-            throw std::runtime_error("Invalid logging output");
-            break;
         }
 
         if (callback)

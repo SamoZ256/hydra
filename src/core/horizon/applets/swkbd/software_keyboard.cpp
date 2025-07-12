@@ -26,7 +26,7 @@ result_t SoftwareKeyboard::Run() {
     while (true) {
         // Text input
         std::string output_text_utf8;
-        result = OS_INSTANCE.GetUiHandler().ShowSoftwareKeyboard(
+        result = OS_INSTANCE.GetUIHandler().ShowSoftwareKeyboard(
             utf16_to_utf8(std::u16string(config.header_text)),
             output_text_utf8);
         output_text = utf8_to_utf16(output_text_utf8);
@@ -50,7 +50,7 @@ result_t SoftwareKeyboard::Run() {
 
         // Dialog
         std::u16string msg = reader.ReadPtr<char16_t>();
-        OS_INSTANCE.GetUiHandler().ShowMessageDialog(
+        OS_INSTANCE.GetUIHandler().ShowMessageDialog(
             (res == TextCheckResult::ShowFailureDialog
                  ? ui::MessageDialogType::Error
                  : ui::MessageDialogType::Info),

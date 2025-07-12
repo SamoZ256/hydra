@@ -14,8 +14,8 @@ class NspLoader : public LoaderBase {
 
     u64 GetTitleID() const override { return program_nca_loader->GetTitleID(); }
 
-    std::optional<kernel::ProcessParams> LoadProcess() override {
-        return program_nca_loader->LoadProcess();
+    void LoadProcess(kernel::Process* process) override {
+        program_nca_loader->LoadProcess(process);
     }
 
   private:

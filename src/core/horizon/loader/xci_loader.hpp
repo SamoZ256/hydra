@@ -10,8 +10,8 @@ class XciLoader : public LoaderBase {
 
     u64 GetTitleID() const override { return nsp_loader->GetTitleID(); }
 
-    std::optional<kernel::ProcessParams> LoadProcess() override {
-        return nsp_loader->LoadProcess();
+    void LoadProcess(kernel::Process* process) override {
+        nsp_loader->LoadProcess(process);
     }
 
   private:

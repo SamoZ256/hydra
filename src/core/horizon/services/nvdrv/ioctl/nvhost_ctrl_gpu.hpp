@@ -60,17 +60,17 @@ struct ZCullInfo {
 class NvHostCtrlGpu : public FdBase {
   public:
     NvHostCtrlGpu()
-        : error_event(new kernel::Event(kernel::EventFlags::AutoClear,
-                                        "NvHostCtrlGpu error event")),
-          unknown_event(new kernel::Event(kernel::EventFlags::AutoClear,
-                                          "NvHostCtrlGpu unknown event")) {}
+        : error_event{new kernel::Event(kernel::EventFlags::AutoClear,
+                                        "NvHostCtrlGpu error event")},
+          unknown_event{new kernel::Event(kernel::EventFlags::AutoClear,
+                                          "NvHostCtrlGpu unknown event")} {}
 
     NvResult Ioctl(IoctlContext& context, u32 type, u32 nr) override;
-    NvResult QueryEvent(u32 event_id_u32, handle_id_t& out_handle_id) override;
+    NvResult QueryEvent(u32 event_id_u32, kernel::Event*& out_event) override;
 
   private:
-    kernel::HandleWithId<kernel::Event> error_event;
-    kernel::HandleWithId<kernel::Event> unknown_event;
+    kernel::Event* error_event;
+    kernel::Event* unknown_event;
 
     // Ioctls
     NvResult ZCullGetCtxSize(u32* out_size);
@@ -78,7 +78,7 @@ class NvHostCtrlGpu : public FdBase {
     NvResult ZbcSetTable(std::array<u32, 4> color_ds,
                          std::array<u32, 4> color_l2, u32 depth, u32 format,
                          u32 table);
-    // TODO: is buffer_addr in GPU virtual address space?
+    // TODO: is buffer_addr in Gpu virtual address space?
     NvResult GetCharacteristics(InOutSingle<u64> inout_buffer_size,
                                 gpu_vaddr_t buffer_addr,
                                 GpuCharacteristics* out_characteristics);

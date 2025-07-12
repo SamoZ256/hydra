@@ -1,5 +1,7 @@
 #include "core/horizon/services/nifm/request.hpp"
 
+#include "core/horizon/kernel/process.hpp"
+
 namespace hydra::horizon::services::nifm {
 
 DEFINE_SERVICE_COMMAND_TABLE(IRequest, 0, GetRequestState, 1, GetResult, 2,
@@ -8,10 +10,10 @@ DEFINE_SERVICE_COMMAND_TABLE(IRequest, 0, GetRequestState, 1, GetResult, 2,
 
 // TODO: how come is the autoclear of the second one user-specified?
 IRequest::IRequest()
-    : events{{new kernel::Event(kernel::EventFlags::AutoClear,
-                                "IRequest system event")},
-             {new kernel::Event(kernel::EventFlags::AutoClear,
-                                "IRequest system event")}} {}
+    : events{new kernel::Event(kernel::EventFlags::AutoClear,
+                               "IRequest system event 0"),
+             new kernel::Event(kernel::EventFlags::AutoClear,
+                               "IRequest system event 1")} {}
 
 result_t IRequest::GetRequestState(RequestState* out_state) {
     LOG_FUNC_STUBBED(Services);
@@ -23,10 +25,10 @@ result_t IRequest::GetRequestState(RequestState* out_state) {
 }
 
 result_t IRequest::GetSystemEventReadableHandles(
-    OutHandle<HandleAttr::Copy> out_handle0,
+    kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle0,
     OutHandle<HandleAttr::Copy> out_handle1) {
-    out_handle0 = events[0].id;
-    out_handle1 = events[1].id;
+    out_handle0 = process->AddHandle(events[0]);
+    out_handle1 = process->AddHandle(events[1]);
     return RESULT_SUCCESS;
 }
 

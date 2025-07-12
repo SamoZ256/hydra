@@ -35,10 +35,10 @@ class InputManager {
     void EndTouch(u32 finger_id);
 
     // Getters
-    const handle_id_t GetSharedMemoryId() const { return shared_memory.id; }
+    kernel::SharedMemory* GetSharedMemory() const { return shared_memory; }
 
   private:
-    kernel::HandleWithId<kernel::SharedMemory> shared_memory;
+    kernel::SharedMemory* shared_memory;
 
     // State
     usize touch_count{0};

@@ -13,7 +13,7 @@ class IStaticService : public ServiceBase {
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
-    kernel::HandleWithId<kernel::SharedMemory> shared_memory_handle;
+    kernel::SharedMemory* shared_memory;
 
     // Commands
     result_t GetStandardUserSystemClock(add_service_fn_t add_service);
@@ -23,7 +23,8 @@ class IStaticService : public ServiceBase {
     result_t GetStandardLocalSystemClock(add_service_fn_t add_service);
     result_t GetEphemeralNetworkSystemClock(add_service_fn_t add_service);
     result_t
-    GetSharedMemoryNativeHandle(OutHandle<HandleAttr::Copy> out_handle);
+    GetSharedMemoryNativeHandle(kernel::Process* process,
+                                OutHandle<HandleAttr::Copy> out_handle);
     STUB_REQUEST_COMMAND(CalculateMonotonicSystemClockBaseTimePoint);
 };
 

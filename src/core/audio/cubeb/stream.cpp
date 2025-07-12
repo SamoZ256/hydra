@@ -29,7 +29,7 @@ cubeb_channel_layout to_cubeb_layout(u16 channel_count) {
 Stream::Stream(Core& core_, PcmFormat format, u32 sample_rate,
                u16 channel_count,
                buffer_finished_callback_fn_t buffer_finished_callback)
-    : StreamBase(format, sample_rate, channel_count, buffer_finished_callback),
+    : IStream(format, sample_rate, channel_count, buffer_finished_callback),
       core{core_} {
     // TODO: allow different channel counts
     ASSERT(channel_count == 2, Cubeb, "Unsupported channel count {}",

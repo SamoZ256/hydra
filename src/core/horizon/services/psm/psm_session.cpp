@@ -1,6 +1,6 @@
 #include "core/horizon/services/psm/psm_session.hpp"
 
-#include "core/horizon/kernel/kernel.hpp"
+#include "core/horizon/kernel/process.hpp"
 
 // TODO: actually signal the handle
 
@@ -13,15 +13,16 @@ DEFINE_SERVICE_COMMAND_TABLE(IPsmSession, 0, BindStateChangeEvent, 1,
                              SetBatteryVoltageStateChangeEventEnabled)
 
 result_t
-IPsmSession::BindStateChangeEvent(OutHandle<HandleAttr::Copy> out_handle) {
-    event_handle_id = KERNEL_INSTANCE.AddHandle(new kernel::Event(
+IPsmSession::BindStateChangeEvent(kernel::Process* process,
+                                  OutHandle<HandleAttr::Copy> out_handle) {
+    event_handle_id = process->AddHandle(new kernel::Event(
         kernel::EventFlags::None, "IPsmSession state change event"));
     out_handle = event_handle_id;
     return RESULT_SUCCESS;
 }
 
-result_t IPsmSession::UnbindStateChangeEvent() {
-    KERNEL_INSTANCE.FreeHandle(event_handle_id);
+result_t IPsmSession::UnbindStateChangeEvent(kernel::Process* process) {
+    process->FreeHandle(event_handle_id);
     event_handle_id = INVALID_HANDLE_ID;
     return RESULT_SUCCESS;
 }

@@ -6,18 +6,18 @@
 #include "core/hw/tegra_x1/cpu/dynarmic/mmu.hpp"
 #include "dynarmic/interface/optimization_flags.h"
 
+#define MMU static_cast<Mmu*>(mmu)
+
 namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
 // HACK
 static Dynarmic::ExclusiveMonitor
     g_exclusive_monitor(4); // TODO: don't hardcode core count
 
-Thread::~Thread() { delete jit; }
-
-void Thread::Initialize(
-    const std::function<bool(ThreadBase*, u64)>& svc_handler_,
-    uptr tls_mem_base, uptr stack_mem_end) {
-    svc_handler = svc_handler_;
+Thread::Thread(IMmu* mmu, const svc_handler_fn_t& svc_handler,
+               const stop_requested_fn_t& stop_requested, IMemory* tls_mem,
+               vaddr_t tls_mem_base, vaddr_t stack_mem_end)
+    : IThread(mmu, svc_handler, stop_requested, tls_mem) {
     tpidrro_el0 = tls_mem_base;
 
     // Create JIT
@@ -54,6 +54,8 @@ void Thread::Initialize(
     jit->SetSP(stack_mem_end);
 }
 
+Thread::~Thread() { delete jit; }
+
 void Thread::Run() { jit->Run(); }
 
 void Thread::LogRegisters(bool simd, u32 count) {
@@ -61,68 +63,68 @@ void Thread::LogRegisters(bool simd, u32 count) {
     LOG_FUNC_NOT_IMPLEMENTED(Dynarmic);
 }
 
-u8 Thread::MemoryRead8(u64 addr) { return mmu->Load<u8>(addr); }
+u8 Thread::MemoryRead8(u64 addr) { return MMU->Load<u8>(addr); }
 
-u16 Thread::MemoryRead16(u64 addr) { return mmu->Load<u16>(addr); }
+u16 Thread::MemoryRead16(u64 addr) { return MMU->Load<u16>(addr); }
 
-u32 Thread::MemoryRead32(u64 addr) { return mmu->Load<u32>(addr); }
+u32 Thread::MemoryRead32(u64 addr) { return MMU->Load<u32>(addr); }
 
-u64 Thread::MemoryRead64(u64 addr) { return mmu->Load<u64>(addr); }
+u64 Thread::MemoryRead64(u64 addr) { return MMU->Load<u64>(addr); }
 
 Dynarmic::A64::Vector Thread::MemoryRead128(u64 addr) {
-    return mmu->Load<Dynarmic::A64::Vector>(addr);
+    return MMU->Load<Dynarmic::A64::Vector>(addr);
 }
 
 std::optional<u32> Thread::MemoryReadCode(u64 addr) {
-    return mmu->Load<u32>(addr);
+    return MMU->Load<u32>(addr);
 }
 
-void Thread::MemoryWrite8(u64 addr, u8 value) { mmu->Store(addr, value); }
+void Thread::MemoryWrite8(u64 addr, u8 value) { MMU->Store(addr, value); }
 
-void Thread::MemoryWrite16(u64 addr, u16 value) { mmu->Store(addr, value); }
+void Thread::MemoryWrite16(u64 addr, u16 value) { MMU->Store(addr, value); }
 
-void Thread::MemoryWrite32(u64 addr, u32 value) { mmu->Store(addr, value); }
+void Thread::MemoryWrite32(u64 addr, u32 value) { MMU->Store(addr, value); }
 
-void Thread::MemoryWrite64(u64 addr, u64 value) { mmu->Store(addr, value); }
+void Thread::MemoryWrite64(u64 addr, u64 value) { MMU->Store(addr, value); }
 
 void Thread::MemoryWrite128(u64 addr, Dynarmic::A64::Vector value) {
-    mmu->Store(addr, value);
+    MMU->Store(addr, value);
 }
 
 bool Thread::MemoryWriteExclusive8(u64 addr, u8 value, u8) {
-    mmu->StoreExclusive(addr, value);
+    MMU->StoreExclusive(addr, value);
     return true;
 }
 
 bool Thread::MemoryWriteExclusive16(u64 addr, u16 value, u16) {
-    mmu->StoreExclusive(addr, value);
+    MMU->StoreExclusive(addr, value);
     return true;
 }
 
 bool Thread::MemoryWriteExclusive32(u64 addr, u32 value, u32) {
-    mmu->StoreExclusive(addr, value);
+    MMU->StoreExclusive(addr, value);
     return true;
 }
 
 bool Thread::MemoryWriteExclusive64(u64 addr, u64 value, u64 expected) {
-    mmu->StoreExclusive(addr, value);
+    MMU->StoreExclusive(addr, value);
     return true;
 }
 
 bool Thread::MemoryWriteExclusive128(u64 addr, Dynarmic::A64::Vector value,
                                      Dynarmic::A64::Vector expected) {
-    mmu->StoreExclusive(addr, value);
+    MMU->StoreExclusive(addr, value);
     return true;
 }
 
 void Thread::CallSVC(u32 svc) {
-    bool running = svc_handler(this, svc);
-    if (!running)
-        jit->HaltExecution();
+    svc_handler(this, svc);
+    CheckForStopRequest();
 }
 
 void Thread::ExceptionRaised(u64 pc, Dynarmic::A64::Exception exception) {
     // TODO: handle the exception
+    // TODO: debugger break
     LOG_FATAL(Dynarmic, "Exception");
 }
 

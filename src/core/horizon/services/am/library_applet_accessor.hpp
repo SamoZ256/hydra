@@ -25,7 +25,8 @@ class ILibraryAppletAccessor : public ServiceBase {
     applets::AppletBase* applet;
 
     // Commands
-    result_t GetAppletStateChangedEvent(OutHandle<HandleAttr::Copy> out_handle);
+    result_t GetAppletStateChangedEvent(kernel::Process* process,
+                                        OutHandle<HandleAttr::Copy> out_handle);
     result_t Start();
     result_t GetResult();
     result_t PushInData(ServiceBase* storage_);
@@ -33,7 +34,8 @@ class ILibraryAppletAccessor : public ServiceBase {
     result_t PushInteractiveInData(ServiceBase* storage_);
     result_t PopInteractiveOutData(add_service_fn_t add_service);
     result_t
-    GetPopInteractiveOutDataEvent(OutHandle<HandleAttr::Copy> out_handle);
+    GetPopInteractiveOutDataEvent(kernel::Process* process,
+                                  OutHandle<HandleAttr::Copy> out_handle);
 };
 
 } // namespace hydra::horizon::services::am

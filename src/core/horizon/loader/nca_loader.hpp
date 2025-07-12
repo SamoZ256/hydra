@@ -15,7 +15,7 @@ class NcaLoader : public LoaderBase {
 
     const std::string& GetName() const { return name; }
 
-    std::optional<kernel::ProcessParams> LoadProcess() override;
+    void LoadProcess(kernel::Process* process) override;
 
   private:
     filesystem::ContentArchive content_archive;
@@ -27,7 +27,7 @@ class NcaLoader : public LoaderBase {
     u32 system_resource_size;
 
     // Helpers
-    std::optional<kernel::ProcessParams> LoadCode(filesystem::Directory* dir);
+    void LoadCode(kernel::Process* process, filesystem::Directory* dir);
 };
 
 } // namespace hydra::horizon::loader

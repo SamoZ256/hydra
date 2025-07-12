@@ -19,16 +19,16 @@ class ISelfController : public ServiceBase {
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
-    kernel::HandleWithId<kernel::Event> library_applet_launchable_event;
-    kernel::HandleWithId<kernel::Event>
-        accumulated_suspended_tick_changed_event;
+    kernel::Event* library_applet_launchable_event;
+    kernel::Event* accumulated_suspended_tick_changed_event;
 
     // Commands
     STUB_REQUEST_COMMAND(Exit);
-    result_t LockExit();
-    result_t UnlockExit();
+    result_t LockExit(kernel::Process* process);
+    result_t UnlockExit(kernel::Process* process);
     result_t
-    GetLibraryAppletLaunchableEvent(OutHandle<HandleAttr::Copy> out_handle);
+    GetLibraryAppletLaunchableEvent(kernel::Process* process,
+                                    OutHandle<HandleAttr::Copy> out_handle);
     STUB_REQUEST_COMMAND(SetScreenShotPermission);
     STUB_REQUEST_COMMAND(SetOperationModeChangedNotification);
     STUB_REQUEST_COMMAND(SetPerformanceModeChangedNotification);
@@ -42,7 +42,7 @@ class ISelfController : public ServiceBase {
     result_t SetIdleTimeDetectionExtension(IdleTimeDetectionExtension ext);
     STUB_REQUEST_COMMAND(SetWirelessPriorityMode);
     result_t GetAccumulatedSuspendedTickChangedEvent(
-        OutHandle<HandleAttr::Copy> out_handle);
+        kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle);
 };
 
 } // namespace hydra::horizon::services::am

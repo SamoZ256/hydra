@@ -1,8 +1,6 @@
 add_library(hydra-core
     horizon/const.hpp
     horizon/hid.hpp
-    horizon/state_manager.cpp
-    horizon/state_manager.hpp
     horizon/input_manager.cpp
     horizon/input_manager.hpp
     horizon/os.cpp
@@ -16,6 +14,8 @@ add_library(hydra-core
     horizon/kernel/service_base.hpp
     horizon/kernel/domain_service.cpp
     horizon/kernel/domain_service.hpp
+    horizon/kernel/applet_state.cpp
+    horizon/kernel/applet_state.hpp
     horizon/kernel/auto_object.hpp
     horizon/kernel/synchronization_object.hpp
     horizon/kernel/event.hpp
@@ -29,6 +29,8 @@ add_library(hydra-core
     horizon/kernel/process.cpp
     horizon/kernel/process.hpp
     horizon/kernel/handle_pool.hpp
+    horizon/kernel/process_manager.cpp
+    horizon/kernel/process_manager.hpp
     horizon/kernel/kernel.cpp
     horizon/kernel/kernel.hpp
     horizon/filesystem/const.hpp
@@ -300,8 +302,8 @@ add_library(hydra-core
     horizon/ui/const.hpp
     horizon/ui/handler_base.hpp
     audio/const.hpp
-    audio/stream_base.hpp
-    audio/core_base.hpp
+    audio/stream.hpp
+    audio/core.hpp
     audio/null/stream.cpp
     audio/null/stream.hpp
     audio/null/core.cpp
@@ -313,13 +315,13 @@ add_library(hydra-core
     audio/cubeb/core.hpp
     hw/generic_mmu.hpp
     hw/tegra_x1/cpu/const.hpp
-    hw/tegra_x1/cpu/memory_base.hpp
-    hw/tegra_x1/cpu/mmu_base.cpp
-    hw/tegra_x1/cpu/mmu_base.hpp
-    hw/tegra_x1/cpu/thread_base.cpp
-    hw/tegra_x1/cpu/thread_base.hpp
-    hw/tegra_x1/cpu/cpu_base.cpp
-    hw/tegra_x1/cpu/cpu_base.hpp
+    hw/tegra_x1/cpu/memory.hpp
+    hw/tegra_x1/cpu/mmu.cpp
+    hw/tegra_x1/cpu/mmu.hpp
+    hw/tegra_x1/cpu/thread.cpp
+    hw/tegra_x1/cpu/thread.hpp
+    hw/tegra_x1/cpu/cpu.cpp
+    hw/tegra_x1/cpu/cpu.hpp
     hw/tegra_x1/cpu/hypervisor/const.hpp
     hw/tegra_x1/cpu/hypervisor/page_allocator.cpp
     hw/tegra_x1/cpu/hypervisor/page_allocator.hpp

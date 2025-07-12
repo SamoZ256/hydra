@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/audio/cubeb/const.hpp"
-#include "core/audio/stream_base.hpp"
+#include "core/audio/stream.hpp"
 
 struct cubeb_stream;
 
@@ -9,7 +9,7 @@ namespace hydra::audio::cubeb {
 
 class Core;
 
-class Stream final : public StreamBase {
+class Stream final : public IStream {
   public:
     Stream(Core& core_, PcmFormat format, u32 sample_rate, u16 channel_count,
            buffer_finished_callback_fn_t buffer_finished_callback);

@@ -29,9 +29,14 @@
         }                                                                      \
     }
 
+namespace hydra::horizon::kernel {
+class Process;
+}
+
 namespace hydra::horizon::services::nvdrv::ioctl {
 
 struct IoctlContext {
+    kernel::Process* process;
     Reader* reader;
     Reader* buffer_reader;
     Writer* writer;
@@ -57,6 +62,7 @@ struct InOutSingle {
 };
 
 enum class ArgumentType {
+    Process,
     In,
     Out,
     InOut,
@@ -66,6 +72,11 @@ enum class ArgumentType {
 
 template <typename T>
 struct arg_traits;
+
+template <>
+struct arg_traits<kernel::Process*> {
+    static constexpr ArgumentType type = ArgumentType::Process;
+};
 
 template <typename T>
 struct arg_traits {
@@ -107,7 +118,13 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
 
         auto& arg = std::get<arg_index>(args);
 
-        if constexpr (traits::type == ArgumentType::In) {
+        if constexpr (traits::type == ArgumentType::Process) {
+            arg = context.process;
+
+            // Next
+            read_arg<CommandArguments, arg_index + 1>(context, args);
+            return;
+        } else if constexpr (traits::type == ArgumentType::In) {
             ASSERT_DEBUG(context.reader, Services, "No reader");
             arg = context.reader->Read<Arg>();
             if (context.writer)

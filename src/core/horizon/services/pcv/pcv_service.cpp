@@ -1,7 +1,7 @@
 #include "core/horizon/services/pcv/pcv_service.hpp"
 
 ENABLE_ENUM_FORMATTING(
-    hydra::horizon::services::pcv::ModuleId, Cpu, "CPU", Gpu, "GPU", I2s1,
+    hydra::horizon::services::pcv::ModuleId, Cpu, "Mmu", Gpu, "Gpu", I2s1,
     "I2S1", I2s2, "I2S2", I2s3, "I2S3", Pwm, "PWM", I2c1, "I2C1", I2c2, "I2C2",
     I2c3, "I2C3", I2c4, "I2C4", I2c5, "I2C5", I2c6, "I2C6", Spi1, "SPI1", Spi2,
     "SPI2", Spi3, "SPI3", Spi4, "SPI4", Disp1, "DISP1", Disp2, "DISP2", Isp,

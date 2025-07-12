@@ -21,7 +21,7 @@ void TextureDecoder::Decode(const TextureDescriptor& descriptor,
                              descriptor.block_height_log2, in_data, out_data);
         break;
     default:
-        LOG_ERROR(GPU, "Unimplemented texture kind {}", descriptor.kind);
+        LOG_ERROR(Gpu, "Unimplemented texture kind {}", descriptor.kind);
         break;
     }
 }

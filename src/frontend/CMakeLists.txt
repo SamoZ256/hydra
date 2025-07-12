@@ -36,6 +36,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/helpers/StringList.swift
         swiftui/helpers/EditableStringList.swift
         swiftui/helpers/EditablePathList.swift
+        swiftui/helpers/GameLoader.swift
         swiftui/settings/GeneralSettingsView.swift
         swiftui/settings/CpuSettingsView.swift
         swiftui/settings/GraphicsSettingsView.swift

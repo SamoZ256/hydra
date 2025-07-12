@@ -118,7 +118,7 @@ renderer::TextureBase* Copy::GetTexture(const u32 gpu_addr_lo,
     LOG_DEBUG(Engines, "Block size: {}", 1 << block_size_log2);
 
     const renderer::TextureDescriptor descriptor{
-        .ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr),
+        .ptr = Gpu::GetInstance().GetGpuMmu().UnmapAddr(gpu_addr),
         .format =
             renderer::TextureFormat::RGBA8Unorm, // TODO: choose based on bpp
         .kind = NvKind::Pitch,                   // TODO: correct?

@@ -36,8 +36,8 @@ class IHidServer : public ServiceBase {
   public:
     // TODO: how come is autoclear user specified?
     IHidServer()
-        : npad_style_set_update_event(new kernel::Event(
-              kernel::EventFlags::None, "Npad style set update event")) {}
+        : npad_style_set_update_event{new kernel::Event(
+              kernel::EventFlags::None, "Npad style set update event")} {}
 
     // HACK
     usize GetPointerBufferSize() override { return 0x1000; }
@@ -47,7 +47,7 @@ class IHidServer : public ServiceBase {
 
   private:
     // TODO: one event for each style set
-    kernel::HandleWithId<kernel::Event> npad_style_set_update_event;
+    kernel::Event* npad_style_set_update_event;
 
     ::hydra::horizon::hid::NpadJoyHoldType npad_joy_hold_type{
         ::hydra::horizon::hid::NpadJoyHoldType::Horizontal};
@@ -68,7 +68,7 @@ class IHidServer : public ServiceBase {
     STUB_REQUEST_COMMAND(SetSupportedNpadIdType);
     STUB_REQUEST_COMMAND(ActivateNpad);
     result_t AcquireNpadStyleSetUpdateEventHandle(
-        u32 id, u32 _pad, u64 aruid, u64 event_ptr,
+        kernel::Process* process, u32 id, u32 _pad, u64 aruid, u64 event_ptr,
         OutHandle<HandleAttr::Copy> out_handle);
     STUB_REQUEST_COMMAND(ActivateNpadWithRevision);
     // TODO: PID descriptor

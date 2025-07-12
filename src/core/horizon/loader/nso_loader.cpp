@@ -132,13 +132,13 @@ NsoLoader::NsoLoader(filesystem::FileBase* file_, const std::string_view name_,
     file->Close(stream);
 }
 
-std::optional<kernel::ProcessParams> NsoLoader::LoadProcess() {
+void NsoLoader::LoadProcess(kernel::Process* process) {
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
     auto reader = stream.CreateReader();
 
     // Create executable memory
     vaddr_t base;
-    auto ptr = KERNEL_INSTANCE.CreateExecutableMemory(
+    auto ptr = process->CreateExecutableMemory(
         fmt::format("{}.nso", name), executable_size,
         kernel::MemoryPermission::ReadExecute, false, base);
     LOG_DEBUG(Loader, "Base: 0x{:08x}, size: 0x{:08x}", base, executable_size);
@@ -156,7 +156,7 @@ std::optional<kernel::ProcessParams> NsoLoader::LoadProcess() {
 
     vaddr_t arg_data_base;
     // TODO: memory type
-    auto arg_data_ptr = reinterpret_cast<ArgData*>(KERNEL_INSTANCE.CreateMemory(
+    auto arg_data_ptr = reinterpret_cast<ArgData*>(process->CreateMemory(
         ARG_DATA_SIZE, static_cast<kernel::MemoryType>(4),
         kernel::MemoryPermission::ReadWrite, true, arg_data_base));
     arg_data_ptr->allocated_size = ARG_DATA_SIZE;
@@ -209,14 +209,14 @@ std::optional<kernel::ProcessParams> NsoLoader::LoadProcess() {
 
     file->Close(stream);
 
-    // Process
     if (is_entry_point) {
-        return kernel::ProcessParams{
-            .entry_point = base + text_offset,
-            .args = {0x0, /*main_thread.id*/ 0x1}, // TODO: thread handle ID
-        };
-    } else {
-        return std::nullopt;
+        // Main thread
+        auto [main_thread, main_thread_id] = process->CreateMainThread(
+            main_thread_priority, main_thread_core_number,
+            main_thread_stack_size);
+        main_thread->SetEntryPoint(base + text_offset);
+        main_thread->SetArg(0, 0x0);
+        main_thread->SetArg(1, main_thread_id);
     }
 }
 

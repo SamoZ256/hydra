@@ -4,7 +4,7 @@
 
 #define MAKE_ADDR(addr) make_addr(addr.lo, addr.hi)
 #define UNMAP_ADDR(addr)                                                       \
-    GPU::GetInstance().GetGPUMMU().UnmapAddr(MAKE_ADDR(addr))
+    Gpu::GetInstance().GetGpuMmu().UnmapAddr(MAKE_ADDR(addr))
 
 namespace hydra::hw::tegra_x1::gpu::engines {
 

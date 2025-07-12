@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/hw/tegra_x1/cpu/dynarmic/const.hpp"
-#include "core/hw/tegra_x1/cpu/thread_base.hpp"
+#include "core/hw/tegra_x1/cpu/thread.hpp"
 
 namespace hydra::horizon {
 class OS;
@@ -13,16 +13,15 @@ class Memory;
 
 namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
-class MMU;
-class CPU;
+class Cpu;
+class Mmu;
 
-class Thread final : public ThreadBase, private Dynarmic::A64::UserCallbacks {
+class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
   public:
-    Thread(MMU* mmu_, MemoryBase* tls_mem) : ThreadBase(tls_mem), mmu{mmu_} {}
+    Thread(IMmu* mmu, const svc_handler_fn_t& svc_handler,
+           const stop_requested_fn_t& stop_requested, IMemory* tls_mem,
+           vaddr_t tls_mem_base, vaddr_t stack_mem_end);
     ~Thread() override;
-
-    void Initialize(const std::function<bool(ThreadBase*, u64)>& svc_handler_,
-                    uptr tls_mem_base, uptr stack_mem_end) override;
 
     void Run() override;
 
@@ -33,7 +32,7 @@ class Thread final : public ThreadBase, private Dynarmic::A64::UserCallbacks {
     u64 GetFP() override { return jit->GetRegister(29); }
     u64 GetLR() override { return jit->GetRegister(30); }
     u64 GetSP() override { return jit->GetSP(); }
-    u64 GetELR() override {
+    u64 GetElr() override {
         // TODO
         return 0x0;
     }
@@ -42,9 +41,6 @@ class Thread final : public ThreadBase, private Dynarmic::A64::UserCallbacks {
     void LogRegisters(bool simd = false, u32 count = 32) override;
 
   private:
-    MMU* mmu;
-
-    std::function<bool(ThreadBase*, u64)> svc_handler;
     u64 tpidrro_el0;
 
     Dynarmic::A64::Jit* jit;
@@ -71,7 +67,7 @@ class Thread final : public ThreadBase, private Dynarmic::A64::UserCallbacks {
     bool MemoryWriteExclusive128(u64 addr, Dynarmic::A64::Vector value,
                                  Dynarmic::A64::Vector expected) override;
 
-    void InterpreterFallback(u64 pc, usize num_instructions) override {
+    void InterpreterFallback(u64 pc, size_t num_instructions) override {
         LOG_FATAL(Dynarmic, "Interpreter");
     }
 
@@ -90,6 +86,12 @@ class Thread final : public ThreadBase, private Dynarmic::A64::UserCallbacks {
     }
 
     u64 GetTicksRemaining() override { return ticks_left; }
+
+    // Helpers
+    void CheckForStopRequest() {
+        if (stop_requested())
+            jit->HaltExecution();
+    }
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::dynarmic

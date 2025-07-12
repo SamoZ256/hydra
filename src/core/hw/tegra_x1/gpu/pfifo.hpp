@@ -4,23 +4,23 @@
 #include "core/hw/tegra_x1/gpu/gpu_mmu.hpp"
 
 namespace hydra::hw::tegra_x1::cpu {
-class MMUBase;
+class IMmu;
 }
 
 namespace hydra::hw::tegra_x1::gpu {
 
-class GpuMMU;
+class GpuMmu;
 
 class Pfifo {
   public:
-    Pfifo(GpuMMU& gpu_mmu_) : gpu_mmu{gpu_mmu_} {}
+    Pfifo(GpuMmu& gpu_mmu_) : gpu_mmu{gpu_mmu_} {}
 
     // TODO: use std::span instead
     void SubmitEntries(const std::vector<GpfifoEntry>& entries,
                        GpfifoFlags flags);
 
   private:
-    GpuMMU& gpu_mmu;
+    GpuMmu& gpu_mmu;
 
     void SubmitEntry(const GpfifoEntry entry);
     bool SubmitCommand(uptr& gpu_addr); // TODO: return void

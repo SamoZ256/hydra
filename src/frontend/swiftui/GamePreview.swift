@@ -29,7 +29,7 @@ struct GamePreview: View {
         }
     }
 
-    private func loadIcon(width: inout size_t, height: inout size_t) -> CGImage? {
+    private func loadIcon(width: inout UInt64, height: inout UInt64) -> CGImage? {
         var data: UnsafeMutableRawPointer?
         hydra_loader_load_icon(self.game.loader, &data, &width, &height)
         guard let data = data else {
@@ -39,10 +39,10 @@ struct GamePreview: View {
         guard
             let context = CGContext(
                 data: data,
-                width: width,
-                height: height,
+                width: Int(width),
+                height: Int(height),
                 bitsPerComponent: 8,
-                bytesPerRow: width * 4,
+                bytesPerRow: Int(width) * 4,
                 space: CGColorSpaceCreateDeviceRGB(),
                 bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
             )
@@ -54,12 +54,12 @@ struct GamePreview: View {
     }
 
     private func loadIconNS() -> NSImage? {
-        var width: size_t = 0
-        var height: size_t = 0
+        var width: UInt64 = 0
+        var height: UInt64 = 0
         guard let cgImage = self.loadIcon(width: &width, height: &height) else {
             return nil
         }
 
-        return NSImage(cgImage: cgImage, size: NSSize(width: width, height: height))
+        return NSImage(cgImage: cgImage, size: NSSize(width: Int(width), height: Int(height)))
     }
 }

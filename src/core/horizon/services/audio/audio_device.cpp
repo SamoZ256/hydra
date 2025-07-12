@@ -1,5 +1,7 @@
 #include "core/horizon/services/audio/audio_device.hpp"
 
+#include "core/horizon/kernel/process.hpp"
+
 namespace hydra::horizon::services::audio {
 
 namespace {
@@ -18,10 +20,6 @@ DEFINE_SERVICE_COMMAND_TABLE(IAudioDevice, 0, ListAudioDeviceName, 1,
                              7, SetAudioDeviceOutputVolumeAuto, 10,
                              GetActiveAudioDeviceNameAuto)
 
-IAudioDevice::IAudioDevice()
-    : event(new kernel::Event(kernel::EventFlags::AutoClear,
-                              "IAudioDevice event")) {}
-
 result_t
 IAudioDevice::ListAudioDeviceName(i32* out_count,
                                   OutBuffer<BufferAttr::MapAlias> out_buffer) {
@@ -39,11 +37,11 @@ result_t IAudioDevice::GetActiveAudioDeviceName(
 }
 
 result_t IAudioDevice::QueryAudioDeviceSystemEvent(
-    OutHandle<HandleAttr::Copy> out_handle) {
+    kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
     LOG_FUNC_STUBBED(Services);
 
     // TODO: choose based on name?
-    out_handle = event.id;
+    out_handle = process->AddHandle(event);
     return RESULT_SUCCESS;
 }
 

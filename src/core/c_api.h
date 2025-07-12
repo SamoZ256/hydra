@@ -101,7 +101,7 @@ void hydra_string_option_set(void* option, const char* value);
 
 uint32_t hydra_string_array_option_get_count(const void* option);
 const char* hydra_string_array_option_get(const void* option, uint32_t index);
-void hydra_string_array_option_resize(void* option, size_t size);
+void hydra_string_array_option_resize(void* option, uint64_t size);
 void hydra_string_array_option_set(void* option, uint32_t index,
                                    const char* value);
 
@@ -135,8 +135,8 @@ hydra_content_archive_get_content_type(void* content_archive);
 void* hydra_create_loader_from_file(const char* path);
 void hydra_loader_destroy(void* loader);
 uint64_t hydra_loader_get_title_id(void* loader);
-void hydra_loader_load_icon(void* loader, void** data, size_t* width,
-                            size_t* height);
+void hydra_loader_load_icon(void* loader, void** data, uint64_t* width,
+                            uint64_t* height);
 
 void* hydra_create_nca_loader_from_content_archive(void* content_archive);
 const char* hydra_nca_loader_get_name(void* nca_loader);
@@ -146,14 +146,13 @@ void* hydra_create_emulation_context();
 void hydra_emulation_context_destroy(void* ctx);
 
 void hydra_emulation_context_set_surface(void* ctx, void* surface);
-void hydra_emulation_context_load(void* ctx, void* loader);
-void hydra_emulation_context_run(void* ctx);
+void hydra_emulation_context_load_and_start(void* ctx, void* loader);
+void hydra_emulation_context_request_stop(void* ctx);
+void hydra_emulation_context_force_stop(void* ctx);
 
 void hydra_emulation_context_progress_frame(void* ctx, uint32_t width,
                                             uint32_t height,
                                             bool* out_dt_average_updated);
-
-uint64_t hydra_emulation_context_get_title_id(void* ctx);
 
 bool hydra_emulation_context_is_running(void* ctx);
 float hydra_emulation_context_get_last_delta_time_average(void* ctx);
@@ -170,7 +169,7 @@ void hydra_debugger_lock();
 void hydra_debugger_unlock();
 void hydra_debugger_register_this_thread(const char* name);
 void hydra_debugger_unregister_this_thread();
-size_t hydra_debugger_get_thread_count();
+uint64_t hydra_debugger_get_thread_count();
 void* hydra_debugger_get_thread(uint32_t index);
 
 // Thread
@@ -179,7 +178,7 @@ void hydra_debugger_thread_unlock(void* thread);
 const char* hydra_debugger_thread_get_name(void* thread);
 HydraDebuggerThreadStatus hydra_debugger_thread_get_status(void* thread);
 const char* hydra_debugger_thread_get_break_reason(void* thread);
-size_t hydra_debugger_thread_get_message_count(void* thread);
+uint64_t hydra_debugger_thread_get_message_count(void* thread);
 const void* hydra_debugger_thread_get_message(void* thread, uint32_t index);
 
 // Message

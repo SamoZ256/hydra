@@ -34,7 +34,7 @@ class IPlatformSharedResourceManager : public ServiceBase {
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
-    kernel::HandleWithId<kernel::SharedMemory> shared_memory_handle;
+    kernel::SharedMemory* shared_memory;
     u32 shared_memory_offset{0};
     struct {
         u32 shared_memory_offset{0};
@@ -48,7 +48,8 @@ class IPlatformSharedResourceManager : public ServiceBase {
     result_t GetSharedMemoryAddressOffset(SharedFontType font_type,
                                           u32* out_address_offset);
     result_t
-    GetSharedMemoryNativeHandle(OutHandle<HandleAttr::Copy> out_handle);
+    GetSharedMemoryNativeHandle(kernel::Process* process,
+                                OutHandle<HandleAttr::Copy> out_handle);
     // TODO: buffer attr
     // TODO: should out_loaded be a bool?
     result_t GetSharedFontInOrderOfPriority(

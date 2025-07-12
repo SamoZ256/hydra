@@ -50,7 +50,8 @@ class NvHostAsGpu : public FdBase {
                         InOut<u64, gpu_vaddr_t> align_and_offset);
     NvResult FreeSpace(vaddr_t offset, u32 pages, u32 page_size);
     NvResult UnmapBuffer(gpu_vaddr_t addr);
-    NvResult MapBufferEX(MapBufferFlags flags, hw::tegra_x1::gpu::NvKind kind,
+    NvResult MapBufferEX(kernel::Process* process, MapBufferFlags flags,
+                         hw::tegra_x1::gpu::NvKind kind,
                          handle_id_t nvmap_handle_id, u32 reserved,
                          u64 buffer_offset, u64 mapping_size,
                          InOutSingle<gpu_vaddr_t> inout_addr);

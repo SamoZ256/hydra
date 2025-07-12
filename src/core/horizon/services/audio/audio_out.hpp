@@ -4,10 +4,6 @@
 #include "core/horizon/services/audio/const.hpp"
 #include "core/horizon/services/const.hpp"
 
-namespace hydra::audio {
-class StreamBase;
-}
-
 namespace hydra::horizon::services::audio {
 
 namespace {
@@ -30,8 +26,8 @@ class IAudioOut : public ServiceBase {
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
-    kernel::HandleWithId<kernel::Event> buffer_event;
-    StreamBase* stream;
+    kernel::Event* buffer_event;
+    IStream* stream;
 
     std::mutex buffer_mutex;
     std::vector<vaddr_t> released_buffers;
@@ -39,19 +35,22 @@ class IAudioOut : public ServiceBase {
     // Commands
     result_t Start();
     result_t Stop();
-    result_t AppendAudioOutBuffer(u64 buffer_client_ptr,
+    result_t AppendAudioOutBuffer(kernel::Process* process,
+                                  u64 buffer_client_ptr,
                                   InBuffer<BufferAttr::MapAlias> buffer_buffer);
-    result_t RegisterBufferEvent(OutHandle<HandleAttr::Copy> out_handle);
+    result_t RegisterBufferEvent(kernel::Process* process,
+                                 OutHandle<HandleAttr::Copy> out_handle);
     result_t GetReleasedAudioOutBuffers(
         u32* out_count, OutBuffer<BufferAttr::MapAlias> out_buffers_buffer);
     result_t
-    AppendAudioOutBufferAuto(u64 buffer_client_ptr,
+    AppendAudioOutBufferAuto(kernel::Process* process, u64 buffer_client_ptr,
                              InBuffer<BufferAttr::AutoSelect> buffer_buffer);
     result_t GetReleasedAudioOutBuffersAuto(
         u32* out_count, OutBuffer<BufferAttr::AutoSelect> out_buffers_buffer);
 
     // Impl
-    result_t AppendAudioOutBufferImpl(u64 buffer_client_ptr,
+    result_t AppendAudioOutBufferImpl(kernel::Process* process,
+                                      u64 buffer_client_ptr,
                                       Reader buffer_reader);
     result_t GetReleasedAudioOutBuffersImpl(u32* out_count,
                                             Writer& out_buffers_writer);

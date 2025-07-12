@@ -5,7 +5,7 @@
 #include "core/horizon/filesystem/filesystem.hpp"
 #include "core/horizon/filesystem/partition_filesystem.hpp"
 #include "core/horizon/filesystem/romfs.hpp"
-#include "core/horizon/kernel/kernel.hpp"
+#include "core/horizon/kernel/process.hpp"
 
 namespace hydra::horizon::services::pl::shared_resource {
 
@@ -116,7 +116,7 @@ DEFINE_SERVICE_COMMAND_TABLE(IPlatformSharedResourceManager, 0, RequestLoad, 1,
                              GetSharedFontInOrderOfPriority)
 
 IPlatformSharedResourceManager::IPlatformSharedResourceManager()
-    : shared_memory_handle(new kernel::SharedMemory(SHARED_MEMORY_SIZE)) {
+    : shared_memory{new kernel::SharedMemory(SHARED_MEMORY_SIZE)} {
     // Load fonts
     for (SharedFontType type = (SharedFontType)0; type < SharedFontType::Total;
          type++)
@@ -147,8 +147,8 @@ result_t IPlatformSharedResourceManager::GetSharedMemoryAddressOffset(
 }
 
 result_t IPlatformSharedResourceManager::GetSharedMemoryNativeHandle(
-    OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = shared_memory_handle.id;
+    kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = process->AddHandle(shared_memory);
     return RESULT_SUCCESS;
 }
 
@@ -183,10 +183,9 @@ void IPlatformSharedResourceManager::LoadFont(const SharedFontType type) {
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
     auto reader = stream.CreateReader();
 
-    const auto res =
-        DecryptBFTTF(reader, Writer((u8*)shared_memory_handle.handle->GetPtr() +
-                                        shared_memory_offset,
-                                    SHARED_MEMORY_SIZE - shared_memory_offset));
+    const auto res = DecryptBFTTF(
+        reader, Writer((u8*)shared_memory->GetPtr() + shared_memory_offset,
+                       SHARED_MEMORY_SIZE - shared_memory_offset));
     file->Close(stream);
     if (res != RESULT_SUCCESS)
         return;

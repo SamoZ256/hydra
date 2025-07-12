@@ -3,7 +3,7 @@
 #include "core/horizon/kernel/const.hpp"
 
 namespace hydra::hw::tegra_x1::cpu {
-class MMUBase;
+class IMmu;
 }
 
 namespace hydra::horizon::kernel::hipc {
@@ -261,13 +261,13 @@ inline Request make_request(void* base, Metadata meta) {
     return calc_request_layout(meta, base);
 }
 
-u8* get_buffer_ptr(const hw::tegra_x1::cpu::MMUBase* mmu,
+u8* get_buffer_ptr(const hw::tegra_x1::cpu::IMmu* mmu,
                    const BufferDescriptor& descriptor, usize& size);
 
-u8* get_static_ptr(const hw::tegra_x1::cpu::MMUBase* mmu,
+u8* get_static_ptr(const hw::tegra_x1::cpu::IMmu* mmu,
                    const StaticDescriptor& descriptor, usize& size);
 
-u8* get_list_entry_ptr(const hw::tegra_x1::cpu::MMUBase* mmu,
+u8* get_list_entry_ptr(const hw::tegra_x1::cpu::IMmu* mmu,
                        const RecvListEntry& descriptor, usize& size);
 
 #define CREATE_READERS_OR_WRITERS(buffer_or_static, reader_or_writer, type)    \
@@ -296,7 +296,7 @@ struct Readers {
     std::vector<Reader> send_buffers_readers;
     std::vector<Reader> exch_buffers_readers;
 
-    Readers(const hw::tegra_x1::cpu::MMUBase* mmu, ParsedRequest hipc_in)
+    Readers(const hw::tegra_x1::cpu::IMmu* mmu, ParsedRequest hipc_in)
         : reader((u8*)hipc_in.data.data_words,
                  hipc_in.meta.num_data_words * sizeof(u32)),
           objects_reader{nullptr},
@@ -326,7 +326,7 @@ struct Writers {
     std::vector<Writer> recv_buffers_writers;
     std::vector<Writer> exch_buffers_writers;
 
-    Writers(const hw::tegra_x1::cpu::MMUBase* mmu, ParsedRequest hipc_in,
+    Writers(const hw::tegra_x1::cpu::IMmu* mmu, ParsedRequest hipc_in,
             u8* scratch_buffer, u8* scratch_buffer_objects,
             u8* scratch_buffer_copy_handles, u8* scratch_buffer_move_handles)
         : writer(scratch_buffer, 0x1000),

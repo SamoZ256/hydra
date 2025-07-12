@@ -1,7 +1,6 @@
 #include "core/horizon/services/fssrv/filesystem_proxy.hpp"
 
-#include "core/horizon/filesystem/const.hpp"
-#include "core/horizon/kernel/kernel.hpp"
+#include "core/horizon/filesystem/filesystem.hpp"
 #include "core/horizon/services/fssrv/file.hpp"
 #include "core/horizon/services/fssrv/filesystem.hpp"
 #include "core/horizon/services/fssrv/save_data_info_reader.hpp"
@@ -15,8 +14,9 @@ std::string get_save_data_mount(const SaveDataAttribute& attr) {
     switch (attr.type) {
     case SaveDataType::Account: {
         u64 title_id = attr.title_id;
-        if (title_id == 0x0)
-            title_id = KERNEL_INSTANCE.GetTitleID();
+        // TODO
+        // if (title_id == 0x0)
+        //    title_id = KERNEL_INSTANCE.GetTitleID();
         return FS_SAVE_DATA_PATH(title_id, attr.user_id);
     }
     case SaveDataType::Cache:

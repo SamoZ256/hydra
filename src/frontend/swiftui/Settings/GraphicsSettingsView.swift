@@ -6,7 +6,7 @@ struct GraphicsSettingsView: View {
 
     var body: some View {
         VStack {
-            Picker("GPU renderer", selection: self.$gpuRenderer.rawValue) {
+            Picker("Gpu renderer", selection: self.$gpuRenderer.rawValue) {
                 Text("Metal (recommended)").tag(HYDRA_GPU_RENDERER_METAL.rawValue)
             }
             Picker("Shader backend", selection: self.$shaderBackend.rawValue) {

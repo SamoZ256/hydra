@@ -31,7 +31,7 @@ i32 Binder::GetAvailableSlot() {
 
     // If we reach here, it means that there won't be a slot available the
     // next time, so clear the event
-    event.handle->Clear();
+    event->Clear();
 
     // TODO: remove this?
     if (slot == -1)
@@ -78,7 +78,7 @@ i32 Binder::ConsumeBuffer(BqBufferInput& out_input,
     queue_cv.notify_all();
 
     // Signal event
-    event.handle->Signal();
+    event->Signal();
 
     return slot;
 }
@@ -97,7 +97,7 @@ void Binder::UnqueueAllBuffers() {
     queue_cv.notify_all();
 
     // Signal event
-    event.handle->Signal();
+    event->Signal();
 }
 
 } // namespace hydra::horizon::display

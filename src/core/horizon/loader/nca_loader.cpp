@@ -1,7 +1,6 @@
 #include "core/horizon/loader/nca_loader.hpp"
 
 #include "core/horizon/filesystem/filesystem.hpp"
-#include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
 
 #define NINTENDO_LOGO_PATH "logo/NintendoLogo.png"
@@ -126,16 +125,15 @@ NcaLoader::NcaLoader(const filesystem::ContentArchive& content_archive_)
     }
 }
 
-std::optional<kernel::ProcessParams> NcaLoader::LoadProcess() {
+void NcaLoader::LoadProcess(kernel::Process* process) {
     // Title ID
-    KERNEL_INSTANCE.SetTitleId(content_archive.GetTitleID());
+    process->SetTitleID(content_archive.GetTitleID());
 
-    std::optional<kernel::ProcessParams> process_params = std::nullopt;
     for (const auto& [name, entry] : content_archive.GetEntries()) {
         if (name == "code") {
             auto dir = dynamic_cast<filesystem::Directory*>(entry);
             ASSERT(dir, Loader, "Code is not a directory");
-            process_params = LoadCode(dir);
+            LoadCode(process, dir);
         } else if (name == "data") {
             const auto res = FILESYSTEM_INSTANCE.AddEntry(
                 FS_SD_MOUNT "/rom/romFS", entry, true);
@@ -147,14 +145,9 @@ std::optional<kernel::ProcessParams> NcaLoader::LoadProcess() {
             LOG_NOT_IMPLEMENTED(Loader, "{}", name);
         }
     }
-
-    CHECK_AND_RETURN_PROCESS_PARAMS(process_params);
 }
 
-std::optional<kernel::ProcessParams>
-NcaLoader::LoadCode(filesystem::Directory* dir) {
-    std::optional<kernel::ProcessParams> process_params = std::nullopt;
-
+void NcaLoader::LoadCode(kernel::Process* process, filesystem::Directory* dir) {
     // HACK: if rtld is not present, use main as the entry point
     std::string entry_point = "rtld";
     filesystem::EntryBase* e;
@@ -168,22 +161,16 @@ NcaLoader::LoadCode(filesystem::Directory* dir) {
             // Do nothing
         } else {
             NsoLoader loader(file, filename, filename == entry_point);
-            auto process_params_ = loader.LoadProcess();
-            if (process_params_)
-                CHECK_AND_SET_PROCESS_PARAMS(process_params, process_params_);
+            loader.SetMainThreadParams(main_thread_priority,
+                                       main_thread_core_number,
+                                       main_thread_stack_size);
+            loader.LoadProcess(process);
         }
     }
 
-    ASSERT(process_params, Loader, "Failed to load process");
-
-    process_params->main_thread_priority = main_thread_priority;
-    process_params->main_thread_core_number = main_thread_core_number;
-    process_params->main_thread_stack_size = main_thread_stack_size;
-    process_params->system_resource_size = system_resource_size;
+    process->SetSystemResourceSize(system_resource_size);
 
     // TODO: ACI and ACID
-
-    return process_params;
 }
 
 } // namespace hydra::horizon::loader

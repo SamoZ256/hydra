@@ -73,7 +73,7 @@ void InputManager::UpdateAndSetNpadAnalogStickStateR(
 }
 
 hid::SharedMemory* InputManager::GetHidSharedMemory() const {
-    return reinterpret_cast<hid::SharedMemory*>(shared_memory.handle->GetPtr());
+    return reinterpret_cast<hid::SharedMemory*>(shared_memory->GetPtr());
 }
 
 void InputManager::UpdateTouchStates() {

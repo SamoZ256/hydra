@@ -24,6 +24,7 @@ void DomainService::Request(RequestContext& context) {
     switch (cmif_in.type) {
     case cmif::DomainCommandType::SendMessage: {
         RequestContext subcontext{
+            context.process,
             context.readers,
             context.writers,
             [&](ServiceBase* service) {

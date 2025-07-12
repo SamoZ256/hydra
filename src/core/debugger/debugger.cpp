@@ -2,7 +2,7 @@
 
 #include <future>
 
-#include "core/hw/tegra_x1/cpu/thread_base.hpp"
+#include "core/hw/tegra_x1/cpu/thread.hpp"
 
 #define GET_THIS_THREAD()                                                      \
     std::unique_lock lock(thread_mutex);                                       \
@@ -31,7 +31,7 @@ ResolvedStackFrame StackFrame::Resolve() const {
 }
 
 Thread::Thread(const std::string_view name_,
-               hw::tegra_x1::cpu::ThreadBase* guest_thread_)
+               hw::tegra_x1::cpu::IThread* guest_thread_)
     : name{name_}, guest_thread{guest_thread_} {
     // TODO: make this configurable
     messages.resize(256);
@@ -65,7 +65,7 @@ void Debugger::Disable() {
 }
 
 void Debugger::RegisterThisThread(const std::string_view name,
-                                  hw::tegra_x1::cpu::ThreadBase* guest_thread) {
+                                  hw::tegra_x1::cpu::IThread* guest_thread) {
     std::unique_lock lock(thread_mutex);
     threads.try_emplace(std::this_thread::get_id(), name, guest_thread);
 }
@@ -90,7 +90,9 @@ void Debugger::BreakOnThisThread(const std::string_view reason) {
 
 void Debugger::LogOnThisThread(const LogMessage& msg) {
     GET_THIS_THREAD();
+    lock.unlock();
     auto stack_trace = GetStackTrace(thread);
+    lock.lock();
     thread.Log({msg, stack_trace});
 }
 

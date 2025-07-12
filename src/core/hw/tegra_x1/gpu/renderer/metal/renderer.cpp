@@ -755,7 +755,7 @@ void Renderer::BeginCapture() {
     auto desc = MTL::CaptureDescriptor::alloc()->init();
     desc->setCaptureObject(device);
 
-    // Check if a debugger with support for GPU capture is attached
+    // Check if a debugger with support for Gpu capture is attached
     if (capture_manager->supportsDestination(
             MTL::CaptureDestinationDeveloperTools)) {
         desc->setDestination(MTL::CaptureDestinationDeveloperTools);
@@ -765,15 +765,15 @@ void Renderer::BeginCapture() {
         if (gpu_capture_dir.empty()) {
             LOG_ERROR(
                 MetalRenderer,
-                "No GPU capture directory specified, cannot do a GPU capture");
+                "No Gpu capture directory specified, cannot do a Gpu capture");
             return;
         }
 
-        // Check if the GPU trace document destination is available
+        // Check if the Gpu trace document destination is available
         if (!capture_manager->supportsDestination(
                 MTL::CaptureDestinationGPUTraceDocument)) {
-            LOG_ERROR(MetalRenderer, "GPU trace document destination is not "
-                                     "available, cannot do a GPU capture");
+            LOG_ERROR(MetalRenderer, "Gpu trace document destination is not "
+                                     "available, cannot do a Gpu capture");
             return;
         }
 
@@ -793,7 +793,7 @@ void Renderer::BeginCapture() {
     NS::Error* error = nullptr;
     capture_manager->startCapture(desc, &error);
     if (error) {
-        LOG_ERROR(MetalRenderer, "Failed to start GPU capture: {}",
+        LOG_ERROR(MetalRenderer, "Failed to start Gpu capture: {}",
                   error->localizedDescription()->utf8String());
     }
 

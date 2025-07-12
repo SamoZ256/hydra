@@ -21,13 +21,14 @@ class IRequest : public ServiceBase {
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
-    kernel::HandleWithId<kernel::Event> events[2];
+    kernel::Event* events[2];
 
     // Commands
     result_t GetRequestState(RequestState* out_state);
     STUB_REQUEST_COMMAND(GetResult);
     result_t
-    GetSystemEventReadableHandles(OutHandle<HandleAttr::Copy> out_handle0,
+    GetSystemEventReadableHandles(kernel::Process* process,
+                                  OutHandle<HandleAttr::Copy> out_handle0,
                                   OutHandle<HandleAttr::Copy> out_handle1);
     STUB_REQUEST_COMMAND(Cancel);
     STUB_REQUEST_COMMAND(Submit);
