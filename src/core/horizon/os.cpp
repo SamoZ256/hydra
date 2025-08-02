@@ -5,6 +5,7 @@
 #include "core/horizon/kernel/hipc/client_port.hpp"
 #include "core/horizon/kernel/hipc/port.hpp"
 #include "core/horizon/kernel/hipc/server_port.hpp"
+#include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/services/account/account_service_for_application.hpp"
 #include "core/horizon/services/account/account_service_for_system_service.hpp"
 #include "core/horizon/services/account/baas_access_token_accessor.hpp"
@@ -103,12 +104,19 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
 
     // Firmware
     std::map<u64, std::string> firmware_titles_map = {
+        // Databases
         {0x010000000000080E, "TimeZoneBinary"},
+
+        // Fonts
         {0x0100000000000810, "FontNintendoExtension"},
         {0x0100000000000811, "FontStandard"},
         {0x0100000000000812, "FontKorean"},
         {0x0100000000000813, "FontChineseTraditional"},
         {0x0100000000000814, "FontChineseSimple"},
+
+        // Sysmodules
+        // TODO: all
+        {0x010000000000001c, "nvnflinger"},
     };
 
     const auto& firmware_path = CONFIG_INSTANCE.GetFirmwarePath().Get();
@@ -219,7 +227,27 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     REGISTER_SERVICE(others, lbl::ILblController, "lbl");
 
     // Nvnflinger
-    REGISTER_SERVICE(others, hosbinder::IHOSBinderDriver, "dispdrv");
+    // TODO: if LLE services enabled
+    if (true) {
+        filesystem::EntryBase* entry;
+        const auto res =
+            FILESYSTEM_INSTANCE.GetEntry(FS_FIRMWARE_PATH "/nvnflinger", entry);
+        if (res != filesystem::FsResult::Success)
+            LOG_FATAL(Horizon, "Failed to get \"nvnflinger\": {}", res);
+
+        auto file = dynamic_cast<filesystem::FileBase*>(entry);
+        if (!file)
+            LOG_FATAL(Horizon, "\"nvnflinger\" is not a file");
+
+        loader::NcaLoader loader(file);
+        kernel::Process* process =
+            kernel.GetProcessManager().CreateProcess("nvnflinger process");
+        loader.LoadProcess(process);
+
+        process->Start();
+    } else {
+        REGISTER_SERVICE(others, hosbinder::IHOSBinderDriver, "dispdrv");
+    }
 
     // PTM
     REGISTER_SERVICE(others, psm::IPsmServer, "psm");
