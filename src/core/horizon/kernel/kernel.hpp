@@ -21,6 +21,7 @@ class IService;
 }
 
 namespace hydra::horizon::kernel::hipc {
+class ServerPort;
 class ServerSession;
 class ClientSession;
 class Session;
@@ -107,6 +108,8 @@ class Kernel {
     result_t CreateSession(bool is_light, u64 name,
                            hipc::ServerSession*& out_server_session,
                            hipc::ClientSession*& out_client_session);
+    result_t AcceptSession(hipc::ServerPort* server_port,
+                           hipc::ServerSession*& out_server_session);
     // TODO: handles can only be Port or ServerSession
     result_t ReplyAndReceive(IThread* crnt_thread,
                              std::span<SynchronizationObject*> sync_objs,

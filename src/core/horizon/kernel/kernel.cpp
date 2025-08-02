@@ -3,6 +3,7 @@
 #include "core/debugger/debugger.hpp"
 #include "core/horizon/kernel/code_memory.hpp"
 #include "core/horizon/kernel/hipc/client_session.hpp"
+#include "core/horizon/kernel/hipc/server_port.hpp"
 #include "core/horizon/kernel/hipc/server_session.hpp"
 #include "core/horizon/kernel/hipc/session.hpp"
 #include "core/horizon/kernel/process.hpp"
@@ -293,6 +294,16 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
                               crnt_process->AddHandleNoRetain(server_session));
         guest_thread->SetRegW(2,
                               crnt_process->AddHandleNoRetain(client_session));
+        break;
+    }
+    case 0x41: {
+        hipc::ServerSession* server_session = nullptr;
+        res = AcceptSession(
+            crnt_process->GetHandle<hipc::ServerPort>(guest_thread->GetRegW(1)),
+            server_session);
+        guest_thread->SetRegW(0, res);
+        guest_thread->SetRegW(1,
+                              crnt_process->AddHandleNoRetain(server_session));
         break;
     }
     case 0x43: {
@@ -1104,6 +1115,16 @@ result_t Kernel::CreateSession(bool is_light, u64 name,
     out_client_session = new hipc::ClientSession();
     // TODO: is it fine to just instantiate it like this?
     new hipc::Session(out_server_session, out_client_session);
+
+    return RESULT_SUCCESS;
+}
+
+result_t Kernel::AcceptSession(hipc::ServerPort* server_port,
+                               hipc::ServerSession*& out_server_session) {
+    LOG_DEBUG(Kernel, "AcceptSession called (port: {})",
+              server_port->GetDebugName());
+
+    out_server_session = server_port->AcceptSession();
 
     return RESULT_SUCCESS;
 }
