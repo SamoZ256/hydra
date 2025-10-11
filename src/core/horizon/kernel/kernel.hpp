@@ -149,6 +149,7 @@ class Kernel {
     void UnlockMutex(IThread* thread, uptr mutex_addr);
 
   public:
+    REF_GETTER(filesystem, GetFilesystem);
     REF_GETTER(process_manager, GetProcessManager);
     REF_GETTER(service_manager, GetServiceManager);
     REF_GETTER(critical_section_mutex, GetCriticalSectionMutex);

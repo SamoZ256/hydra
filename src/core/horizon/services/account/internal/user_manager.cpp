@@ -1,10 +1,6 @@
 #include "core/horizon/services/account/internal/user_manager.hpp"
 
 #include <stb_image_write.h>
-#include <yaz0.h>
-
-#include "core/horizon/filesystem/content_archive.hpp"
-#include "core/horizon/filesystem/romfs.hpp"
 
 #define DEFAULT_USER_NAME "Hydra user"
 
@@ -21,7 +17,6 @@ struct HusrHeader {
     u32 header_size{sizeof(HusrHeader)};
 };
 
-constexpr usize AVATAR_UNCOMPRESSED_IMAGE_SIZE = 0x40000;
 constexpr u32 AVATAR_IMAGE_DIMENSION = 256;
 
 static void jpg_to_memory(void* context, void* data, int len) {
@@ -86,74 +81,15 @@ void UserManager::Flush() {
         Serialize(user_id);
 }
 
-void UserManager::LoadSystemAvatars() {
-    // NCA
-    filesystem::FileBase* file;
-    auto res = FILESYSTEM_INSTANCE.GetFile(
-        fmt::format(FS_FIRMWARE_PATH "/{:016x}", 0x010000000000080a), file);
-    if (res != filesystem::FsResult::Success) {
-        LOG_ERROR(Services, "Failed to get avatars file: {}", res);
-        return;
-    }
-
-    auto content_archive = new filesystem::ContentArchive(file);
-
-    // Data
-    filesystem::FileBase* data_file;
-    res = content_archive->GetFile("data", data_file);
-    if (res != filesystem::FsResult::Success) {
-        LOG_ERROR(Services, "Failed to get avatars data: {}", res);
-        return;
-    }
-
-    // RomFS
-    auto romfs = new filesystem::RomFS(data_file);
-
-    // Background
-    // Not necessary
-
-    // Characters
-    filesystem::Directory* character_dir;
-    res = romfs->GetDirectory("chara", character_dir);
-    ASSERT(res == filesystem::FsResult::Success, Services,
-           "Failed to get \"chara\" avatars directory: {}", res);
-    for (const auto& [name, entry] : character_dir->GetEntries()) {
-        if (name.ends_with(".szs"))
-            avatar_images[name] = static_cast<filesystem::FileBase*>(entry);
-    }
-}
-
 void UserManager::LoadAvatarImage(uuid_t user_id, std::vector<u8>& out_data) {
-    // Decompress
+    // Load image
     const auto& user = Get(user_id);
-    auto file = avatar_images.at(user.avatar_path);
 
-    auto stream = file->Open(filesystem::FileOpenFlags::Read);
-    auto reader = stream.CreateReader();
-
-    std::vector<u8> compressed(reader.GetSize());
-    reader.ReadWhole<u8>(compressed.data());
-
-    file->Close(stream);
-
-#define YAZ0_ASSERT(expr)                                                      \
-    {                                                                          \
-        const auto res = expr;                                                 \
-        ASSERT(res == YAZ0_OK, Services, #expr " failed: {}", res);            \
-    }
-    Yaz0Stream* yaz0;
-    YAZ0_ASSERT(yaz0Init(&yaz0));
-    YAZ0_ASSERT(yaz0ModeDecompress(yaz0));
-    YAZ0_ASSERT(yaz0Input(yaz0, compressed.data(), compressed.size()));
-    std::vector<u8> decompressed(AVATAR_UNCOMPRESSED_IMAGE_SIZE);
-    YAZ0_ASSERT(
-        yaz0Output(yaz0, decompressed.data(), AVATAR_UNCOMPRESSED_IMAGE_SIZE));
-    YAZ0_ASSERT(yaz0Run(yaz0));
-    YAZ0_ASSERT(yaz0Destroy(yaz0));
-#undef YAZ0_ASSERT
+    std::vector<u8> decompressed;
+    avatar_image_loader.LoadAvatarImage(user.avatar_path, decompressed);
 
     // Alpha blend with background color
-    for (u32 i = 0; i < AVATAR_UNCOMPRESSED_IMAGE_SIZE; i += 4) {
+    for (u32 i = 0; i < decompressed.size(); i += 4) {
         auto& r = decompressed[i + 0];
         auto& g = decompressed[i + 1];
         auto& b = decompressed[i + 2];

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/horizon/avatar_image_loader.hpp"
 #include "core/horizon/filesystem/filesystem.hpp"
 #include "core/horizon/services/account/internal/user.hpp"
 
@@ -27,7 +28,9 @@ class UserManager {
     usize GetCount() const { return users.size(); }
 
     // Avatar
-    void LoadSystemAvatars();
+    void LoadSystemAvatars() {
+        avatar_image_loader.LoadSystemAvatars(FILESYSTEM_INSTANCE);
+    }
     void LoadAvatarImage(uuid_t user_id, std::vector<u8>& out_data);
     // TODO: isn't there a better way?
     usize GetAvatarImageSize(uuid_t user_id) {
@@ -38,7 +41,7 @@ class UserManager {
 
   private:
     std::map<uuid_t, std::pair<User, u64>> users;
-    std::map<std::string, filesystem::FileBase*> avatar_images;
+    AvatarImageLoader avatar_image_loader;
 
     // Helpers
     std::pair<User, u64>& GetPair(uuid_t user_id) {

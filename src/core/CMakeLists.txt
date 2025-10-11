@@ -3,6 +3,10 @@ add_library(hydra-core
     horizon/hid.hpp
     horizon/input_manager.cpp
     horizon/input_manager.hpp
+    horizon/firmware.cpp
+    horizon/firmware.hpp
+    horizon/avatar_image_loader.cpp
+    horizon/avatar_image_loader.hpp
     horizon/os.cpp
     horizon/os.hpp
     horizon/kernel/const.hpp
