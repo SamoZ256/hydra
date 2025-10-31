@@ -76,6 +76,7 @@ struct MenuCommands: Commands {
 
         // Remove some items
         CommandGroup(replacing: .undoRedo) {}
+        CommandGroup(replacing: .pasteboard) {}
         // CommandGroup(replacing: .systemServices) {}
     }
 
