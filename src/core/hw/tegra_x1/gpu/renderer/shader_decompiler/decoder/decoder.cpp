@@ -468,18 +468,10 @@ void Decoder::ParseNextInstruction() {
     INST(0xe2c0000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("getcrsptr");
     }
-    INST(0xe2b0000000000020, 0xfff0000000000020) {
-        COMMENT_NOT_IMPLEMENTED("pcnt");
-    }
-    INST(0xe2b0000000000000, 0xfff0000000000020) {
-        COMMENT_NOT_IMPLEMENTED("pcnt");
-    }
-    INST(0xe2a0000000000020, 0xfff0000000000020) {
-        COMMENT_NOT_IMPLEMENTED("pbk");
-    }
-    INST(0xe2a0000000000000, 0xfff0000000000020) {
-        COMMENT_NOT_IMPLEMENTED("pbk");
-    }
+    INST(0xe2b0000000000020, 0xfff0000000000020) { COMMENT("pcnt");  }
+    INST(0xe2b0000000000000, 0xfff0000000000020) { COMMENT("pcnt");  }
+    INST(0xe2a0000000000020, 0xfff0000000000020) { COMMENT("pbk");  }
+    INST(0xe2a0000000000000, 0xfff0000000000020) { COMMENT("pbk");  }
     INST(0xe290000000000020, 0xfff0000000000020) {
         COMMENT_NOT_IMPLEMENTED("ssy");
     }
@@ -1827,6 +1819,7 @@ void Decoder::ParseNextInstruction() {
         const bool negA = GET_BIT(49);
         const auto srcA = GET_REG(8);
         const bool negB = GET_BIT(48);
+        const bool cc = GET_BIT(47);
         const auto srcB = GET_CMEM(34, 14);
         COMMENT("iadd {} {}{} {}c{}[0x{:x}]", dst, (negA ? "-" : ""), srcA,
                 (negB ? "-" : ""), srcB.idx, srcB.imm);
@@ -1837,6 +1830,10 @@ void Decoder::ParseNextInstruction() {
             NEG_IF(ir::Value::Register(srcA, DataType::I32), negA),
             NEG_IF(ir::Value::ConstMemory(srcB, DataType::I32), negB));
         BUILDER.OpCopy(ir::Value::Register(dst, DataType::I32), res);
+
+        if (cc) {
+          // condition flag (uh...)
+        }
 
         HANDLE_PRED_COND_END();
     }
