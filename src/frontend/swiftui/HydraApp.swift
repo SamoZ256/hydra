@@ -11,6 +11,7 @@ struct MyApp: App {
     var body: some Scene {
         Window("Hydra", id: "main") {
             ContentView(activeGame: self.$activeGame, emulationContext: self.$emulationContext)
+            .frame(minWidth: 640, minHeight: 360)
         }
         .defaultSize(width: 1280, height: 720)
         .windowResizability(.contentSize)
