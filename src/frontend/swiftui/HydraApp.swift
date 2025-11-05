@@ -3,7 +3,9 @@ import SwiftUI
 @main
 struct MyApp: App {
     // TODO: if macOS
-    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    #if DEBUG
+        @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    #endif
 
     @State private var activeGame: Game? = nil
     @State private var emulationContext: HydraEmulationContext? = nil
@@ -20,10 +22,12 @@ struct MyApp: App {
             MenuCommands(activeGame: self.$activeGame, emulationContext: self.$emulationContext)
         }
 
-        Window("Debugger", id: "debugger") {
-            DebuggersView()
-        }
-        .defaultLaunchBehavior(.suppressed)
+        #if DEBUG
+            Window("Debugger", id: "debugger") {
+                DebuggersView()
+            }
+            .defaultLaunchBehavior(.suppressed)
+        #endif
 
         Settings {
             SettingsView()

@@ -33,10 +33,8 @@ struct MenuCommands: Commands {
             }
         }
 
-        CommandGroup(after: .pasteboard) {
-            Divider()
-
-            Button("Take Screenshot") {
+        CommandGroup(after: .sidebar) {
+            Button("Take Screenshot", systemImage: "camera") {
                 guard let emulationContext = self.emulationContext else { return }
                 emulationContext.takeScreenshot()
             }
@@ -66,17 +64,20 @@ struct MenuCommands: Commands {
             }
         }
 
-        CommandMenu("Debug") {
-            Button("Capture GPU Frame") {
-                guard let emulationContext = self.emulationContext else { return }
-                emulationContext.captureGpuFrame()
+        #if DEBUG
+            CommandMenu("Debug") {
+                Button("Capture GPU Frame") {
+                    guard let emulationContext = self.emulationContext else { return }
+                    emulationContext.captureGpuFrame()
+                }
+                .keyboardShortcut(KeyEquivalent("p"), modifiers: .command)
             }
-            .keyboardShortcut(KeyEquivalent("p"), modifiers: .command)
-        }
+        #else
+            CommandGroup(replacing: .pasteboard) {}
+        #endif
 
         // Remove some items
         CommandGroup(replacing: .undoRedo) {}
-        // CommandGroup(replacing: .pasteboard) {}
         // CommandGroup(replacing: .systemServices) {}
     }
 
