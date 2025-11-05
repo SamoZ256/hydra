@@ -37,11 +37,13 @@ struct SettingsView: View {
                     Label("System", systemImage: "desktopcomputer")
                 }
                 .tag(Tabs.system)
-            DebugSettingsView()
-                .tabItem {
-                    Label("Debug", systemImage: "memorychip")
-                }
-                .tag(Tabs.debug)
+            #if DEBUG
+                DebugSettingsView()
+                    .tabItem {
+                        Label("Debug", systemImage: "memorychip")
+                    }
+                    .tag(Tabs.debug)
+            #endif
         }
         .padding(20)
         // TODO: don't hardcode the size
