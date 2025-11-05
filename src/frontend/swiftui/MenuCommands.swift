@@ -73,12 +73,12 @@ struct MenuCommands: Commands {
                 .keyboardShortcut(KeyEquivalent("p"), modifiers: .command)
             }
         #else
+            CommandGroup(replacing: .systemServices) {}
             CommandGroup(replacing: .pasteboard) {}
         #endif
 
         // Remove some items
         CommandGroup(replacing: .undoRedo) {}
-        // CommandGroup(replacing: .systemServices) {}
     }
 
     func loadFirmware() {
