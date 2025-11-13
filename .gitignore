@@ -2,4 +2,4 @@ build
 _build
 .cache
 *.DS_STORE
-externals/*
+external/*
