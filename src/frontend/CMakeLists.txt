@@ -92,3 +92,12 @@ if (MACOS_BUNDLE)
     set(MACOSX_BUNDLE_COPYRIGHT "Copyright© Hydra Project")
     set(MACOSX_BUNDLE_SHORT_VERSION_STRING "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}.${${PROJECT_NAME}_VERSION_PATCH}")
 endif ()
+
+# Signing
+set(ENTITLEMENTS_FILE "${PROJECT_SOURCE_DIR}/hydra.entitlements")
+
+# TODO: use --deep?
+add_custom_command(TARGET hydra POST_BUILD VERBATIM
+    COMMAND codesign --entitlements ${ENTITLEMENTS_FILE} --force --sign - --timestamp --options runtime "$<TARGET_FILE:hydra>"
+    COMMENT "Signing hydra with entitlements"
+)
