@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-project(hydra VERSION 0.1.0 LANGUAGES CXX)
+project(hydra VERSION 0.2.3 LANGUAGES CXX)
 
 # TODO: Change the build hash based on github
 set(BUILD_HASH "Hash")
