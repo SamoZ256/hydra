@@ -72,7 +72,7 @@ jobs:
         echo "Bundling dependencies"
         dylibbundler -of -cd -b -x  build/bin/Hydra.app/Contents/MacOS/Hydra -d build/bin/Hydra.app/Contents/Frameworks -p @executable_path/../Frameworks/
         echo "Signing hydra with entitlements"
-        codesign --entitlements hydra.entitlements --force --sign - --timestamp --options runtime build/bin/Hydra.app/Contents/MacOS/Hydra
+        codesign --entitlements hydra/hydra.entitlements --force --sign - --timestamp --options runtime build/bin/Hydra.app/Contents/MacOS/Hydra
       
     - name: Create Archive
       run: |
