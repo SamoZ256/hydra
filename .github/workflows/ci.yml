@@ -43,7 +43,7 @@ jobs:
         path: hydra
   
     - name: Install Dependencies
-      run: brew install boost fmt sdl3 dylibbundler
+      run: brew install boost fmt sdl3
   
     - name: Verify CMake Version
       run: cmake --version
