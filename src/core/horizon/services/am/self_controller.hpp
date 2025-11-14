@@ -35,6 +35,7 @@ class ISelfController : public IService {
     STUB_REQUEST_COMMAND(SetFocusHandlingMode);
     STUB_REQUEST_COMMAND(SetRestartMessageEnabled);
     STUB_REQUEST_COMMAND(SetOutOfFocusSuspendingEnabled);
+    STUB_REQUEST_COMMAND(SetAlbumImageOrientation);
     result_t CreateManagedDisplayLayer(kernel::Process* process,
                                        u64* out_layer_id);
     result_t CreateManagedDisplaySeparableLayer(kernel::Process* process,

@@ -620,7 +620,33 @@ void Decoder::ParseNextInstruction() {
         COMMENT_NOT_IMPLEMENTED("tmml");
     }
     INST(0xdf50000000000000, 0xfff8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("txq");
+        const auto dst = GET_REG(0);
+        const auto srcA = GET_REG(8); // TODO: is this for LOD and stuff?
+        const auto query = get_operand_df50_0(inst);
+        const auto const_buffer_index = GET_VALUE_U32(36, 13);
+        const auto component_mask = GET_VALUE_U32(31, 4);
+        COMMENT("tlds {} {} {} 0x{:08x} 0x{:x}", dst, srcA, query,
+                const_buffer_index, component_mask);
+
+        HANDLE_PRED_COND_BEGIN();
+
+        switch (query) {
+        case TextureQuery::Dimensions:
+            for (u32 i = 0, comp_mask = component_mask; comp_mask != 0x0;
+                 i++, comp_mask >>= 1) {
+                if (comp_mask & 1) {
+                    const auto res =
+                        BUILDER.OpTextureQueryDimension(const_buffer_index, i);
+                    BUILDER.OpCopy(ir::Value::Register(dst + i), res);
+                }
+            }
+            break;
+        default:
+            LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Texture query {}", query);
+            break;
+        }
+
+        HANDLE_PRED_COND_END();
     }
     INST(0xdf48000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("txq");
@@ -1427,7 +1453,7 @@ void Decoder::ParseNextInstruction() {
         const auto type = get_operand_5c30_0(inst);
         const auto combine_bin = get_operand_5bb0_1(inst);
         const auto dst = GET_PRED(3);
-        const auto combine = GET_PRED(0); // TODO: combine?
+        const auto combine = GET_PRED(0);
         const auto srcA = GET_REG(8);
         const auto srcB = GET_REG(20);
         // TODO: pred 39
@@ -1445,7 +1471,38 @@ void Decoder::ParseNextInstruction() {
         HANDLE_PRED_COND_END();
     }
     INST(0x5b50000000000000, 0xfff0000000000000) {
-        COMMENT_NOT_IMPLEMENTED("iset");
+        const auto bool_float = GET_BIT(44);
+        const auto cmp = get_operand_5b60_0(inst);
+        const auto type = get_operand_5c30_0(inst);
+        const auto combine_bin = get_operand_5bb0_1(inst);
+        const auto dst = GET_REG(0);
+        const auto srcA = GET_REG(8);
+        const auto srcB = GET_REG(20);
+        const auto combine = GET_PRED(39);
+        COMMENT("iset {} {} {} {} {} {} {}", cmp, type, combine_bin, dst, srcA,
+                srcB, combine);
+
+        HANDLE_PRED_COND_BEGIN();
+
+        auto cmp_res = BUILDER.OpCompare(cmp, ir::Value::Register(srcA, type),
+                                         ir::Value::Register(srcB, type));
+        auto bin_res = BUILDER.OpBitwise(combine_bin, cmp_res,
+                                         ir::Value::Predicate(combine));
+        if (bool_float) {
+            // TODO: simplify immediate value creation
+            auto res = BUILDER.OpSelect(
+                bin_res,
+                ir::Value::Immediate(std::bit_cast<u32>(f32(1.0f)),
+                                     DataType::F32),
+                ir::Value::Immediate(std::bit_cast<u32>(f32(0.0f)),
+                                     DataType::F32));
+            BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
+        } else {
+            auto res = BUILDER.OpCast(bin_res, DataType::U32);
+            BUILDER.OpCopy(ir::Value::Register(dst), res);
+        }
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5b40000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("icmp");
@@ -1697,8 +1754,8 @@ void Decoder::ParseNextInstruction() {
         const auto dst = GET_REG(0);
         const auto neg = GET_BIT(45);
         const auto src = GET_CMEM(34, 14);
-        COMMENT("i2f {} {} {} {}c{}[0x{:x}]", dst_type, src_type, dst,
-                (neg ? "-" : ""), src.idx, src.imm);
+        COMMENT("i2f {} {} {} {}{}", dst_type, src_type, dst, (neg ? "-" : ""),
+                src);
 
         HANDLE_PRED_COND_BEGIN();
 
@@ -1715,13 +1772,26 @@ void Decoder::ParseNextInstruction() {
         COMMENT_NOT_IMPLEMENTED("f2f");
     }
     INST(0x4ca0000000000000, 0xfff8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("sel");
+        const auto dst = GET_REG(0);
+        const auto srcA = GET_REG(8);
+        const auto srcB = GET_CMEM(34, 14);
+        const auto pred = GET_PRED(39);
+        COMMENT("sel {} {} {} {}", dst, srcA, srcB, pred);
+
+        HANDLE_PRED_COND_BEGIN();
+
+        auto res = BUILDER.OpSelect(ir::Value::Predicate(pred),
+                                    ir::Value::Register(srcA),
+                                    ir::Value::ConstMemory(srcB));
+        BUILDER.OpCopy(ir::Value::Register(dst), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x4c98000000000000, 0xfff8000000000000) {
         const auto dst = GET_REG(0);
         const auto src = GET_CMEM(34, 14);
         const auto todo = GET_VALUE_U32(39, 4);
-        COMMENT("mov {} c{}[0x{:x}] 0x{:x}", dst, src.idx, src.imm, todo);
+        COMMENT("mov {} {} 0x{:x}", dst, src, todo);
 
         HANDLE_PRED_COND_BEGIN();
 
@@ -1730,7 +1800,18 @@ void Decoder::ParseNextInstruction() {
         HANDLE_PRED_COND_END();
     }
     INST(0x4c90000000000000, 0xfff8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("rro");
+        // TODO: 5c90_0
+        const auto dst = GET_REG(0);
+        const auto src = GET_CMEM(34, 14);
+        COMMENT("rro {} {}", dst, src);
+
+        HANDLE_PRED_COND_BEGIN();
+
+        // This should always be followed by a corresponding MUFU instruction,
+        // so a simple copy should be sufficient
+        BUILDER.OpCopy(ir::Value::Register(dst), ir::Value::ConstMemory(src));
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x4c88000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("fchk");
@@ -1958,31 +2039,29 @@ void Decoder::ParseNextInstruction() {
         const auto negA = GET_BIT(43);
         const auto srcB = GET_CMEM(34, 14);
         const auto negB = GET_BIT(53);
-        // TODO: combine
-        COMMENT("fset {} {} {} {} {}{} {}c{}[0x{:x}]", (bool_float ? "BF" : ""),
-                cmp, combine_bin, dst, (negA ? "-" : ""), srcA,
-                (negB ? "-" : ""), srcB.idx, srcB.imm);
+        const auto combine = GET_PRED(39);
+        COMMENT("fset {} {} {} {} {}{} {}{} {}", (bool_float ? "BF" : ""), cmp,
+                combine_bin, dst, (negA ? "-" : ""), srcA, (negB ? "-" : ""),
+                srcB, combine);
 
         HANDLE_PRED_COND_BEGIN();
 
         auto cmp_res = BUILDER.OpCompare(
             cmp, NEG_IF(ir::Value::Register(srcA, DataType::F32), negA),
             NEG_IF(ir::Value::ConstMemory(srcB, DataType::F32), negB));
-        // TODO: uncomment
-        // auto bin_res = BUILDER.OpBitwise(combine_bin, cmp_res,
-        //                    ir::Value::Predicate(combine));
-        // TODO: use bin_res instead of cmp_res
-        // TODO: simplify immediate value creation
+        auto bin_res = BUILDER.OpBitwise(combine_bin, cmp_res,
+                                         ir::Value::Predicate(combine));
         if (bool_float) {
+            // TODO: simplify immediate value creation
             auto res = BUILDER.OpSelect(
-                cmp_res,
+                bin_res,
                 ir::Value::Immediate(std::bit_cast<u32>(f32(1.0f)),
                                      DataType::F32),
                 ir::Value::Immediate(std::bit_cast<u32>(f32(0.0f)),
                                      DataType::F32));
             BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
         } else {
-            auto res = BUILDER.OpCast(cmp_res, DataType::U32);
+            auto res = BUILDER.OpCast(bin_res, DataType::U32);
             BUILDER.OpCopy(ir::Value::Register(dst), res);
         }
 
@@ -2036,7 +2115,20 @@ void Decoder::ParseNextInstruction() {
         COMMENT_NOT_IMPLEMENTED("f2f");
     }
     INST(0x38a0000000000000, 0xfef8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("f2f");
+        const auto dst = GET_REG(0);
+        const auto srcA = GET_REG(8);
+        const auto srcB = GET_VALUE_I32_SIGN_EXTEND(20, 20);
+        const auto pred = GET_PRED(39);
+        COMMENT("sel {} {} 0x{:x} {}", dst, srcA, srcB, pred);
+
+        HANDLE_PRED_COND_BEGIN();
+
+        auto res = BUILDER.OpSelect(ir::Value::Predicate(pred),
+                                    ir::Value::Register(srcA, DataType::I32),
+                                    ir::Value::Immediate(srcB, DataType::I32));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::I32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x3898000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("mov");
@@ -2325,7 +2417,7 @@ void Decoder::ParseNextInstruction() {
         HANDLE_PRED_COND_END();
     }
     INST(0x3650000000000000, 0xfef0000000000000) {
-        COMMENT_NOT_IMPLEMENTED("iset"); // TODO: needed by Super Mario Odyssey
+        COMMENT_NOT_IMPLEMENTED("iset");
     }
     INST(0x3640000000000000, 0xfef0000000000000) {
         COMMENT_NOT_IMPLEMENTED("icmp");

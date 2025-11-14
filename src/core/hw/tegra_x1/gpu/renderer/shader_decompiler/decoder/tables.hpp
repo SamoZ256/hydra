@@ -102,7 +102,7 @@ DEFINE_OPERAND_TABLE(5cb8_1, DataType, 0x0000000000002c00, 0x0000000000000000,
 
 DEFINE_OPERAND_TABLE(5b60_0, ComparisonOp, 0x000e000000000000,
                      0x0000000000000000, F, 0x0002000000000000, Less,
-                     0x0004000000000000, Equal, 0x000600000000000, LessEqual,
+                     0x0004000000000000, Equal, 0x0006000000000000, LessEqual,
                      0x0008000000000000, Greater, 0x000a000000000000, NotEqual,
                      0x000c000000000000, GreaterEqual, 0x000e000000000000, T)
 
@@ -142,5 +142,12 @@ DEFINE_OPERAND_TABLE(ef90sz, LoadStoreMode, 0x0007000000000000,
                      0x0000000000000000, U8, 0x0001000000000000, S8,
                      0x0002000000000000, U16, 0x0003000000000000, S16,
                      0x0004000000000000, B32, 0x0005000000000000, B64)
+
+DEFINE_OPERAND_TABLE(df50_0, TextureQuery, 0x000000000fc00000,
+                     0x0000000000400000, Dimensions, 0x0000000000800000,
+                     TextureType, 0x0000000001400000, SamplePos,
+                     0x0000000004000000, SamplerFilter, 0x0000000004800000,
+                     SamplerLod, 0x0000000005000000, SamplerWrap,
+                     0x0000000005800000, SamplerBorderColor)
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

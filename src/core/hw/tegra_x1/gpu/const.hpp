@@ -754,7 +754,7 @@ constexpr usize VERTEX_ATTRIB_COUNT = 32;
 constexpr usize VERTEX_ARRAY_COUNT = 16;
 
 constexpr usize CONST_BUFFER_BINDING_COUNT = 32;
-constexpr usize UNIFORM_BUFFER_BINDING_COUNT = 16; // TODO: what is this?
+constexpr usize UNIFORM_BUFFER_BINDING_COUNT = 64; // TODO: what is this?
 constexpr usize STORAGE_BUFFER_BINDING_COUNT = 16;
 constexpr usize TEXTURE_BINDING_COUNT = 32;
 constexpr usize IMAGE_BINDING_COUNT = 8;

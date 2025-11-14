@@ -7,35 +7,37 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang {
 
 namespace {
 
-std::string cmp_op_to_str(ComparisonOp cmp) {
+// TODO: move this to the decoder
+std::string cmp_to_str(ComparisonOp cmp, std::string_view lhs,
+                       std::string_view rhs) {
     // TODO: are the U ones the same?
     switch (cmp) {
     case ComparisonOp::F:
-        return INVALID_VALUE; // TODO
+        return "false";
     case ComparisonOp::Less:
     case ComparisonOp::LessU:
-        return "<";
+        return fmt::format("{} < {}", lhs, rhs);
     case ComparisonOp::Equal:
     case ComparisonOp::EqualU:
-        return "==";
+        return fmt::format("{} == {}", lhs, rhs);
     case ComparisonOp::LessEqual:
     case ComparisonOp::LessEqualU:
-        return "<=";
+        return fmt::format("{} <= {}", lhs, rhs);
     case ComparisonOp::Greater:
     case ComparisonOp::GreaterU:
-        return ">";
+        return fmt::format("{} > {}", lhs, rhs);
     case ComparisonOp::NotEqual:
     case ComparisonOp::NotEqualU:
-        return "!=";
+        return fmt::format("{} != {}", lhs, rhs);
     case ComparisonOp::GreaterEqual:
     case ComparisonOp::GreaterEqualU:
-        return ">=";
+        return fmt::format("{} >= {}", lhs, rhs);
     case ComparisonOp::Num:
-        return INVALID_VALUE; // TODO
+        return fmt::format("!(isnan({}) || isnan({}))", lhs, rhs);
     case ComparisonOp::Nan:
-        return INVALID_VALUE; // TODO
+        return fmt::format("isnan({}) || isnan({})", lhs, rhs);
     case ComparisonOp::T:
-        return INVALID_VALUE; // TODO
+        return "true";
     default:
         return INVALID_VALUE;
     }
@@ -426,8 +428,8 @@ void LangEmitter::EmitCast(const ir::Value& dst, const ir::Value& src,
 
 void LangEmitter::EmitCompare(const ir::Value& dst, ComparisonOp op,
                               const ir::Value& srcA, const ir::Value& srcB) {
-    StoreValue(dst, "({} {} {})", GetValueStr(srcA), cmp_op_to_str(op),
-               GetValueStr(srcB));
+    StoreValue(dst, "({})",
+               cmp_to_str(op, GetValueStr(srcA), GetValueStr(srcB)));
 }
 
 void LangEmitter::EmitBitwise(const ir::Value& dst, BitwiseOp op,

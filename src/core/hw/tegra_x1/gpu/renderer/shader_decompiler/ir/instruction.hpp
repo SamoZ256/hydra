@@ -45,6 +45,7 @@ enum class Opcode {
     Discard,
     TextureSample,
     TextureRead,
+    TextureQueryDimension,
 };
 
 constexpr usize MAX_INSTRUCTION_OPERANDS = 8;

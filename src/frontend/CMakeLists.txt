@@ -22,6 +22,7 @@ if (FRONTEND STREQUAL "SDL3")
 elseif (FRONTEND STREQUAL "SwiftUI")
     message(STATUS "Using SwiftUI frontend")
     set(CMAKE_OSX_DEPLOYMENT_TARGET 15.0)
+    set(SWIFT_BUILD_TYPE_CONDITION "$<UPPER_CASE:$<CONFIG>>")
 
     add_executable(hydra
         swiftui/Api.swift
@@ -63,6 +64,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/macos/AppDelegate.swift
     )
 
+    target_compile_definitions(hydra PRIVATE ${SWIFT_BUILD_TYPE_CONDITION} )
     target_compile_options(hydra PRIVATE -import-objc-header ${CMAKE_SOURCE_DIR}/src/core/c_api.h)
 else ()
     message(FATAL_ERROR "Unknown frontend \"${FRONTEND}\". Valid options are \"SDL3\" and \"SwiftUI\".")

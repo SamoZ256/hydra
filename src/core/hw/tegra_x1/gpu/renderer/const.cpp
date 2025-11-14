@@ -45,6 +45,10 @@ TextureFormat to_texture_format(const ImageFormatWord image_format_word) {
     IMAGE_FORMAT_CASE(R16, Unorm, Unorm, Unorm, Unorm, R16Unorm)
     IMAGE_FORMAT_CASE(GR8, Unorm, Unorm, Unorm, Unorm,
                       RG8Unorm) // TODO: correct?
+    IMAGE_FORMAT_CASE(RG16, Unorm, Unorm, Unorm, Unorm, RG16Unorm)
+    IMAGE_FORMAT_CASE(RG16, Snorm, Snorm, Snorm, Snorm, RG16Snorm)
+    IMAGE_FORMAT_CASE(RG16, Uint, Uint, Uint, Uint, RG16Uint)
+    IMAGE_FORMAT_CASE(RG16, Sint, Sint, Sint, Sint, RG16Sint)
     IMAGE_FORMAT_CASE(RG16, Float, Float, Float, Float, RG16Float)
     IMAGE_FORMAT_CASE(DXT1, Unorm, Unorm, Unorm, Unorm, BC1_RGB)
     IMAGE_FORMAT_CASE(DXT23, Unorm, Unorm, Unorm, Unorm, BC2_RGBA)
@@ -576,6 +580,9 @@ SwizzleChannels::SwizzleChannels(const TextureFormat format,
     case TextureFormat::ETC2_RGBA:
     case TextureFormat::ETC2_RGBA_sRGB:
         SWIZZLE(x, y, z, w);
+    case TextureFormat::Z32Float:
+        SWIZZLE(x, ImageSwizzle::Zero, ImageSwizzle::Zero,
+                ImageSwizzle::OneFloat);
     case TextureFormat::BGR5A1Unorm:
     case TextureFormat::BGRA8Unorm:
     case TextureFormat::BGRA8Unorm_sRGB:

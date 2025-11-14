@@ -6,6 +6,24 @@
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang::
     msl {
 
+namespace {
+
+// TODO: adjust for individual texture types
+std::string dimension_to_str(u32 dimension) {
+    switch (dimension) {
+    case 0:
+        return "width";
+    case 1:
+        return "height";
+    case 2:
+        return "depth";
+    default:
+        return INVALID_VALUE;
+    }
+}
+
+} // namespace
+
 MslEmitter::MslEmitter(const DecompilerContext& context,
                        const analyzer::MemoryAnalyzer& memory_analyzer,
                        const GuestShaderState& state, std::vector<u8>& out_code,
@@ -254,6 +272,13 @@ void MslEmitter::EmitTextureRead(const ir::Value& dst, u32 const_buffer_index,
                                  const ir::Value& coords) {
     StoreValue(dst, "state.tex{}.read(uint2({}))", const_buffer_index,
                GetValueStr(coords));
+}
+
+void MslEmitter::EmitTextureQueryDimension(const ir::Value& dst,
+                                           u32 const_buffer_index,
+                                           u32 dimension) {
+    StoreValue(dst, "state.tex{}.get_{}()", const_buffer_index,
+               dimension_to_str(dimension));
 }
 
 std::string MslEmitter::GetSvAccessQualifiedStr(const SvAccess& sv_access,

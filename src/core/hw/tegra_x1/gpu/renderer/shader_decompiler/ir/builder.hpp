@@ -122,6 +122,11 @@ class Builder {
         return AddInstruction(Opcode::TextureRead,
                               {Value::RawValue(const_buffer_index), coords});
     }
+    Value OpTextureQueryDimension(u32 const_buffer_index, u32 dimension) {
+        return AddInstruction(
+            Opcode::TextureQueryDimension,
+            {Value::RawValue(const_buffer_index), Value::RawValue(dimension)});
+    }
 
   protected:
     Module& modul;

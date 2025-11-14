@@ -33,10 +33,8 @@ struct MenuCommands: Commands {
             }
         }
 
-        CommandGroup(after: .pasteboard) {
-            Divider()
-
-            Button("Take Screenshot") {
+        CommandGroup(after: .sidebar) {
+            Button("Take Screenshot", systemImage: "camera") {
                 guard let emulationContext = self.emulationContext else { return }
                 emulationContext.takeScreenshot()
             }

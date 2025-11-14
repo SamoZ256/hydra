@@ -158,22 +158,22 @@ enum class MathFunc {
 enum class ComparisonOp {
     Invalid,
 
-    F, // TODO: what is this?
+    F,
     Less,
     Equal,
     LessEqual,
     Greater,
     NotEqual,
     GreaterEqual,
-    Num, // TODO: what is this?
-    Nan, // TODO: what is this?
+    Num,
+    Nan,
     LessU,
     EqualU,
     LessEqualU,
     GreaterU,
     NotEqualU,
     GreaterEqualU,
-    T, // TODO: what is this?
+    T,
 };
 
 enum class BitwiseOp {
@@ -228,6 +228,18 @@ enum class AddressMode {
     Il,
     Is,
     Isl,
+};
+
+enum class TextureQuery {
+    Invalid,
+
+    Dimensions,
+    TextureType,
+    SamplePos,
+    SamplerFilter,
+    SamplerLod,
+    SamplerWrap,
+    SamplerBorderColor,
 };
 
 enum class IpaOp {
@@ -396,6 +408,12 @@ ENABLE_ENUM_FORMATTING(
 ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::AddressMode, Invalid,
     "invalid", Il, "il", Is, "is", Isl, "isl")
+
+ENABLE_ENUM_FORMATTING(
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::TextureQuery, Invalid,
+    "invalid", Dimensions, "dimensions", TextureType, "texture type", SamplePos,
+    "sample pos", SamplerFilter, "sampler filter", SamplerLod, "sampler LOD",
+    SamplerWrap, "sampler wrap", SamplerBorderColor, "sampler border color")
 
 ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::renderer::shader_decomp::IpaOp,
                        Invalid, "invalid", Pass, "pass", Multiply, "multiply",
