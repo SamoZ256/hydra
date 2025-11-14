@@ -91,6 +91,23 @@ if (MACOS_BUNDLE)
     set(MACOSX_BUNDLE_BUNDLE_NAME "Hydra")
     set(MACOSX_BUNDLE_COPYRIGHT "Copyright© Hydra Project")
     set(MACOSX_BUNDLE_SHORT_VERSION_STRING "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}.${${PROJECT_NAME}_VERSION_PATCH}")
+    
+    set(FRAMEWORKS_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Hydra.app/Contents/Frameworks")
+    add_custom_command(TARGET hydra POST_BUILD VERBATIM
+        COMMAND mkdir -p ${FRAMEWORKS_DIR}
+        COMMAND cp /opt/homebrew/opt/fmt/lib/libfmt.dylib ${FRAMEWORKS_DIR}/libfmt.dylib
+        COMMAND install_name_tool -change /opt/homebrew/opt/fmt/lib/libfmt.12.dylib @executable_path/../Frameworks/libfmt.dylib "$<TARGET_FILE:hydra>"
+        COMMAND install_name_tool -id @executable_path/../Frameworks/libfmt.dylib ${FRAMEWORKS_DIR}/libfmt.dylib
+        COMMAND codesign --force --deep --sign - ${FRAMEWORKS_DIR}/libfmt.dylib
+    )
+    if (FRONTEND STREQUAL "SDL3")
+        add_custom_command(TARGET hydra POST_BUILD VERBATIM
+            COMMAND cp /opt/homebrew/opt/sdl3/lib/libSDL3.0.dylib ${FRAMEWORKS_DIR}/libSDL3.0.dylib
+            COMMAND install_name_tool -change /opt/homebrew/opt/sdl3/lib/libSDL3.0.dylib @executable_path/../Frameworks/libSDL3.0.dylib "$<TARGET_FILE:hydra>"
+            COMMAND install_name_tool -id @executable_path/../Frameworks/libSDL3.0.dylib ${FRAMEWORKS_DIR}/libSDL3.0.dylib
+            COMMAND codesign --force --deep --sign - ${FRAMEWORKS_DIR}/libSDL3.0.dylib
+        )
+    endif ()
 endif ()
 
 # Signing
