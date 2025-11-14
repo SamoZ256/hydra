@@ -16,5 +16,6 @@ struct ContentView: View {
             ToolbarItems()
         }
         .windowToolbarFullScreenVisibility(.onHover)
+        .navigationTitle(activeGame?.name ?? "Hydra")
     }
 }
