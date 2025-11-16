@@ -10,8 +10,27 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(hydra VERSION 0.2.3 LANGUAGES CXX)
 
-# TODO: Change the build hash based on github
-set(BUILD_HASH "Hash")
+# Set up Git hash (only if git is available and we're in a git repo)
+set(GIT_HASH "")
+execute_process(
+    COMMAND git rev-parse HEAD
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_HASH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+)
+
+# Get the first 7 characters
+string(SUBSTRING ${GIT_HASH} 0 7 GIT_HASH_SHORT)
+if(NOT GIT_HASH_SHORT)
+    set(GIT_HASH_SHORT "0000000")
+endif()
+
+set(GIT_HASH_SHORT "${GIT_HASH_SHORT}" PARENT_SCOPE)
+
+if(GIT_DIRTY)
+    set(GIT_HASH_SHORT "${GIT_HASH_SHORT}+dirty")
+endif()
 
 if (NOT CMAKE_BUILD_TYPE)
     message("Build Type not set, defaulting to Debug...")
