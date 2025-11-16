@@ -104,10 +104,10 @@ if (MACOS_BUNDLE)
     )
     if (FRONTEND STREQUAL "SDL3")
         add_custom_command(TARGET hydra POST_BUILD VERBATIM
-            COMMAND cp /opt/homebrew/opt/sdl3/lib/libSDL3.0.dylib ${FRAMEWORKS_DIR}/libSDL3.0.dylib
-            COMMAND install_name_tool -change /opt/homebrew/opt/sdl3/lib/libSDL3.0.dylib @executable_path/../Frameworks/libSDL3.0.dylib "$<TARGET_FILE:hydra>"
-            COMMAND install_name_tool -id @executable_path/../Frameworks/libSDL3.0.dylib ${FRAMEWORKS_DIR}/libSDL3.0.dylib
-            COMMAND codesign --force --deep --sign - ${FRAMEWORKS_DIR}/libSDL3.0.dylib
+            COMMAND cp /opt/homebrew/opt/sdl3/lib/libSDL3.dylib ${FRAMEWORKS_DIR}/libSDL3.dylib
+            COMMAND install_name_tool -change /opt/homebrew/opt/sdl3/lib/libSDL3.0.dylib @executable_path/../Frameworks/libSDL3.dylib "$<TARGET_FILE:hydra>"
+            COMMAND install_name_tool -id @executable_path/../Frameworks/libSDL3.dylib ${FRAMEWORKS_DIR}/libSDL3.dylib
+            COMMAND codesign --force --deep --sign - ${FRAMEWORKS_DIR}/libSDL3.dylib
         )
     endif ()
 endif ()
