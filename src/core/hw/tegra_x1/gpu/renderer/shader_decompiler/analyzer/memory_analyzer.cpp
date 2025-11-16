@@ -48,7 +48,9 @@ void MemoryAnalyzer::Analyze(const ir::Module& modul) {
                 // Texture
                 switch (instruction.GetOpcode()) {
                 case ir::Opcode::TextureSample:
-                case ir::Opcode::TextureRead: {
+                case ir::Opcode::TextureRead:
+                case ir::Opcode::TextureGather:
+                case ir::Opcode::TextureQueryDimension: {
                     const auto const_buffer_index =
                         instruction.GetOperand(0).GetRawValue<u32>();
                     push_unique(textures, const_buffer_index);

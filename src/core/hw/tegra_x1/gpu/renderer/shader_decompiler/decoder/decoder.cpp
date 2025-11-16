@@ -625,7 +625,7 @@ void Decoder::ParseNextInstruction() {
         const auto query = get_operand_df50_0(inst);
         const auto const_buffer_index = GET_VALUE_U32(36, 13);
         const auto component_mask = GET_VALUE_U32(31, 4);
-        COMMENT("tlds {} {} {} 0x{:08x} 0x{:x}", dst, srcA, query,
+        COMMENT("txq {} {} {} 0x{:08x} 0x{:x}", dst, srcA, query,
                 const_buffer_index, component_mask);
 
         HANDLE_PRED_COND_BEGIN();
@@ -655,7 +655,32 @@ void Decoder::ParseNextInstruction() {
         COMMENT_NOT_IMPLEMENTED("txa");
     }
     INST(0xdf00000000000000, 0xff40000000000000) {
-        COMMENT_NOT_IMPLEMENTED("tld4s");
+        const auto component = get_operand_df00_0(inst);
+        const auto dst1 = GET_REG(28);
+        const auto dst0 = GET_REG(0);
+        const auto coords_x = GET_REG(8);
+        const auto coords_y = GET_REG(20);
+        const auto const_buffer_index = GET_VALUE_U32(36, 13);
+        COMMENT("tld4s {} {} {} {} {} 0x{:08x}", component, dst1, dst0,
+                coords_x, coords_y, const_buffer_index);
+
+        HANDLE_PRED_COND_BEGIN();
+
+        auto coords_v = BUILDER.OpVectorConstruct(
+            DataType::F32, {ir::Value::Register(coords_x, DataType::F32),
+                            ir::Value::Register(coords_y, DataType::F32)});
+        auto res_v =
+            BUILDER.OpTextureGather(const_buffer_index, coords_v, component);
+        BUILDER.OpCopy(ir::Value::Register(dst0, DataType::F32),
+                       BUILDER.OpVectorExtract(res_v, 0));
+        BUILDER.OpCopy(ir::Value::Register(dst0 + 1, DataType::F32),
+                       BUILDER.OpVectorExtract(res_v, 1));
+        BUILDER.OpCopy(ir::Value::Register(dst1, DataType::F32),
+                       BUILDER.OpVectorExtract(res_v, 2));
+        BUILDER.OpCopy(ir::Value::Register(dst1 + 1, DataType::F32),
+                       BUILDER.OpVectorExtract(res_v, 3));
+
+        HANDLE_PRED_COND_END();
     }
     INST(0xdef8000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("tld4");
@@ -711,7 +736,7 @@ void Decoder::ParseNextInstruction() {
         HANDLE_PRED_COND_BEGIN();
 
         auto coords_v = BUILDER.OpVectorConstruct(
-            DataType::F32, {ir::Value::Register(coords_x, DataType::I32),
+            DataType::I32, {ir::Value::Register(coords_x, DataType::I32),
                             ir::Value::Register(coords_y, DataType::I32)});
         auto res_v = BUILDER.OpTextureRead(const_buffer_index, coords_v);
         BUILDER.OpCopy(ir::Value::Register(dst0, DataType::F32),
@@ -822,7 +847,32 @@ void Decoder::ParseNextInstruction() {
         HANDLE_PRED_COND_END();
     }
     INST(0xc838000000000000, 0xfc38000000000000) {
-        COMMENT_NOT_IMPLEMENTED("tld4");
+        const auto component = get_operand_c838_0(inst);
+        // TODO: c838_1
+        const auto dst = GET_REG(0);
+        const auto coords_x = GET_REG(8);
+        const auto coords_y = GET_REG(20);
+        const auto const_buffer_index = GET_VALUE_U32(36, 13);
+        // TODO: texture type
+        const auto component_mask = GET_VALUE_U32(31, 4);
+        COMMENT("tld4 {} {} {} {} 0x{:08x} {:x}", component, dst, coords_x,
+                coords_y, const_buffer_index, component_mask);
+
+        HANDLE_PRED_COND_BEGIN();
+
+        auto coords_v = BUILDER.OpVectorConstruct(
+            DataType::F32, {ir::Value::Register(coords_x, DataType::F32),
+                            ir::Value::Register(coords_y, DataType::F32)});
+        auto res_v =
+            BUILDER.OpTextureGather(const_buffer_index, coords_v, component);
+        for (u32 i = 0; i < 4; i++) {
+            if (component_mask & (1 << i)) {
+                BUILDER.OpCopy(ir::Value::Register(dst + i, DataType::F32),
+                               BUILDER.OpVectorExtract(res_v, i));
+            }
+        }
+
+        HANDLE_PRED_COND_END();
     }
     INST(0xc038000000000000, 0xfc38000000000000) {
         COMMENT_NOT_IMPLEMENTED("tex");

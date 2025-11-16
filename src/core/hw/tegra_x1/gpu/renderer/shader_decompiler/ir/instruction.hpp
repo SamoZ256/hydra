@@ -45,6 +45,7 @@ enum class Opcode {
     Discard,
     TextureSample,
     TextureRead,
+    TextureGather,
     TextureQueryDimension,
 };
 

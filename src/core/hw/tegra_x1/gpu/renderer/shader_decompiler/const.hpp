@@ -230,6 +230,15 @@ enum class AddressMode {
     Isl,
 };
 
+enum class TextureComponent {
+    Invalid,
+
+    R,
+    G,
+    B,
+    A,
+};
+
 enum class TextureQuery {
     Invalid,
 
@@ -408,6 +417,10 @@ ENABLE_ENUM_FORMATTING(
 ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::AddressMode, Invalid,
     "invalid", Il, "il", Is, "is", Isl, "isl")
+
+ENABLE_ENUM_FORMATTING(
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::TextureComponent,
+    Invalid, "invalid", R, "r", G, "g", B, "b", A, "a")
 
 ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::TextureQuery, Invalid,

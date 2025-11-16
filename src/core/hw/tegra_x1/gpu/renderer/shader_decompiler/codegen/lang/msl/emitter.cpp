@@ -8,6 +8,21 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang::
 
 namespace {
 
+std::string component_to_str(TextureComponent component) {
+    switch (component) {
+    case TextureComponent::R:
+        return "x";
+    case TextureComponent::G:
+        return "y";
+    case TextureComponent::B:
+        return "z";
+    case TextureComponent::A:
+        return "w";
+    default:
+        return INVALID_VALUE;
+    }
+}
+
 // TODO: adjust for individual texture types
 std::string dimension_to_str(u32 dimension) {
     switch (dimension) {
@@ -272,6 +287,15 @@ void MslEmitter::EmitTextureRead(const ir::Value& dst, u32 const_buffer_index,
                                  const ir::Value& coords) {
     StoreValue(dst, "state.tex{}.read(uint2({}))", const_buffer_index,
                GetValueStr(coords));
+}
+
+void MslEmitter::EmitTextureGather(const ir::Value& dst, u32 const_buffer_index,
+                                   const ir::Value& coords,
+                                   TextureComponent component) {
+    StoreValue(dst,
+               "state.tex{}.gather(state.samplr{}, {}, int2(0), component::{})",
+               const_buffer_index, const_buffer_index, GetValueStr(coords),
+               component_to_str(component));
 }
 
 void MslEmitter::EmitTextureQueryDimension(const ir::Value& dst,
