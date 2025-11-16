@@ -11,7 +11,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 project(hydra VERSION 0.2.3 LANGUAGES CXX)
 
 # Set up Git hash (only if git is available and we're in a git repo)
-set(GIT_HASH "")
 execute_process(
     COMMAND git rev-parse HEAD
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
