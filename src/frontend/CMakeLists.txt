@@ -81,9 +81,14 @@ if (MACOS_BUNDLE)
         MACOSX_BUNDLE ON
         MACOSX_BUNDLE_GUI_IDENTIFIER "com.github.${PROJECT_NAME}"
         MACOSX_BUNDLE_ICON_FILE "hydra.icns"
-        MACOSX_BUNDLE_BUNDLE_VERSION ${GIT_HASH_SHORT}
         MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
     )
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set_target_properties(${PROJECT_NAME} PROPERTIES
+            MACOSX_BUNDLE_BUNDLE_VERSION ${GIT_HASH_SHORT}
+        )
+    endif ()
+    
     if (FRONTEND STREQUAL "SwiftUI")
         set(MACOSX_MINIMUM_SYSTEM_VERSION "15.0")
     else ()

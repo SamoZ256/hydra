@@ -12,10 +12,13 @@ struct ContentView: View {
         Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
     }
     
-    /// The navigation title (either game name or "Game List") plus version
     private var navigationTitle: String {
-        let gameTitle = activeGame?.name ?? "Game List"
-        return "Hydra v\(appVersion) (\(gitVersion)) | \(gameTitle)"
+        let gameTitle = activeGame?.name ?? ""
+        var titleInsert = ""
+        if activeGame?.name != nil { titleInsert = "  |  \(gameTitle)" }
+        var gitInsert = ""
+        if gitVersion != "" { gitInsert = " (\(gitVersion))"}
+        return "Hydra v\(appVersion)\(gitInsert)\(titleInsert)"
     }
 
     var body: some View {
