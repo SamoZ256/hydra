@@ -28,8 +28,6 @@ else ()
         set(GIT_HASH_SHORT "0000000")
     endif()
     
-    set(GIT_HASH_SHORT "${GIT_HASH_SHORT}" PARENT_SCOPE)
-    
     if(GIT_DIRTY)
         set(GIT_HASH_SHORT "${GIT_HASH_SHORT}+dirty")
     endif()
