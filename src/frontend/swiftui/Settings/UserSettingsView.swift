@@ -32,6 +32,7 @@ struct UserSettingsView: View {
                         }
                     }
                     .navigationTitle("Users")
+                    .toolbar(removing: .sidebarToggle)
                 } detail: {
                     let userID = self.userIDs[self.selectedUserIndex]
                     // TODO: react to changes
@@ -54,3 +55,4 @@ struct UserSettingsView: View {
         }
     }
 }
+
