@@ -4,17 +4,20 @@ struct CpuSettingsView: View {
     @State var cpuBackend: HydraCpuBackend = HYDRA_CPU_BACKEND_INVALID
 
     var body: some View {
-        GroupBox {
-            VStack {
-                Picker("CPU backend", selection: self.$cpuBackend.rawValue) {
-                    Text("Apple Hypervisor (recommended)").tag(
-                        HYDRA_CPU_BACKEND_APPLE_HYPERVISOR.rawValue)
-                    Text("dynarmic").tag(HYDRA_CPU_BACKEND_DYNARMIC.rawValue)
+        GeometryReader { geo in
+            GroupBox {
+                VStack {
+                    Picker("CPU backend", selection: self.$cpuBackend.rawValue) {
+                        Text("Apple Hypervisor (recommended)").tag(
+                            HYDRA_CPU_BACKEND_APPLE_HYPERVISOR.rawValue)
+                        Text("dynarmic").tag(HYDRA_CPU_BACKEND_DYNARMIC.rawValue)
+                    }
+                    .onChange(of: self.cpuBackend.rawValue) { _, newValue in
+                        var cpuBackendOption = hydraConfigGetCpuBackend()
+                        cpuBackendOption.value = newValue
+                    }
                 }
-                .onChange(of: self.cpuBackend.rawValue) { _, newValue in
-                    var cpuBackendOption = hydraConfigGetCpuBackend()
-                    cpuBackendOption.value = newValue
-                }
+                .frame(width: geo.size.width, height: geo.size.height)
             }
         }
         .onAppear {
