@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct AudioSettingsView: View {
-    @State var audioBackend: HydraAudioBackend = HYDRA_AUDIO_BACKEND_INVALID
+    @State private var audioBackend: HydraAudioBackend = HYDRA_AUDIO_BACKEND_INVALID
 
     var body: some View {
         GeometryReader { geo in

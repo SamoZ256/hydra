@@ -1,10 +1,10 @@
 import SwiftUI
 
 struct SystemSettingsView: View {
-    @State var firmwarePath: String = ""
-    @State var sdCardPath: String = ""
-    @State var savePath: String = ""
-    @State var sysmodulesPath: String = ""
+    @State private var firmwarePath: String = ""
+    @State private var sdCardPath: String = ""
+    @State private var savePath: String = ""
+    @State private var sysmodulesPath: String = ""
 
     var body: some View {
         GeometryReader { geo in

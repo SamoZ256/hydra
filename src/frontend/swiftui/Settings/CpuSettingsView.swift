@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct CpuSettingsView: View {
-    @State var cpuBackend: HydraCpuBackend = HYDRA_CPU_BACKEND_INVALID
+    @State private var cpuBackend: HydraCpuBackend = HYDRA_CPU_BACKEND_INVALID
 
     var body: some View {
         GeometryReader { geo in

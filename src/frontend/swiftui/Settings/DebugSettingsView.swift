@@ -1,13 +1,13 @@
 import SwiftUI
 
 struct DebugSettingsView: View {
-    @State var logOutput: HydraLogOutput = HYDRA_LOG_OUTPUT_INVALID
-    @State var logFsAccess = false
-    @State var debugLogging = false
+    @State private var logOutput: HydraLogOutput = HYDRA_LOG_OUTPUT_INVALID
+    @State private var logFsAccess = false
+    @State private var debugLogging = false
     // TODO: process args
-    @State var gdbEnabled = false
-    @State var gdbPort: UInt16 = 0
-    @State var gdbWaitForClient = false
+    @State private var gdbEnabled = false
+    @State private var gdbPort: UInt16 = 0
+    @State private var gdbWaitForClient = false
 
     var body: some View {
         GeometryReader { geo in

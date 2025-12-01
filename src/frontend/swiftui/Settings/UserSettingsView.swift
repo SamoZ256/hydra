@@ -55,4 +55,3 @@ struct UserSettingsView: View {
         }
     }
 }
-

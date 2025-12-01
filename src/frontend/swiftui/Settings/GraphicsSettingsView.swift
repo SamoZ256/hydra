@@ -1,10 +1,10 @@
 import SwiftUI
 
 struct GraphicsSettingsView: View {
-    @State var gpuRenderer: HydraGpuRenderer = HYDRA_GPU_RENDERER_INVALID
-    @State var shaderBackend: HydraShaderBackend = HYDRA_SHADER_BACKEND_INVALID
-    @State var displayResolution: HydraResolution = HYDRA_RESOLUTION_INVALID
-    @State var customDisplayResolution: hydra_uint2 = hydra_uint2(x: 0, y: 0)
+    @State private var gpuRenderer: HydraGpuRenderer = HYDRA_GPU_RENDERER_INVALID
+    @State private var shaderBackend: HydraShaderBackend = HYDRA_SHADER_BACKEND_INVALID
+    @State private var displayResolution: HydraResolution = HYDRA_RESOLUTION_INVALID
+    @State private var customDisplayResolution: hydra_uint2 = hydra_uint2(x: 0, y: 0)
 
     var body: some View {
         GeometryReader { geo in 
