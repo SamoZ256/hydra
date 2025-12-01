@@ -6,8 +6,8 @@ struct MenuCommands: Commands {
     @Binding var activeGame: Game?
     @Binding var emulationContext: HydraEmulationContext?
 
-    @State var firmwareApplets: [Game] = []
-    @State var handheldMode = false
+    @State private var firmwareApplets: [Game] = []
+    @State private var handheldMode = false
 
     var body: some Commands {
         CommandGroup(after: .newItem) {
