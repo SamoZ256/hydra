@@ -26,7 +26,7 @@ struct SettingsView: View {
             }
             
             Tab("User", systemImage: "person", value: .user) {
-                AudioSettingsView()
+                UserSettingsView()
             }
             
             Tab("System", systemImage: "desktopcomputer", value: .system) {
