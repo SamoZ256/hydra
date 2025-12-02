@@ -39,7 +39,7 @@ struct SettingsView: View {
         }
         .padding(20)
         // TODO: don't hardcode the size
-        .frame(width: 800, height: 600)
+        .frame(width: 800)
         .onDisappear {
             hydraConfigSerialize()
         }

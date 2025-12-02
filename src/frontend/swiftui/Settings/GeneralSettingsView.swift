@@ -9,36 +9,33 @@ struct GeneralSettingsView: View {
     private let hatchType = UTType(exportedAs: "com.samoz256.hatch-document", conformingTo: .data)
 
     var body: some View {
-        GeometryReader { geo in
-            GroupBox {
-                VStack {
-                    Text("Game paths")
-                    EditablePathList(
-                        allowedContentTypes: [.folder, self.switchType],
-                        items: self.$gamePaths
-                    )
-                    .onChange(of: self.gamePaths) { _, newValue in
-                        let gamePathsOption = hydraConfigGetGamePaths()
-                        gamePathsOption.resize(newCount: newValue.count)
-                        for i in 0..<newValue.count {
-                            gamePathsOption.set(at: i, value: newValue[i])
-                        }
-                    }
-                    Text("Patch paths")
-                    EditablePathList(
-                        allowedContentTypes: [.folder, self.hatchType], items: self.$patchPaths
-                    )
-                    .onChange(of: self.patchPaths) { _, newValue in
-                        let patchPathsOption = hydraConfigGetPatchPaths()
-                        patchPathsOption.resize(newCount: newValue.count)
-                        for i in 0..<newValue.count {
-                            patchPathsOption.set(at: i, value: newValue[i])
-                        }
-                    }
+        VStack(alignment: .leading) {
+            Text("Game paths")
+            EditablePathList(
+                allowedContentTypes: [.folder, self.switchType],
+                items: self.$gamePaths
+            )
+            .onChange(of: self.gamePaths) { _, newValue in
+                let gamePathsOption = hydraConfigGetGamePaths()
+                gamePathsOption.resize(newCount: newValue.count)
+                for i in 0..<newValue.count {
+                    gamePathsOption.set(at: i, value: newValue[i])
                 }
-                .frame(width: geo.size.width, height: geo.size.height)
+            }
+            Text("Patch paths")
+            EditablePathList(
+                allowedContentTypes: [.folder, self.hatchType], items: self.$patchPaths
+            )
+            .onChange(of: self.patchPaths) { _, newValue in
+                let patchPathsOption = hydraConfigGetPatchPaths()
+                patchPathsOption.resize(newCount: newValue.count)
+                for i in 0..<newValue.count {
+                    patchPathsOption.set(at: i, value: newValue[i])
+                }
             }
         }
+        .padding(24)
+        .padding(.horizontal, 24)
         .onAppear {
             let gamePathsOption = hydraConfigGetGamePaths()
             self.gamePaths = []
