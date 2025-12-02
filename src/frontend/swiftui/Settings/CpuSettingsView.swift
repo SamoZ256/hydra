@@ -9,7 +9,7 @@ struct CpuSettingsView: View {
             Spacer()
             Form {
                 Section {
-                    Picker("CPU backend:", selection: self.$cpuBackend.rawValue) {
+                    Picker("CPU backend", selection: self.$cpuBackend.rawValue) {
                         Text("Apple Hypervisor (recommended)")
                             .tag(HYDRA_CPU_BACKEND_APPLE_HYPERVISOR.rawValue)
                         Text("dynarmic")

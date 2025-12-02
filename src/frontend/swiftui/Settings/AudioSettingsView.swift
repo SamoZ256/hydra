@@ -9,7 +9,7 @@ struct AudioSettingsView: View {
             Spacer()
             Form {
                 Section {
-                    Picker("Audio backend:", selection: self.$audioBackend.rawValue) {
+                    Picker("Audio backend", selection: self.$audioBackend.rawValue) {
                         Text("Null (recommended)")
                             .tag(HYDRA_AUDIO_BACKEND_NULL.rawValue)
                         Text("Cubeb (experimental)")

@@ -15,7 +15,7 @@ struct DebugSettingsView: View {
             Spacer()
             Form {
                 Section("Logging") {
-                    Picker("Log output:", selection: self.$logOutput.rawValue) {
+                    Picker("Log output", selection: self.$logOutput.rawValue) {
                         Text("none (not recommended)")
                             .tag(HYDRA_LOG_OUTPUT_NONE.rawValue)
                         Text("stdout")
@@ -47,7 +47,7 @@ struct DebugSettingsView: View {
                             var gdbEnabledOption = hydraConfigGetGdbEnabled()
                             gdbEnabledOption.value = newValue
                         }
-                    TextField("Port:", value: self.$gdbPort, formatter: NumberFormatter())
+                    TextField("Port", value: self.$gdbPort, formatter: NumberFormatter())
                         .onChange(of: self.gdbPort) { _, newValue in
                             var gdbPortOption = hydraConfigGetGdbPort()
                             gdbPortOption.value = newValue
