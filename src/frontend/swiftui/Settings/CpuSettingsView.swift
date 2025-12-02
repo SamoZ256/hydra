@@ -8,17 +8,20 @@ struct CpuSettingsView: View {
         HStack {
             Spacer()
             Form {
-                Picker("CPU backend:", selection: self.$cpuBackend.rawValue) {
-                    Text("Apple Hypervisor (recommended)")
-                        .tag(HYDRA_CPU_BACKEND_APPLE_HYPERVISOR.rawValue)
-                    Text("dynarmic")
-                        .tag(HYDRA_CPU_BACKEND_DYNARMIC.rawValue)
-                }
-                .onChange(of: self.cpuBackend.rawValue) { _, newValue in
-                    var cpuBackendOption = hydraConfigGetCpuBackend()
-                    cpuBackendOption.value = newValue
+                Section {
+                    Picker("CPU backend:", selection: self.$cpuBackend.rawValue) {
+                        Text("Apple Hypervisor (recommended)")
+                            .tag(HYDRA_CPU_BACKEND_APPLE_HYPERVISOR.rawValue)
+                        Text("dynarmic")
+                            .tag(HYDRA_CPU_BACKEND_DYNARMIC.rawValue)
+                    }
+                    .onChange(of: self.cpuBackend.rawValue) { _, newValue in
+                        var cpuBackendOption = hydraConfigGetCpuBackend()
+                        cpuBackendOption.value = newValue
+                    }
                 }
             }
+            .formStyle(.grouped)
             .padding(24)
             .padding(.horizontal, 64)
             .onAppear {

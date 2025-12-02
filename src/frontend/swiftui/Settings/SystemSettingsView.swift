@@ -11,28 +11,31 @@ struct SystemSettingsView: View {
         HStack {
             Spacer()
             Form {
-                // TODO: use file importers
-                TextField("Firmware Path:", text: $firmwarePath)
-                    .onChange(of: firmwarePath) { _, newValue in
-                        var firmwarePathOption = hydraConfigGetFirmwarePath()
-                        firmwarePathOption.value = newValue
-                    }
-                TextField("SD Card Path:", text: $sdCardPath)
-                    .onChange(of: sdCardPath) { _, newValue in
-                        var sdCardPathOption = hydraConfigGetSdCardPath()
-                        sdCardPathOption.value = newValue
-                    }
-                TextField("Save Path:", text: $savePath)
-                    .onChange(of: savePath) { _, newValue in
-                        var savePathOption = hydraConfigGetSavePath()
-                        savePathOption.value = newValue
-                    }
-                TextField("Sysmodules Path:", text: $sysmodulesPath)
-                    .onChange(of: sysmodulesPath) { _, newValue in
-                        var sysmodulesPathOption = hydraConfigGetSysmodulesPath()
-                        sysmodulesPathOption.value = newValue
-                    }
+                Section {
+                    // TODO: use file importers
+                    TextField("Firmware Path:", text: $firmwarePath)
+                        .onChange(of: firmwarePath) { _, newValue in
+                            var firmwarePathOption = hydraConfigGetFirmwarePath()
+                            firmwarePathOption.value = newValue
+                        }
+                    TextField("SD Card Path:", text: $sdCardPath)
+                        .onChange(of: sdCardPath) { _, newValue in
+                            var sdCardPathOption = hydraConfigGetSdCardPath()
+                            sdCardPathOption.value = newValue
+                        }
+                    TextField("Save Path:", text: $savePath)
+                        .onChange(of: savePath) { _, newValue in
+                            var savePathOption = hydraConfigGetSavePath()
+                            savePathOption.value = newValue
+                        }
+                    TextField("Sysmodules Path:", text: $sysmodulesPath)
+                        .onChange(of: sysmodulesPath) { _, newValue in
+                            var sysmodulesPathOption = hydraConfigGetSysmodulesPath()
+                            sysmodulesPathOption.value = newValue
+                        }
+                }
             }
+            .formStyle(.grouped)
             .padding(24)
             .padding(.horizontal, 24)
             .onAppear {
