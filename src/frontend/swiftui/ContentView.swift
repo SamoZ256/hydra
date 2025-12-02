@@ -38,6 +38,7 @@ struct ContentView: View {
                     )
                     .aspectRatio(CGSize(width: 16, height: 9), contentMode: .fit)
                 }
+                .navigationBarBackButtonHidden()
         }
         .toolbar { 
             ToolbarItems(isRunning: isRunning)
