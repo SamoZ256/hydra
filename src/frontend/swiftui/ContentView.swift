@@ -5,6 +5,10 @@ struct ContentView: View {
     @Binding var emulationContext: HydraEmulationContext?
 
     @State private var fps: Int = 0
+    
+    private var isRunning: Bool {
+        activeGame != nil ? true : false
+    }
 
     private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
@@ -35,8 +39,8 @@ struct ContentView: View {
                     .aspectRatio(CGSize(width: 16, height: 9), contentMode: .fit)
                 }
         }
-        .toolbar {
-            ToolbarItems()
+        .toolbar { 
+            ToolbarItems(isRunning: isRunning)
         }
         .windowToolbarFullScreenVisibility(.onHover)
         .navigationTitle(navigationTitle)
