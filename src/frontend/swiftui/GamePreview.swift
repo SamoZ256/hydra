@@ -14,11 +14,28 @@ struct GamePreview: View {
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(maxWidth: 64, maxHeight: 64)  // TODO: don't hardcode
+                } else {
+                    VStack {
+                        ZStack {
+                            Image(systemName: "photo.fill")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                            Image(systemName: "line.diagonal")
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        }
+                        Text("No Image")
+                            .font(.system(size: 6))
+                    }
+                    .padding()
+                    .background(.quaternary)
+                    .frame(maxWidth: 64, maxHeight: 64)  // TODO: don't hardcode
                 }
                 Text(game.name)
                     .padding()
                 // TODO: author?
             }
+            .padding(4)
         }
     }
 
