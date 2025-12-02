@@ -5,10 +5,6 @@ struct ContentView: View {
     @Binding var emulationContext: HydraEmulationContext?
 
     @State private var fps: Int = 0
-    
-    private var isRunning: Bool {
-        activeGame != nil ? true : false
-    }
 
     private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
@@ -41,7 +37,7 @@ struct ContentView: View {
                 .navigationBarBackButtonHidden()
         }
         .toolbar { 
-            ToolbarItems(isRunning: isRunning)
+            ToolbarItems(activeGame: self.$activeGame, emulationContext: self.$emulationContext)
         }
         .windowToolbarFullScreenVisibility(.onHover)
         .navigationTitle(navigationTitle)
