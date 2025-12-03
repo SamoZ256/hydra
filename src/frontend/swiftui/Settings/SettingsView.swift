@@ -9,7 +9,7 @@ struct SettingsView: View {
   
     var body: some View {
         #if os(macOS)
-            TabView {
+            TabView(selection: $selection) {
                 Tab("General", systemImage: "gear", value: .general) {
                     GeneralSettingsView()
                 }
