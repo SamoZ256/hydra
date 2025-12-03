@@ -23,8 +23,6 @@ struct CpuSettingsView: View {
 
             }
             .formStyle(.grouped)
-            .padding(24)
-            .padding(.horizontal, 64)
             .onAppear {
                 let cpuBackendOption = hydraConfigGetCpuBackend()
                 self.cpuBackend.rawValue = cpuBackendOption.value

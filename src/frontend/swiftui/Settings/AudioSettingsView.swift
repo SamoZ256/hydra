@@ -22,8 +22,6 @@ struct AudioSettingsView: View {
                 }
             }
             .formStyle(.grouped)
-            .padding(24)
-            .padding(.horizontal, 64)
             .onAppear {
                 let audioBackendOption = hydraConfigGetAudioBackend()
                 self.audioBackend.rawValue = audioBackendOption.value

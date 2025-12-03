@@ -51,8 +51,6 @@ struct SystemSettingsView: View {
                 #endif
             }
             .formStyle(.grouped)
-            .padding(24)
-            .padding(.horizontal, 24)
             .onAppear {
                 #if os(macOS)
                     let firmwarePathOption = hydraConfigGetFirmwarePath()

@@ -60,8 +60,6 @@ struct DebugSettingsView: View {
                 }
             }
             .formStyle(.grouped)
-            .padding(24)
-            .padding(.horizontal, 64)
             .onAppear {
                 let logOutputOption = hydraConfigGetLogOutput()
                 self.logOutput.rawValue = logOutputOption.value

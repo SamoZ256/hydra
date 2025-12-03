@@ -61,8 +61,6 @@ struct GraphicsSettingsView: View {
                 }
             }
             .formStyle(.grouped)
-            .padding(24)
-            .padding(.horizontal, 64)
             .onAppear {
                 let gpuRendererOption = hydraConfigGetGpuRenderer()
                 self.gpuRenderer.rawValue = gpuRendererOption.value

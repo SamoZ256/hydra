@@ -33,6 +33,7 @@ struct UserSettingsView: View {
                                 )
                             }
                         }
+                        .padding(.top)
                         .navigationTitle("Users")
                         .toolbar(removing: .sidebarToggle)
                     } detail: {
@@ -42,6 +43,7 @@ struct UserSettingsView: View {
                             userManager: self.state.userManager,
                             user: self.state.userManager.getUser(id: userID)
                         )
+                        .padding(.horizontal)
                     }
                 #else
                     NavigationSplitView {

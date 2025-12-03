@@ -9,45 +9,55 @@ struct GeneralSettingsView: View {
     private let hatchType = UTType(exportedAs: "com.samoz256.hatch-document", conformingTo: .data)
 
     var body: some View {
-        List {
-            Text("Game paths")
-            EditablePathList(
-                allowedContentTypes: [.folder, self.switchType],
-                items: self.$gamePaths
-            )
-            .onChange(of: self.gamePaths) { _, newValue in
+        Spacer()
+        HStack {
+            Spacer()
+            Form {
+                Section("Game Paths") {
+                    // Text("Game paths")
+                    EditablePathList(
+                        allowedContentTypes: [.folder, self.switchType],
+                        items: self.$gamePaths
+                    )
+                    .onChange(of: self.gamePaths) { _, newValue in
+                        let gamePathsOption = hydraConfigGetGamePaths()
+                        gamePathsOption.resize(newCount: newValue.count)
+                        for i in 0..<newValue.count {
+                            gamePathsOption.set(at: i, value: newValue[i])
+                        }
+                    }
+                }
+                
+                Section("Patch paths") {
+                    // Text("Patch paths")
+                    EditablePathList(
+                        allowedContentTypes: [.folder, self.hatchType], items: self.$patchPaths
+                    )
+                    .onChange(of: self.patchPaths) { _, newValue in
+                        let patchPathsOption = hydraConfigGetPatchPaths()
+                        patchPathsOption.resize(newCount: newValue.count)
+                        for i in 0..<newValue.count {
+                            patchPathsOption.set(at: i, value: newValue[i])
+                        }
+                    }
+                }
+            }
+            .onAppear {
                 let gamePathsOption = hydraConfigGetGamePaths()
-                gamePathsOption.resize(newCount: newValue.count)
-                for i in 0..<newValue.count {
-                    gamePathsOption.set(at: i, value: newValue[i])
+                self.gamePaths = []
+                for i in 0..<gamePathsOption.count {
+                    self.gamePaths.append(gamePathsOption.get(at: i))
                 }
-            }
-            Text("Patch paths")
-            EditablePathList(
-                allowedContentTypes: [.folder, self.hatchType], items: self.$patchPaths
-            )
-            .onChange(of: self.patchPaths) { _, newValue in
+    
                 let patchPathsOption = hydraConfigGetPatchPaths()
-                patchPathsOption.resize(newCount: newValue.count)
-                for i in 0..<newValue.count {
-                    patchPathsOption.set(at: i, value: newValue[i])
+                self.patchPaths = []
+                for i in 0..<patchPathsOption.count {
+                    self.patchPaths.append(patchPathsOption.get(at: i))
                 }
             }
+            .formStyle(.grouped)
+            Spacer()
         }
-        .padding(24)
-        .padding(.horizontal, 24)
-        .onAppear {
-            let gamePathsOption = hydraConfigGetGamePaths()
-            self.gamePaths = []
-            for i in 0..<gamePathsOption.count {
-                self.gamePaths.append(gamePathsOption.get(at: i))
-            }
-
-            let patchPathsOption = hydraConfigGetPatchPaths()
-            self.patchPaths = []
-            for i in 0..<patchPathsOption.count {
-                self.patchPaths.append(patchPathsOption.get(at: i))
-            }
-        }
+        Spacer()
     }
 }
