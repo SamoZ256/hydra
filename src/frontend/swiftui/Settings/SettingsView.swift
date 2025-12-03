@@ -39,8 +39,8 @@ struct SettingsView: View {
                 }
             }
             .scenePadding()
-            .frame(maxWidth: 600, minHeight: 100)
-            .frame(height: 440)
+            .frame(maxWidth: 660, minHeight: 100)
+            .frame(width: 660, height: 440) // TODO: Don't hardcode
             .onDisappear {
                 hydraConfigSerialize()
             }
