@@ -41,6 +41,10 @@ struct ContentView: View {
                         game: activeGame, emulationContext: self.$emulationContext, fps: $fps
                     )
                     .aspectRatio(CGSize(width: 16, height: 9), contentMode: .fit)
+                    .toolbar {
+                        InGameToolbarItems(
+                            activeGame: self.$activeGame, emulationContext: self.$emulationContext)
+                    }
                     #if os(iOS)
                         .onAppear {
                             // TODO: if virtual controller enabled
@@ -66,7 +70,7 @@ struct ContentView: View {
                     #endif
                 }
                 .toolbar {
-                    ToolbarItems(
+                    GameListToolbarItems(
                         activeGame: self.$activeGame, emulationContext: self.$emulationContext)
                 }
                 .navigationBarBackButtonHidden()
