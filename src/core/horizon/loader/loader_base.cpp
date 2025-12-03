@@ -26,8 +26,9 @@ uchar4* LoadImage(filesystem::FileBase* file, usize& out_width,
 
     i32 w, h;
     i32 comp;
-    auto data = reinterpret_cast<uchar4*>(stbi_load_from_memory(
-        raw_data, raw_data_size, &w, &h, &comp, STBI_rgb_alpha));
+    auto data = reinterpret_cast<uchar4*>(
+        stbi_load_from_memory(raw_data, static_cast<i32>(raw_data_size), &w, &h,
+                              &comp, STBI_rgb_alpha));
     delete[] raw_data;
     if (!data) {
         LOG_ERROR(Loader, "Failed to load image");
@@ -54,9 +55,9 @@ uchar4* LoadGIF(filesystem::FileBase* file,
     i32 w, h, f;
     i32 comp;
     i32* delays_ms;
-    auto data = reinterpret_cast<uchar4*>(
-        stbi_load_gif_from_memory(raw_data, raw_data_size, &delays_ms, &w, &h,
-                                  &f, &comp, STBI_rgb_alpha));
+    auto data = reinterpret_cast<uchar4*>(stbi_load_gif_from_memory(
+        raw_data, static_cast<i32>(raw_data_size), &delays_ms, &w, &h, &f,
+        &comp, STBI_rgb_alpha));
     delete[] raw_data;
     if (!data) {
         LOG_ERROR(Loader, "Failed to load GIF");

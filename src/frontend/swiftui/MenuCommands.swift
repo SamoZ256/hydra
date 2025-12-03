@@ -85,24 +85,20 @@ struct MenuCommands: Commands {
             return
         }
 
-        // TODO: do all of this with URLs
-        let fileManager = FileManager.default
-
         // TODO: don't iterate recursively?
-        guard let enumerator = fileManager.enumerator(atPath: firmwarePath) else {
+        guard let enumerator = FileManager.default.enumerator(atPath: firmwarePath) else {
             // TODO: error popup
             print("Invalid firmware directory \(firmwarePath)")
             return
         }
 
-        while let filename = enumerator.nextObject() as? String {
-            let path = "\(firmwarePath)/\(filename)"
-            self.addFirmwareApplet(path: path)
+        while let url = enumerator.nextObject() as? URL {
+            self.addFirmwareApplet(url: url)
         }
     }
 
-    func addFirmwareApplet(path: String) {
-        let file = HydraFile(path: path)
+    func addFirmwareApplet(url: URL) {
+        let file = HydraFile(path: url.path)
         let contentArchive = HydraContentArchive(file: file)
 
         if contentArchive.contentType
@@ -118,6 +114,6 @@ struct MenuCommands: Commands {
             return
         }
 
-        self.firmwareApplets.append(Game(loader: loader, name: name, author: "Nintendo"))
+        self.firmwareApplets.append(Game(url: url, loader: loader, name: name, author: "Nintendo"))
     }
 }

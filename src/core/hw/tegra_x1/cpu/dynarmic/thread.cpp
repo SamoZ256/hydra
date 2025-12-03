@@ -59,6 +59,15 @@ Thread::Thread(IMmu* mmu, const ThreadCallbacks& callbacks, IMemory* tls_mem,
     // TODO: make this configurable
     // config.optimizations = Dyn::no_optimizations;
 
+    // Page table
+    config.page_table = reinterpret_cast<void**>(MMU->GetPageTablePtr());
+    config.page_table_address_space_bits = 39;
+    config.page_table_pointer_mask_bits = 0;
+    config.silently_mirror_page_table = false;
+    config.absolute_offset_page_table = false; // true;
+    config.detect_misaligned_access_via_page_table = 16 | 32 | 64 | 128;
+    config.only_detect_misalignment_via_page_table_on_page_boundary = true;
+
     jit = new Dynarmic::A64::Jit(config);
 }
 
@@ -140,6 +149,10 @@ void Thread::ExceptionRaised(u64 pc, Dynarmic::A64::Exception exception) {
     case Dynarmic::A64::Exception::Breakpoint:
         state.pc -= 4;
         callbacks.breakpoint_hit();
+        break;
+    case Dynarmic::A64::Exception::Yield:
+        // TODO: correct?
+        std::this_thread::yield();
         break;
     default:
         LOG_FATAL(Dynarmic, "Unhandled exception: {}", exception);

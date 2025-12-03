@@ -19,19 +19,22 @@ result_t ISystemDisplayService::GetZOrderCountMax(u64 display_id,
 }
 
 result_t ISystemDisplayService::SetLayerPosition(f32 x, f32 y, u64 layer_id) {
-    OS_INSTANCE.GetDisplayDriver().GetLayer(layer_id).SetPosition({x, y});
+    OS_INSTANCE.GetDisplayDriver()
+        .GetLayer(static_cast<u32>(layer_id))
+        .SetPosition({x, y});
     return RESULT_SUCCESS;
 }
 
 result_t ISystemDisplayService::SetLayerSize(u64 layer_id, i64 width,
                                              i64 height) {
-    OS_INSTANCE.GetDisplayDriver().GetLayer(layer_id).SetSize(
-        {u32(width), u32(height)});
+    OS_INSTANCE.GetDisplayDriver()
+        .GetLayer(static_cast<u32>(layer_id))
+        .SetSize({u32(width), u32(height)});
     return RESULT_SUCCESS;
 }
 
 result_t ISystemDisplayService::SetLayerZ(u64 layer_id, i64 z) {
-    OS_INSTANCE.GetDisplayDriver().GetLayer(layer_id).SetZ(z);
+    OS_INSTANCE.GetDisplayDriver().GetLayer(static_cast<u32>(layer_id)).SetZ(z);
     return RESULT_SUCCESS;
 }
 

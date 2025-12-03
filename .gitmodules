@@ -22,7 +22,10 @@
 	url = https://github.com/nothings/stb.git
 [submodule "externals/libyaz0"]
 	path = externals/libyaz0
-	url = https://github.com/Nax/libyaz0.git
+	url = https://github.com/SamoZ256/libyaz0.git
 [submodule "externals/nx2elf"]
 	path = externals/nx2elf
 	url = https://github.com/SamoZ256/nx2elf.git
+[submodule "externals/ios-cmake"]
+	path = externals/ios-cmake
+	url = https://github.com/leetal/ios-cmake.git

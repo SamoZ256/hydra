@@ -77,8 +77,8 @@ HYDRA_EXPORT void hydra_string_option_set(void* option, hydra_string value) {
 }
 
 HYDRA_EXPORT uint32_t hydra_string_array_option_get_count(const void* option) {
-    return reinterpret_cast<const hydra::StringArrayOption*>(option)
-        ->GetCount();
+    return static_cast<uint32_t>(
+        reinterpret_cast<const hydra::StringArrayOption*>(option)->GetCount());
 }
 
 HYDRA_EXPORT hydra_string hydra_string_array_option_get(const void* option,
@@ -88,7 +88,7 @@ HYDRA_EXPORT hydra_string hydra_string_array_option_get(const void* option,
 }
 
 HYDRA_EXPORT void hydra_string_array_option_resize(void* option,
-                                                   uint64_t size) {
+                                                   uint32_t size) {
     reinterpret_cast<hydra::StringArrayOption*>(option)->Resize(size);
 }
 
@@ -123,6 +123,11 @@ HYDRA_EXPORT void hydra_config_serialize() {
 
 HYDRA_EXPORT void hydra_config_deserialize() {
     hydra::CONFIG_INSTANCE.Deserialize();
+}
+
+HYDRA_EXPORT hydra_string hydra_config_get_app_data_path() {
+    return hydra_string_from_string_view(
+        hydra::CONFIG_INSTANCE.GetAppDataPath());
 }
 
 HYDRA_EXPORT void* hydra_config_get_game_paths() {
@@ -342,10 +347,11 @@ HYDRA_EXPORT hydra_u128 hydra_user_manager_create_user(void* user_manager) {
 }
 
 HYDRA_EXPORT uint32_t hydra_user_manager_get_user_count(void* user_manager) {
-    return reinterpret_cast<
-               hydra::horizon::services::account::internal::UserManager*>(
-               user_manager)
-        ->GetUserCount();
+    return static_cast<uint32_t>(
+        reinterpret_cast<
+            hydra::horizon::services::account::internal::UserManager*>(
+            user_manager)
+            ->GetUserCount());
 }
 
 HYDRA_EXPORT hydra_u128 hydra_user_manager_get_user_id(void* user_manager,
@@ -384,11 +390,12 @@ hydra_user_manager_load_avatar_image(void* user_manager, hydra_string path,
 }
 
 HYDRA_EXPORT uint32_t hydra_user_manager_get_avatar_count(void* user_manager) {
-    return reinterpret_cast<
-               hydra::horizon::services::account::internal::UserManager*>(
-               user_manager)
-        ->GetAvatars()
-        .size();
+    return static_cast<uint32_t>(
+        reinterpret_cast<
+            hydra::horizon::services::account::internal::UserManager*>(
+            user_manager)
+            ->GetAvatars()
+            .size());
 }
 
 HYDRA_EXPORT hydra_string hydra_user_manager_get_avatar_path(void* user_manager,
@@ -657,8 +664,9 @@ HYDRA_EXPORT void hydra_debugger_stack_trace_destroy(void* stack_trace) {
 
 HYDRA_EXPORT uint32_t
 hydra_debugger_stack_trace_get_frame_count(const void* stack_trace) {
-    return reinterpret_cast<const hydra::debugger::StackTrace*>(stack_trace)
-        ->frames.size();
+    return static_cast<uint32_t>(
+        reinterpret_cast<const hydra::debugger::StackTrace*>(stack_trace)
+            ->frames.size());
 }
 
 HYDRA_EXPORT const void*

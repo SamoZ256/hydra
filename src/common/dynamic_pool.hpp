@@ -11,7 +11,7 @@ class DynamicPool : public Pool<DynamicPool<T>, T, allow_zero_handle> {
     u32 _AllocateIndex() {
         // TODO: look for a free index first
 
-        u32 index = objects.size();
+        const auto index = static_cast<u32>(objects.size());
         objects.push_back({});
 
         return index;

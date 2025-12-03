@@ -6,11 +6,19 @@ struct UserAvatarView: View {
 
     var body: some View {
         VStack {
-            if let nsImage = self.loadAvatarNS() {
-                Image(nsImage: nsImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-            }
+            #if os(macOS)
+                if let nsImage = self.loadAvatarNS() {
+                    Image(nsImage: nsImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                }
+            #else
+                if let uiImage = self.loadAvatarUI() {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                }
+            #endif
         }
     }
 
@@ -49,13 +57,25 @@ struct UserAvatarView: View {
         return cgImage
     }
 
-    private func loadAvatarNS() -> NSImage? {
-        var dimensions: UInt64 = 0
-        guard let cgImage = self.loadAvatar(dimensions: &dimensions) else {
-            return nil
-        }
+    #if os(macOS)
+        private func loadAvatarNS() -> NSImage? {
+            var dimensions: UInt64 = 0
+            guard let cgImage = self.loadAvatar(dimensions: &dimensions) else {
+                return nil
+            }
 
-        return NSImage(
-            cgImage: cgImage, size: NSSize(width: Int(dimensions), height: Int(dimensions)))
-    }
+            return NSImage(
+                cgImage: cgImage, size: NSSize(width: Int(dimensions), height: Int(dimensions)))
+        }
+    #else
+        private func loadAvatarUI() -> UIImage? {
+            var dimensions: UInt64 = 0
+            guard let cgImage = self.loadAvatar(dimensions: &dimensions) else {
+                return nil
+            }
+
+            return UIImage(
+                cgImage: cgImage)
+        }
+    #endif
 }

@@ -51,7 +51,7 @@ result_t ITimeZoneService::ToPosixTime(
         calendar_time, in_rule_buffer.reader->Read<TimeZoneRule>(), time);
 
     out_buffer.writer->Write(time);
-    *out_count = out_buffer.writer->Tell() / sizeof(i64);
+    *out_count = static_cast<i32>(out_buffer.writer->Tell() / sizeof(i64));
     return res;
 }
 
@@ -63,7 +63,7 @@ result_t ITimeZoneService::ToPosixTimeWithMyRule(
     const auto res = ToPosixTimeImpl(calendar_time, {}, time);
 
     out_buffer.writer->Write(time);
-    *out_count = out_buffer.writer->Tell() / sizeof(i64);
+    *out_count = static_cast<i32>(out_buffer.writer->Tell() / sizeof(i64));
     return res;
 }
 

@@ -55,7 +55,8 @@ struct UserEditorView: View {
                 .keyboardShortcut(.cancelAction)
             }
             .padding()
-            .background(Color(nsColor: .controlBackgroundColor))
+            // TODO: uncomment?
+            //.background(Color(nsColor: .controlBackgroundColor))
 
             Divider()
 

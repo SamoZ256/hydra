@@ -1,7 +1,7 @@
 import Foundation
 
-func createGameFromFile(path: String) -> Game? {
-    let loader = HydraLoader(path: path)
+func createGameFromFile(url: URL) -> Game? {
+    let loader = HydraLoader(path: url.path)
 
     // Get name and author
     var name = ""
@@ -12,9 +12,9 @@ func createGameFromFile(path: String) -> Game? {
         name = title.name
         author = title.author
     } else {
-        name = URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent
+        name = url.deletingPathExtension().lastPathComponent
         author = "Unknown"
     }
 
-    return Game(loader: loader, name: name, author: author)
+    return Game(url: url, loader: loader, name: name, author: author)
 }

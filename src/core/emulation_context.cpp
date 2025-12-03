@@ -1,10 +1,9 @@
 #include "core/emulation_context.hpp"
 
-#include "hatch/hatch.hpp"
 #include <fmt/chrono.h>
+#include <hatch/hatch.hpp>
 #include <stb_image_write.h>
 
-#include "core/audio/cubeb/core.hpp"
 #include "core/audio/null/core.hpp"
 #include "core/horizon/applets/album/const.hpp"
 #include "core/horizon/applets/const.hpp"
@@ -17,12 +16,19 @@
 #include "core/horizon/loader/nso_loader.hpp"
 #include "core/horizon/services/am/library_applet_controller.hpp"
 #include "core/hw/tegra_x1/cpu/dynarmic/cpu.hpp"
-#include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
 #include "core/hw/tegra_x1/cpu/thread.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 #include "core/input/device_manager.hpp"
+
+#if HYDRA_HYPERVISOR_ENABLED
+#include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
+#endif
+
+#if HYDRA_CUBEB_ENABLED
+#include "core/audio/cubeb/core.hpp"
+#endif
 
 namespace hydra {
 
@@ -37,12 +43,16 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
     LOGGER_INSTANCE.SetOutput(CONFIG_INSTANCE.GetLogOutput());
 
     // Random
-    srand(time(0));
+    srand(static_cast<u32>(time(0)));
 
     // Initialize
     switch (CONFIG_INSTANCE.GetCpuBackend()) {
     case CpuBackend::AppleHypervisor:
+#if HYDRA_HYPERVISOR_ENABLED
         cpu = new hw::tegra_x1::cpu::hypervisor::Cpu();
+#else
+        LOG_FATAL(Other, "Apple Hypervisor not supported");
+#endif
         break;
     case CpuBackend::Dynarmic:
         cpu = new hw::tegra_x1::cpu::dynarmic::Cpu();
@@ -61,7 +71,11 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
         audio_core = new audio::null::Core();
         break;
     case AudioBackend::Cubeb:
+#if HYDRA_CUBEB_ENABLED
         audio_core = new audio::cubeb::Core();
+#else
+        LOG_FATAL(Other, "cubeb not supported");
+#endif
         break;
     default:
         // TODO: return an error instead

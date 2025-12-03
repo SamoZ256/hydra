@@ -31,11 +31,13 @@ bool Layer::AcquirePresentTexture() {
 
     // HACK
     if (src_rect.size.x() == 0) {
-        src_rect.size.x() = present_texture->GetDescriptor().width;
+        src_rect.size.x() =
+            static_cast<i32>(present_texture->GetDescriptor().width);
         ONCE(LOG_WARN(Other, "Invalid src width"));
     }
     if (src_rect.size.y() == 0) {
-        src_rect.size.y() = present_texture->GetDescriptor().height;
+        src_rect.size.y() =
+            static_cast<i32>(present_texture->GetDescriptor().height);
         ONCE(LOG_WARN(Other, "Invalid src height"));
     }
 

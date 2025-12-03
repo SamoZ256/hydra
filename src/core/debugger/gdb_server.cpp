@@ -539,7 +539,7 @@ void GdbServer::HandleThreadStatus() {
 }
 
 void GdbServer::HandleRegRead(std::string_view command) {
-    const u32 id = std::stoul(command.data(), nullptr, 16);
+    const auto id = static_cast<u32>(std::stoul(command.data(), nullptr, 16));
     SendPacket(ReadReg(id));
 }
 

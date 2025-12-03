@@ -74,7 +74,7 @@ class PartitionFilesystem final : public Directory {
                                          entry.string_offset);
             LOG_DEBUG(Filesystem, "Partition entry: {}", entry_name);
 
-            const u32 entry_data_offset = data_offset + entry.offset;
+            const u64 entry_data_offset = data_offset + entry.offset;
             entries.insert({std::string(entry_name),
                             new FileView(file, entry_data_offset, entry.size)});
         }

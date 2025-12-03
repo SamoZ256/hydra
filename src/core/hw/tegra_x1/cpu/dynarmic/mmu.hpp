@@ -1,8 +1,12 @@
 #pragma once
 
+#include "core/horizon/kernel/const.hpp"
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
 
 namespace hydra::hw::tegra_x1::cpu::dynarmic {
+
+constexpr usize PAGE_COUNT =
+    horizon::kernel::ADDRESS_SPACE.end / GUEST_PAGE_SIZE;
 
 class Mmu : public IMmu {
   public:
@@ -16,11 +20,12 @@ class Mmu : public IMmu {
     uptr UnmapAddr(vaddr_t va) const override;
     MemoryRegion QueryRegion(vaddr_t va) const override;
 
+    uptr GetPageTablePtr() const { return reinterpret_cast<uptr>(&pages); }
+
   private:
-    uptr pages[128u * 1024u * 1024u] = {0x0};
-    horizon::kernel::MemoryState states[128u * 1024u * 1024u] = {
-        {.type = horizon::kernel::MemoryType::Free}}; // TODO: handle this
-                                                      // differently
+    uptr pages[PAGE_COUNT] = {0x0};
+    horizon::kernel::MemoryState states[PAGE_COUNT] = {
+        {.type = horizon::kernel::MemoryType::Free}};
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::dynarmic

@@ -17,7 +17,8 @@ result_t ISharedFontManager::GetLoadState(SharedFontType font_type,
 }
 
 result_t ISharedFontManager::GetSize(SharedFontType font_type, u32* out_size) {
-    *out_size = SHARED_FONT_MANAGER_INSTANCE.GetState(font_type).size;
+    *out_size =
+        static_cast<u32>(SHARED_FONT_MANAGER_INSTANCE.GetState(font_type).size);
     return RESULT_SUCCESS;
 }
 
@@ -49,7 +50,7 @@ result_t ISharedFontManager::GetSharedFontInOrderOfPriority(
         const auto& state = SHARED_FONT_MANAGER_INSTANCE.GetState(type);
         out_types_buffer.writer->Write(type);
         out_offsets_buffer.writer->Write<u32>(state.shared_memory_offset);
-        out_sizes_buffer.writer->Write<u32>(state.size);
+        out_sizes_buffer.writer->Write(static_cast<u32>(state.size));
 
         (*out_loaded)++;
         (*out_count)++;

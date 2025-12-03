@@ -9,7 +9,7 @@ struct GeneralSettingsView: View {
     private let hatchType = UTType(exportedAs: "com.samoz256.hatch-document", conformingTo: .data)
 
     var body: some View {
-        VStack(alignment: .leading) {
+        List {
             Text("Game paths")
             EditablePathList(
                 allowedContentTypes: [.folder, self.switchType],

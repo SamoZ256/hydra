@@ -62,7 +62,8 @@ void Server::MainLoop(kernel::should_stop_fn_t should_stop) {
                 reply_target_session = nullptr;
             } else {
                 // Incoming request
-                const u32 session_index = signalled_index - ports.size();
+                const auto session_index =
+                    static_cast<u32>(signalled_index - ports.size());
                 auto session = sessions[session_index];
                 auto service = session_services.at(session);
 
@@ -78,7 +79,8 @@ void Server::MainLoop(kernel::should_stop_fn_t should_stop) {
         case MAKE_RESULT(Svc, 123): { // SessionClosed
             ASSERT_DEBUG(signalled_index >= ports.size(), Services,
                          "Invalid signalled index {}", signalled_index);
-            const u32 session_index = signalled_index - ports.size();
+            const auto session_index =
+                static_cast<u32>(signalled_index - ports.size());
             auto session = sessions[session_index];
             auto service = session_services.at(session);
 

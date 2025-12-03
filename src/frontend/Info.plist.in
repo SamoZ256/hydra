@@ -34,6 +34,12 @@
 	<string>${MACOSX_BUNDLE_CATEGORY}</string>
 	 <key>LSMinimumSystemVersion</key>
 	<string>${MACOSX_MINIMUM_SYSTEM_VERSION}</string>
+	<key>UILaunchScreen</key>
+    <dict>
+        <key>UIColorName</key>
+        <string></string>
+    </dict>
+
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>

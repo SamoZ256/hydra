@@ -20,27 +20,57 @@ struct UserSettingsView: View {
     var body: some View {
         VStack {
             if !self.userIDs.isEmpty {
-                NavigationSplitView {
-                    List(self.userIDs.indices, id: \.self, selection: self.$selectedUserIndex) {
-                        index in
-                        NavigationLink(value: index) {
-                            let userID = self.userIDs[index]
-                            UserPreview(
-                                userManager: state.userManager,
-                                user: state.userManager.getUser(id: userID)
-                            )
+                // TODO: simplify
+                #if os(macOS)
+                    NavigationSplitView {
+                        List(self.userIDs.indices, id: \.self, selection: self.$selectedUserIndex) {
+                            index in
+                            NavigationLink(value: index) {
+                                let userID = self.userIDs[index]
+                                UserPreview(
+                                    userManager: self.state.userManager,
+                                    user: self.state.userManager.getUser(id: userID)
+                                )
+                            }
                         }
+                        .navigationTitle("Users")
+                        .toolbar(removing: .sidebarToggle)
+                    } detail: {
+                        let userID = self.userIDs[self.selectedUserIndex]
+                        // TODO: react to changes
+                        UserEditorView(
+                            userManager: self.state.userManager,
+                            user: self.state.userManager.getUser(id: userID)
+                        )
                     }
-                    .navigationTitle("Users")
-                    .toolbar(removing: .sidebarToggle)
-                } detail: {
-                    let userID = self.userIDs[self.selectedUserIndex]
-                    // TODO: react to changes
-                    UserEditorView(
-                        userManager: self.state.userManager,
-                        user: self.state.userManager.getUser(id: userID)
-                    )
-                }
+                #else
+                    NavigationSplitView {
+                        List(self.userIDs.indices, id: \.self) {
+                            index in
+                            NavigationLink(value: index) {
+                                let userID = self.userIDs[index]
+                                UserPreview(
+                                    userManager: self.state.userManager,
+                                    user: self.state.userManager.getUser(id: userID)
+                                )
+                            }
+                        }
+                        .navigationTitle("Users")
+                        .toolbar(removing: .sidebarToggle)
+                        .navigationDestination(for: Int.self) { index in
+                            if index < self.userIDs.count {
+                                let userID = self.userIDs[index]
+                                UserEditorView(
+                                    userManager: self.state.userManager,
+                                    user: self.state.userManager.getUser(id: userID)
+                                )
+                            }
+                        }
+                    } detail: {
+                        Text("Select a user")
+                            .foregroundStyle(.secondary)
+                    }
+                #endif
             }
         }
         .onAppear {

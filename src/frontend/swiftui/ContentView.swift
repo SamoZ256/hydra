@@ -1,10 +1,18 @@
 import SwiftUI
 
+#if os(iOS)
+    import GameController
+#endif
+
 struct ContentView: View {
     @Binding var activeGame: Game?
     @Binding var emulationContext: HydraEmulationContext?
 
     @State private var fps: Int = 0
+
+    #if os(iOS)
+        @State private var virtualController: GCVirtualController? = nil
+    #endif
 
     private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
@@ -33,12 +41,39 @@ struct ContentView: View {
                         game: activeGame, emulationContext: self.$emulationContext, fps: $fps
                     )
                     .aspectRatio(CGSize(width: 16, height: 9), contentMode: .fit)
+                    #if os(iOS)
+                        .onAppear {
+                            // TODO: if virtual controller enabled
+                            if true {
+                                let config = GCVirtualController.Configuration()
+                                config.elements = [
+                                    GCInputButtonA, GCInputButtonB, GCInputButtonX, GCInputButtonY,
+                                    GCInputLeftThumbstick, GCInputRightThumbstick,
+                                    GCInputLeftShoulder,
+                                    GCInputRightShoulder, GCInputLeftTrigger, GCInputRightTrigger,
+                                ]
+
+                                let virtualController = GCVirtualController(configuration: config)
+                                virtualController.connect()
+
+                                self.virtualController = virtualController
+                            }
+                        }
+                        .onDisappear {
+                            virtualController?.disconnect()
+                            virtualController = nil
+                        }
+                    #endif
                 }
+                .toolbar {
+                    ToolbarItems(
+                        activeGame: self.$activeGame, emulationContext: self.$emulationContext)
+                }
+                .navigationBarBackButtonHidden()
         }
-        .toolbar {
-            ToolbarItems()
-        }
-        .windowToolbarFullScreenVisibility(.onHover)
+        #if os(macOS)
+            .windowToolbarFullScreenVisibility(.onHover)
+        #endif
         .navigationTitle(navigationTitle)
     }
 }

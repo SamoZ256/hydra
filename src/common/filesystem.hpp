@@ -5,9 +5,11 @@
 #include <CoreFoundation/CoreFoundation.h>
 
 #include "common/log.hpp"
+#include "common/platform.hpp"
 
 namespace hydra {
 
+#ifdef PLATFORM_APPLE
 inline std::string get_bundle_resource_path(const std::string& filename) {
     CFBundleRef main_bundle = CFBundleGetMainBundle();
     if (!main_bundle) {
@@ -36,5 +38,6 @@ inline std::string get_bundle_resource_path(const std::string& filename) {
 
     return std::string(path);
 }
+#endif
 
 } // namespace hydra

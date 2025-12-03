@@ -2,6 +2,8 @@
 
 #include "core/hw/tegra_x1/cpu/dynarmic/memory.hpp"
 
+// TODO: absolute offset page table
+
 namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
 void Mmu::Map(vaddr_t dst_va, uptr ptr, usize size,
@@ -63,9 +65,9 @@ uptr Mmu::UnmapAddr(vaddr_t va) const {
     auto page = va / GUEST_PAGE_SIZE;
     auto page_offset = va % GUEST_PAGE_SIZE;
 
-    if (page >= sizeof_array(pages) || pages[page] == 0x0)
+    if (page >= PAGE_COUNT || pages[page] == 0x0)
         return 0x0;
-    // ASSERT_DEBUG(page < sizeof_array(pages) && pages[page] != 0x0, Dynarmic,
+    // ASSERT_DEBUG(page < PAGE_COUNT && pages[page] != 0x0, Dynarmic,
     //              "Address out of range: 0x{:08x}", va);
 
     return pages[page] + page_offset;

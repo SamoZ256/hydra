@@ -93,7 +93,7 @@ result_t IAudioOut::GetReleasedAudioOutBuffersImpl(u32* out_count,
                                                    Writer& out_buffers_writer) {
     std::unique_lock lock(buffer_mutex);
 
-    *out_count = released_buffers.size();
+    *out_count = static_cast<u32>(released_buffers.size());
 
     if (released_buffers.empty()) {
         out_buffers_writer.Write<u64>(0);

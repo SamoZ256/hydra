@@ -399,8 +399,8 @@ void Renderer::DrawIndexed(const engines::PrimitiveType primitive_type,
     // Draw
     auto index_buffer_mtl = state.index_buffer->GetBuffer();
     // TODO: is start used correctly?
-    u32 index_buffer_offset =
-        start * engines::get_index_type_size(state.index_type);
+    const auto index_buffer_offset = static_cast<u32>(
+        start * engines::get_index_type_size(state.index_type));
     encoder->drawIndexedPrimitives(to_mtl_primitive_type(primitive_type), count,
                                    to_mtl_index_type(state.index_type),
                                    index_buffer_mtl, index_buffer_offset,

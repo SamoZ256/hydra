@@ -1,4 +1,5 @@
 add_library(hydra-common
+    platform.hpp
     macros.hpp
     type_aliases.hpp
     types.hpp

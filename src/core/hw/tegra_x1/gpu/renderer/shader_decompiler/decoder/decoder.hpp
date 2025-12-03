@@ -44,7 +44,7 @@ class Decoder {
         context.code_reader.Seek(target * sizeof(instruction_t));
     }
     u32 GetPC() const {
-        return context.code_reader.Tell() / sizeof(instruction_t);
+        return static_cast<u32>(context.code_reader.Tell() / sizeof(instruction_t));
     }
 
     void EndBlock() {

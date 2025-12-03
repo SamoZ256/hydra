@@ -46,7 +46,7 @@ NvResult NvMap::Param(handle_id_t handle_id, NvMapParamType type,
     auto map = GPU_INSTANCE.GetMap(handle_id);
     switch (type) {
     case NvMapParamType::Size:
-        *out_value = map.size;
+        *out_value = static_cast<u32>(map.size);
         break;
     case NvMapParamType::Alignment:
         *out_value = hw::tegra_x1::gpu::GPU_PAGE_SIZE; // TODO: correct?

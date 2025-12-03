@@ -41,8 +41,9 @@ bool Controller::IsPressedImpl(ControllerInput input) {
 
 #undef BUTTON_CASE
 
-    return [[((GCController*)handle).input.buttons
-                elementForAlias:gc_button_name].pressedInput isPressed];
+    return reinterpret_cast<GCController*>(handle)
+        .physicalInputProfile.buttons[gc_button_name]
+        .isPressed;
 }
 
 f32 Controller::GetAxisValueImpl(ControllerInput input) {
@@ -70,17 +71,17 @@ f32 Controller::GetAxisValueImpl(ControllerInput input) {
 
 #undef AXIS_CASE
 
-    auto dpad =
-        [((GCController*)handle).input.dpads elementForAlias:gc_dpad_name];
+    auto dpad = reinterpret_cast<GCController*>(handle)
+                    .physicalInputProfile.dpads[gc_dpad_name];
     switch (dir) {
     case AnalogStickDirection::Right:
-        return [dpad right].value;
+        return dpad.right.value;
     case AnalogStickDirection::Left:
-        return [dpad left].value;
+        return dpad.left.value;
     case AnalogStickDirection::Up:
-        return [dpad up].value;
+        return dpad.up.value;
     case AnalogStickDirection::Down:
-        return [dpad down].value;
+        return dpad.down.value;
     }
 }
 

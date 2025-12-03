@@ -39,8 +39,9 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
             state.r[0], state.r[1], static_cast<MemoryPermission>(state.r[2]));
         break;
     case 0x3:
-        state.r[0] =
-            SetMemoryAttribute(state.r[0], state.r[1], state.r[2], state.r[3]);
+        state.r[0] = SetMemoryAttribute(state.r[0], state.r[1],
+                                        static_cast<u32>(state.r[2]),
+                                        static_cast<u32>(state.r[3]));
         break;
     case 0x4:
         state.r[0] =
@@ -71,7 +72,8 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
         break;
     }
     case 0x9:
-        state.r[0] = StartThread(crnt_process->GetHandle<IThread>(state.r[0]));
+        state.r[0] = StartThread(crnt_process->GetHandle<IThread>(
+            static_cast<handle_id_t>(state.r[0])));
         break;
     case 0xa:
         ExitThread(crnt_thread);
@@ -80,44 +82,57 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
         SleepThread(std::bit_cast<i64>(state.r[0]));
         break;
     case 0xc:
-        state.r[0] = GetThreadPriority(
-            crnt_process->GetHandle<IThread>(state.r[1]), tmp_i32);
+        state.r[0] =
+            GetThreadPriority(crnt_process->GetHandle<IThread>(
+                                  static_cast<handle_id_t>(state.r[1])),
+                              tmp_i32);
         state.r[1] = std::bit_cast<u32>(tmp_i32);
         break;
     case 0xd:
-        state.r[0] = SetThreadPriority(
-            crnt_process->GetHandle<IThread>(state.r[0]), state.r[1]);
+        state.r[0] =
+            SetThreadPriority(crnt_process->GetHandle<IThread>(
+                                  static_cast<handle_id_t>(state.r[0])),
+                              std::bit_cast<i32>(static_cast<u32>(state.r[1])));
         break;
     case 0xe:
-        state.r[0] = GetThreadCoreMask(
-            crnt_process->GetHandle<IThread>(state.r[0]), tmp_i32, tmp_u64);
+        state.r[0] =
+            GetThreadCoreMask(crnt_process->GetHandle<IThread>(
+                                  static_cast<handle_id_t>(state.r[0])),
+                              tmp_i32, tmp_u64);
         state.r[1] = std::bit_cast<u32>(tmp_i32);
         state.r[2] = tmp_u64;
         break;
     case 0xf:
-        state.r[0] =
-            SetThreadCoreMask(crnt_process->GetHandle<IThread>(state.r[0]),
-                              std::bit_cast<i32>(u32(state.r[1])), state.r[2]);
+        state.r[0] = SetThreadCoreMask(
+            crnt_process->GetHandle<IThread>(
+                static_cast<handle_id_t>(state.r[0])),
+            std::bit_cast<i32>(static_cast<u32>(state.r[1])), state.r[2]);
         break;
     case 0x10:
         GetCurrentProcessorNumber(tmp_u32);
         state.r[0] = tmp_u32;
         break;
     case 0x11:
-        state.r[0] = SignalEvent(crnt_process->GetHandle<Event>(state.r[0]));
+        state.r[0] = SignalEvent(crnt_process->GetHandle<Event>(
+            static_cast<handle_id_t>(state.r[0])));
         break;
     case 0x12:
-        state.r[0] = ClearEvent(crnt_process->GetHandle<Event>(state.r[0]));
+        state.r[0] = ClearEvent(crnt_process->GetHandle<Event>(
+            static_cast<handle_id_t>(state.r[0])));
         break;
     case 0x13:
-        state.r[0] = MapSharedMemory(
-            crnt_process, crnt_process->GetHandle<SharedMemory>(state.r[0]),
-            state.r[1], state.r[2], static_cast<MemoryPermission>(state.r[3]));
+        state.r[0] = MapSharedMemory(crnt_process,
+                                     crnt_process->GetHandle<SharedMemory>(
+                                         static_cast<handle_id_t>(state.r[0])),
+                                     state.r[1], state.r[2],
+                                     static_cast<MemoryPermission>(state.r[3]));
         break;
     case 0x14:
-        state.r[0] = UnmapSharedMemory(
-            crnt_process, crnt_process->GetHandle<SharedMemory>(state.r[0]),
-            state.r[1], state.r[2]);
+        state.r[0] =
+            UnmapSharedMemory(crnt_process,
+                              crnt_process->GetHandle<SharedMemory>(
+                                  static_cast<handle_id_t>(state.r[0])),
+                              state.r[1], state.r[2]);
         break;
     case 0x15: {
         TransferMemory* tmem = nullptr;
@@ -128,11 +143,12 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
         break;
     }
     case 0x16:
-        state.r[0] = CloseHandle(crnt_process, state.r[0]);
+        state.r[0] =
+            CloseHandle(crnt_process, static_cast<handle_id_t>(state.r[0]));
         break;
     case 0x17:
-        state.r[0] = ResetSignal(
-            crnt_process->GetHandle<SynchronizationObject>(state.r[0]));
+        state.r[0] = ResetSignal(crnt_process->GetHandle<SynchronizationObject>(
+            static_cast<handle_id_t>(state.r[0])));
         break;
     case 0x18: {
         const auto handle_ids = reinterpret_cast<handle_id_t*>(
@@ -150,14 +166,17 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
         break;
     }
     case 0x19:
-        state.r[0] =
-            CancelSynchronization(crnt_process->GetHandle<IThread>(state.r[0]));
+        state.r[0] = CancelSynchronization(crnt_process->GetHandle<IThread>(
+            static_cast<handle_id_t>(state.r[0])));
         break;
     case 0x1a:
-        state.r[0] = ArbitrateLock(
-            crnt_thread, crnt_process->GetHandle<IThread>(state.r[0]),
-            crnt_process->GetMmu()->UnmapAddr(state.r[1]), state.r[2],
-            state.r[0]);
+        state.r[0] =
+            ArbitrateLock(crnt_thread,
+                          crnt_process->GetHandle<IThread>(
+                              static_cast<handle_id_t>(state.r[0])),
+                          crnt_process->GetMmu()->UnmapAddr(state.r[1]),
+                          static_cast<handle_id_t>(state.r[2]),
+                          static_cast<handle_id_t>(state.r[0]));
         break;
     case 0x1b:
         state.r[0] = ArbitrateUnlock(
@@ -167,13 +186,14 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
         state.r[0] = WaitProcessWideKeyAtomic(
             crnt_process, crnt_thread,
             crnt_process->GetMmu()->UnmapAddr(state.r[0]),
-            crnt_process->GetMmu()->UnmapAddr(state.r[1]), state.r[2],
+            crnt_process->GetMmu()->UnmapAddr(state.r[1]),
+            static_cast<handle_id_t>(state.r[2]),
             std::bit_cast<i64>(state.r[3]));
         break;
     case 0x1d:
         state.r[0] = SignalProcessWideKey(
             crnt_process, crnt_process->GetMmu()->UnmapAddr(state.r[0]),
-            state.r[1]);
+            std::bit_cast<i32>(static_cast<u32>(state.r[1])));
         break;
     case 0x1e:
         GetSystemTick(tmp_u64);
@@ -191,11 +211,13 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
     case 0x21:
         state.r[0] = SendSyncRequest(
             crnt_process, crnt_thread, guest_thread->GetTlsMemory(),
-            crnt_process->GetHandle<hipc::ClientSession>(state.r[0]));
+            crnt_process->GetHandle<hipc::ClientSession>(
+                static_cast<handle_id_t>(state.r[0])));
         break;
     case 0x25:
-        state.r[0] =
-            GetThreadId(crnt_process->GetHandle<IThread>(state.r[1]), tmp_u64);
+        state.r[0] = GetThreadId(crnt_process->GetHandle<IThread>(
+                                     static_cast<handle_id_t>(state.r[1])),
+                                 tmp_u64);
         state.r[1] = tmp_u64;
         break;
     case 0x26: {
@@ -214,7 +236,8 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
         break;
     case 0x29:
         state.r[0] = GetInfo(crnt_process, static_cast<InfoType>(state.r[1]),
-                             crnt_process->GetHandle<AutoObject>(state.r[2]),
+                             crnt_process->GetHandle<AutoObject>(
+                                 static_cast<handle_id_t>(state.r[2])),
                              state.r[3], tmp_u64);
         state.r[1] = tmp_u64;
         break;
@@ -223,19 +246,22 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
         break;
     case 0x32:
         state.r[0] =
-            SetThreadActivity(crnt_process->GetHandle<IThread>(state.r[0]),
+            SetThreadActivity(crnt_process->GetHandle<IThread>(
+                                  static_cast<handle_id_t>(state.r[0])),
                               static_cast<ThreadActivity>(state.r[1]));
         break;
     case 0x33:
         state.r[0] = GetThreadContext3(
-            crnt_process->GetHandle<IThread>(state.r[1]),
+            crnt_process->GetHandle<IThread>(
+                static_cast<handle_id_t>(state.r[1])),
             *reinterpret_cast<ThreadContext*>(
                 crnt_process->GetMmu()->UnmapAddr(state.r[0])));
         break;
     case 0x34:
         state.r[0] = WaitForAddress(
             crnt_thread, crnt_process->GetMmu()->UnmapAddr(state.r[0]),
-            static_cast<ArbitrationType>(state.r[1]), state.r[2], state.r[3]);
+            static_cast<ArbitrationType>(state.r[1]),
+            static_cast<u32>(state.r[2]), state.r[3]);
         break;
     case 0x40: {
         hipc::ServerSession* server_session = nullptr;
@@ -248,9 +274,9 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
     }
     case 0x41: {
         hipc::ServerSession* server_session = nullptr;
-        state.r[0] =
-            AcceptSession(crnt_process->GetHandle<hipc::ServerPort>(state.r[1]),
-                          server_session);
+        state.r[0] = AcceptSession(crnt_process->GetHandle<hipc::ServerPort>(
+                                       static_cast<handle_id_t>(state.r[1])),
+                                   server_session);
         state.r[1] = crnt_process->AddHandleNoRetain(server_session);
         break;
     }
@@ -263,10 +289,11 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
             sync_objs[i] =
                 crnt_process->GetHandle<SynchronizationObject>(handle_ids[i]);
 
-        state.r[0] = ReplyAndReceive(
-            crnt_thread, std::span(sync_objs, num_handles),
-            crnt_process->GetHandle<hipc::ServerSession>(state.r[3]),
-            std::bit_cast<i64>(state.r[4]), tmp_i32);
+        state.r[0] =
+            ReplyAndReceive(crnt_thread, std::span(sync_objs, num_handles),
+                            crnt_process->GetHandle<hipc::ServerSession>(
+                                static_cast<handle_id_t>(state.r[3])),
+                            std::bit_cast<i64>(state.r[4]), tmp_i32);
         state.r[1] = std::bit_cast<u32>(tmp_i32);
         break;
     }
@@ -278,7 +305,8 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
     }
     case 0x4c:
         state.r[0] =
-            ControlCodeMemory(crnt_process->GetHandle<CodeMemory>(state.r[0]),
+            ControlCodeMemory(crnt_process->GetHandle<CodeMemory>(
+                                  static_cast<handle_id_t>(state.r[0])),
                               CodeMemoryOperation(state.r[1]), state.r[2],
                               state.r[3], MemoryPermission(state.r[4]));
         break;
@@ -286,28 +314,31 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
         state.r[0] =
             GetProcessList(reinterpret_cast<u64*>(
                                crnt_process->GetMmu()->UnmapAddr(state.r[1])),
-                           state.r[2], tmp_u32);
+                           static_cast<u32>(state.r[2]), tmp_u32);
         state.r[1] = tmp_u32;
         break;
     case 0x73:
         state.r[0] = SetProcessMemoryPermission(
-            crnt_process->GetHandle<Process>(state.r[0]), state.r[1],
-            state.r[2], MemoryPermission(state.r[3]));
+            crnt_process->GetHandle<Process>(
+                static_cast<handle_id_t>(state.r[0])),
+            state.r[1], state.r[2], MemoryPermission(state.r[3]));
         break;
     case 0x74:
-        state.r[0] =
-            MapProcessMemory(crnt_process, state.r[0],
-                             crnt_process->GetHandle<Process>(state.r[1]),
-                             state.r[2], state.r[3]);
+        state.r[0] = MapProcessMemory(crnt_process, state.r[0],
+                                      crnt_process->GetHandle<Process>(
+                                          static_cast<handle_id_t>(state.r[1])),
+                                      state.r[2], state.r[3]);
         break;
     case 0x77:
         state.r[0] =
-            MapProcessCodeMemory(crnt_process->GetHandle<Process>(state.r[0]),
+            MapProcessCodeMemory(crnt_process->GetHandle<Process>(
+                                     static_cast<handle_id_t>(state.r[0])),
                                  state.r[1], state.r[2], state.r[3]);
         break;
     case 0x78:
         state.r[0] =
-            UnmapProcessCodeMemory(crnt_process->GetHandle<Process>(state.r[0]),
+            UnmapProcessCodeMemory(crnt_process->GetHandle<Process>(
+                                       static_cast<handle_id_t>(state.r[0])),
                                    state.r[1], state.r[2], state.r[3]);
         break;
     default:
@@ -772,7 +803,8 @@ result_t Kernel::WaitProcessWideKeyAtomic(Process* crnt_process,
         cond_var_waiters.Remove(crnt_thread);
 
         // Mutex
-        auto owner = GetMutexOwner(crnt_process, crnt_thread->mutex_wait_addr);
+        auto owner = GetMutexOwner(
+            crnt_process, static_cast<u32>(crnt_thread->mutex_wait_addr));
         if (owner)
             owner->RemoveMutexWaiter(crnt_thread);
     }
@@ -788,7 +820,7 @@ result_t Kernel::SignalProcessWideKey(Process* crnt_process, uptr addr,
     CriticalSectionLock cs_lock;
 
     if (count == -1)
-        count = cond_var_waiters.GetSize();
+        count = static_cast<i32>(cond_var_waiters.GetSize());
 
     // TODO: sort by priority
     for (auto thread_node = cond_var_waiters.GetHead();
@@ -893,7 +925,7 @@ result_t Kernel::Break(BreakReason reason, uptr buffer_ptr, usize buffer_size) {
                      description);
         } else {
             constexpr u32 MAX_DATA_COUNT = 16;
-            const u32 data_count = buffer_size / sizeof(u32);
+            const auto data_count = static_cast<u32>(buffer_size / sizeof(u32));
             for (u32 i = 0; i < std::min(data_count, MAX_DATA_COUNT); i++) {
                 const u32 value = reinterpret_cast<u32*>(buffer_ptr)[i];
                 LOG_INFO(Kernel, "0x{:08x}", value);

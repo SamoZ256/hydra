@@ -15,6 +15,7 @@ struct EmulationView: View {
             .onDisappear {
                 // TODO: stop?
                 self.emulationContext = nil
+                fps = 0
             }
     }
 }

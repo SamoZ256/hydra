@@ -102,8 +102,9 @@ class ParcelWriter {
     }
 
     void Finish() {
-        header->data_size = writer.Tell() - header->data_offset;
-        header->objects_size = objects.size() * sizeof(u32);
+        header->data_size =
+            static_cast<u32>(writer.Tell() - header->data_offset);
+        header->objects_size = static_cast<u32>(objects.size() * sizeof(u32));
         header->objects_offset = header->data_offset + header->data_size;
         std::memcpy(writer.GetBase() + header->objects_offset, objects.data(),
                     header->objects_size);
@@ -156,7 +157,7 @@ class ParcelWriter {
 
     void WriteString16(const std::string_view str) {
         ASSERT_DEBUG(str.size() != 0, Services, "Invalid string size");
-        Write<i32>(str.size());
+        Write(static_cast<i32>(str.size()));
         auto ptr = WritePtr<u16>(nullptr, str.size() + 1);
 
         for (u32 i = 0; i < str.size() + 1; i++)

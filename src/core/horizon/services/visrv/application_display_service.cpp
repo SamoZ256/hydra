@@ -99,7 +99,8 @@ result_t IApplicationDisplayService::OpenDisplay(DisplayName display_name,
 }
 
 result_t IApplicationDisplayService::CloseDisplay(u64 display_id) {
-    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
+    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(
+        static_cast<handle_id_t>(display_id));
     display.Close();
     return RESULT_SUCCESS;
 }
@@ -109,7 +110,8 @@ result_t IApplicationDisplayService::GetDisplayResolution(u64 display_id,
                                                           i64* out_height) {
     LOG_FUNC_STUBBED(Services);
 
-    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
+    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(
+        static_cast<handle_id_t>(display_id));
 
     const auto res = OS_INSTANCE.GetDisplayResolution();
     *out_width = res.x();
@@ -125,7 +127,8 @@ result_t IApplicationDisplayService::OpenLayer(
     // auto& display =
     // OS_INSTANCE.GetDisplayDriver().GetDisplayByName(display_name.name);
 
-    auto& layer = OS_INSTANCE.GetDisplayDriver().GetLayer(layer_id);
+    auto& layer =
+        OS_INSTANCE.GetDisplayDriver().GetLayer(static_cast<u32>(layer_id));
     layer.Open();
 
     // Parcel
@@ -139,7 +142,7 @@ result_t IApplicationDisplayService::OpenLayer(
 }
 
 result_t IApplicationDisplayService::CloseLayer(u64 layer_id) {
-    OS_INSTANCE.GetDisplayDriver().DestroyLayer(layer_id);
+    OS_INSTANCE.GetDisplayDriver().DestroyLayer(static_cast<u32>(layer_id));
     return RESULT_SUCCESS;
 }
 
@@ -167,7 +170,8 @@ result_t IApplicationDisplayService::ConvertScalingMode() {
 result_t IApplicationDisplayService::GetDisplayVsyncEvent(
     kernel::Process* process, u64 display_id,
     OutHandle<HandleAttr::Move> out_handle) {
-    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
+    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(
+        static_cast<handle_id_t>(display_id));
 
     out_handle = process->AddHandle(display.GetVSyncEvent());
     return RESULT_SUCCESS;

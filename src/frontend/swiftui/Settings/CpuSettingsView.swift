@@ -20,6 +20,7 @@ struct CpuSettingsView: View {
                         cpuBackendOption.value = newValue
                     }
                 }
+
             }
             .formStyle(.grouped)
             .padding(24)

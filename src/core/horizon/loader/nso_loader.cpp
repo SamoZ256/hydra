@@ -166,7 +166,7 @@ void NsoLoader::LoadProcess(kernel::Process* process) {
         static_cast<kernel::MemoryType>(4), kernel::MemoryPermission::ReadWrite,
         false, arg_data_base));
     arg_data_ptr->allocated_size = ARG_DATA_SIZE;
-    arg_data_ptr->string_size = arg_data_str.size() + 1;
+    arg_data_ptr->string_size = static_cast<u32>(arg_data_str.size() + 1);
     std::memcpy(arg_data_ptr->str, arg_data_str.c_str(), arg_data_str.size());
 
     // Debug

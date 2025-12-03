@@ -232,7 +232,7 @@ struct HydraStringArrayOption {
     }
 
     func resize(newCount: Int) {
-        hydra_string_array_option_resize(self.handle, UInt64(newCount))
+        hydra_string_array_option_resize(self.handle, UInt32(newCount))
     }
 
     func set(at index: Int, value: String) {
@@ -272,6 +272,10 @@ func hydraConfigSerialize() {
 
 func hydraConfigDeserialize() {
     hydra_config_deserialize()
+}
+
+func hydraConfigGetAppDataPath() -> String {
+    String(withHydraString: hydra_config_get_app_data_path())
 }
 
 func hydraConfigGetGamePaths() -> HydraStringArrayOption {

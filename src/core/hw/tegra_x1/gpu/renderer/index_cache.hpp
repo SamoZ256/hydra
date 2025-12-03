@@ -9,7 +9,7 @@ class BufferBase;
 struct IndexDescriptor {
     engines::IndexType type;
     engines::PrimitiveType primitive_type;
-    usize count;
+    u32 count;
     BufferBase* src_index_buffer;
 };
 

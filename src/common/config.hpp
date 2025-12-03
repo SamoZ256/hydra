@@ -167,7 +167,7 @@ class Config {
   private:
     std::string app_data_path;
     std::string logs_path;
-    std::string pictures_path;
+    std::string pictures_path; // TODO: remove this
 
     // Config
     StringArrayOption game_paths;
@@ -196,15 +196,23 @@ class Config {
     std::vector<std::string> GetDefaultGamePaths() const { return {}; }
     std::vector<std::string> GetDefaultPatchPaths() const { return {}; }
     CpuBackend GetDefaultCpuBackend() const {
-        // TODO: use Dynarmic by default on all platforms except for Apple
-        // Silicon
+#if HYDRA_HYPERVISOR_ENABLED
         return CpuBackend::AppleHypervisor;
+#else
+        return CpuBackend::Dynarmic;
+#endif
     }
     GpuRenderer GetDefaultGpuRenderer() const { return GpuRenderer::Metal; }
     ShaderBackend GetDefaultShaderBackend() const { return ShaderBackend::Msl; }
     Resolution GetDefaultDisplayResolution() const { return Resolution::Auto; }
     uint2 GetDefaultCustomDisplayResolution() const { return {1920, 1080}; }
-    AudioBackend GetDefaultAudioBackend() const { return AudioBackend::Null; }
+    AudioBackend GetDefaultAudioBackend() const {
+#if HYDRA_CUBEB_ENABLED
+        return AudioBackend::Cubeb;
+#else
+        return AudioBackend::Null;
+#endif
+    }
     uuid_t GetDefaultUserID() const {
         return 0x0; // TODO: INVALID_USER_ID
     }
@@ -218,7 +226,7 @@ class Config {
     std::string GetDefaultSysmodulesPath() const {
         return fmt::format("{}/sysmodules", app_data_path);
     }
-    bool GetDefaultHandheldMode() const { return false; }
+    bool GetDefaultHandheldMode() const { return true; }
     LogOutput GetDefaultLogOutput() const { return LogOutput::File; }
     bool GetDefaultLogFsAccess() const { return false; }
     bool GetDefaultDebugLogging() const { return false; }

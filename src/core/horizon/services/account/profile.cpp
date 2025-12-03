@@ -30,7 +30,7 @@ result_t IProfile::GetImageSize(u32* out_size) {
     USER_MANAGER_INSTANCE.LoadAvatarImageAsJpeg(user.GetAvatarPath(),
                                                 user.GetAvatarBgColor(), data);
 
-    *out_size = data.size();
+    *out_size = static_cast<u32>(data.size());
     return RESULT_SUCCESS;
 }
 
@@ -45,7 +45,7 @@ result_t IProfile::LoadImage(OutBuffer<BufferAttr::MapAlias> out_buffer,
 
     out_buffer.writer->WritePtr(data.data(), data.size());
 
-    *out_size = data.size();
+    *out_size = static_cast<u32>(data.size());
     return RESULT_SUCCESS;
 }
 

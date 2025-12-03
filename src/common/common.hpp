@@ -19,6 +19,7 @@
 #include "common/log.hpp"
 #include "common/memory.hpp"
 #include "common/objc.hpp"
+#include "common/platform.hpp"
 #include "common/static_pool.hpp"
 #include "common/string.hpp"
 #include "common/time.hpp"

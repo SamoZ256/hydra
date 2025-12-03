@@ -4,7 +4,7 @@ namespace hydra {
 
 namespace {
 
-usize get_length(const u8* src, u32& cmp_pos, usize length) {
+u32 get_length(const u8* src, u32& cmp_pos, u32 length) {
     u8 sum;
     if (length == 0xf) {
         do {

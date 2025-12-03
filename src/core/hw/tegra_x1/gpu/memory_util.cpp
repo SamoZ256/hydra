@@ -10,9 +10,9 @@ static inline void process_generic_16bx2(usize stride, usize height,
     const u32 block_height_gobs = 1U << block_height_log2;
     const u32 block_height_px = 8U << block_height_log2;
 
-    const u32 width_blocks = stride >> 6;
-    const u32 height_blocks =
-        (height + block_height_px - 1) >> (3 + block_height_log2);
+    const u32 width_blocks = static_cast<u32>(stride >> 6);
+    const u32 height_blocks = static_cast<u32>((height + block_height_px - 1) >>
+                                               (3 + block_height_log2));
 
     // Clear the output buffer first
     // TODO: is this necessary?

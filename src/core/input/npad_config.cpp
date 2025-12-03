@@ -176,6 +176,13 @@ NpadConfig::NpadConfig(horizon::hid::NpadIdType type_) : type{type_} {
 void NpadConfig::LoadDefaults() {
     switch (type) {
     case horizon::hid::NpadIdType::No1: {
+        // Devices
+#ifdef PLATFORM_MACOS
+        device_names = {"Generic Keyboard"};
+#elif defined(PLATFORM_IOS)
+        device_names = {"Apple Touch Controller"};
+#endif
+
         // Buttons
         button_mappings = {
             // Controller

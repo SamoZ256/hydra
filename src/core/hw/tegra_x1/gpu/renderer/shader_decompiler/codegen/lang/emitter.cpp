@@ -190,7 +190,7 @@ void LangEmitter::EmitMainFunctionPrologue() {
 
     // Uniform buffers
     for (const auto& [index, size] : memory_analyzer.GetUniformBuffers()) {
-        u32 u32_count = size / sizeof(u32);
+        const auto u32_count = static_cast<u32>(size / sizeof(u32));
         for (u32 i = 0; i < u32_count; i++)
             WriteStatement("{} = ubuff{}.data[{}]",
                            GetConstMemoryStr({index, RZ, i * sizeof(u32)}),

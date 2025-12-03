@@ -204,11 +204,15 @@ void read_arg(RequestContext& context, Class& instance,
                      arg_index + 1>(context, instance, args);
             return;
         } else if constexpr (traits::type == ArgumentType::InBuffer) {
-            Reader* reader;
+            Reader* reader = nullptr;
             if constexpr (Arg::attr == BufferAttr::AutoSelect) {
-                // TODO: correct?
-                reader = &context.readers.send_buffers_readers[in_buffer_index];
-                if (!reader->IsValid())
+                if (in_buffer_index <
+                    context.readers.send_buffers_readers.size())
+                    reader =
+                        &context.readers.send_buffers_readers[in_buffer_index];
+                if ((!reader || !reader->IsValid()) &&
+                    in_buffer_index <
+                        context.readers.send_statics_readers.size())
                     reader =
                         &context.readers.send_statics_readers[in_buffer_index];
             } else if constexpr (Arg::attr == BufferAttr::MapAlias) {
@@ -219,6 +223,8 @@ void read_arg(RequestContext& context, Class& instance,
                 LOG_FATAL(Services, "Invalid in buffer args");
             }
 
+            ASSERT_DEBUG(reader, Services, "Invalid input buffer at index {}",
+                         in_buffer_index);
             arg = Arg(*reader);
 
             // Next
@@ -226,12 +232,14 @@ void read_arg(RequestContext& context, Class& instance,
                      out_buffer_index, arg_index + 1>(context, instance, args);
             return;
         } else if constexpr (traits::type == ArgumentType::OutBuffer) {
-            Writer* writer;
+            Writer* writer = nullptr;
             if constexpr (Arg::attr == BufferAttr::AutoSelect) {
-                // TODO: correct?
-                writer =
-                    &context.writers.recv_buffers_writers[out_buffer_index];
-                if (!writer->IsValid())
+                if (out_buffer_index <
+                    context.writers.recv_buffers_writers.size())
+                    writer =
+                        &context.writers.recv_buffers_writers[out_buffer_index];
+                if ((!writer || !writer->IsValid()) &&
+                    out_buffer_index < context.writers.recv_list_writers.size())
                     writer =
                         &context.writers.recv_list_writers[out_buffer_index];
             } else if constexpr (Arg::attr == BufferAttr::MapAlias) {
@@ -243,6 +251,8 @@ void read_arg(RequestContext& context, Class& instance,
                 LOG_FATAL(Services, "Invalid out buffer args");
             }
 
+            ASSERT_DEBUG(writer, Services, "Invalid output buffer at index {}",
+                         out_buffer_index);
             arg = Arg(*writer);
 
             // Next

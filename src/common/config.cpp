@@ -1,6 +1,7 @@
 #include "common/config.hpp"
 
 #include "common/log.hpp"
+#include "common/platform.hpp"
 #include "common/toml_helper.hpp"
 
 TOML11_DEFINE_CONVERSION_ENUM(hydra::CpuBackend, AppleHypervisor,
@@ -52,8 +53,7 @@ struct into<CustomResolution> {
 namespace hydra {
 
 Config::Config() {
-#ifdef __APPLE__
-    // macOS
+#ifdef PLATFORM_APPLE
     if (const char* home = std::getenv("HOME")) {
         app_data_path =
             fmt::format("{}/Library/Application Support/" APP_NAME, home);
@@ -62,8 +62,7 @@ Config::Config() {
     } else {
         LOG_FATAL(Other, "Failed to find HOME path");
     }
-#elif defined(_WIN32)
-    // Windows
+#elif defined(PLATFORM_WINDOWS)
     if (const char* app_data = std::getenv("APPDATA")) {
         app_data_path = fmt::format("{}/" APP_NAME, app_data);
         logs_path = fmt::format("{}/logs", app_data_path); // TODO
@@ -76,8 +75,7 @@ Config::Config() {
     } else {
         LOG_FATAL(Other, "Failed to find USERPROFILE path");
     }
-#else
-    // Linux and other Unix-like systems
+#elif defined(PLATFORM_LINUX)
     if (const char* xdg_config = std::getenv("XDG_CONFIG_HOME")) {
         app_data_path = fmt::format("{}/" APP_NAME, xdg_config);
         logs_path = fmt::format("{}/logs", app_data_path);
@@ -95,12 +93,17 @@ Config::Config() {
     } else {
         LOG_FATAL(Other, "Failed to find HOME path");
     }
+#else
+#error "Unsupported platform"
 #endif
 
     // Create directories
     std::filesystem::create_directories(app_data_path);
     std::filesystem::create_directories(logs_path);
+    // HACK
+#ifndef PLATFORM_IOS
     std::filesystem::create_directories(pictures_path);
+#endif
 
     LoadDefaults();
     Deserialize();
@@ -190,9 +193,12 @@ void Config::Serialize() {
     {
         auto& system = data.at("System");
         system["firmware_path"] = firmware_path.Get();
-        system["sd_card_path"] = sd_card_path.Get();
-        system["save_path"] = save_path.Get();
-        system["sysmodules_path"] = sysmodules_path.Get();
+        if (sd_card_path.Get() != GetDefaultSdCardPath())
+            system["sd_card_path"] = sd_card_path.Get();
+        if (save_path.Get() != GetDefaultSavePath())
+            system["save_path"] = save_path.Get();
+        if (sysmodules_path.Get() != GetDefaultSysmodulesPath())
+            system["sysmodules_path"] = sysmodules_path.Get();
         system["handheld_mode"] = handheld_mode.Get();
     }
 

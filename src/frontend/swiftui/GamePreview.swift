@@ -9,20 +9,44 @@ struct GamePreview: View {
             self.activeGame = self.game
         }) {
             HStack {
-                if let nsImage = self.loadIconNS() {
-                    Image(nsImage: nsImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(maxWidth: 64, maxHeight: 64)  // TODO: don't hardcode
+                if let image = self.loadIcon() {
+                    #if os(macOS)
+                        Image(nsImage: image)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxWidth: 64, maxHeight: 64)  // TODO: don't hardcode
+                    #else
+                        Image(uiImage: image)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxWidth: 64, maxHeight: 64)  // TODO: don't hardcode
+                    #endif
+                } else {
+                    VStack {
+                        ZStack {
+                            Image(systemName: "photo.fill")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                            Image(systemName: "line.diagonal")
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        }
+                        Text("No Image")
+                            .font(.system(size: 6))
+                    }
+                    .padding()
+                    .background(.quaternary)
+                    .frame(maxWidth: 64, maxHeight: 64)  // TODO: don't hardcode
                 }
                 Text(game.name)
                     .padding()
                 // TODO: author?
             }
+            .padding(4)
         }
     }
 
-    private func loadIcon(width: inout UInt64, height: inout UInt64) -> CGImage? {
+    private func loadIconCG(width: inout UInt64, height: inout UInt64) -> CGImage? {
         guard let data = self.game.loader.loadIcon(width: &width, height: &height) else {
             return nil
         }
@@ -46,13 +70,25 @@ struct GamePreview: View {
         return context.makeImage()
     }
 
-    private func loadIconNS() -> NSImage? {
-        var width: UInt64 = 0
-        var height: UInt64 = 0
-        guard let cgImage = self.loadIcon(width: &width, height: &height) else {
-            return nil
-        }
+    #if os(macOS)
+        private func loadIcon() -> NSImage? {
+            var width: UInt64 = 0
+            var height: UInt64 = 0
+            guard let cgImage = self.loadIconCG(width: &width, height: &height) else {
+                return nil
+            }
 
-        return NSImage(cgImage: cgImage, size: NSSize(width: Int(width), height: Int(height)))
-    }
+            return NSImage(cgImage: cgImage, size: NSSize(width: Int(width), height: Int(height)))
+        }
+    #else
+        private func loadIcon() -> UIImage? {
+            var width: UInt64 = 0
+            var height: UInt64 = 0
+            guard let cgImage = self.loadIconCG(width: &width, height: &height) else {
+                return nil
+            }
+
+            return UIImage(cgImage: cgImage)
+        }
+    #endif
 }

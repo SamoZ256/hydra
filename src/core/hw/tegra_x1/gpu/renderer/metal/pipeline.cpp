@@ -53,10 +53,10 @@ Pipeline::Pipeline(const PipelineDescriptor& descriptor)
 
         auto& min_vertex_array_stride =
             min_vertex_array_strides[vertex_attrib_state.buffer_id];
-        min_vertex_array_stride =
-            std::max<u32>(min_vertex_array_stride,
-                          vertex_attrib_state.offset +
-                              get_vertex_format_size(vertex_attrib_state.size));
+        min_vertex_array_stride = std::max(
+            min_vertex_array_stride,
+            static_cast<u32>(vertex_attrib_state.offset +
+                             get_vertex_format_size(vertex_attrib_state.size)));
     }
 
     // Vertex arrays

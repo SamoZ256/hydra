@@ -23,7 +23,7 @@ result_t IManagerDisplayService::CreateManagedLayer(kernel::Process* process,
 }
 
 result_t IManagerDisplayService::DestroyManagedLayer(u64 layer_id) {
-    OS_INSTANCE.GetDisplayDriver().DestroyLayer(layer_id);
+    OS_INSTANCE.GetDisplayDriver().DestroyLayer(static_cast<u32>(layer_id));
     return RESULT_SUCCESS;
 }
 

@@ -31,6 +31,12 @@ struct EditablePathList: View {
                     switch result {
                     case .success(let fileURLs):
                         for fileURL in fileURLs {
+                            do {
+                                try registerUrl(fileURL)
+                            } catch {
+                                print("Failed to register URL \(fileURL.path)")
+                                continue
+                            }
                             items.append(fileURL.path())
                         }
 

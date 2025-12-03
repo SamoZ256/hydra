@@ -23,7 +23,7 @@ struct ThreadState {
     u64 lr;
     u64 sp;
     u64 pc;
-    u64 pstate;
+    u32 pstate;
     u128 v[32];
     u32 fpcr;
     u32 fpsr;

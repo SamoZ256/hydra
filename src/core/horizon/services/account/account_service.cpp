@@ -6,7 +6,7 @@
 namespace hydra::horizon::services::account {
 
 result_t IAccountService::GetUserCount(i32* out_count) {
-    *out_count = USER_MANAGER_INSTANCE.GetUserCount();
+    *out_count = static_cast<i32>(USER_MANAGER_INSTANCE.GetUserCount());
     return RESULT_SUCCESS;
 }
 

@@ -7,12 +7,12 @@ namespace hydra::hw::tegra_x1::gpu::renderer {
 
 namespace {
 
-inline void decode_u8_indices(uptr in, uptr out, usize count) {
+inline void decode_u8_indices(uptr in, uptr out, u32 count) {
     for (u32 i = 0; i < count; i++)
         reinterpret_cast<u16*>(out)[i] = reinterpret_cast<u8*>(in)[i];
 }
 
-inline usize get_index_count_quads_to_triangles(usize count) {
+inline u32 get_index_count_quads_to_triangles(u32 count) {
     return count / 4 * 6;
 }
 
@@ -20,7 +20,7 @@ inline engines::PrimitiveType get_primitive_type_quads_to_triangles() {
     return engines::PrimitiveType::Triangles;
 }
 
-inline usize get_index_count_triangle_fan_to_triangle_strip(usize count) {
+inline u32 get_index_count_triangle_fan_to_triangle_strip(u32 count) {
     return count;
 }
 
@@ -71,7 +71,7 @@ get_primitive_type_triangle_fan_to_triangle_strip() {
 
 #define DEFINE_DECODER_PROTOTYPE(name)                                         \
     void decode_##name##_auto(uptr in_unused, uptr out,                        \
-                              engines::IndexType index_type, usize count)
+                              engines::IndexType index_type, u32 count)
 #define GET_INDEX_IMPL(type, index) (index)
 
 #include "core/hw/tegra_x1/gpu/renderer/index_decoders.inc"
@@ -81,7 +81,7 @@ get_primitive_type_triangle_fan_to_triangle_strip() {
 
 #define DEFINE_DECODER_PROTOTYPE(name)                                         \
     void decode_##name(uptr in, uptr out, engines::IndexType index_type,       \
-                       usize count)
+                       u32 count)
 #define GET_INDEX_IMPL(type, index) reinterpret_cast<type*>(in)[index]
 
 #include "core/hw/tegra_x1/gpu/renderer/index_decoders.inc"
@@ -151,7 +151,7 @@ BufferBase* IndexCache::Decode(const IndexDescriptor& descriptor,
     if (index_buffer)
         return index_buffer;
 
-    usize index_size = get_index_type_size(out_type);
+    const auto index_size = get_index_type_size(out_type);
     index_buffer =
         RENDERER_INSTANCE.AllocateTemporaryBuffer(out_count * index_size);
     uptr in_ptr = 0x0;

@@ -107,7 +107,7 @@ hid::SharedMemory* InputManager::GetHidSharedMemory() const {
 
 void InputManager::UpdateTouchStates() {
     UPDATE_LIFO(touch_screen.lifo);
-    out_state.count = touch_count;
+    out_state.count = static_cast<i32>(touch_count);
 }
 
 void InputManager::SetTouchState(hid::TouchState state) {

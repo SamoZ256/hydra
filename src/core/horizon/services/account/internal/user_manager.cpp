@@ -187,8 +187,9 @@ void UserManager::LoadAvatarImageAsJpeg(std::string_view path, uchar3 bg_color,
 
     // Convert to JPEG
     out_data.reserve(0x20000);
-    stbi_write_jpg_to_func(jpg_to_memory, &out_data, dimension, dimension, 4,
-                           data.data(), 80);
+    stbi_write_jpg_to_func(jpg_to_memory, &out_data,
+                           static_cast<i32>(dimension),
+                           static_cast<i32>(dimension), 4, data.data(), 80);
 }
 
 void UserManager::Serialize(uuid_t user_id) {
@@ -212,7 +213,7 @@ void UserManager::Serialize(uuid_t user_id) {
         writer.Write(user.base);
         writer.Write(user.data);
         writer.Write(user.avatar_bg_color);
-        writer.Write<u32>(user.avatar_path.size());
+        writer.Write(static_cast<u32>(user.avatar_path.size()));
         writer.WritePtr(user.avatar_path.data(), user.avatar_path.size());
     }
     ofs.close();
@@ -289,7 +290,7 @@ void UserManager::PreloadAvatar(Avatar& avatar, bool is_compressed) {
         Yaz0Stream* yaz0;
         YAZ0_ASSERT(yaz0Init(&yaz0));
         YAZ0_ASSERT(yaz0ModeDecompress(yaz0));
-        YAZ0_ASSERT(yaz0Input(yaz0, raw.data(), raw.size()));
+        YAZ0_ASSERT(yaz0Input(yaz0, raw.data(), static_cast<u32>(raw.size())));
         avatar.data.resize(AVATAR_UNCOMPRESSED_IMAGE_SIZE);
         YAZ0_ASSERT(yaz0Output(yaz0, avatar.data.data(),
                                AVATAR_UNCOMPRESSED_IMAGE_SIZE));
@@ -301,8 +302,9 @@ void UserManager::PreloadAvatar(Avatar& avatar, bool is_compressed) {
     } else {
         // Load with STB image
         int width, height;
-        auto pixels = stbi_load_from_memory(raw.data(), raw.size(), &width,
-                                            &height, nullptr, 4);
+        auto pixels =
+            stbi_load_from_memory(raw.data(), static_cast<i32>(raw.size()),
+                                  &width, &height, nullptr, 4);
         if (!pixels) {
             LOG_ERROR(Services, "Failed to load avatar image");
             return;
