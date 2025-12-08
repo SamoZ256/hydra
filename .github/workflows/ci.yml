@@ -43,7 +43,7 @@ jobs:
         path: hydra
   
     - name: Install Dependencies
-      run: brew install boost fmt sdl3 dylibbundler
+      run: brew install boost fmt sdl3
   
     - name: Verify CMake Version
       run: cmake --version
@@ -69,7 +69,6 @@ jobs:
         -DMACOS_BUNDLE=ON \
         -GNinja
         ninja -C build
-        dylibbundler -of -cd -b -x  build/bin/Hydra.app/Contents/MacOS/Hydra -d build/bin/Hydra.app/Contents/libs
       
     - name: Create Archive
       run: |
