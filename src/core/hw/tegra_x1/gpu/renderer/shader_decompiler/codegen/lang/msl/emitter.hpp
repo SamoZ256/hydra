@@ -23,17 +23,29 @@ class MslEmitter final : public LangEmitter {
     void EmitMainPrototype() override;
     void EmitExitReturn() override;
 
-    // Special
-    void EmitDiscard() override;
+    // Math
+    void EmitIsNan(const ir::Value& dst, const ir::Value& src) override;
+    void EmitReciprocal(const ir::Value& dst, const ir::Value& src) override;
+    void EmitSin(const ir::Value& dst, const ir::Value& src) override;
+    void EmitCos(const ir::Value& dst, const ir::Value& src) override;
+    void EmitExp2(const ir::Value& dst, const ir::Value& src) override;
+    void EmitLog2(const ir::Value& dst, const ir::Value& src) override;
+    void EmitSqrt(const ir::Value& dst, const ir::Value& src) override;
+    void EmitReciprocalSqrt(const ir::Value& dst,
+                            const ir::Value& src) override;
+
+    // Texture
     void EmitTextureSample(const ir::Value& dst, u32 const_buffer_index,
                            const ir::Value& coords) override;
     void EmitTextureRead(const ir::Value& dst, u32 const_buffer_index,
                          const ir::Value& coords) override;
     void EmitTextureGather(const ir::Value& dst, u32 const_buffer_index,
-                           const ir::Value& coords,
-                           TextureComponent component) override;
+                           const ir::Value& coords, u8 component) override;
     void EmitTextureQueryDimension(const ir::Value& dst, u32 const_buffer_index,
                                    u32 dimension) override;
+
+    // Exit
+    void EmitDiscard() override;
 
     std::string GetSvAccessQualifiedStr(const SvAccess& sv_access,
                                         bool output) override;

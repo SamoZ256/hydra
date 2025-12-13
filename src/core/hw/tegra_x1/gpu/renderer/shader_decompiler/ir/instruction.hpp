@@ -5,48 +5,72 @@
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir {
 
 enum class Opcode {
-    // Basic
+    // Data
     Copy,
+    Cast,
+
+    // Arithmetic
+    Abs,
     Neg,
-    Not,
     Add,
     Multiply,
     Fma,
-    ShiftLeft,
-    ShiftRight,
-    Cast,
-    Compare,
-    Bitwise,
-    Select,
-
-    // Control flow
-    Branch,
-    BranchConditional,
-    BeginIf,
-    EndIf,
+    Min,
+    Max,
+    Clamp,
 
     // Math
+    IsNan,
     Round,
     Floor,
     Ceil,
     Trunc,
-    Min,
-    Max,
-    Clamp,
-    MathFunction,
+    Reciprocal,
+    Sin,
+    Cos,
+    Exp2,
+    Log2,
+    Sqrt,
+    ReciprocalSqrt,
+
+    // Logical & Bitwise
+    Not,
+    BitwiseNot,
+    BitwiseAnd,
+    BitwiseOr,
+    BitwiseXor,
+    ShiftLeft,
+    ShiftRight,
+
+    // Comparison & Selection
+    CompareLess,
+    CompareLessOrEqual,
+    CompareGreater,
+    CompareGreaterOrEqual,
+    CompareEqual,
+    CompareNotEqual,
+    Select,
+
+    // Control Flow
+    BeginIf,
+    EndIf,
+    Branch,
+    BranchConditional,
 
     // Vector
     VectorExtract,
     VectorInsert,
     VectorConstruct,
 
-    // Special
-    Exit,
-    Discard,
+    // Texture
     TextureSample,
     TextureRead,
     TextureGather,
     TextureQueryDimension,
+
+    // Exit
+    Exit,
+    Discard,
 };
 
 constexpr usize MAX_INSTRUCTION_OPERANDS = 8;
@@ -82,13 +106,20 @@ struct Instruction {
 
 ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::Opcode, Copy, "copy",
-    Neg, "neg", Not, "not", Add, "add", Multiply, "mul", Fma, "fma", ShiftLeft,
-    "shl", ShiftRight, "shr", Cast, "cast", Compare, "cmp", Bitwise, "bitwise",
-    Select, "select", Branch, "branch", BranchConditional, "branch_cond",
-    BeginIf, "begin_if", EndIf, "end_if", Min, "min", Max, "max", MathFunction,
-    "math_func", VectorExtract, "extract", VectorInsert, "insert",
-    VectorConstruct, "construct", Exit, "exit", Discard, "discard",
-    TextureSample, "sample", TextureRead, "read")
+    Cast, "cast", Abs, "abs", Neg, "neg", Add, "add", Multiply, "mul", Fma,
+    "fma", Min, "min", Max, "max", Clamp, "clamp", IsNan, "is_nan", Round,
+    "round", Floor, "floor", Ceil, "ceil", Trunc, "trunc", Reciprocal,
+    "reciprocal", Sin, "sin", Cos, "cos", Exp2, "exp2", Log2, "log2", Sqrt,
+    "sqrt", ReciprocalSqrt, "rsqrt", Not, "not", BitwiseNot, "bitwise_not",
+    BitwiseAnd, "bitwise_and", BitwiseOr, "bitwise_or", BitwiseXor,
+    "bitwise_xor", ShiftLeft, "shl", ShiftRight, "shr", CompareLess, "cmp_lt",
+    CompareLessOrEqual, "cmp_le", CompareGreater, "cmp_gt",
+    CompareGreaterOrEqual, "cmp_ge", CompareEqual, "cmp_eq", CompareNotEqual,
+    "cmp_ne", Select, "select", BeginIf, "begin_if", EndIf, "end_if", Branch,
+    "branch", BranchConditional, "branch_cond", VectorExtract, "vec_extract",
+    VectorInsert, "vec_insert", VectorConstruct, "vec_construct", TextureSample,
+    "tex_sample", TextureRead, "tex_read", TextureGather, "tex_gather",
+    TextureQueryDimension, "tex_query_dim", Exit, "exit", Discard, "discard")
 
 template <>
 struct fmt::formatter<

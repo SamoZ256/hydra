@@ -8,15 +8,15 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang::
 
 namespace {
 
-std::string component_to_str(TextureComponent component) {
+std::string component_to_str(u8 component) {
     switch (component) {
-    case TextureComponent::R:
+    case 0:
         return "x";
-    case TextureComponent::G:
+    case 1:
         return "y";
-    case TextureComponent::B:
+    case 2:
         return "z";
-    case TextureComponent::A:
+    case 3:
         return "w";
     default:
         return INVALID_VALUE;
@@ -276,8 +276,41 @@ void MslEmitter::EmitExitReturn() {
     WriteStatement("return __out");
 }
 
-void MslEmitter::EmitDiscard() { WriteStatement("discard_fragment()"); }
+// Math
+void MslEmitter::EmitIsNan(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "isnan({})", GetValueStr(src));
+}
 
+void MslEmitter::EmitReciprocal(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "(1.0 / {})", GetValueStr(src));
+}
+
+void MslEmitter::EmitSin(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "sin({})", GetValueStr(src));
+}
+
+void MslEmitter::EmitCos(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "cos({})", GetValueStr(src));
+}
+
+void MslEmitter::EmitExp2(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "exp2({})", GetValueStr(src));
+}
+
+void MslEmitter::EmitLog2(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "log2({})", GetValueStr(src));
+}
+
+void MslEmitter::EmitSqrt(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "sqrt({})", GetValueStr(src));
+}
+
+void MslEmitter::EmitReciprocalSqrt(const ir::Value& dst,
+                                    const ir::Value& src) {
+    StoreValue(dst, "rsqrt({})", GetValueStr(src));
+}
+
+// Texture
 void MslEmitter::EmitTextureSample(const ir::Value& dst, u32 const_buffer_index,
                                    const ir::Value& coords) {
     StoreValue(dst, "state.tex{}.sample(state.samplr{}, {})",
@@ -291,8 +324,7 @@ void MslEmitter::EmitTextureRead(const ir::Value& dst, u32 const_buffer_index,
 }
 
 void MslEmitter::EmitTextureGather(const ir::Value& dst, u32 const_buffer_index,
-                                   const ir::Value& coords,
-                                   TextureComponent component) {
+                                   const ir::Value& coords, u8 component) {
     StoreValue(dst,
                "state.tex{}.gather(state.samplr{}, {}, int2(0), component::{})",
                const_buffer_index, const_buffer_index, GetValueStr(coords),
@@ -305,6 +337,9 @@ void MslEmitter::EmitTextureQueryDimension(const ir::Value& dst,
     StoreValue(dst, "state.tex{}.get_{}()", const_buffer_index,
                dimension_to_str(dimension));
 }
+
+// Exit
+void MslEmitter::EmitDiscard() { WriteStatement("discard_fragment()"); }
 
 std::string MslEmitter::GetSvAccessQualifiedStr(const SvAccess& sv_access,
                                                 bool output) {

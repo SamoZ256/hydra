@@ -13,12 +13,17 @@ class Builder {
 
     // Operations
 
-    // Basic
+    // Data
     void OpCopy(const Value& dst, const Value& src) {
         AddInstructionWithDst(Opcode::Copy, dst, {src});
     }
+    Value OpCast(const Value& src, DataType dst_type) {
+        return AddInstruction(Opcode::Cast, {src, Value::RawValue(dst_type)});
+    }
+
+    // Arithmetic
+    Value OpAbs(const Value& src) { return AddInstruction(Opcode::Abs, {src}); }
     Value OpNeg(const Value& src) { return AddInstruction(Opcode::Neg, {src}); }
-    Value OpNot(const Value& src) { return AddInstruction(Opcode::Not, {src}); }
     Value OpAdd(const Value& srcA, const Value& srcB) {
         return AddInstruction(Opcode::Add, {srcA, srcB});
     }
@@ -28,46 +33,20 @@ class Builder {
     Value OpFma(const Value& srcA, const Value& srcB, const Value& srcC) {
         return AddInstruction(Opcode::Fma, {srcA, srcB, srcC});
     }
-    Value OpShiftLeft(const Value& src, u32 shift) {
-        return AddInstruction(Opcode::ShiftLeft, {src, Value::RawValue(shift)});
+    Value OpMin(const Value& srcA, const Value& srcB) {
+        return AddInstruction(Opcode::Min, {srcA, srcB});
     }
-    Value OpShiftRight(const Value& src, u32 shift) {
-        return AddInstruction(Opcode::ShiftRight,
-                              {src, Value::RawValue(shift)});
+    Value OpMax(const Value& srcA, const Value& srcB) {
+        return AddInstruction(Opcode::Max, {srcA, srcB});
     }
-    Value OpCast(const Value& src, DataType dst_type) {
-        return AddInstruction(Opcode::Cast, {src, Value::RawValue(dst_type)});
+    Value OpClamp(const Value& srcA, const Value& srcB, const Value& srcC) {
+        return AddInstruction(Opcode::Clamp, {srcA, srcB, srcC});
     }
-    Value OpCompare(ComparisonOp op, const Value& srcA, const Value& srcB) {
-        return AddInstruction(Opcode::Compare,
-                              {Value::RawValue(op), srcA, srcB});
-    }
-    Value OpBitwise(BitwiseOp op, const Value& srcA, const Value& srcB) {
-        return AddInstruction(Opcode::Bitwise,
-                              {Value::RawValue(op), srcA, srcB});
-    }
-    Value OpSelect(const Value& cond, const Value& src_true,
-                   const Value& src_false) {
-        return AddInstruction(Opcode::Select, {cond, src_true, src_false});
-    }
-
-    // Control flow
-    void OpBranch(label_t target) {
-        AddInstructionWithDst(Opcode::Branch, std::nullopt,
-                              {Value::Label(target)});
-    }
-    void OpBranchConditional(const Value& cond, label_t target_true,
-                             label_t target_false) {
-        AddInstructionWithDst(
-            Opcode::BranchConditional, std::nullopt,
-            {cond, Value::Label(target_true), Value::Label(target_false)});
-    }
-    void OpBeginIf(const Value& cond) {
-        AddInstructionWithDst(Opcode::BeginIf, std::nullopt, {cond});
-    }
-    void OpEndIf() { AddInstructionWithDst(Opcode::EndIf); }
 
     // Math
+    Value OpIsNan(const Value& src) {
+        return AddInstruction(Opcode::IsNan, {src});
+    }
     Value OpRound(const Value& src) {
         return AddInstruction(Opcode::Round, {src});
     }
@@ -80,18 +59,83 @@ class Builder {
     Value OpTrunc(const Value& src) {
         return AddInstruction(Opcode::Trunc, {src});
     }
-    Value OpMin(const Value& srcA, const Value& srcB) {
-        return AddInstruction(Opcode::Min, {srcA, srcB});
+    Value OpReciprocal(const Value& src) {
+        return AddInstruction(Opcode::Reciprocal, {src});
     }
-    Value OpMax(const Value& srcA, const Value& srcB) {
-        return AddInstruction(Opcode::Max, {srcA, srcB});
+    Value OpSin(const Value& src) { return AddInstruction(Opcode::Sin, {src}); }
+    Value OpCos(const Value& src) { return AddInstruction(Opcode::Cos, {src}); }
+    Value OpExp2(const Value& src) {
+        return AddInstruction(Opcode::Exp2, {src});
     }
-    Value OpClamp(const Value& srcA, const Value& srcB, const Value& srcC) {
-        return AddInstruction(Opcode::Clamp, {srcA, srcB, srcC});
+    Value OpLog2(const Value& src) {
+        return AddInstruction(Opcode::Log2, {src});
     }
-    Value OpMathFunction(MathFunc func, const Value& src) {
-        return AddInstruction(Opcode::MathFunction,
-                              {Value::RawValue(func), src});
+    Value OpSqrt(const Value& src) {
+        return AddInstruction(Opcode::Sqrt, {src});
+    }
+    Value OpReciprocalSqrt(const Value& src) {
+        return AddInstruction(Opcode::ReciprocalSqrt, {src});
+    }
+
+    // Logical & Bitwise
+    Value OpNot(const Value& src) { return AddInstruction(Opcode::Not, {src}); }
+    Value OpBitwiseNot(const Value& src) {
+        return AddInstruction(Opcode::BitwiseNot, {src});
+    }
+    Value OpBitwiseAnd(const Value& srcA, const Value& srcB) {
+        return AddInstruction(Opcode::BitwiseAnd, {srcA, srcB});
+    }
+    Value OpBitwiseOr(const Value& srcA, const Value& srcB) {
+        return AddInstruction(Opcode::BitwiseOr, {srcA, srcB});
+    }
+    Value OpBitwiseXor(const Value& srcA, const Value& srcB) {
+        return AddInstruction(Opcode::BitwiseXor, {srcA, srcB});
+    }
+    Value OpShiftLeft(const Value& src_a, const Value& src_b) {
+        return AddInstruction(Opcode::ShiftLeft, {src_a, src_b});
+    }
+    Value OpShiftRight(const Value& src_a, const Value& src_b) {
+        return AddInstruction(Opcode::ShiftRight, {src_a, src_b});
+    }
+
+    // Comparison & Selection
+    Value OpCompareLess(const Value& srcA, const Value& srcB) {
+        return AddInstruction(Opcode::CompareLess, {srcA, srcB});
+    }
+    Value OpCompareLessOrEqual(const Value& srcA, const Value& srcB) {
+        return AddInstruction(Opcode::CompareLessOrEqual, {srcA, srcB});
+    }
+    Value OpCompareGreater(const Value& srcA, const Value& srcB) {
+        return AddInstruction(Opcode::CompareGreater, {srcA, srcB});
+    }
+    Value OpCompareGreaterOrEqual(const Value& srcA, const Value& srcB) {
+        return AddInstruction(Opcode::CompareGreaterOrEqual, {srcA, srcB});
+    }
+    Value OpCompareEqual(const Value& srcA, const Value& srcB) {
+        return AddInstruction(Opcode::CompareEqual, {srcA, srcB});
+    }
+    Value OpCompareNotEqual(const Value& srcA, const Value& srcB) {
+        return AddInstruction(Opcode::CompareNotEqual, {srcA, srcB});
+    }
+    Value OpSelect(const Value& cond, const Value& src_true,
+                   const Value& src_false) {
+        return AddInstruction(Opcode::Select, {cond, src_true, src_false});
+    }
+
+    // Control flow
+    void OpBeginIf(const Value& cond) {
+        AddInstructionWithDst(Opcode::BeginIf, std::nullopt, {cond});
+    }
+    void OpEndIf() { AddInstructionWithDst(Opcode::EndIf); }
+    void OpBranch(label_t target) {
+        AddInstructionWithDst(Opcode::Branch, std::nullopt,
+                              {Value::Label(target)});
+    }
+    void OpBranchConditional(const Value& cond, label_t target_true,
+                             label_t target_false) {
+        AddInstructionWithDst(
+            Opcode::BranchConditional, std::nullopt,
+            {cond, Value::Label(target_true), Value::Label(target_false)});
     }
 
     // Vector
@@ -111,9 +155,7 @@ class Builder {
         return AddInstruction(Opcode::VectorConstruct, operands);
     }
 
-    // Special
-    void OpExit() { AddInstructionWithDst(Opcode::Exit); }
-    void OpDiscard() { AddInstructionWithDst(Opcode::Discard); }
+    // Texture
     Value OpTextureSample(u32 const_buffer_index, const Value& coords) {
         return AddInstruction(Opcode::TextureSample,
                               {Value::RawValue(const_buffer_index), coords});
@@ -123,7 +165,7 @@ class Builder {
                               {Value::RawValue(const_buffer_index), coords});
     }
     Value OpTextureGather(u32 const_buffer_index, const Value& coords,
-                          TextureComponent component) {
+                          u8 component) {
         return AddInstruction(Opcode::TextureGather,
                               {Value::RawValue(const_buffer_index), coords,
                                Value::RawValue(component)});
@@ -133,6 +175,10 @@ class Builder {
             Opcode::TextureQueryDimension,
             {Value::RawValue(const_buffer_index), Value::RawValue(dimension)});
     }
+
+    // Exit
+    void OpExit() { AddInstructionWithDst(Opcode::Exit); }
+    void OpDiscard() { AddInstructionWithDst(Opcode::Discard); }
 
   protected:
     Module& modul;

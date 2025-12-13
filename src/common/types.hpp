@@ -73,6 +73,25 @@ struct sized_ptr {
     GETTER(size, GetSize);
 };
 
+template <typename Underlying, typename T, u64 b, u64 count>
+class BitField {
+  public:
+    operator T() { return Get(); }
+
+    T Get() const {
+        return static_cast<T>(extract_bits<Underlying, b, count>(raw));
+    }
+
+  private:
+    Underlying raw;
+};
+
+template <typename T, u64 b, u64 count>
+using BitField32 = BitField<u32, T, b, count>;
+
+template <typename T, u64 b, u64 count>
+using BitField64 = BitField<u64, T, b, count>;
+
 template <typename T, u32 component_count>
 class vec {
   public:

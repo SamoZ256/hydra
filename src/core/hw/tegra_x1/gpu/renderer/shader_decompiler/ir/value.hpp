@@ -5,6 +5,7 @@
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir {
 
 enum class ValueType {
+    Undefined,
     RawValue,
     Immediate,
     Local,
@@ -17,6 +18,7 @@ enum class ValueType {
 
 class Value {
   public:
+    static Value Undefined() { return Value{ValueType::Undefined}; }
     template <typename T>
     static Value RawValue(const T raw_value) {
         return Value{ValueType::RawValue,
@@ -53,6 +55,8 @@ class Value {
             return false;
 
         switch (type) {
+        case ValueType::Undefined:
+            return true;
         case ValueType::RawValue:
             return raw_value == other.raw_value;
         case ValueType::Immediate:
@@ -135,10 +139,10 @@ class Value {
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir
 
 ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueType, RawValue,
-    "raw value", Immediate, "immediate", Register, "register", Predicate,
-    "predicate", AttrMemory, "attribute memory", ConstMemory, "constant memory",
-    Label, "label")
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueType, Undefined,
+    "undefined", RawValue, "raw value", Immediate, "immediate", Register,
+    "register", Predicate, "predicate", AttrMemory, "attribute memory",
+    ConstMemory, "constant memory", Label, "label")
 
 template <>
 struct fmt::formatter<
@@ -151,6 +155,10 @@ struct fmt::formatter<
            FormatContext& ctx) const {
         std::string str;
         switch (value.GetType()) {
+        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueType::
+            Undefined:
+            str = "undefined";
+            break;
         case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueType::
             RawValue:
             // TODO: figure out a better way to print this

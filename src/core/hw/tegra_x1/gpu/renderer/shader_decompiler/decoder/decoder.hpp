@@ -1,10 +1,6 @@
 #pragma once
 
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/ir/builder.hpp"
-
-namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir {
-class Builder;
-}
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/const.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder {
 
@@ -16,12 +12,6 @@ enum class BlockStatus {
 struct Block {
     BlockStatus status{BlockStatus::Unvisited};
     std::stack<label_t> sync_point_stack;
-};
-
-struct DecoderContext {
-    const DecompilerContext& decomp_context;
-    Reader code_reader;
-    ir::Builder& builder;
 };
 
 class Decoder {
@@ -44,7 +34,8 @@ class Decoder {
         context.code_reader.Seek(target * sizeof(instruction_t));
     }
     u32 GetPC() const {
-        return static_cast<u32>(context.code_reader.Tell() / sizeof(instruction_t));
+        return static_cast<u32>(context.code_reader.Tell() /
+                                sizeof(instruction_t));
     }
 
     void EndBlock() {

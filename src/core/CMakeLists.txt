@@ -478,7 +478,37 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/shader_decompiler/ir/block.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/ir/function.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/ir/builder.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/const.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/tables.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/move.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/move.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/conversion.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/conversion.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_arithmetic.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_arithmetic.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/half_arithmetic.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/half_arithmetic.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_arithmetic.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_arithmetic.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_min_max.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_min_max.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_logical.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_logical.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/comparison_helper.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_comparison.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_comparison.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_comparison.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_comparison.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/shift.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/shift.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/multifunction.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/multifunction.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/memory.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/memory.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/texture.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/texture.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/exit.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/exit.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/decoder.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/decoder.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.cpp
