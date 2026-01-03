@@ -10,7 +10,7 @@ ProcessManager::~ProcessManager() {
             LOG_FATAL(Kernel, "{} is still running", process->GetDebugName());
         } else {
             ASSERT(process->Release(), Kernel,
-                   "Attempting to destroy {}, which has active references",
+                   "Attempting to destroy {} which has active references",
                    process->GetDebugName());
         }
     }
@@ -28,7 +28,7 @@ void ProcessManager::DestroyProcess(Process* process) {
     processes.erase(std::remove(processes.begin(), processes.end(), process),
                     processes.end());
     ASSERT(process->Release(), Kernel,
-           "Attempting to destroy {}, which has active references",
+           "Attempting to destroy {} which has active references",
            process->GetDebugName());
 }
 

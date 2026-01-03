@@ -20,6 +20,10 @@ class EmulationContext {
 
     void SetSurface(void* surface) { gpu->GetRenderer().SetSurface(surface); }
 
+    enum class LoadAndStartError {
+        ProcessAlreadyExists,
+    };
+
     void LoadAndStart(horizon::loader::LoaderBase* loader);
     void RequestStop();
     void ForceStop();

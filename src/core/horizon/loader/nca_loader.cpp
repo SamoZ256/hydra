@@ -25,8 +25,9 @@ NcaLoader::NcaLoader(const filesystem::ContentArchive& content_archive_)
 
     delete stream;
 
-    ASSERT(meta.magic == make_magic4('M', 'E', 'T', 'A'), Loader,
-           "Invalid NPDM meta magic 0x{:08x}", meta.magic);
+    ASSERT_THROWING(meta.magic == make_magic4('M', 'E', 'T', 'A'), Loader,
+                    Error::InvalidNpdmMagic, "Invalid NPDM meta magic 0x{:08x}",
+                    meta.magic);
 
     // TODO: support 32-bit games
     if (!any(meta.flags & NpdmFlags::Is64BitInstruction)) {

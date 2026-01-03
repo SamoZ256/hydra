@@ -241,19 +241,23 @@ void UserManager::Deserialize(uuid_t user_id) {
     const auto header = stream.Read<HusrHeader>();
 
     // Validate
-    ASSERT(header.magic == HUSR_MAGIC, Horizon,
-           "Invalid HUSR magic 0x{:08x} for user {:032x}", header.magic,
-           user_id);
+    ASSERT_THROWING(
+        header.magic == HUSR_MAGIC, Horizon, Error::InvalidHusrMagic,
+        "Invalid HUSR magic 0x{:08x} for user {:032x}", header.magic, user_id);
     if (header.version < 2) {
-        LOG_WARN(Horizon, "Unsupported HUSR version {} for user {:032x}",
+        LOG_WARN(Horizon,
+                 "Unsupported HUSR version {} for user {:032x}, skipping",
                  header.version, user_id);
         return;
     }
-    ASSERT(header.version == CURRENT_HUSR_VERSION, Horizon,
-           "Invalid HUSR version {} for user {:032x}", header.version, user_id);
-    ASSERT(header.header_size == sizeof(HusrHeader), Horizon,
-           "Invalid HUSR header size 0x{:x} for user {:032x}",
-           header.header_size, user_id);
+    ASSERT_THROWING(header.version == CURRENT_HUSR_VERSION, Horizon,
+                    Error::InvalidHusrVersion,
+                    "Invalid HUSR version {} for user {:032x}", header.version,
+                    user_id);
+    ASSERT_THROWING(header.header_size == sizeof(HusrHeader), Horizon,
+                    Error::InvalidHusrHeaderSize,
+                    "Invalid HUSR header size 0x{:x} for user {:032x}",
+                    header.header_size, user_id);
 
     // Data
     const auto base = stream.Read<ProfileBase>();
@@ -287,7 +291,9 @@ void UserManager::PreloadAvatar(Avatar& avatar, bool is_compressed) {
 #define YAZ0_ASSERT(expr)                                                      \
     {                                                                          \
         const auto res = expr;                                                 \
-        ASSERT(res == YAZ0_OK, Services, #expr " failed: {}", res);            \
+        ASSERT_THROWING(res == YAZ0_OK, Services,                              \
+                        PreloadAvatarError::LoadImageFailed,                   \
+                        #expr " failed: {}", res);                             \
     }
         Yaz0Stream* yaz0;
         YAZ0_ASSERT(yaz0Init(&yaz0));
@@ -313,8 +319,9 @@ void UserManager::PreloadAvatar(Avatar& avatar, bool is_compressed) {
         }
 
         // TODO: crop the image if the dimensions don't match
-        ASSERT(width == height, Services,
-               "Avatar image is not a sqaure ({}x{})", width, height);
+        ASSERT_THROWING(width == height, Services,
+                        PreloadAvatarError::ImageNotASquare,
+                        "Avatar image is not a square ({}x{})", width, height);
         avatar.dimensions = static_cast<u32>(width);
 
         // TODO: avoid intermediate copy

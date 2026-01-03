@@ -103,13 +103,13 @@ class HomebrewThread : public kernel::GuestThread {
         {
             auto user_id_ptr =
                 reinterpret_cast<u128*>(state_ptr + USER_ID_STORAGE_OFFSET);
-            *user_id_ptr = CONFIG_INSTANCE.GetUserID();
+            *user_id_ptr = CONFIG_INSTANCE.GetUserId();
         }
 
         // Argv
         {
             std::string argv = fmt::format("\"{}\"", path);
-            for (const auto& arg : CONFIG_INSTANCE.GetProcessArgs().Get())
+            for (const auto& arg : CONFIG_INSTANCE.GetProcessArgs())
                 argv += fmt::format(" \"{}\"", arg);
 
             auto argv_ptr = reinterpret_cast<char*>(state_ptr + ARGV_OFFSET);

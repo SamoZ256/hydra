@@ -15,7 +15,6 @@ struct GeneralSettingsView: View {
             Spacer()
             Form {
                 Section("Game Paths") {
-                    // Text("Game paths")
                     EditablePathList(
                         allowedContentTypes: [.folder, self.switchType],
                         items: $globalState.gamePaths
@@ -30,7 +29,6 @@ struct GeneralSettingsView: View {
                 }
 
                 Section("Patch paths") {
-                    // Text("Patch paths")
                     EditablePathList(
                         allowedContentTypes: [.folder, self.hatchType], items: self.$patchPaths
                     )

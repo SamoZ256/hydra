@@ -6,6 +6,10 @@ namespace hydra::horizon::loader {
 
 class NroLoader : public LoaderBase {
   public:
+    enum class Error {
+        InvalidMagic,
+    };
+
     NroLoader(filesystem::IFile* file_, const bool is_entry_point_);
 
     void LoadProcess(kernel::Process* process) override;

@@ -12,6 +12,10 @@ struct Segment {
 
 class NsoLoader : public LoaderBase {
   public:
+    enum class Error {
+        InvalidMagic,
+    };
+
     NsoLoader(filesystem::IFile* file_, const std::string_view name_ = "main",
               const bool is_entry_point_ = true);
 

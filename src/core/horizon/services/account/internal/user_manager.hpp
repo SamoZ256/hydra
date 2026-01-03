@@ -13,6 +13,12 @@ struct Avatar {
 
 class UserManager {
   public:
+    enum class Error {
+        InvalidHusrMagic,
+        InvalidHusrVersion,
+        InvalidHusrHeaderSize,
+    };
+
     UserManager();
     ~UserManager() { Flush(); }
 
@@ -66,6 +72,10 @@ class UserManager {
     void Serialize(uuid_t user_id);
     void Deserialize(uuid_t user_id);
 
+    enum class PreloadAvatarError {
+        LoadImageFailed,
+        ImageNotASquare,
+    };
     void PreloadAvatar(Avatar& avatar, bool is_compressed);
 
   public:

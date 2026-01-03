@@ -81,9 +81,7 @@ struct GameListView: View {
 
     static func processUrl(games: inout [Game], url: URL) throws {
         // Check if the URL is a game
-        if url.pathExtension == "nro" || url.pathExtension == "nso" || url.pathExtension == "nca"
-            || url.pathExtension == "nx"
-        {
+        if url.pathExtension != "" {
             tryAddGame(games: &games, url: url)
             return
         }
@@ -111,16 +109,13 @@ struct GameListView: View {
     }
 
     static func tryAddGame(games: inout [Game], url: URL) {
-        // HACK
-        if url.lastPathComponent == "Makefile.nx" {
-            print("Ignoring Makefile.nx")
+        do {
+            let game = try Game(url: url)
+            games.append(game)
+        } catch {
+            // TODO: error popup
+            print("Failed to load game path \(url.path(percentEncoded: false)): \(error)")
             return
         }
-
-        guard let game = createGameFromPath(url: url) else {
-            return
-        }
-
-        games.append(game)
     }
 }

@@ -11,6 +11,10 @@ struct SparseStreamEntry {
 
 class SparseStream : public IStream {
   public:
+    enum class Error {
+        SeekOutOfBounds,
+    };
+
     // Entries must be sorted by offset
     SparseStream(const std::vector<SparseStreamEntry>& entries_, u64 size_)
         : entries{std::move(entries_)}, size{size_} {}
@@ -29,7 +33,8 @@ class SparseStream : public IStream {
 
     void ReadRaw(std::span<u8> buffer) override {
         while (!buffer.empty()) {
-            ASSERT_DEBUG(seek <= size, Common, "Seek out of bounds");
+            ASSERT_THROWING_DEBUG(seek <= size, Common, Error::SeekOutOfBounds,
+                                  "Seek out of bounds");
 
             const auto entry = GetEntry(seek);
             const auto max_read_size = std::min(
@@ -48,7 +53,8 @@ class SparseStream : public IStream {
 
     void WriteRaw(std::span<const u8> buffer) override {
         while (!buffer.empty()) {
-            ASSERT_DEBUG(seek <= size, Common, "Seek out of bounds");
+            ASSERT_THROWING_DEBUG(seek <= size, Common, Error::SeekOutOfBounds,
+                                  "Seek out of bounds");
 
             const auto entry = GetEntry(seek);
             const auto max_write_size = std::min(

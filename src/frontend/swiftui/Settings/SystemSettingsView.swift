@@ -16,57 +16,43 @@ struct SystemSettingsView: View {
             Spacer()
             Form {
                 #if os(macOS)
-                  Section("Paths") {
-                      // TODO: use file importers
-                      TextField("Firmware Path", text: $firmwarePath)
-                          .onChange(of: firmwarePath) { _, newValue in
-                              var firmwarePathOption = hydraConfigGetFirmwarePath()
-                              firmwarePathOption.value = newValue
-                          }
-                      TextField("SD Card Path", text: $sdCardPath)
-                          .onChange(of: sdCardPath) { _, newValue in
-                              var sdCardPathOption = hydraConfigGetSdCardPath()
-                              sdCardPathOption.value = newValue
-                          }
-                      TextField("Save Path", text: $savePath)
-                          .onChange(of: savePath) { _, newValue in
-                              var savePathOption = hydraConfigGetSavePath()
-                              savePathOption.value = newValue
-                          }
-                      TextField("Sysmodules Path", text: $sysmodulesPath)
-                          .onChange(of: sysmodulesPath) { _, newValue in
-                              var sysmodulesPathOption = hydraConfigGetSysmodulesPath()
-                              sysmodulesPathOption.value = newValue
-                          }
-                  }
+                    Section("Paths") {
+                        // TODO: use file importers
+                        TextField("Firmware Path", text: $firmwarePath)
+                            .onChange(of: firmwarePath) { _, newValue in
+                                hydraConfigSetFirmwarePath(newValue)
+                            }
+                        TextField("SD Card Path", text: $sdCardPath)
+                            .onChange(of: sdCardPath) { _, newValue in
+                                hydraConfigSetSdCardPath(newValue)
+                            }
+                        TextField("Save Path", text: $savePath)
+                            .onChange(of: savePath) { _, newValue in
+                                hydraConfigSetSavePath(newValue)
+                            }
+                        TextField("Sysmodules Path", text: $sysmodulesPath)
+                            .onChange(of: sysmodulesPath) { _, newValue in
+                                hydraConfigSetSysmodulesPath(newValue)
+                            }
+                    }
                 #else
-                  Section {
-
-                      Toggle("Handheld mode", isOn: self.$handheldMode)
-                          .onChange(of: self.handheldMode) { _, newValue in
-                              var handeldModeOption = hydraConfigGetHandheldMode()
-                              handeldModeOption.value = newValue
-                          }
-                  }
+                    Section {
+                        Toggle("Handheld mode", isOn: self.$handheldMode)
+                            .onChange(of: self.handheldMode) { _, newValue in
+                                hydraConfigGetHandheldMode().pointee = newValue
+                            }
+                    }
                 #endif
             }
             .formStyle(.grouped)
             .onAppear {
                 #if os(macOS)
-                    let firmwarePathOption = hydraConfigGetFirmwarePath()
-                    self.firmwarePath = firmwarePathOption.value
-
-                    let sdCardPathOption = hydraConfigGetSdCardPath()
-                    self.sdCardPath = sdCardPathOption.value
-
-                    let savePathOption = hydraConfigGetSavePath()
-                    self.savePath = savePathOption.value
-
-                    let sysmodulesPathOption = hydraConfigGetSysmodulesPath()
-                    self.sysmodulesPath = sysmodulesPathOption.value
+                    self.firmwarePath = hydraConfigGetFirmwarePath()
+                    self.sdCardPath = hydraConfigGetSdCardPath()
+                    self.savePath = hydraConfigGetSavePath()
+                    self.sysmodulesPath = hydraConfigGetSysmodulesPath()
                 #else
-                    let handeldModeOption = hydraConfigGetHandheldMode()
-                    self.handheldMode = handeldModeOption.value
+                    self.handheldMode = hydraConfigGetHandheldMode().pointee
                 #endif
             }
             Spacer()

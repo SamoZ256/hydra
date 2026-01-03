@@ -30,14 +30,12 @@ namespace hydra::horizon::filesystem {
 
 Filesystem::Filesystem() {
     // SD card
-    std::filesystem::create_directories(CONFIG_INSTANCE.GetSdCardPath().Get());
-    MountImpl(FS_SD_MOUNT,
-              new Directory(CONFIG_INSTANCE.GetSdCardPath().Get()));
+    std::filesystem::create_directories(CONFIG_INSTANCE.GetSdCardPath());
+    MountImpl(FS_SD_MOUNT, new Directory(CONFIG_INSTANCE.GetSdCardPath()));
 
     // Save
-    std::filesystem::create_directories(CONFIG_INSTANCE.GetSavePath().Get());
-    MountImpl(FS_SAVE_MOUNT,
-              new Directory(CONFIG_INSTANCE.GetSavePath().Get()));
+    std::filesystem::create_directories(CONFIG_INSTANCE.GetSavePath());
+    MountImpl(FS_SAVE_MOUNT, new Directory(CONFIG_INSTANCE.GetSavePath()));
 
     // Cache
     // TODO: support mounting to a real host path as well
@@ -80,14 +78,14 @@ FsResult Filesystem::CreateFile(const std::string_view path, usize size,
 
     // TODO: keep a list of host paths for each mount point instead
     if (mount == FS_SD_MOUNT) {
-        const auto host_path = fmt::format(
-            "{}{}", CONFIG_INSTANCE.GetSdCardPath().Get(), entry_path);
+        const auto host_path =
+            fmt::format("{}{}", CONFIG_INSTANCE.GetSdCardPath(), entry_path);
         auto file = new DiskFile(host_path, true);
         file->Resize(size);
         return AddEntry(path, file, add_intermediate);
     } else if (mount == FS_SAVE_MOUNT) {
-        const auto host_path = fmt::format(
-            "{}{}", CONFIG_INSTANCE.GetSavePath().Get(), entry_path);
+        const auto host_path =
+            fmt::format("{}{}", CONFIG_INSTANCE.GetSavePath(), entry_path);
         auto file = new DiskFile(host_path, true);
         file->Resize(size);
         return AddEntry(path, file, add_intermediate);

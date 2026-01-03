@@ -31,6 +31,10 @@ class DiskStream : public io::IostreamStream {
 
 class DiskFile : public IFile {
   public:
+    enum class InitError {
+        ImmutableFileDoesNotExist,
+    };
+
     DiskFile(const std::string_view path_, bool is_mutable_ = false);
     ~DiskFile() override;
 

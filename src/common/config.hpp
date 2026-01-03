@@ -51,68 +51,10 @@ enum class AudioBackend : u32 {
     Cubeb,
 };
 
-template <typename T, typename GetT>
-class _Option {
-  public:
-    _Option() {}
-    _Option(GetT value_) : value{value_} {}
-
-    operator GetT() const { return value; }
-    void operator=(GetT other) { value = other; }
-
-    GetT Get() const { return value; }
-    void Set(GetT other) { value = other; }
-
-  private:
-    T value;
+struct LoaderPlugin {
+    std::string path;
+    std::map<std::string, std::string> options;
 };
-
-template <typename T>
-using Option = _Option<T, T>;
-
-using StringOption = _Option<std::string, std::string_view>;
-
-template <typename T, typename GetT>
-class _ArrayOption {
-  public:
-    _ArrayOption() {}
-    _ArrayOption(const std::vector<T>& values_) : values{values_} {}
-
-    void operator=(const std::vector<T>& other) { values = other; }
-    GetT operator[](u32 index) const {
-        VerifyIndex(index);
-        return values[index];
-    }
-    T& operator[](u32 index) {
-        VerifyIndex(index);
-        return values[index];
-    }
-
-    const std::vector<T>& Get() const { return values; }
-    GetT Get(u32 index) const { return values[index]; }
-    usize GetCount() const { return values.size(); }
-
-    void Resize(u32 size) { values.resize(size); }
-    void Set(u32 index, GetT value) {
-        VerifyIndex(index);
-        values[index] = value;
-    }
-    void Append(GetT value) { values.push_back(T(value)); }
-
-  private:
-    std::vector<T> values;
-
-    // Helpers
-    inline void VerifyIndex(u32 index) const {
-        ASSERT(index < values.size(), Other, "Index ({}) out of range ({})",
-               index, values.size());
-    }
-};
-
-template <typename T>
-using ArrayOption = _ArrayOption<T, T>;
-
-using StringArrayOption = _ArrayOption<std::string, std::string_view>;
 
 class Config {
   public:
@@ -139,63 +81,39 @@ class Config {
         return fmt::format("{}/config.toml", app_data_path);
     }
 
-    // Getters
-    StringArrayOption& GetGamePaths() { return game_paths; }
-    StringArrayOption& GetPatchPaths() { return patch_paths; }
-    StringArrayOption& GetInputProfiles() { return input_profiles; }
-    Option<CpuBackend>& GetCpuBackend() { return cpu_backend; }
-    Option<GpuRenderer>& GetGpuRenderer() { return gpu_renderer; }
-    Option<ShaderBackend>& GetShaderBackend() { return shader_backend; }
-    Option<Resolution>& GetDisplayResolution() { return display_resolution; }
-    Option<uint2>& GetCustomDisplayResolution() {
-        return custom_display_resolution;
-    }
-    Option<AudioBackend>& GetAudioBackend() { return audio_backend; }
-    Option<uuid_t>& GetUserID() { return user_id; }
-    StringOption& GetFirmwarePath() { return firmware_path; }
-    StringOption& GetSdCardPath() { return sd_card_path; }
-    StringOption& GetSavePath() { return save_path; }
-    StringOption& GetSysmodulesPath() { return sysmodules_path; }
-    Option<bool>& GetHandheldMode() { return handheld_mode; }
-    Option<LogOutput>& GetLogOutput() { return log_output; }
-    Option<bool>& GetLogFsAccess() { return log_fs_access; }
-    Option<bool>& GetDebugLogging() { return debug_logging; }
-    StringArrayOption& GetProcessArgs() { return process_args; }
-    Option<bool>& GetGdbEnabled() { return gdb_enabled; }
-    Option<u16>& GetGdbPort() { return gdb_port; }
-    Option<bool>& GetGdbWaitForClient() { return gdb_wait_for_client; }
-
   private:
     std::string app_data_path;
     std::string logs_path;
     std::string pictures_path; // TODO: remove this
 
     // Config
-    StringArrayOption game_paths;
-    StringArrayOption patch_paths;
-    StringArrayOption input_profiles;
-    Option<CpuBackend> cpu_backend;
-    Option<GpuRenderer> gpu_renderer;
-    Option<ShaderBackend> shader_backend;
-    Option<Resolution> display_resolution;
-    Option<uint2> custom_display_resolution;
-    Option<AudioBackend> audio_backend;
-    Option<uuid_t> user_id;
-    StringOption firmware_path;
-    StringOption sd_card_path;
-    StringOption save_path;
-    StringOption sysmodules_path;
-    Option<bool> handheld_mode;
-    Option<LogOutput> log_output;
-    Option<bool> log_fs_access;
-    Option<bool> debug_logging;
-    StringArrayOption process_args;
-    Option<bool> gdb_enabled;
-    Option<u16> gdb_port;
-    Option<bool> gdb_wait_for_client;
+    std::vector<std::string> game_paths;
+    std::vector<LoaderPlugin> loader_plugins;
+    std::vector<std::string> patch_paths;
+    std::vector<std::string> input_profiles;
+    CpuBackend cpu_backend;
+    GpuRenderer gpu_renderer;
+    ShaderBackend shader_backend;
+    Resolution display_resolution;
+    uint2 custom_display_resolution;
+    AudioBackend audio_backend;
+    uuid_t user_id;
+    std::string firmware_path;
+    std::string sd_card_path;
+    std::string save_path;
+    std::string sysmodules_path;
+    bool handheld_mode;
+    LogOutput log_output;
+    bool log_fs_access;
+    bool debug_logging;
+    std::vector<std::string> process_args;
+    bool gdb_enabled;
+    u16 gdb_port;
+    bool gdb_wait_for_client;
 
     // Default values
     std::vector<std::string> GetDefaultGamePaths() const { return {}; }
+    std::vector<LoaderPlugin> GetDefaultLoaderPlugins() const { return {}; }
     std::vector<std::string> GetDefaultPatchPaths() const { return {}; }
     std::vector<std::string> GetDefaultInputProfiles() const {
         return {"Default", "", "", "", "", "", "", "", ""};
@@ -239,30 +157,34 @@ class Config {
     bool GetDefaultGdbEnabled() const { return false; }
     u16 GetDefaultGdbPort() const { return 1234; }
     bool GetDefaultGdbWaitForClient() const { return false; }
+
+  public:
+    REF_GETTER(game_paths, GetGamePaths);
+    REF_GETTER(loader_plugins, GetLoaderPlugins);
+    REF_GETTER(patch_paths, GetPatchPaths);
+    REF_GETTER(input_profiles, GetInputProfiles);
+    REF_GETTER(cpu_backend, GetCpuBackend);
+    REF_GETTER(gpu_renderer, GetGpuRenderer);
+    REF_GETTER(shader_backend, GetShaderBackend);
+    REF_GETTER(display_resolution, GetDisplayResolution);
+    REF_GETTER(custom_display_resolution, GetCustomDisplayResolution);
+    REF_GETTER(audio_backend, GetAudioBackend);
+    REF_GETTER(user_id, GetUserId);
+    REF_GETTER(firmware_path, GetFirmwarePath);
+    REF_GETTER(sd_card_path, GetSdCardPath);
+    REF_GETTER(save_path, GetSavePath);
+    REF_GETTER(sysmodules_path, GetSysmodulesPath);
+    REF_GETTER(handheld_mode, GetHandheldMode);
+    REF_GETTER(log_output, GetLogOutput);
+    REF_GETTER(log_fs_access, GetLogFsAccess);
+    REF_GETTER(debug_logging, GetDebugLogging);
+    REF_GETTER(process_args, GetProcessArgs);
+    REF_GETTER(gdb_enabled, GetGdbEnabled);
+    REF_GETTER(gdb_port, GetGdbPort);
+    REF_GETTER(gdb_wait_for_client, GetGdbWaitForClient);
 };
 
 } // namespace hydra
-
-template <typename T, typename GetT>
-struct fmt::formatter<hydra::_Option<T, GetT>> : formatter<string_view> {
-    template <typename FormatContext>
-    auto format(const hydra::_Option<T, GetT>& option,
-                FormatContext& ctx) const {
-        return formatter<string_view>::format(fmt::format("{}", option.Get()),
-                                              ctx);
-    }
-};
-
-template <typename T, typename GetT>
-struct fmt::formatter<hydra::_ArrayOption<T, GetT>> : formatter<string_view> {
-    template <typename FormatContext>
-    auto format(const hydra::_ArrayOption<T, GetT>& option,
-                FormatContext& ctx) const {
-        // TODO: simplify
-        return formatter<string_view>::format(
-            fmt::format("{}", fmt::join(option.Get(), ", ")), ctx);
-    }
-};
 
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, CpuBackend, cpu_backend,
                                    AppleHypervisor, "Apple Hypervisor",

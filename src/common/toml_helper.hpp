@@ -40,9 +40,9 @@
     ENABLE_ENUM_FORMATTING_AND_CASTING(namespc, e, e_lower_case, __VA_ARGS__)  \
     TOML11_DEFINE_CONVERSION_ENUM(namespc::e, __VA_ARGS__)
 
-#define STRUCT_DEFAULT_FMT_CASE(member, name) member, "", name,
+#define STRUCT_DEFAULT_FMT_CASE(member) member, "", #member,
 
 #define ENABLE_STRUCT_FORMATTING_AND_TOML11(s, ...)                            \
     ENABLE_STRUCT_FORMATTING(                                                  \
-        s, FOR_EACH_0_2(STRUCT_DEFAULT_FMT_CASE, __VA_ARGS__))                 \
+        s, FOR_EACH_0_1(STRUCT_DEFAULT_FMT_CASE, __VA_ARGS__))                 \
     TOML11_DEFINE_CONVERSION_NON_INTRUSIVE(s, __VA_ARGS__)

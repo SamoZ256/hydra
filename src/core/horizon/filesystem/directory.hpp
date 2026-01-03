@@ -8,12 +8,17 @@ class IFile;
 
 class Directory : public IEntry {
   public:
+    enum class InitError {
+        NotADirectory,
+    };
+
     Directory() = default;
     Directory(const std::string_view host_path);
     ~Directory() override;
 
     bool IsDirectory() const override { return true; }
 
+    // TODO: use exceptions
     [[nodiscard]] FsResult Delete(bool recursive = false) override;
 
     [[nodiscard]] FsResult AddEntry(const std::string_view path, IEntry* entry,

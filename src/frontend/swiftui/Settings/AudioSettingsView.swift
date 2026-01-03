@@ -16,15 +16,13 @@ struct AudioSettingsView: View {
                             .tag(HYDRA_AUDIO_BACKEND_CUBEB.rawValue)
                     }
                     .onChange(of: self.audioBackend.rawValue) { _, newValue in
-                        var audioBackendOption = hydraConfigGetAudioBackend()
-                        audioBackendOption.value = newValue
+                        hydraConfigGetAudioBackend().pointee = newValue
                     }
                 }
             }
             .formStyle(.grouped)
             .onAppear {
-                let audioBackendOption = hydraConfigGetAudioBackend()
-                self.audioBackend.rawValue = audioBackendOption.value
+                self.audioBackend.rawValue = hydraConfigGetAudioBackend().pointee
             }
             Spacer()
         }

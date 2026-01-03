@@ -133,7 +133,7 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     try_install_firmware_to_filesystem(kernel.GetFilesystem());
 
     // Sysmodules
-    const auto& sysmodules_path = CONFIG_INSTANCE.GetSysmodulesPath().Get();
+    const auto& sysmodules_path = CONFIG_INSTANCE.GetSysmodulesPath();
     if (std::filesystem::exists(sysmodules_path)) {
         auto res = KERNEL_INSTANCE.GetFilesystem().AddEntry(
             FS_SYSMODULES_PATH, sysmodules_path, true);
@@ -364,10 +364,10 @@ void OS::SetSurfaceResolution(uint2 resolution) {
 }
 
 uint2 OS::GetDisplayResolution() const {
-    if (CONFIG_INSTANCE.GetHandheldMode().Get()) {
+    if (CONFIG_INSTANCE.GetHandheldMode()) {
         return {1280, 720}; // Handheld display resolution is fixed
     } else {
-        switch (CONFIG_INSTANCE.GetDisplayResolution().Get()) {
+        switch (CONFIG_INSTANCE.GetDisplayResolution()) {
         case Resolution::Auto:
             return round_up_to_nearest_standard_resolution(surface_resolution);
         case Resolution::_720p:
@@ -383,7 +383,7 @@ uint2 OS::GetDisplayResolution() const {
         case Resolution::AutoExact:
             return surface_resolution;
         case Resolution::Custom:
-            return CONFIG_INSTANCE.GetCustomDisplayResolution().Get();
+            return CONFIG_INSTANCE.GetCustomDisplayResolution();
         default:
             unreachable();
         }

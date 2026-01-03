@@ -51,7 +51,6 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/helpers/HoverView.swift
         swiftui/helpers/ClickableListItem.swift
         swiftui/helpers/RawImage.swift
-        swiftui/helpers/GameLoader.swift
         swiftui/settings/GeneralSettingsView.swift
         swiftui/settings/CpuSettingsView.swift
         swiftui/settings/GraphicsSettingsView.swift

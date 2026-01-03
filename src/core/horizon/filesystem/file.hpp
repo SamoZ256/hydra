@@ -14,7 +14,10 @@ class IFile : public IEntry {
         return FsResult::Success;
     }
 
-    virtual void Resize(usize new_size) = 0;
+    virtual void Resize(usize new_size) {
+        LOG_FATAL(Filesystem, "File cannot be resized (size: 0x{:x})",
+                  new_size);
+    }
     virtual void Flush() {}
 
     virtual io::IStream* Open(FileOpenFlags flags) = 0;
@@ -22,7 +25,9 @@ class IFile : public IEntry {
     virtual usize GetSize() = 0;
 
   protected:
-    virtual void DeleteImpl() = 0;
+    virtual void DeleteImpl() {
+        LOG_FATAL(Filesystem, "File cannot be deleted");
+    }
 };
 
 } // namespace hydra::horizon::filesystem

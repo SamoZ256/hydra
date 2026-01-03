@@ -46,16 +46,14 @@ struct MenuCommands: Commands {
             }
             Button("Switch to \(self.handheldMode ? "Console" : "Handheld") mode") {
                 self.handheldMode = !self.handheldMode
-                var handheldModeOption = hydraConfigGetHandheldMode()
-                handheldModeOption.value = self.handheldMode
+                hydraConfigGetHandheldMode().pointee = self.handheldMode
 
                 guard let emulationContext = globalState.emulationContext else { return }
                 emulationContext.notifyOperationModeChanged()
             }
             .keyboardShortcut(KeyEquivalent("o"), modifiers: .command)
             .onAppear {
-                let handheldModeOption = hydraConfigGetHandheldMode()
-                self.handheldMode = handheldModeOption.value
+                self.handheldMode = hydraConfigGetHandheldMode().pointee
             }
         }
 
@@ -74,8 +72,7 @@ struct MenuCommands: Commands {
     }
 
     func loadFirmware() {
-        let firmwarePathOption = hydraConfigGetFirmwarePath()
-        let firmwarePath = firmwarePathOption.value
+        let firmwarePath = hydraConfigGetFirmwarePath()
         if firmwarePath == "" {
             return
         }

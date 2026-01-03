@@ -7,7 +7,7 @@
 namespace hydra::horizon {
 
 void try_install_firmware_to_filesystem(filesystem::Filesystem& fs) {
-    const auto& firmware_path = CONFIG_INSTANCE.GetFirmwarePath().Get();
+    const auto& firmware_path = CONFIG_INSTANCE.GetFirmwarePath();
     if (!std::filesystem::exists(firmware_path)) {
         LOG_WARN(Horizon, "Firmware path does not exist");
         return;

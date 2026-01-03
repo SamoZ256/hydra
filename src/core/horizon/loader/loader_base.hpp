@@ -8,6 +8,10 @@ namespace hydra::horizon::loader {
 
 class LoaderBase {
   public:
+    enum class CreateFromPathError {
+        DoesNotExist,
+        UnsupportedExtension,
+    };
     static LoaderBase* CreateFromPath(std::string_view path);
 
     virtual ~LoaderBase() = default;
@@ -15,6 +19,9 @@ class LoaderBase {
     virtual u64 GetTitleID() const { return invalid<u64>(); }
 
     virtual void LoadProcess(kernel::Process* process) = 0;
+    enum class LoadNacpError {
+        InvalidSize,
+    };
     horizon::services::ns::ApplicationControlProperty* LoadNacp();
     uchar4* LoadIcon(u32& out_width, u32& out_height);
     uchar4* LoadNintendoLogo(u32& out_width, u32& out_height);

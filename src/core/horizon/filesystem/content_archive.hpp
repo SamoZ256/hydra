@@ -16,6 +16,11 @@ enum class ContentArchiveContentType : u8 {
 
 class ContentArchive final : public Directory {
   public:
+    enum class Error {
+        InvalidMagic,
+        UnsupportedHashType,
+    };
+
     ContentArchive(IFile* file);
 
   private:

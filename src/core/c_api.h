@@ -125,34 +125,12 @@ typedef enum : uint32_t {
     HYDRA_DEBUGGER_THREAD_STATUS_BREAK,
 } HydraDebuggerThreadStatus;
 
-// Options
-bool hydra_bool_option_get(const void* option);
-void hydra_bool_option_set(void* option, const bool value);
-
-uint16_t hydra_u16_option_get(const void* option);
-void hydra_u16_option_set(void* option, const uint16_t value);
-
-int32_t hydra_i32_option_get(const void* option);
-void hydra_i32_option_set(void* option, const int32_t value);
-
-uint32_t hydra_u32_option_get(const void* option);
-void hydra_u32_option_set(void* option, const uint32_t value);
-
-hydra_u128 hydra_u128_option_get(const void* option);
-void hydra_u128_option_set(void* option, const hydra_u128 value);
-
-hydra_string hydra_string_option_get(const void* option);
-void hydra_string_option_set(void* option, hydra_string value);
-
-uint32_t hydra_string_array_option_get_count(const void* option);
-hydra_string hydra_string_array_option_get(const void* option, uint32_t index);
-void hydra_string_array_option_resize(void* option, uint32_t size);
-void hydra_string_array_option_set(void* option, uint32_t index,
-                                   hydra_string value);
-void hydra_string_array_option_append(void* option, hydra_string value);
-
-hydra_uint2 hydra_uint2_option_get(const void* option);
-void hydra_uint2_option_set(void* option, const hydra_uint2 value);
+// List
+uint32_t hydra_string_list_get_count(const void* list);
+hydra_string hydra_string_list_get(const void* list, uint32_t index);
+void hydra_string_list_resize(void* list, uint32_t size);
+void hydra_string_list_set(void* list, uint32_t index, hydra_string value);
+void hydra_string_list_append(void* list, hydra_string value);
 
 // Config
 void hydra_config_serialize();
@@ -161,26 +139,32 @@ void hydra_config_deserialize();
 hydra_string hydra_config_get_app_data_path();
 
 void* hydra_config_get_game_paths();
+// TODO: loader plug-ins
 void* hydra_config_get_patch_paths();
-void* hydra_config_get_cpu_backend();
-void* hydra_config_get_gpu_renderer();
-void* hydra_config_get_shader_backend();
-void* hydra_config_get_display_resolution();
-void* hydra_config_get_custom_display_resolution();
-void* hydra_config_get_audio_backend();
-void* hydra_config_get_user_id();
-void* hydra_config_get_firmware_path();
-void* hydra_config_get_sd_card_path();
-void* hydra_config_get_save_path();
-void* hydra_config_get_sysmodules_path();
-void* hydra_config_get_handheld_mode();
-void* hydra_config_get_log_output();
-void* hydra_config_get_log_fs_access();
-void* hydra_config_get_debug_logging();
+void* hydra_config_get_input_profiles();
+uint32_t* hydra_config_get_cpu_backend();
+uint32_t* hydra_config_get_gpu_renderer();
+uint32_t* hydra_config_get_shader_backend();
+uint32_t* hydra_config_get_display_resolution();
+hydra_uint2* hydra_config_get_custom_display_resolution();
+uint32_t* hydra_config_get_audio_backend();
+hydra_u128* hydra_config_get_user_id();
+hydra_string hydra_config_get_firmware_path();
+void hydra_config_set_firmware_path(hydra_string value);
+hydra_string hydra_config_get_sd_card_path();
+void hydra_config_set_sd_card_path(hydra_string value);
+hydra_string hydra_config_get_save_path();
+void hydra_config_set_save_path(hydra_string value);
+hydra_string hydra_config_get_sysmodules_path();
+void hydra_config_set_sysmodules_path(hydra_string value);
+bool* hydra_config_get_handheld_mode();
+uint32_t* hydra_config_get_log_output();
+bool* hydra_config_get_log_fs_access();
+bool* hydra_config_get_debug_logging();
 void* hydra_config_get_process_args();
-void* hydra_config_get_gdb_enabled();
-void* hydra_config_get_gdb_port();
-void* hydra_config_get_gdb_wait_for_client();
+bool* hydra_config_get_gdb_enabled();
+uint16_t* hydra_config_get_gdb_port();
+bool* hydra_config_get_gdb_wait_for_client();
 
 // Filesystem
 void* hydra_create_filesystem();

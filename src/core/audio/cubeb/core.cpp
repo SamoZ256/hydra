@@ -6,8 +6,8 @@ namespace hydra::audio::cubeb {
 
 Core::Core() {
     const auto res = cubeb_init(&context, "Hydra", nullptr);
-    ASSERT(res == CUBEB_OK, Cubeb, "Failed to initialize cubeb context: {}",
-           res);
+    ASSERT_THROWING(res == CUBEB_OK, Cubeb, Error::InitializationFailed,
+                    "Failed to initialize cubeb context: {}", res);
 }
 
 IStream*

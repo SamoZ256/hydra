@@ -35,6 +35,10 @@ struct PfsHeader {
 
 class PartitionFilesystem final : public Directory {
   public:
+    enum class Error {
+        InvalidMagic,
+    };
+
     // HACK: need to use a method instead of a constructor, since we have a
     // template parameter
     template <bool is_hfs>
@@ -44,11 +48,13 @@ class PartitionFilesystem final : public Directory {
         // Header
         const auto header = stream->Read<PfsHeader>();
         if (!is_hfs) {
-            ASSERT(header.magic == make_magic4('P', 'F', 'S', '0'), Filesystem,
-                   "Invalid PFS0 magic 0x{:08x}", header.magic);
+            ASSERT_THROWING(header.magic == make_magic4('P', 'F', 'S', '0'),
+                            Filesystem, Error::InvalidMagic,
+                            "Invalid PFS0 magic 0x{:08x}", header.magic);
         } else {
-            ASSERT(header.magic == make_magic4('H', 'F', 'S', '0'), Filesystem,
-                   "Invalid HFS0 magic 0x{:08x}", header.magic);
+            ASSERT_THROWING(header.magic == make_magic4('H', 'F', 'S', '0'),
+                            Filesystem, Error::InvalidMagic,
+                            "Invalid HFS0 magic 0x{:08x}", header.magic);
         }
 
         using EntryType = std::conditional_t<is_hfs, HfsEntry, PfsEntry>;

@@ -24,96 +24,30 @@ std::string_view string_view_from_hydra_string(hydra_string str) {
 } // namespace
 
 // Options
-HYDRA_EXPORT bool hydra_bool_option_get(const void* option) {
-    return reinterpret_cast<const hydra::Option<bool>*>(option)->Get();
-}
-
-HYDRA_EXPORT void hydra_bool_option_set(void* option, const bool value) {
-    reinterpret_cast<hydra::Option<bool>*>(option)->Set(value);
-}
-
-HYDRA_EXPORT uint16_t hydra_u16_option_get(const void* option) {
-    return reinterpret_cast<const hydra::Option<hydra::u16>*>(option)->Get();
-}
-
-HYDRA_EXPORT void hydra_u16_option_set(void* option, const uint16_t value) {
-    reinterpret_cast<hydra::Option<hydra::u16>*>(option)->Set(value);
-}
-
-HYDRA_EXPORT int32_t hydra_i32_option_get(const void* option) {
-    return reinterpret_cast<const hydra::Option<hydra::i32>*>(option)->Get();
-}
-
-HYDRA_EXPORT void hydra_i32_option_set(void* option, const int32_t value) {
-    reinterpret_cast<hydra::Option<hydra::i32>*>(option)->Set(value);
-}
-
-HYDRA_EXPORT uint32_t hydra_u32_option_get(const void* option) {
-    return reinterpret_cast<const hydra::Option<hydra::u32>*>(option)->Get();
-}
-
-HYDRA_EXPORT void hydra_u32_option_set(void* option, const uint32_t value) {
-    reinterpret_cast<hydra::Option<hydra::u32>*>(option)->Set(value);
-}
-
-HYDRA_EXPORT hydra_u128 hydra_u128_option_get(const void* option) {
-    return std::bit_cast<hydra_u128>(
-        reinterpret_cast<const hydra::Option<hydra::u128>*>(option)->Get());
-}
-
-HYDRA_EXPORT void hydra_u128_option_set(void* option, const hydra_u128 value) {
-    reinterpret_cast<hydra::Option<hydra::u128>*>(option)->Set(
-        std::bit_cast<hydra::u128>(value));
-}
-
-HYDRA_EXPORT hydra_string hydra_string_option_get(const void* option) {
-    return hydra_string_from_string_view(
-        reinterpret_cast<const hydra::StringOption*>(option)->Get());
-}
-
-HYDRA_EXPORT void hydra_string_option_set(void* option, hydra_string value) {
-    reinterpret_cast<hydra::StringOption*>(option)->Set(
-        string_view_from_hydra_string(value));
-}
-
-HYDRA_EXPORT uint32_t hydra_string_array_option_get_count(const void* option) {
+HYDRA_EXPORT uint32_t hydra_string_list_get_count(const void* list) {
     return static_cast<uint32_t>(
-        reinterpret_cast<const hydra::StringArrayOption*>(option)->GetCount());
+        reinterpret_cast<const std::vector<std::string>*>(list)->size());
 }
 
-HYDRA_EXPORT hydra_string hydra_string_array_option_get(const void* option,
-                                                        uint32_t index) {
+HYDRA_EXPORT hydra_string hydra_string_list_get(const void* list,
+                                                uint32_t index) {
     return hydra_string_from_string_view(
-        reinterpret_cast<const hydra::StringArrayOption*>(option)->Get(index));
+        reinterpret_cast<const std::vector<std::string>*>(list)->at(index));
 }
 
-HYDRA_EXPORT void hydra_string_array_option_resize(void* option,
-                                                   uint32_t size) {
-    reinterpret_cast<hydra::StringArrayOption*>(option)->Resize(size);
+HYDRA_EXPORT void hydra_string_list_resize(void* list, uint32_t size) {
+    reinterpret_cast<std::vector<std::string>*>(list)->resize(size);
 }
 
-HYDRA_EXPORT void hydra_string_array_option_set(void* option, uint32_t index,
-                                                hydra_string value) {
-    reinterpret_cast<hydra::StringArrayOption*>(option)->Set(
-        index, string_view_from_hydra_string(value));
+HYDRA_EXPORT void hydra_string_list_set(void* list, uint32_t index,
+                                        hydra_string value) {
+    (*reinterpret_cast<std::vector<std::string>*>(list))[index] =
+        string_view_from_hydra_string(value);
 }
 
-HYDRA_EXPORT void hydra_string_array_option_append(void* option,
-                                                   hydra_string value) {
-    reinterpret_cast<hydra::StringArrayOption*>(option)->Append(
-        string_view_from_hydra_string(value));
-}
-
-HYDRA_EXPORT hydra_uint2 hydra_uint2_option_get(const void* option) {
-    const auto value =
-        reinterpret_cast<const hydra::Option<hydra::uint2>*>(option)->Get();
-    return {value.x(), value.y()};
-}
-
-HYDRA_EXPORT void hydra_uint2_option_set(void* option,
-                                         const hydra_uint2 value) {
-    reinterpret_cast<hydra::Option<hydra::uint2>*>(option)->Set(
-        {value.x, value.y});
+HYDRA_EXPORT void hydra_string_list_append(void* list, hydra_string value) {
+    reinterpret_cast<std::vector<std::string>*>(list)->push_back(
+        std::string(string_view_from_hydra_string(value)));
 }
 
 // Config
@@ -138,63 +72,94 @@ HYDRA_EXPORT void* hydra_config_get_patch_paths() {
     return &hydra::CONFIG_INSTANCE.GetPatchPaths();
 }
 
-HYDRA_EXPORT void* hydra_config_get_cpu_backend() {
-    return &hydra::CONFIG_INSTANCE.GetCpuBackend();
+HYDRA_EXPORT void* hydra_config_get_input_profiles() {
+    return &hydra::CONFIG_INSTANCE.GetInputProfiles();
 }
 
-HYDRA_EXPORT void* hydra_config_get_gpu_renderer() {
-    return &hydra::CONFIG_INSTANCE.GetGpuRenderer();
+HYDRA_EXPORT uint32_t* hydra_config_get_cpu_backend() {
+    return reinterpret_cast<uint32_t*>(&hydra::CONFIG_INSTANCE.GetCpuBackend());
 }
 
-HYDRA_EXPORT void* hydra_config_get_shader_backend() {
-    return &hydra::CONFIG_INSTANCE.GetShaderBackend();
+HYDRA_EXPORT uint32_t* hydra_config_get_gpu_renderer() {
+    return reinterpret_cast<uint32_t*>(
+        &hydra::CONFIG_INSTANCE.GetGpuRenderer());
 }
 
-HYDRA_EXPORT void* hydra_config_get_display_resolution() {
-    return &hydra::CONFIG_INSTANCE.GetDisplayResolution();
+HYDRA_EXPORT uint32_t* hydra_config_get_shader_backend() {
+    return reinterpret_cast<uint32_t*>(
+        &hydra::CONFIG_INSTANCE.GetShaderBackend());
 }
 
-HYDRA_EXPORT void* hydra_config_get_custom_display_resolution() {
-    return &hydra::CONFIG_INSTANCE.GetCustomDisplayResolution();
+HYDRA_EXPORT uint32_t* hydra_config_get_display_resolution() {
+    return reinterpret_cast<uint32_t*>(
+        &hydra::CONFIG_INSTANCE.GetDisplayResolution());
 }
 
-HYDRA_EXPORT void* hydra_config_get_audio_backend() {
-    return &hydra::CONFIG_INSTANCE.GetAudioBackend();
+HYDRA_EXPORT hydra_uint2* hydra_config_get_custom_display_resolution() {
+    return reinterpret_cast<hydra_uint2*>(
+        &hydra::CONFIG_INSTANCE.GetCustomDisplayResolution());
 }
 
-HYDRA_EXPORT void* hydra_config_get_user_id() {
-    return &hydra::CONFIG_INSTANCE.GetUserID();
+HYDRA_EXPORT uint32_t* hydra_config_get_audio_backend() {
+    return reinterpret_cast<uint32_t*>(
+        &hydra::CONFIG_INSTANCE.GetAudioBackend());
 }
 
-HYDRA_EXPORT void* hydra_config_get_firmware_path() {
-    return &hydra::CONFIG_INSTANCE.GetFirmwarePath();
+HYDRA_EXPORT hydra_u128* hydra_config_get_user_id() {
+    return reinterpret_cast<hydra_u128*>(&hydra::CONFIG_INSTANCE.GetUserId());
 }
 
-HYDRA_EXPORT void* hydra_config_get_sd_card_path() {
-    return &hydra::CONFIG_INSTANCE.GetSdCardPath();
+HYDRA_EXPORT hydra_string hydra_config_get_firmware_path() {
+    return hydra_string_from_string_view(
+        hydra::CONFIG_INSTANCE.GetFirmwarePath());
 }
 
-HYDRA_EXPORT void* hydra_config_get_save_path() {
-    return &hydra::CONFIG_INSTANCE.GetSavePath();
+HYDRA_EXPORT void hydra_config_set_firmware_path(hydra_string value) {
+    hydra::CONFIG_INSTANCE.GetFirmwarePath() =
+        string_view_from_hydra_string(value);
 }
 
-HYDRA_EXPORT void* hydra_config_get_sysmodules_path() {
-    return &hydra::CONFIG_INSTANCE.GetSysmodulesPath();
+HYDRA_EXPORT hydra_string hydra_config_get_sd_card_path() {
+    return hydra_string_from_string_view(
+        hydra::CONFIG_INSTANCE.GetSdCardPath());
 }
 
-HYDRA_EXPORT void* hydra_config_get_handheld_mode() {
+HYDRA_EXPORT void hydra_config_set_sd_card_path(hydra_string value) {
+    hydra::CONFIG_INSTANCE.GetSdCardPath() =
+        string_view_from_hydra_string(value);
+}
+
+HYDRA_EXPORT hydra_string hydra_config_get_save_path() {
+    return hydra_string_from_string_view(hydra::CONFIG_INSTANCE.GetSavePath());
+}
+
+HYDRA_EXPORT void hydra_config_set_save_path(hydra_string value) {
+    hydra::CONFIG_INSTANCE.GetSavePath() = string_view_from_hydra_string(value);
+}
+
+HYDRA_EXPORT hydra_string hydra_config_get_sysmodules_path() {
+    return hydra_string_from_string_view(
+        hydra::CONFIG_INSTANCE.GetSysmodulesPath());
+}
+
+HYDRA_EXPORT void hydra_config_set_sysmodules_path(hydra_string value) {
+    hydra::CONFIG_INSTANCE.GetSysmodulesPath() =
+        string_view_from_hydra_string(value);
+}
+
+HYDRA_EXPORT bool* hydra_config_get_handheld_mode() {
     return &hydra::CONFIG_INSTANCE.GetHandheldMode();
 }
 
-HYDRA_EXPORT void* hydra_config_get_log_output() {
-    return &hydra::CONFIG_INSTANCE.GetLogOutput();
+HYDRA_EXPORT uint32_t* hydra_config_get_log_output() {
+    return reinterpret_cast<uint32_t*>(&hydra::CONFIG_INSTANCE.GetLogOutput());
 }
 
-HYDRA_EXPORT void* hydra_config_get_log_fs_access() {
+HYDRA_EXPORT bool* hydra_config_get_log_fs_access() {
     return &hydra::CONFIG_INSTANCE.GetLogFsAccess();
 }
 
-HYDRA_EXPORT void* hydra_config_get_debug_logging() {
+HYDRA_EXPORT bool* hydra_config_get_debug_logging() {
     return &hydra::CONFIG_INSTANCE.GetDebugLogging();
 }
 
@@ -202,15 +167,15 @@ HYDRA_EXPORT void* hydra_config_get_process_args() {
     return &hydra::CONFIG_INSTANCE.GetProcessArgs();
 }
 
-HYDRA_EXPORT void* hydra_config_get_gdb_enabled() {
+HYDRA_EXPORT bool* hydra_config_get_gdb_enabled() {
     return &hydra::CONFIG_INSTANCE.GetGdbEnabled();
 }
 
-HYDRA_EXPORT void* hydra_config_get_gdb_port() {
+HYDRA_EXPORT uint16_t* hydra_config_get_gdb_port() {
     return &hydra::CONFIG_INSTANCE.GetGdbPort();
 }
 
-HYDRA_EXPORT void* hydra_config_get_gdb_wait_for_client() {
+HYDRA_EXPORT bool* hydra_config_get_gdb_wait_for_client() {
     return &hydra::CONFIG_INSTANCE.GetGdbWaitForClient();
 }
 
@@ -257,8 +222,13 @@ hydra_content_archive_get_content_type(void* content_archive) {
 
 // Loader
 HYDRA_EXPORT void* hydra_create_loader_from_path(hydra_string path) {
-    return hydra::horizon::loader::LoaderBase::CreateFromPath(
-        string_view_from_hydra_string(path));
+    try {
+        return hydra::horizon::loader::LoaderBase::CreateFromPath(
+            string_view_from_hydra_string(path));
+    } catch (...) {
+        // TODO: return an error
+        return nullptr;
+    }
 }
 
 HYDRA_EXPORT void hydra_loader_destroy(void* loader) {

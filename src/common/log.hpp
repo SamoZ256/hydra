@@ -31,10 +31,17 @@
     LOG(Stub, c, f " stubbed" PASS_VA_ARGS(__VA_ARGS__))
 #define LOG_WARN(c, ...) LOG(Warning, c, __VA_ARGS__)
 #define LOG_ERROR(c, ...) LOG(Error, c, __VA_ARGS__)
+#ifdef HYDRA_DEBUG
+#define LOG_ERROR_ON_DEBUG(c, ...) LOG_ERROR(c, __VA_ARGS__)
+#else
+#define LOG_ERROR_ON_DEBUG(c, ...)
+#endif
+
 #define LOG_FATAL(c, ...)                                                      \
     {                                                                          \
         LOG(Fatal, c, __VA_ARGS__);                                            \
         abort();                                                               \
+        builtin_unreachable();                                                 \
     }
 
 #define LOG_FUNC_STUBBED(c) LOG_STUBBED(c, "{}", __func__)
@@ -50,17 +57,28 @@
     if (!(condition)) {                                                        \
         LOG_FATAL(c, __VA_ARGS__);                                             \
     }
+#define ASSERT_THROWING(condition, c, err, ...)                                \
+    if (!(condition)) {                                                        \
+        LOG_ERROR_ON_DEBUG(c, __VA_ARGS__);                                    \
+        throw err;                                                             \
+    }
+
 #define ASSERT_ALIGNMENT(value, alignment, c, name)                            \
     ASSERT(is_aligned<decltype(value)>(value, alignment), c,                   \
            name " must be {}-byte aligned", alignment)
 
 #ifdef HYDRA_DEBUG
 #define ASSERT_DEBUG(condition, c, ...) ASSERT(condition, c, __VA_ARGS__)
+#define ASSERT_THROWING_DEBUG(condition, c, err, ...)                          \
+    ASSERT_THROWING(condition, c, err, __VA_ARGS__)
 #define ASSERT_ALIGNMENT_DEBUG(value, alignment, c, name)                      \
     ASSERT_ALIGNMENT(value, alignment, c, name)
 #else
 // TODO: should the condition be evaluated?
 #define ASSERT_DEBUG(condition, c, ...)                                        \
+    if (condition) {                                                           \
+    }
+#define ASSERT_THROWING_DEBUG(condition, c, err, ...)                          \
     if (condition) {                                                           \
     }
 #define ASSERT_ALIGNMENT_DEBUG(value, alignment, c, name)

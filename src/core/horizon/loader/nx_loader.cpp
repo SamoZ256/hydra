@@ -58,16 +58,23 @@ void NxLoader::LoadProcess(kernel::Process* process) {
 
     // RomFS
 
-    // Get directory
-    filesystem::Directory* romfs_dir;
-    res = dir.GetDirectory("romfs", romfs_dir);
+    // Get entry
+    filesystem::IEntry* romfs_entry;
+    res = dir.GetEntry("romfs", romfs_entry);
     ASSERT(res == filesystem::FsResult::Success, Loader,
-           "Failed to get RomFS directory: {}", res);
-    filesystem::romfs::RomFS romfs(*romfs_dir);
+           "Failed to get RomFS entry: {}", res);
 
-    // Build
-    const auto romfs_file = romfs.Build();
-    ASSERT(romfs_file, Loader, "Failed to build romFS");
+    filesystem::IFile* romfs_file;
+    if (romfs_entry->IsFile()) {
+        // Just set the file directly
+        romfs_file = static_cast<filesystem::IFile*>(romfs_entry);
+    } else {
+        // Build romFS
+        filesystem::romfs::RomFS romfs(
+            *static_cast<filesystem::Directory*>(romfs_entry));
+        romfs_file = romfs.Build();
+        ASSERT(romfs_file, Loader, "Failed to build romFS");
+    }
 
     // Add to filesystem
     res = KERNEL_INSTANCE.GetFilesystem().AddEntry(FS_SD_MOUNT "/rom/romFS",
@@ -109,8 +116,9 @@ void NxLoader::ParseNpdm() {
 
     delete stream;
 
-    ASSERT(meta.magic == make_magic4('M', 'E', 'T', 'A'), Loader,
-           "Invalid NPDM meta magic 0x{:08x}", meta.magic);
+    ASSERT_THROWING(meta.magic == make_magic4('M', 'E', 'T', 'A'), Loader,
+                    Error::InvalidNpdmMagic, "Invalid NPDM meta magic 0x{:08x}",
+                    meta.magic);
 
     // TODO: support 32-bit games
     if (!any(meta.flags & NpdmFlags::Is64BitInstruction)) {

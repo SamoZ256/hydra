@@ -9,8 +9,9 @@
 namespace hydra::horizon::filesystem {
 
 Directory::Directory(const std::string_view host_path) {
-    ASSERT(std::filesystem::is_directory(host_path), Filesystem,
-           "\"{}\" is not a directory", host_path);
+    ASSERT_THROWING(std::filesystem::is_directory(host_path), Filesystem,
+                    InitError::NotADirectory, "\"{}\" is not a directory",
+                    host_path);
 
     for (const auto& entry : std::filesystem::directory_iterator(host_path)) {
         const auto& entry_path = entry.path().string();
@@ -47,14 +48,14 @@ FsResult Directory::Delete(bool recursive) {
 
         if (entry.second->IsDirectory()) {
             auto dir = dynamic_cast<Directory*>(entry.second);
-            ASSERT(dir, Filesystem, "This should not happen");
+            ASSERT_DEBUG(dir, Filesystem, "This should not happen");
             const auto res = dir->Delete(true);
             if (res != FsResult::Success)
                 return res;
             delete dir;
         } else {
             auto file = dynamic_cast<IFile*>(entry.second);
-            ASSERT(file, Filesystem, "This should not happen");
+            ASSERT_DEBUG(file, Filesystem, "This should not happen");
             const auto res = file->Delete();
             if (res != FsResult::Success)
                 return res;

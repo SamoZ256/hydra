@@ -24,60 +24,43 @@ struct DebugSettingsView: View {
                             .tag(HYDRA_LOG_OUTPUT_FILE.rawValue)
                     }
                     .onChange(of: self.logOutput.rawValue) { _, newValue in
-                        var logOutputOption = hydraConfigGetLogOutput()
-                        logOutputOption.value = newValue
+                        hydraConfigGetLogOutput().pointee = newValue
                     }
-                    
+
                     Toggle("Log filesystem access", isOn: self.$logFsAccess)
                         .onChange(of: self.logFsAccess) { _, newValue in
-                            var logFsAccessOption = hydraConfigGetLogFsAccess()
-                            logFsAccessOption.value = newValue
+                            hydraConfigGetLogFsAccess().pointee = newValue
                         }
-                        
+
                     Toggle("Debug logging", isOn: self.$debugLogging)
                         .onChange(of: self.debugLogging) { _, newValue in
-                            var debugLoggingOption = hydraConfigGetDebugLogging()
-                            debugLoggingOption.value = newValue
+                            hydraConfigGetDebugLogging().pointee = newValue
                         }
                 }
-                    // TODO: process arguments
+                // TODO: process arguments
                 Section("GDB") {
                     Toggle("Enabled", isOn: self.$gdbEnabled)
                         .onChange(of: self.gdbEnabled) { _, newValue in
-                            var gdbEnabledOption = hydraConfigGetGdbEnabled()
-                            gdbEnabledOption.value = newValue
+                            hydraConfigGetGdbEnabled().pointee = newValue
                         }
                     TextField("Port", value: self.$gdbPort, formatter: NumberFormatter())
                         .onChange(of: self.gdbPort) { _, newValue in
-                            var gdbPortOption = hydraConfigGetGdbPort()
-                            gdbPortOption.value = newValue
+                            hydraConfigGetGdbPort().pointee = newValue
                         }
                     Toggle("Wait for client", isOn: self.$gdbWaitForClient)
                         .onChange(of: self.gdbWaitForClient) { _, newValue in
-                            var gdbWaitForClientOption = hydraConfigGetGdbWaitForClient()
-                            gdbWaitForClientOption.value = newValue
+                            hydraConfigGetGdbWaitForClient().pointee = newValue
                         }
                 }
             }
             .formStyle(.grouped)
             .onAppear {
-                let logOutputOption = hydraConfigGetLogOutput()
-                self.logOutput.rawValue = logOutputOption.value
-    
-                let logFsAccessOption = hydraConfigGetLogFsAccess()
-                self.logFsAccess = logFsAccessOption.value
-    
-                let debugLoggingOption = hydraConfigGetDebugLogging()
-                self.debugLogging = debugLoggingOption.value
-    
-                let gdbEnabledOption = hydraConfigGetGdbEnabled()
-                self.gdbEnabled = gdbEnabledOption.value
-    
-                let gdbPortOption = hydraConfigGetGdbPort()
-                self.gdbPort = gdbPortOption.value
-    
-                let gdbWaitForClientOption = hydraConfigGetGdbWaitForClient()
-                self.gdbWaitForClient = gdbWaitForClientOption.value
+                self.logOutput.rawValue = hydraConfigGetLogOutput().pointee
+                self.logFsAccess = hydraConfigGetLogFsAccess().pointee
+                self.debugLogging = hydraConfigGetDebugLogging().pointee
+                self.gdbEnabled = hydraConfigGetGdbEnabled().pointee
+                self.gdbPort = hydraConfigGetGdbPort().pointee
+                self.gdbWaitForClient = hydraConfigGetGdbWaitForClient().pointee
             }
             Spacer()
         }

@@ -36,8 +36,8 @@ struct GameListToolbarItems: ToolbarContent {
             }
         #endif
 
-        var firmwarePathOption = hydraConfigGetFirmwarePath()
-        if firmwarePathOption.value.isEmpty {
+        var firmwarePath = hydraConfigGetFirmwarePath()
+        if firmwarePath.isEmpty {
             ToolbarItem(placement: installFirmwarePlacement) {
                 Button("Install Firmware") {
                     isFirmwareFilePickerPresented = true
@@ -58,18 +58,18 @@ struct GameListToolbarItems: ToolbarContent {
                             defer { fileURL.stopAccessingSecurityScopedResource() }
 
                             #if os(macOS)
-                                firmwarePathOption.value = fileURL.path(percentEncoded: false)
+                                hydraConfigSetFirmwarePath(fileURL.path(percentEncoded: false))
                             #else
                                 let path = "\(hydraConfigGetAppDataPath())/firmware"
                                 do {
                                     try FileManager.default.copyItem(
                                         atPath: fileURL.path(percentEncoded: false),
-                                        toPath: firmwarePathOption.value)
+                                        toPath: firmwarePath)
                                 } catch {
                                     showingFirmwareImportError = true
                                 }
 
-                                firmwarePathOption.value = path
+                                hydraConfigSetFirmwarePath(path)
                             #endif
 
                             hydraConfigSerialize()

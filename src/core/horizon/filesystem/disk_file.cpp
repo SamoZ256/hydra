@@ -7,8 +7,9 @@ DiskFile::DiskFile(const std::string_view path_, bool is_mutable_)
     if (std::filesystem::exists(path)) {
         // size = std::filesystem::file_size(host_path);
     } else {
-        ASSERT(is_mutable, Filesystem, "Immutable file \"{}\" does not exist",
-               path);
+        ASSERT_THROWING(is_mutable, Filesystem,
+                        InitError::ImmutableFileDoesNotExist,
+                        "Immutable file \"{}\" does not exist", path);
 
         // Intermediate directories
         std::filesystem::create_directories(

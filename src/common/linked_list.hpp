@@ -53,6 +53,11 @@ class LinkedListNode<T, true> {
 template <typename T, bool is_doubly_linked>
 class LinkedList {
   public:
+    enum class Error {
+        Empty,
+        InvalidNode,
+    };
+
     LinkedList() : head{nullptr}, tail{nullptr}, size{0} {}
 
     void AddFirst(const T& value) {
@@ -82,7 +87,7 @@ class LinkedList {
     }
 
     void RemoveFirst() {
-        ASSERT_DEBUG(head, Common, "List is empty");
+        ASSERT_THROWING_DEBUG(head, Common, Error::Empty, "List is empty");
 
         auto node = head;
         head = head->next;
@@ -93,7 +98,7 @@ class LinkedList {
     }
 
     bool RemoveLast() {
-        ASSERT_DEBUG(head, Common, "List is empty");
+        ASSERT_THROWING_DEBUG(head, Common, Error::Empty, "List is empty");
 
         if (!head->next) {
             delete head;
@@ -111,8 +116,9 @@ class LinkedList {
 
     LinkedListNode<T, is_doubly_linked>*
     Remove(LinkedListNode<T, is_doubly_linked>* target) {
-        ASSERT_DEBUG(target, Common, "Invalid node");
-        ASSERT_DEBUG(head, Common, "List is empty");
+        ASSERT_THROWING_DEBUG(target, Common, Error::InvalidNode,
+                              "Invalid node");
+        ASSERT_THROWING_DEBUG(head, Common, Error::Empty, "List is empty");
 
         if constexpr (is_doubly_linked) {
             // A more efficient way to remove a node from a doubly linked list
@@ -121,7 +127,8 @@ class LinkedList {
             if (target == head) {
                 head = target->next;
             } else {
-                ASSERT_DEBUG(target->prev, Common, "Invalid node");
+                ASSERT_THROWING_DEBUG(target->prev, Common, Error::InvalidNode,
+                                      "Invalid node");
                 target->prev->next = target->next;
             }
 
@@ -129,7 +136,8 @@ class LinkedList {
             if (target == tail) {
                 tail = target->prev;
             } else {
-                ASSERT_DEBUG(target->next, Common, "Invalid node");
+                ASSERT_THROWING_DEBUG(target->next, Common, Error::InvalidNode,
+                                      "Invalid node");
                 target->next->prev = target->prev;
             }
 
@@ -151,7 +159,8 @@ class LinkedList {
             auto node = head;
             while (node->next && node->next != target)
                 node = node->next;
-            ASSERT_DEBUG(node->next, Common, "Invalid node");
+            ASSERT_THROWING_DEBUG(node->next, Common, Error::InvalidNode,
+                                  "Invalid node");
 
             node->next = target->next;
             delete target;
@@ -164,7 +173,8 @@ class LinkedList {
 
     typename std::enable_if<is_doubly_linked, void>::type
     Remove(const T& target) {
-        ASSERT_DEBUG(target, Common, "Invalid node");
+        ASSERT_THROWING_DEBUG(target, Common, Error::InvalidNode,
+                              "Invalid node");
 
         // Remove all occurrences of the target
         for (auto node = head; node;) {

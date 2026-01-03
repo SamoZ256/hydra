@@ -30,9 +30,14 @@ class User {
     // Nickname
     std::string_view GetNickname() const { return base.nickname; }
 
+    enum class SetNicknameError {
+        SizeTooLarge,
+    };
+
     void SetNickname(const std::string_view nickname) {
-        ASSERT(nickname.size() < NICKNAME_SIZE, Services,
-               "Nickname size ({}) too big", nickname.size());
+        ASSERT_THROWING(nickname.size() < NICKNAME_SIZE, Services,
+                        SetNicknameError::SizeTooLarge,
+                        "Nickname size ({}) too big", nickname.size());
         std::memcpy(base.nickname, nickname.data(), nickname.size());
         base.nickname[nickname.size()] = '\0';
         NotifyEdit();

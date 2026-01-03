@@ -32,7 +32,7 @@ class HydraString: Hashable, Identifiable {
         hasher.combine(self.value)
     }
 
-    var id: UnsafePointer<CChar>? {
+    var id: UnsafeMutablePointer<CChar>? {
         self.handle.data
     }
 
@@ -111,112 +111,8 @@ extension String {
     }
 }
 
-// Options
-struct HydraBoolOption {
-    private let handle: UnsafeMutableRawPointer
-
-    fileprivate init(handle: UnsafeMutableRawPointer) {
-        self.handle = handle
-    }
-
-    var value: Bool {
-        get {
-            hydra_bool_option_get(self.handle)
-        }
-        set {
-            hydra_bool_option_set(self.handle, newValue)
-        }
-    }
-}
-
-struct HydraU16Option {
-    private let handle: UnsafeMutableRawPointer
-
-    fileprivate init(handle: UnsafeMutableRawPointer) {
-        self.handle = handle
-    }
-
-    var value: UInt16 {
-        get {
-            hydra_u16_option_get(self.handle)
-        }
-        set {
-            hydra_u16_option_set(self.handle, newValue)
-        }
-    }
-}
-
-struct HydraI32Option {
-    private let handle: UnsafeMutableRawPointer
-
-    fileprivate init(handle: UnsafeMutableRawPointer) {
-        self.handle = handle
-    }
-
-    var value: Int32 {
-        get {
-            hydra_i32_option_get(self.handle)
-        }
-        set {
-            hydra_i32_option_set(self.handle, newValue)
-        }
-    }
-}
-
-struct HydraU32Option {
-    private let handle: UnsafeMutableRawPointer
-
-    fileprivate init(handle: UnsafeMutableRawPointer) {
-        self.handle = handle
-    }
-
-    var value: UInt32 {
-        get {
-            hydra_u32_option_get(self.handle)
-        }
-        set {
-            hydra_u32_option_set(self.handle, newValue)
-        }
-    }
-}
-
-struct HydraU128Option {
-    private let handle: UnsafeMutableRawPointer
-
-    fileprivate init(handle: UnsafeMutableRawPointer) {
-        self.handle = handle
-    }
-
-    var value: hydra_u128 {
-        get {
-            hydra_u128_option_get(self.handle)
-        }
-        set {
-            hydra_u128_option_set(self.handle, newValue)
-        }
-    }
-}
-
-struct HydraStringOption {
-    private let handle: UnsafeMutableRawPointer
-
-    fileprivate init(handle: UnsafeMutableRawPointer) {
-        self.handle = handle
-    }
-
-    var value: String {
-        get {
-            String(withHydraString: hydra_string_option_get(self.handle))
-        }
-        set {
-            newValue.withHydraString { hydraNewValue in
-                hydra_string_option_set(self.handle, hydraNewValue)
-            }
-        }
-    }
-}
-
-struct HydraStringArrayOption {
+// List
+struct HydraStringList {
     private let handle: UnsafeMutableRawPointer
 
     fileprivate init(handle: UnsafeMutableRawPointer) {
@@ -224,43 +120,26 @@ struct HydraStringArrayOption {
     }
 
     var count: Int {
-        Int(hydra_string_array_option_get_count(self.handle))
+        Int(hydra_string_list_get_count(self.handle))
     }
 
     func get(at index: Int) -> String {
-        return String(withHydraString: hydra_string_array_option_get(self.handle, UInt32(index)))
+        return String(withHydraString: hydra_string_list_get(self.handle, UInt32(index)))
     }
 
     func resize(newCount: Int) {
-        hydra_string_array_option_resize(self.handle, UInt32(newCount))
+        hydra_string_list_resize(self.handle, UInt32(newCount))
     }
 
     func set(at index: Int, value: String) {
         value.withHydraString { hydraValue in
-            hydra_string_array_option_set(self.handle, UInt32(index), hydraValue)
+            hydra_string_list_set(self.handle, UInt32(index), hydraValue)
         }
     }
 
     func append(value: String) {
         value.withHydraString { hydraValue in
-            hydra_string_array_option_append(self.handle, hydraValue)
-        }
-    }
-}
-
-struct HydraUint2Option {
-    private let handle: UnsafeMutableRawPointer
-
-    fileprivate init(handle: UnsafeMutableRawPointer) {
-        self.handle = handle
-    }
-
-    var value: hydra_uint2 {
-        get {
-            hydra_uint2_option_get(self.handle)
-        }
-        set {
-            hydra_uint2_option_set(self.handle, newValue)
+            hydra_string_list_append(self.handle, hydraValue)
         }
     }
 }
@@ -278,88 +157,116 @@ func hydraConfigGetAppDataPath() -> String {
     String(withHydraString: hydra_config_get_app_data_path())
 }
 
-func hydraConfigGetGamePaths() -> HydraStringArrayOption {
-    HydraStringArrayOption(handle: hydra_config_get_game_paths())
+func hydraConfigGetGamePaths() -> HydraStringList {
+    HydraStringList(handle: hydra_config_get_game_paths())
 }
 
-func hydraConfigGetPatchPaths() -> HydraStringArrayOption {
-    HydraStringArrayOption(handle: hydra_config_get_patch_paths())
+func hydraConfigGetPatchPaths() -> HydraStringList {
+    HydraStringList(handle: hydra_config_get_patch_paths())
 }
 
-func hydraConfigGetCpuBackend() -> HydraU32Option {
-    HydraU32Option(handle: hydra_config_get_cpu_backend())
+func hydraConfigGetInputProfiles() -> HydraStringList {
+    HydraStringList(handle: hydra_config_get_input_profiles())
 }
 
-func hydraConfigGetGpuRenderer() -> HydraU32Option {
-    HydraU32Option(handle: hydra_config_get_gpu_renderer())
+func hydraConfigGetCpuBackend() -> UnsafeMutablePointer<UInt32> {
+    hydra_config_get_cpu_backend()
 }
 
-func hydraConfigGetShaderBackend() -> HydraU32Option {
-    HydraU32Option(handle: hydra_config_get_shader_backend())
+func hydraConfigGetGpuRenderer() -> UnsafeMutablePointer<UInt32> {
+    hydra_config_get_gpu_renderer()
 }
 
-func hydraConfigGetDisplayResolution() -> HydraU32Option {
-    HydraU32Option(handle: hydra_config_get_display_resolution())
+func hydraConfigGetShaderBackend() -> UnsafeMutablePointer<UInt32> {
+    hydra_config_get_shader_backend()
 }
 
-func hydraConfigGetCustomDisplayResolution() -> HydraUint2Option {
-    HydraUint2Option(handle: hydra_config_get_custom_display_resolution())
+func hydraConfigGetDisplayResolution() -> UnsafeMutablePointer<UInt32> {
+    hydra_config_get_display_resolution()
 }
 
-func hydraConfigGetAudioBackend() -> HydraU32Option {
-    HydraU32Option(handle: hydra_config_get_audio_backend())
+func hydraConfigGetCustomDisplayResolution() -> UnsafeMutablePointer<hydra_uint2> {
+    hydra_config_get_custom_display_resolution()
 }
 
-func hydraConfigGetUserId() -> HydraU128Option {
-    HydraU128Option(handle: hydra_config_get_user_id())
+func hydraConfigGetAudioBackend() -> UnsafeMutablePointer<UInt32> {
+    hydra_config_get_audio_backend()
 }
 
-func hydraConfigGetFirmwarePath() -> HydraStringOption {
-    HydraStringOption(handle: hydra_config_get_firmware_path())
+func hydraConfigGetUserId() -> UnsafeMutablePointer<hydra_u128> {
+    hydra_config_get_user_id()
 }
 
-func hydraConfigGetSdCardPath() -> HydraStringOption {
-    HydraStringOption(handle: hydra_config_get_sd_card_path())
+func hydraConfigGetFirmwarePath() -> String {
+    String.init(withHydraString: hydra_config_get_firmware_path())
 }
 
-func hydraConfigGetSavePath() -> HydraStringOption {
-    HydraStringOption(handle: hydra_config_get_save_path())
+func hydraConfigSetFirmwarePath(_ value: String) {
+    value.withHydraString { hydraString in
+        hydra_config_set_firmware_path(hydraString)
+    }
 }
 
-func hydraConfigGetSysmodulesPath() -> HydraStringOption {
-    HydraStringOption(handle: hydra_config_get_sysmodules_path())
+func hydraConfigGetSdCardPath() -> String {
+    String.init(withHydraString: hydra_config_get_sd_card_path())
 }
 
-func hydraConfigGetHandheldMode() -> HydraBoolOption {
-    HydraBoolOption(handle: hydra_config_get_handheld_mode())
+func hydraConfigSetSdCardPath(_ value: String) {
+    value.withHydraString { hydraString in
+        hydra_config_set_sd_card_path(hydraString)
+    }
 }
 
-func hydraConfigGetLogOutput() -> HydraU32Option {
-    HydraU32Option(handle: hydra_config_get_log_output())
+func hydraConfigGetSavePath() -> String {
+    String.init(withHydraString: hydra_config_get_save_path())
 }
 
-func hydraConfigGetLogFsAccess() -> HydraBoolOption {
-    HydraBoolOption(handle: hydra_config_get_log_fs_access())
+func hydraConfigSetSavePath(_ value: String) {
+    value.withHydraString { hydraString in
+        hydra_config_set_save_path(hydraString)
+    }
 }
 
-func hydraConfigGetDebugLogging() -> HydraBoolOption {
-    HydraBoolOption(handle: hydra_config_get_debug_logging())
+func hydraConfigGetSysmodulesPath() -> String {
+    String.init(withHydraString: hydra_config_get_sysmodules_path())
 }
 
-func hydraConfigGetProcessArgs() -> HydraStringArrayOption {
-    HydraStringArrayOption(handle: hydra_config_get_process_args())
+func hydraConfigSetSysmodulesPath(_ value: String) {
+    value.withHydraString { hydraString in
+        hydra_config_set_sysmodules_path(hydraString)
+    }
 }
 
-func hydraConfigGetGdbEnabled() -> HydraBoolOption {
-    HydraBoolOption(handle: hydra_config_get_gdb_enabled())
+func hydraConfigGetHandheldMode() -> UnsafeMutablePointer<Bool> {
+    hydra_config_get_handheld_mode()
 }
 
-func hydraConfigGetGdbPort() -> HydraU16Option {
-    HydraU16Option(handle: hydra_config_get_gdb_port())
+func hydraConfigGetLogOutput() -> UnsafeMutablePointer<UInt32> {
+    hydra_config_get_log_output()
 }
 
-func hydraConfigGetGdbWaitForClient() -> HydraBoolOption {
-    HydraBoolOption(handle: hydra_config_get_gdb_wait_for_client())
+func hydraConfigGetLogFsAccess() -> UnsafeMutablePointer<Bool> {
+    hydra_config_get_log_fs_access()
+}
+
+func hydraConfigGetDebugLogging() -> UnsafeMutablePointer<Bool> {
+    hydra_config_get_debug_logging()
+}
+
+func hydraConfigGetProcessArgs() -> HydraStringList {
+    HydraStringList(handle: hydra_config_get_process_args())
+}
+
+func hydraConfigGetGdbEnabled() -> UnsafeMutablePointer<Bool> {
+    hydra_config_get_gdb_enabled()
+}
+
+func hydraConfigGetGdbPort() -> UnsafeMutablePointer<UInt16> {
+    hydra_config_get_gdb_port()
+}
+
+func hydraConfigGetGdbWaitForClient() -> UnsafeMutablePointer<Bool> {
+    hydra_config_get_gdb_wait_for_client()
 }
 
 // Filesystem
@@ -443,6 +350,10 @@ class HydraContentArchive: Hashable, Identifiable {
 }
 
 // Loader
+enum HydraLoaderError: Error {
+    case unsupported
+}
+
 class HydraLoader: Hashable, Identifiable {
     fileprivate let handle: UnsafeMutableRawPointer
 
@@ -450,11 +361,15 @@ class HydraLoader: Hashable, Identifiable {
         self.handle = handle
     }
 
-    convenience init(path: String) {
-        self.init(
-            handle: path.withHydraString { hydraPath in
+    convenience init(path: String) throws {
+        guard
+            let handle = path.withHydraString({ hydraPath in
                 hydra_create_loader_from_path(hydraPath)
             })
+        else {
+            throw HydraLoaderError.unsupported
+        }
+        self.init(handle: handle)
     }
 
     deinit {

@@ -6,6 +6,10 @@ namespace hydra::audio {
 
 class ICore {
   public:
+    enum class Error {
+        InitializationFailed,
+    };
+
     virtual ~ICore() = default;
 
     virtual IStream*

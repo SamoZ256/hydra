@@ -16,6 +16,8 @@ TOML11_DEFINE_CONVERSION_ENUM(hydra::AudioBackend, Null, "Null", Cubeb, "Cubeb")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::LogOutput, None, "none", StdOut, "stdout",
                               File, "file")
 
+ENABLE_STRUCT_FORMATTING_AND_TOML11(hydra::LoaderPlugin, path, options)
+
 namespace toml {
 
 using namespace hydra;
@@ -109,13 +111,14 @@ Config::Config() {
     Deserialize();
 
     // Create directories
-    std::filesystem::create_directories(sd_card_path.Get());
-    std::filesystem::create_directories(save_path.Get());
-    std::filesystem::create_directories(sysmodules_path.Get());
+    std::filesystem::create_directories(sd_card_path);
+    std::filesystem::create_directories(save_path);
+    std::filesystem::create_directories(sysmodules_path);
 }
 
 void Config::LoadDefaults() {
     game_paths = GetDefaultGamePaths();
+    loader_plugins = GetDefaultLoaderPlugins();
     patch_paths = GetDefaultPatchPaths();
     input_profiles = GetDefaultInputProfiles();
     cpu_backend = GetDefaultCpuBackend();
@@ -163,60 +166,61 @@ void Config::Serialize() {
 
     {
         auto& general = data.at("General");
-        general["game_paths"] = game_paths.Get();
-        general["patch_paths"] = patch_paths.Get();
+        general["game_paths"] = game_paths;
+        general["loader_plugins"] = loader_plugins;
+        general["patch_paths"] = patch_paths;
     }
 
     {
         auto& input = data.at("Input");
-        input["profiles"] = input_profiles.Get();
+        input["profiles"] = input_profiles;
     }
 
     {
         auto& cpu = data.at("CPU");
-        cpu["backend"] = cpu_backend.Get();
+        cpu["backend"] = cpu_backend;
     }
 
     {
         auto& graphics = data.at("Graphics");
-        graphics["renderer"] = gpu_renderer.Get();
-        graphics["shader_backend"] = shader_backend.Get();
-        graphics["display_resolution"] = display_resolution.Get();
+        graphics["renderer"] = gpu_renderer;
+        graphics["shader_backend"] = shader_backend;
+        graphics["display_resolution"] = display_resolution;
         graphics["custom_display_resolution"] =
-            CustomResolution(custom_display_resolution.Get());
+            CustomResolution(custom_display_resolution);
     }
 
     {
         auto& audio = data.at("Audio");
-        audio["backend"] = audio_backend.Get();
+        audio["backend"] = audio_backend;
     }
 
     {
         auto& user = data.at("User");
-        user["user_id"] = user_id.Get();
+        user["user_id"] = user_id;
     }
 
     {
         auto& system = data.at("System");
-        system["firmware_path"] = firmware_path.Get();
-        if (sd_card_path.Get() != GetDefaultSdCardPath())
-            system["sd_card_path"] = sd_card_path.Get();
-        if (save_path.Get() != GetDefaultSavePath())
-            system["save_path"] = save_path.Get();
-        if (sysmodules_path.Get() != GetDefaultSysmodulesPath())
-            system["sysmodules_path"] = sysmodules_path.Get();
-        system["handheld_mode"] = handheld_mode.Get();
+        system["firmware_path"] = firmware_path;
+        if (sd_card_path != GetDefaultSdCardPath())
+            system["sd_card_path"] = sd_card_path;
+        if (save_path != GetDefaultSavePath())
+            system["save_path"] = save_path;
+        if (sysmodules_path != GetDefaultSysmodulesPath())
+            system["sysmodules_path"] = sysmodules_path;
+        system["handheld_mode"] = handheld_mode;
     }
 
     {
         auto& debug = data.at("Debug");
-        debug["log_output"] = log_output.Get();
-        debug["log_fs_access"] = log_fs_access.Get();
-        debug["debug_logging"] = debug_logging.Get();
-        debug["process_args"] = process_args.Get();
-        debug["gdb_enabled"] = gdb_enabled.Get();
-        debug["gdb_port"] = gdb_port.Get();
-        debug["gdb_wait_for_client"] = gdb_wait_for_client.Get();
+        debug["log_output"] = log_output;
+        debug["log_fs_access"] = log_fs_access;
+        debug["debug_logging"] = debug_logging;
+        debug["process_args"] = process_args;
+        debug["gdb_enabled"] = gdb_enabled;
+        debug["gdb_port"] = gdb_port;
+        debug["gdb_wait_for_client"] = gdb_wait_for_client;
     }
 
     config_file << toml::format(data);
@@ -240,6 +244,8 @@ void Config::Deserialize() {
         const auto& general = data.at("General");
         game_paths = toml::find_or<std::vector<std::string>>(
             general, "game_paths", GetDefaultGamePaths());
+        loader_plugins = toml::find_or<std::vector<LoaderPlugin>>(
+            general, "loader_plugins", GetDefaultLoaderPlugins());
         patch_paths = toml::find_or<std::vector<std::string>>(
             general, "patch_paths", GetDefaultPatchPaths());
     }
@@ -338,18 +344,18 @@ void Config::Deserialize() {
 }
 
 void Config::Log() {
-    LOG_INFO(Other, "Game paths: [{}]", game_paths);
-    LOG_INFO(Other, "Patch paths: [{}]", patch_paths);
-    LOG_INFO(Other, "Input profiles: [{}]", input_profiles);
+    LOG_INFO(Other, "Game paths: [{}]", fmt::join(game_paths, ", "));
+    LOG_INFO(Other, "Loader plugins: [{}]", fmt::join(loader_plugins, ", "));
+    LOG_INFO(Other, "Patch paths: [{}]", fmt::join(patch_paths, ", "));
+    LOG_INFO(Other, "Input profiles: [{}]", fmt::join(input_profiles, ", "));
     LOG_INFO(Other, "CPU backend: {}", cpu_backend);
     LOG_INFO(Other, "Gpu renderer: {}", gpu_renderer);
     LOG_INFO(Other, "Shader backend: {}", shader_backend);
     LOG_INFO(Other, "Display resolution: {}", display_resolution);
     LOG_INFO(Other, "Custom display resolution: {}x{}",
-             custom_display_resolution.Get().x(),
-             custom_display_resolution.Get().y());
+             custom_display_resolution.x(), custom_display_resolution.y());
     LOG_INFO(Other, "Audio backend: {}", audio_backend);
-    LOG_INFO(Other, "User ID: {:032x}", user_id.Get());
+    LOG_INFO(Other, "User ID: {:032x}", user_id);
     LOG_INFO(Other, "Firmware path: {}", firmware_path);
     LOG_INFO(Other, "SD card path: {}", sd_card_path);
     LOG_INFO(Other, "Save path: {}", save_path);
@@ -359,9 +365,9 @@ void Config::Log() {
     LOG_INFO(Other, "Log FS access: {}", log_fs_access);
     LOG_INFO(Other, "Debug logging: {}", debug_logging);
     LOG_INFO(Other, "Process arguments: {}", process_args);
-    LOG_INFO(Other, "GDB enabled: {}", gdb_enabled.Get());
-    LOG_INFO(Other, "GDB port: {}", gdb_port.Get());
-    LOG_INFO(Other, "GDB wait for client: {}", gdb_wait_for_client.Get());
+    LOG_INFO(Other, "GDB enabled: {}", gdb_enabled);
+    LOG_INFO(Other, "GDB port: {}", gdb_port);
+    LOG_INFO(Other, "GDB wait for client: {}", gdb_wait_for_client);
 }
 
 } // namespace hydra

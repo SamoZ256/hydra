@@ -21,7 +21,7 @@ i32 analog_stick_to_int(f32 value) {
 DeviceManager::DeviceManager() {
     // Profiles
     for (u32 i = 0; i < NPAD_COUNT; i++) {
-        const auto& name = CONFIG_INSTANCE.GetInputProfiles().Get()[i];
+        const auto& name = CONFIG_INSTANCE.GetInputProfiles()[i];
         if (name.empty())
             continue;
 

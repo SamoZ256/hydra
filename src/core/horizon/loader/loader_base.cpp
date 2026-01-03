@@ -8,8 +8,8 @@
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/nro_loader.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
-#include "core/horizon/loader/nsp_loader.hpp"
 #include "core/horizon/loader/nx_loader.hpp"
+#include "core/horizon/loader/plugins/manager.hpp"
 
 namespace hydra::horizon::loader {
 
@@ -79,35 +79,34 @@ LoaderBase* LoaderBase::CreateFromPath(std::string_view path) {
     }
 
     // Check if the path exists
-    if (!std::filesystem::exists(path)) {
-        // TODO: return an error instead
-        LOG_FATAL(Loader, "Invalid path \"{}\"", path);
-        return nullptr;
-    }
+    ASSERT_THROWING(std::filesystem::exists(path), Loader,
+                    CreateFromPathError::DoesNotExist,
+                    "Path \"{}\" does not exist", path);
 
     // Create loader
-    const auto extension =
-        std::string_view(path).substr(path.find_last_of("."));
+    const auto ext = std::string_view(path).substr(path.find_last_of("."));
     horizon::loader::LoaderBase* loader{nullptr};
-    if (extension == ".nx") {
+    if (ext == ".nx") {
         const auto dir = new horizon::filesystem::Directory(path);
         loader = new horizon::loader::NxLoader(*dir);
     } else {
         const auto file = new horizon::filesystem::DiskFile(path);
-        if (extension == ".nro") {
+        if (ext == ".nro") {
             // Assumes that all NROs are Homebrew
             loader = new horizon::loader::HomebrewLoader(file);
-        } else if (extension == ".nso") {
+        } else if (ext == ".nso") {
             loader = new horizon::loader::NsoLoader(file);
-        } else if (extension == ".nca") {
+        } else if (ext == ".nca") {
             loader = new horizon::loader::NcaLoader(file);
-        } else if (extension == ".nsp") {
-            loader = new horizon::loader::NspLoader(file);
         } else {
-            // TODO: return an error instead
-            LOG_FATAL(Other, "Unknown ROM extension \"{}\" ({})", extension,
-                      path);
-            return nullptr;
+            // First, check if any of the loader plugins supports this format
+            auto plugin = plugins::Manager::GetInstance().FindPluginForFormat(
+                ext.substr(1));
+            ASSERT_THROWING(
+                plugin, Loader, CreateFromPathError::UnsupportedExtension,
+                "Unsupported extension \"{}\" (path: \"{}\")", ext, path);
+
+            loader = plugin->Load(path);
         }
     }
 
@@ -120,9 +119,11 @@ horizon::services::ns::ApplicationControlProperty* LoaderBase::LoadNacp() {
 
     auto stream = nacp_file->Open(filesystem::FileOpenFlags::Read);
 
-    ASSERT(stream->GetSize() ==
-               sizeof(horizon::services::ns::ApplicationControlProperty),
-           Loader, "Invalid NACP file size 0x{:x}", stream->GetSize());
+    ASSERT_THROWING(
+        stream->GetSize() ==
+            sizeof(horizon::services::ns::ApplicationControlProperty),
+        Loader, LoadNacpError::InvalidSize, "Invalid NACP file size 0x{:x}",
+        stream->GetSize());
     auto nacp = new horizon::services::ns::ApplicationControlProperty();
     stream->ReadToRef(*nacp);
 

@@ -91,8 +91,8 @@ NsoLoader::NsoLoader(filesystem::IFile* file_, const std::string_view name_,
 
     // Header
     const auto header = stream->Read<NsoHeader>();
-    ASSERT(header.magic == make_magic4('N', 'S', 'O', '0'), Loader,
-           "Invalid NSO magic");
+    ASSERT_THROWING(header.magic == make_magic4('N', 'S', 'O', '0'), Loader,
+                    Error::InvalidMagic, "Invalid NSO magic");
 
     text_offset = header.text.memory_offset;
 

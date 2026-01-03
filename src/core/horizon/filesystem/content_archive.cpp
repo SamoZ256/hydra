@@ -205,8 +205,9 @@ ContentArchive::ContentArchive(IFile* file) {
     // Header
     const auto header = stream->Read<Header>();
     // TODO: allow other NCA versions as well
-    ASSERT(header.magic == make_magic4('N', 'C', 'A', '3'), Filesystem,
-           "Invalid NCA magic 0x{:08x}", header.magic);
+    ASSERT_THROWING(header.magic == make_magic4('N', 'C', 'A', '3'), Filesystem,
+                    Error::InvalidMagic, "Invalid NCA magic 0x{:08x}",
+                    header.magic);
 
     content_type = header.content_type;
     title_id = header.program_id;
@@ -233,9 +234,10 @@ ContentArchive::ContentArchive(IFile* file) {
         switch (type) {
         case SectionType::Code:
         case SectionType::Logo: {
-            ASSERT(fs_header.hash_type == HashType::HierarchicalSha256Hash,
-                   Filesystem, "Invalid hash type \"{}\" for PFS0",
-                   fs_header.hash_type);
+            ASSERT_THROWING(
+                fs_header.hash_type == HashType::HierarchicalSha256Hash,
+                Filesystem, Error::UnsupportedHashType,
+                "Invalid hash type \"{}\" for PFS0", fs_header.hash_type);
             const auto& layer_region =
                 fs_header.hierarchical_sha_256_data.pfs0_region;
 
