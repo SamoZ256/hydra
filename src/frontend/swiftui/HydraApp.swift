@@ -9,11 +9,12 @@ class GlobalState: ObservableObject {
     @Published var activeGame: Game? = nil
     @Published var emulationContext: HydraEmulationContext? = nil
     @Published var isStopping = false
-    @Published var isHandheldMode = hydraConfigGetHandheldMode().pointee
+    @Published var isHandheldMode = false
 
     init() {
         hydraLoaderPluginManagerRefresh()
-
+        isHandheldMode = hydraConfigGetHandheldMode().pointee
+        
         let gamePathsOption = hydraConfigGetGamePaths()
         for i in 0..<gamePathsOption.count {
             let gamePath = gamePathsOption.get(at: i)
