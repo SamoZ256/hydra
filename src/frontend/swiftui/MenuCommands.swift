@@ -43,8 +43,8 @@ struct MenuCommands: Commands {
             Button("Stop") {
                 globalState.isStopping = true
             }
-            Button("Switch to \(globalState.isHandheldMode ? "Console" : "Handheld") mode") {
-                globalState.isHandheldMode = !globalState.isHandheldMode
+            Button("Switch modes") {
+                globalState.isHandheldMode.toggle()
             }
             .keyboardShortcut(KeyEquivalent("o"), modifiers: .command)
         }
