@@ -9,7 +9,14 @@ class GlobalState: ObservableObject {
     @Published var activeGame: Game? = nil
     @Published var emulationContext: HydraEmulationContext? = nil
     @Published var isStopping = false
-    @Published var isHandheldMode = false
+    @Published var isHandheldMode: Bool {
+        didSet {
+            hydraConfigGetHandheldMode().pointee = isHandheldMode
+            hydraConfigSerialize()
+            guard let emulationContext = emulationContext else { return }
+            emulationContext.notifyOperationModeChanged()
+        }
+    }
 
     init() {
         hydraLoaderPluginManagerRefresh()

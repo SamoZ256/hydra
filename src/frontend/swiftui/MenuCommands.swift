@@ -45,11 +45,6 @@ struct MenuCommands: Commands {
             }
             Button("Switch to \(globalState.isHandheldMode ? "Console" : "Handheld") mode") {
                 globalState.isHandheldMode = !globalState.isHandheldMode
-                hydraConfigGetHandheldMode().pointee = globalState.isHandheldMode
-                hydraConfigSerialize()
-
-                guard let emulationContext = globalState.emulationContext else { return }
-                emulationContext.notifyOperationModeChanged()
             }
             .keyboardShortcut(KeyEquivalent("o"), modifiers: .command)
         }

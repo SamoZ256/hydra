@@ -33,11 +33,6 @@ struct EmulationToolbarItems: ToolbarContent {
                 HStack {
                     Button("Console Mode", systemImage: "inset.filled.tv") {
                         globalState.isHandheldMode = !globalState.isHandheldMode
-                        hydraConfigGetHandheldMode().pointee = globalState.isHandheldMode
-                        hydraConfigSerialize()
-                        
-                        guard let emulationContext = globalState.emulationContext else { return }
-                        emulationContext.notifyOperationModeChanged()
                     }
                     .disabled(!globalState.isHandheldMode)
                     
@@ -45,11 +40,6 @@ struct EmulationToolbarItems: ToolbarContent {
                     
                     Button("Handheld Mode", systemImage: "formfitting.gamecontroller.fill") {
                         globalState.isHandheldMode = !globalState.isHandheldMode
-                        hydraConfigGetHandheldMode().pointee = globalState.isHandheldMode
-                        hydraConfigSerialize()
-                        
-                        guard let emulationContext = globalState.emulationContext else { return }
-                        emulationContext.notifyOperationModeChanged()
                     }
                     .disabled(globalState.isHandheldMode)
                 }
