@@ -26,19 +26,15 @@ struct GameListToolbarItems: ToolbarContent {
     var body: some ToolbarContent {
         #if os(macOS)
             ToolbarItemGroup(placement: .principal) {
-                HStack {
-                    Button("List View", systemImage: "list.bullet") {
-                        viewMode = ViewMode.list.rawValue
-                    }
-                    .disabled(ViewMode(rawValue: viewMode) == .list)
-                    
-                    Divider()
-                    
-                    Button("Grid View", systemImage: "rectangle.grid.3x2.fill") {
-                        viewMode = ViewMode.grid.rawValue
-                    }
-                    .disabled(ViewMode(rawValue: viewMode) == .grid)
+                Button("List View", systemImage: "list.bullet") {
+                    viewMode = ViewMode.list.rawValue
                 }
+                .disabled(ViewMode(rawValue: viewMode) == .list)
+                
+                Button("Grid View", systemImage: "rectangle.grid.3x2.fill") {
+                    viewMode = ViewMode.grid.rawValue
+                }
+                .disabled(ViewMode(rawValue: viewMode) == .grid)
             }
         #endif
 

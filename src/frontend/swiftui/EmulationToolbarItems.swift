@@ -30,19 +30,15 @@ struct EmulationToolbarItems: ToolbarContent {
             }
             
             ToolbarItemGroup(placement: .confirmationAction) {
-                HStack {
-                    Button("Console Mode", systemImage: "inset.filled.tv") {
-                        globalState.isHandheldMode = !globalState.isHandheldMode
-                    }
-                    .disabled(!globalState.isHandheldMode)
-                    
-                    Divider()
-                    
-                    Button("Handheld Mode", systemImage: "formfitting.gamecontroller.fill") {
-                        globalState.isHandheldMode = !globalState.isHandheldMode
-                    }
-                    .disabled(globalState.isHandheldMode)
+                Button("Console Mode", systemImage: "inset.filled.tv") {
+                    globalState.isHandheldMode = !globalState.isHandheldMode
                 }
+                .disabled(!globalState.isHandheldMode)
+                
+                Button("Handheld Mode", systemImage: "formfitting.gamecontroller.fill") {
+                    globalState.isHandheldMode = !globalState.isHandheldMode
+                }
+                .disabled(globalState.isHandheldMode)
             }
         #else
             // TODO: options
