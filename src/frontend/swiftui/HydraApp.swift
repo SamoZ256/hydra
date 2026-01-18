@@ -9,6 +9,7 @@ class GlobalState: ObservableObject {
     @Published var activeGame: Game? = nil
     @Published var emulationContext: HydraEmulationContext? = nil
     @Published var isStopping = false
+    @Published var isHandheldMode = hydraConfigGetHandheldMode().pointee
 
     init() {
         hydraLoaderPluginManagerRefresh()

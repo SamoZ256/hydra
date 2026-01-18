@@ -28,8 +28,31 @@ struct EmulationToolbarItems: ToolbarContent {
                     isRunning = globalState.emulationContext!.isRunning()
                 }
             }
-            ToolbarItemGroup(placement: .principal) {
-                
+            
+            ToolbarItemGroup(placement: .confirmationAction) {
+                HStack {
+                    Button("Console Mode", systemImage: "inset.filled.tv") {
+                        globalState.isHandheldMode = !globalState.isHandheldMode
+                        hydraConfigGetHandheldMode().pointee = globalState.isHandheldMode
+                        hydraConfigSerialize()
+                        
+                        guard let emulationContext = globalState.emulationContext else { return }
+                        emulationContext.notifyOperationModeChanged()
+                    }
+                    .disabled(!globalState.isHandheldMode)
+                    
+                    Divider()
+                    
+                    Button("Handheld Mode", systemImage: "formfitting.gamecontroller.fill") {
+                        globalState.isHandheldMode = !globalState.isHandheldMode
+                        hydraConfigGetHandheldMode().pointee = globalState.isHandheldMode
+                        hydraConfigSerialize()
+                        
+                        guard let emulationContext = globalState.emulationContext else { return }
+                        emulationContext.notifyOperationModeChanged()
+                    }
+                    .disabled(globalState.isHandheldMode)
+                }
             }
         #else
             // TODO: options
