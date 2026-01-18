@@ -34,11 +34,13 @@ struct EmulationToolbarItems: ToolbarContent {
                     globalState.isHandheldMode.toggle()
                 }
                 .disabled(!globalState.isHandheldMode)
+                .help("Change to Console mode")
                 
                 Button("Handheld Mode", systemImage: "formfitting.gamecontroller.fill") {
                     globalState.isHandheldMode.toggle()
                 }
                 .disabled(globalState.isHandheldMode)
+                .help("Change to Handheld mode")
             }
         #else
             // TODO: options
