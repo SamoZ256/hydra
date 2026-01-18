@@ -22,19 +22,48 @@ struct GameListToolbarItems: ToolbarContent {
     @State private var isFirmwareFilePickerPresented = false
     @State private var isGameFilePickerPresented = false
     @State private var showingFirmwareImportError = false
+    @State private var isHandheldMode = true
 
     var body: some ToolbarContent {
         #if os(macOS)
-            ToolbarItem(placement: .principal) {
-                Button("List View", systemImage: "list.bullet") {
-                    viewMode = ViewMode.list.rawValue
-                }.disabled(ViewMode(rawValue: viewMode) == .list)
-            }
-
-            ToolbarItem(placement: .principal) {
-                Button("Grid View", systemImage: "rectangle.grid.3x2.fill") {
-                    viewMode = ViewMode.grid.rawValue
-                }.disabled(ViewMode(rawValue: viewMode) == .grid)
+            ToolbarItemGroup(placement: .principal) {
+                HStack {
+            
+                    Button("List View", systemImage: "list.bullet") {
+                        viewMode = ViewMode.list.rawValue
+                    }
+                    .disabled(ViewMode(rawValue: viewMode) == .list)
+                    
+                    Button("Grid View", systemImage: "rectangle.grid.3x2.fill") {
+                        viewMode = ViewMode.grid.rawValue
+                    }
+                    .disabled(ViewMode(rawValue: viewMode) == .grid)
+                
+                    Divider()
+                    
+                    Button("Console Mode", systemImage: "inset.filled.tv") {
+                        self.isHandheldMode = false
+                        hydraConfigGetHandheldMode().pointee = false
+                        hydraConfigSerialize()
+                        
+                        guard let emulationContext = globalState.emulationContext else { return }
+                        emulationContext.notifyOperationModeChanged()
+                    }
+                    .disabled(!isHandheldMode)
+                    
+                    Button("Handheld Mode", systemImage: "formfitting.gamecontroller.fill") {
+                        self.isHandheldMode = true
+                        hydraConfigGetHandheldMode().pointee = true
+                        hydraConfigSerialize()
+                        
+                        guard let emulationContext = globalState.emulationContext else { return }
+                        emulationContext.notifyOperationModeChanged()
+                    }
+                    .disabled(isHandheldMode)
+                    .onAppear {
+                        self.isHandheldMode = hydraConfigGetHandheldMode().pointee
+                    }
+                }
             }
         #endif
 

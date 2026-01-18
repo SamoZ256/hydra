@@ -4,7 +4,6 @@ struct EmulationToolbarItems: ToolbarContent {
     @EnvironmentObject var globalState: GlobalState
 
     @State private var isRunning: Bool = false
-    @State private var isHandheldMode = false
 
     var body: some ToolbarContent {
         #if os(macOS)
@@ -30,26 +29,7 @@ struct EmulationToolbarItems: ToolbarContent {
                 }
             }
             ToolbarItemGroup(placement: .principal) {
-                Button("Console Mode", systemImage: "inset.filled.tv") {
-                    hydraConfigGetHandheldMode().pointee = false
-                    hydraConfigSerialize()
-                    
-                    guard let emulationContext = globalState.emulationContext else { return }
-                    emulationContext.notifyOperationModeChanged()
-                }
-                .disabled(!isHandheldMode)
                 
-                Button("Handheld Mode", systemImage: "formfitting.gamecontroller.fill") {
-                    hydraConfigGetHandheldMode().pointee = true
-                    hydraConfigSerialize()
-                    
-                    guard let emulationContext = globalState.emulationContext else { return }
-                    emulationContext.notifyOperationModeChanged()
-                }
-                .disabled(isHandheldMode)
-                .onAppear {
-                    isHandheldMode = hydraConfigGetHandheldMode().pointee
-                }
             }
         #else
             // TODO: options
