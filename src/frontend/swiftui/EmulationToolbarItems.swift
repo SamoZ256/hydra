@@ -31,12 +31,12 @@ struct EmulationToolbarItems: ToolbarContent {
             
             ToolbarItemGroup(placement: .confirmationAction) {
                 Button("Console Mode", systemImage: "inset.filled.tv") {
-                    globalState.isHandheldMode = !globalState.isHandheldMode
+                    globalState.isHandheldMode.toggle()
                 }
                 .disabled(!globalState.isHandheldMode)
                 
                 Button("Handheld Mode", systemImage: "formfitting.gamecontroller.fill") {
-                    globalState.isHandheldMode = !globalState.isHandheldMode
+                    globalState.isHandheldMode.toggle()
                 }
                 .disabled(globalState.isHandheldMode)
             }
