@@ -60,7 +60,9 @@ struct EmulationToolbarItems: ToolbarContent {
                 }
             }
             
-            ToolbarSpacer(.fixed)
+            if #available(macOS 26, *) {
+                ToolbarSpacer(.fixed)
+            }
             
             ToolbarItemGroup(placement: .confirmationAction) {
                 Button("Console Mode", systemImage: "inset.filled.tv") {
