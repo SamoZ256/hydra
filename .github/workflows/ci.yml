@@ -22,14 +22,14 @@ jobs:
             fail-fast: false
             matrix:
                 include:
-                    - suffix: SwiftUI-Release-arm
-                    - suffix: SwiftUI-Debug-arm
-                    - suffix: SDL-Release-arm
-                    - suffix: SDL-Debug-arm
-                    - suffix: SwiftUI-Release-x86
-                    - suffix: SwiftUI-Debug-x86
-                    - suffix: SDL-Release-x86
-                    - suffix: SDL-Debug-x86
+                    - suffix: Arm-SwiftUI-Release
+                    - suffix: Arm-SwiftUI-Debug
+                    - suffix: Arm-SDL-Release
+                    - suffix: Arm-SDL-Debug
+                    - suffix: x86-SwiftUI-Release
+                    - suffix: x86-SwiftUI-Debug
+                    - suffix: x86-SDL-Release
+                    - suffix: x86-SDL-Debug
 
         runs-on: macos-15
 
