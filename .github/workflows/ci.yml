@@ -17,7 +17,7 @@ on:
             - "!**.md"
 
 jobs:
-    macOS:
+    macOS-arm:
         strategy:
             fail-fast: false
             matrix:
@@ -92,7 +92,7 @@ jobs:
                   path: Hydra-${{ matrix.suffix }}-arm.dmg
                   if-no-files-found: error
 
-    macOS:
+    macOS-x86:
     strategy:
         fail-fast: false
         matrix:
