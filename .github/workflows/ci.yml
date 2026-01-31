@@ -93,76 +93,76 @@ jobs:
                   if-no-files-found: error
 
     macOS-x86:
-    strategy:
-        fail-fast: false
-        matrix:
-            include:
-                - suffix: SwiftUI-Release
-                - suffix: SwiftUI-Debug
-                - suffix: SDL-Release
-                - suffix: SDL-Debug
-    
-    runs-on: macos-15-intel
-    
-    steps:
-        - name: Set Xcode Version
-          uses: maxim-lobanov/setup-xcode@v1
-          with:
-              xcode-version: latest-stable
-    
-        - name: Checkout Hydra
-          uses: actions/checkout@v4
-          with:
-              repository: SamoZ256/hydra
-              submodules: recursive
-              path: hydra
-    
-        - name: Install Dependencies
-          run: brew install boost fmt sdl3 dylibbundler
-    
-        - name: Verify CMake Version
-          run: cmake --version
-    
-        - name: Set Build Flags
-          run: |
-              if [[ ${{ matrix.suffix }} == *'Release'* ]]; then
-                echo "BUILD_MODE=Release" >> $GITHUB_ENV
-              else
-                echo "BUILD_MODE=Debug" >> $GITHUB_ENV
-              fi
-              if [[ ${{ matrix.suffix }} == *'SwiftUI'* ]]; then
-                echo "FRONTEND_MODE=SwiftUI" >> $GITHUB_ENV
-              else
-                echo "FRONTEND_MODE=SDL3" >> $GITHUB_ENV
-              fi
-    
-        - name: Build Hydra
-          run: |
-              cmake hydra -B build \
-              -DCMAKE_BUILD_TYPE=${{ env.BUILD_MODE }} \
-              -DFRONTEND=${{ env.FRONTEND_MODE }} \
-              -DMACOS_BUNDLE=ON \
-              -GNinja
-              ninja -C build
-              dylibbundler -of -cd -b -x build/bin/Hydra.app/Contents/MacOS/Hydra -d build/bin/Hydra.app/Contents/libs
-              while install_name_tool -delete_rpath @executable_path/../libs/ build/bin/Hydra.app/Contents/MacOS/Hydra 2>/dev/null; do :; done
-              install_name_tool -add_rpath @executable_path/../libs/ build/bin/Hydra.app/Contents/MacOS/Hydra
-              codesign --force --deep --preserve-metadata=entitlements,requirements,flags,runtime --sign - build/bin/Hydra.app/Contents/MacOS/Hydra
-    
-        - name: Create Archive
-          run: |
-              mkdir image
-              ln -s /Applications image/Applications
-              if [[ ${{ matrix.suffix }} == *'SwiftUI'* ]]; then
-                mv build/bin/Hydra.app image/Hydra.app
-              else
-                mv build/bin/Hydra.app image/HydraSDL.app
-              fi
-              hdiutil create -volname "Hydra" -srcfolder image Hydra-${{ matrix.suffix }}-x86
-    
-        - name: Upload Artifacts - ${{ matrix.suffix }}-x86
-          uses: actions/upload-artifact@v4
-          with:
-              name: Hydra-${{ matrix.suffix }}-x86
-              path: Hydra-${{ matrix.suffix }}-x86.dmg
-              if-no-files-found: error
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - suffix: SwiftUI-Release
+                    - suffix: SwiftUI-Debug
+                    - suffix: SDL-Release
+                    - suffix: SDL-Debug
+        
+        runs-on: macos-15-intel
+        
+        steps:
+            - name: Set Xcode Version
+              uses: maxim-lobanov/setup-xcode@v1
+              with:
+                  xcode-version: latest-stable
+            
+            - name: Checkout Hydra
+              uses: actions/checkout@v4
+              with:
+                  repository: SamoZ256/hydra
+                  submodules: recursive
+                  path: hydra
+            
+            - name: Install Dependencies
+              run: brew install boost fmt sdl3 dylibbundler
+            
+            - name: Verify CMake Version
+              run: cmake --version
+        
+            - name: Set Build Flags
+              run: |
+                  if [[ ${{ matrix.suffix }} == *'Release'* ]]; then
+                    echo "BUILD_MODE=Release" >> $GITHUB_ENV
+                  else
+                    echo "BUILD_MODE=Debug" >> $GITHUB_ENV
+                  fi
+                  if [[ ${{ matrix.suffix }} == *'SwiftUI'* ]]; then
+                    echo "FRONTEND_MODE=SwiftUI" >> $GITHUB_ENV
+                  else
+                    echo "FRONTEND_MODE=SDL3" >> $GITHUB_ENV
+                  fi
+        
+            - name: Build Hydra
+              run: |
+                  cmake hydra -B build \
+                  -DCMAKE_BUILD_TYPE=${{ env.BUILD_MODE }} \
+                  -DFRONTEND=${{ env.FRONTEND_MODE }} \
+                  -DMACOS_BUNDLE=ON \
+                  -GNinja
+                  ninja -C build
+                  dylibbundler -of -cd -b -x build/bin/Hydra.app/Contents/MacOS/Hydra -d build/bin/Hydra.app/Contents/libs
+                  while install_name_tool -delete_rpath @executable_path/../libs/ build/bin/Hydra.app/Contents/MacOS/Hydra 2>/dev/null; do :; done
+                  install_name_tool -add_rpath @executable_path/../libs/ build/bin/Hydra.app/Contents/MacOS/Hydra
+                  codesign --force --deep --preserve-metadata=entitlements,requirements,flags,runtime --sign - build/bin/Hydra.app/Contents/MacOS/Hydra
+        
+            - name: Create Archive
+              run: |
+                  mkdir image
+                  ln -s /Applications image/Applications
+                  if [[ ${{ matrix.suffix }} == *'SwiftUI'* ]]; then
+                    mv build/bin/Hydra.app image/Hydra.app
+                  else
+                    mv build/bin/Hydra.app image/HydraSDL.app
+                  fi
+                  hdiutil create -volname "Hydra" -srcfolder image Hydra-${{ matrix.suffix }}-x86
+            
+            - name: Upload Artifacts - ${{ matrix.suffix }}
+              uses: actions/upload-artifact@v4
+              with:
+                  name: Hydra-${{ matrix.suffix }}-x86
+                  path: Hydra-${{ matrix.suffix }}-x86.dmg
+                  if-no-files-found: error
