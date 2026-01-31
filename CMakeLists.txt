@@ -7,7 +7,7 @@ project(hydra VERSION 0.3.0 LANGUAGES CXX)
 
 option(CUBEB_ENABLED "Enable the cubeb audio backend" ON)
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    if (APPLE AND CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
+    if (CMAKE_OSX_ARCHITECTURES MATCHES "arm64")
         option(HYPERVISOR_ENABLED "Enable the Hypervisor CPU backend" ON)
     else ()
         set(HYPERVISOR_ENABLED OFF)
