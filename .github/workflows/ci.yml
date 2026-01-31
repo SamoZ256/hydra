@@ -22,10 +22,14 @@ jobs:
             fail-fast: false
             matrix:
                 include:
-                    - suffix: SwiftUI-Release
-                    - suffix: SwiftUI-Debug
-                    - suffix: SDL-Release
-                    - suffix: SDL-Debug
+                    - suffix: Arm-SwiftUI-Release
+                    - suffix: Arm-SwiftUI-Debug
+                    - suffix: Arm-SDL-Release
+                    - suffix: Arm-SDL-Debug
+                    - suffix: x86-SwiftUI-Release
+                    - suffix: x86-SwiftUI-Debug
+                    - suffix: x86-SDL-Release
+                    - suffix: x86-SDL-Debug
 
         runs-on: macos-15
 
@@ -60,10 +64,16 @@ jobs:
                   else
                     echo "FRONTEND_MODE=SDL3" >> $GITHUB_ENV
                   fi
+                  if [[ ${{ matrix.suffix }} == *'x86'* ]]; then
+                        echo "ARCH=x86_64" >> $GITHUB_ENV
+                  else
+                    echo "ARCH=arm64" >> $GITHUB_ENV
+                  fi
 
             - name: Build Hydra
               run: |
                   cmake hydra -B build \
+                  -DCMAKE_OSX_ARCHITECTURES=${{ env.ARCH }} \
                   -DCMAKE_BUILD_TYPE=${{ env.BUILD_MODE }} \
                   -DFRONTEND=${{ env.FRONTEND_MODE }} \
                   -DMACOS_BUNDLE=ON \
