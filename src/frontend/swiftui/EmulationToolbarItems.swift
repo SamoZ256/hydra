@@ -4,6 +4,7 @@ struct EmulationToolbarItems: ToolbarContent {
     @EnvironmentObject var globalState: GlobalState
 
     @State private var isRunning: Bool = false
+    @State private var isFramerateUnlocked = false
 
     var body: some ToolbarContent {
         #if os(macOS)
@@ -28,6 +29,38 @@ struct EmulationToolbarItems: ToolbarContent {
                     isRunning = globalState.emulationContext!.isRunning()
                 }
             }
+            
+            ToolbarItemGroup(placement: .confirmationAction) {
+                if isFramerateUnlocked {
+                    Button{
+                        isFramerateUnlocked.toggle()
+                    } label: {
+                        ZStack {
+                            Image(systemName: "square.stack.3d.down.forward")
+                            Image(systemName: "lock")
+                                .symbolVariant(.none)
+                                .font(.footnote)
+                            .offset(x: 10, y: 5)
+                        }
+                    }
+                    .help("Unlock Framerate")
+                } else {
+                    Button{
+                        isFramerateUnlocked.toggle()
+                    } label: {
+                        ZStack {
+                            Image(systemName: "square.stack.3d.down.forward")
+                            Image(systemName: "lock.open")
+                                .symbolVariant(.none)
+                                .font(.footnote)
+                            .offset(x: 10, y: 5)
+                        }
+                    }
+                    .help("Lock Framerate to 60fps")
+                }
+            }
+            
+            ToolbarSpacer(.fixed)
             
             ToolbarItemGroup(placement: .confirmationAction) {
                 Button("Console Mode", systemImage: "inset.filled.tv") {
