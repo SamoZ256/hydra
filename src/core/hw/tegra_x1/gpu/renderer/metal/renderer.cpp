@@ -80,7 +80,7 @@ Renderer::Renderer() {
     texture_desc->setWidth(NULL_TEXTURE_WIDTH);
     texture_desc->setHeight(NULL_TEXTURE_HEIGHT);
     texture_desc->setPixelFormat(MTL::PixelFormatRGBA8Unorm);
-    texture_desc->setStorageMode(MTL::StorageModeShared);
+    texture_desc->setStorageMode(MTL::StorageModePrivate);
     texture_desc->setUsage(MTL::TextureUsageShaderRead);
     null_texture = device->newTexture(texture_desc);
     texture_desc->release();

@@ -7,7 +7,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 Buffer::Buffer(u64 size) : BufferBase(size) {
     buffer = METAL_RENDERER_INSTANCE.GetDevice()->newBuffer(
-        size, MTL::ResourceStorageModeShared);
+        size, MTL::ResourceStorageModePrivate);
 }
 
 Buffer::Buffer(MTL::Buffer* buffer_)
