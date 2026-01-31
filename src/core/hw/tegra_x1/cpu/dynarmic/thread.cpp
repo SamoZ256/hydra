@@ -136,7 +136,7 @@ bool Thread::MemoryWriteExclusive64(u64 addr, u64 value, u64 expected) {
 bool Thread::MemoryWriteExclusive128(u64 addr, Dynarmic::A64::Vector value,
                                      Dynarmic::A64::Vector expected) {
     (void)expected;
-    MMU->WriteExclusive(addr, value);
+    MMU->WriteExclusive(addr, std::bit_cast<u128>(value));
     return true;
 }
 

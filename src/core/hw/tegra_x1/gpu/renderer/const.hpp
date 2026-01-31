@@ -347,7 +347,7 @@ struct Viewport {
     f32 depth_far;
 };
 
-typedef IntRect2D Scissor;
+typedef UIntRect2D Scissor;
 
 enum class ShaderType {
     Vertex,

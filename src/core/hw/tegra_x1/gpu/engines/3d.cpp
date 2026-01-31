@@ -222,7 +222,9 @@ ThreeD::ThreeD() {
     SINGLETON_SET_INSTANCE(ThreeD, Engines);
 
     // TODO: choose based on Macro backend
-    { macro_driver = new macro::interpreter::Driver(this); }
+    {
+        macro_driver = new macro::interpreter::Driver(this);
+    }
 
     // Initialize default state
 
@@ -582,11 +584,13 @@ renderer::Scissor ThreeD::GetScissor(u32 index) {
     const auto& scissor = REGS_3D.scissors[index];
     if (scissor.enabled) {
         return renderer::Scissor(
-            int2({scissor.horizontal.min, scissor.vertical.min}),
-            int2({scissor.horizontal.max - scissor.horizontal.min,
-                  scissor.vertical.max - scissor.vertical.min}));
+            uint2({scissor.horizontal.min, scissor.vertical.min}),
+            uint2({static_cast<u32>(scissor.horizontal.max -
+                                    scissor.horizontal.min),
+                   static_cast<u32>(scissor.vertical.max -
+                                    scissor.vertical.min)}));
     } else {
-        return renderer::Scissor(int2({0, 0}), int2({0xffff, 0xffff}));
+        return renderer::Scissor(uint2({0, 0}), uint2({0xffff, 0xffff}));
     }
 }
 

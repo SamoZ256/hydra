@@ -88,7 +88,8 @@ renderer::TextureBase* Gpu::GetTexture(cpu::IMmu* mmu,
 
     // TODO: why are there more planes?
     renderer::TextureDescriptor descriptor(
-        mmu->UnmapAddr(GetMap(buff.nvmap_id).addr + buff.planes[0].offset),
+        mmu->UnmapAddr(GetMap(static_cast<u32>(buff.nvmap_id)).addr +
+                       buff.planes[0].offset),
         renderer::TextureType::_2D,
         renderer::to_texture_format(buff.planes[0].color_format),
         buff.planes[0].kind, buff.planes[0].width, buff.planes[0].height, 1,

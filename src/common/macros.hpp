@@ -212,8 +212,10 @@
             switch (value) {                                                   \
                 FOR_EACH_1_2(ENUM_FORMAT_CASE, type, __VA_ARGS__)              \
             default:                                                           \
-                res = fmt::format("unknown ({})",                              \
-                                  static_cast<hydra::u64>(value));             \
+                return formatter<string_view>::format(                         \
+                    fmt::format("unknown ({})",                                \
+                                static_cast<hydra::u64>(value)),               \
+                    ctx);                                                      \
                 break;                                                         \
             }                                                                  \
             return formatter<string_view>::format(res, ctx);                   \

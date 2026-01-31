@@ -248,6 +248,7 @@ struct Rect2D {
 };
 
 using IntRect2D = Rect2D<i32, i32>;
+using UIntRect2D = Rect2D<u32, u32>;
 using FloatRect2D = Rect2D<f32, f32>;
 
 template <typename T, usize alignment>
