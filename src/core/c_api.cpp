@@ -315,8 +315,13 @@ HYDRA_EXPORT void hydra_loader_plugin_manager_refresh() {
 
 // Plugin
 HYDRA_EXPORT void* hydra_create_loader_plugin(hydra_string path) {
-    return new hydra::horizon::loader::plugins::Plugin(
-        std::string(string_view_from_hydra_string(path)));
+    try {
+        return new hydra::horizon::loader::plugins::Plugin(
+            std::string(string_view_from_hydra_string(path)));
+    } catch (...) {
+        // TODO: return an error
+        return nullptr;
+    }
 }
 
 HYDRA_EXPORT void hydra_loader_plugin_destroy(void* plugin) {

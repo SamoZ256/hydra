@@ -205,8 +205,7 @@ bool* hydra_config_get_gdb_wait_for_client();
 void hydra_loader_plugin_manager_refresh();
 
 // Plugin
-__attribute__((returns_nonnull)) void*
-hydra_create_loader_plugin(hydra_string path);
+void* hydra_create_loader_plugin(hydra_string path);
 void hydra_loader_plugin_destroy(void* plugin);
 hydra_string hydra_loader_plugin_get_name(const void* plugin);
 hydra_string hydra_loader_plugin_get_display_version(const void* plugin);

@@ -31,6 +31,7 @@ struct LoaderPluginConfig: Equatable, Hashable {
 
 struct LoaderPluginView: View {
     @Binding var config: LoaderPluginConfig
+    var plugin: HydraLoaderPlugin
 
     @State private var name = ""
     @State private var displayVersion = ""
@@ -79,7 +80,6 @@ struct LoaderPluginView: View {
             .padding()
         }
         .onAppear {
-            let plugin = HydraLoaderPlugin(path: config.path)
             self.name = plugin.name
             self.displayVersion = plugin.displayVersion
             self.supportedFormats = []

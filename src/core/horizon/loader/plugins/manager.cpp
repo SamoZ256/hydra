@@ -19,7 +19,10 @@ void Manager::Refresh() {
 
         try {
             plugins.emplace_back(plugin_config.path, plugin_config.options);
+        } catch (Plugin::Error err) {
+            // TODO: error popup?
         } catch (Plugin::ContextError err) {
+            // TODO: error popup?
         }
     }
 }

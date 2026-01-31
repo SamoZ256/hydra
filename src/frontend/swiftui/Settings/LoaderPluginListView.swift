@@ -14,7 +14,12 @@ struct LoaderPluginListView: View {
         Section("Loader Plug-Ins") {
             ForEach(self.$configs, id: \.self) { config in
                 HStack {
-                    LoaderPluginView(config: config)
+                    if let plugin = try? HydraLoaderPlugin(path: config.path.wrappedValue) {
+                        LoaderPluginView(config: config, plugin: plugin)
+                    } else {
+                        // TODO: better UI
+                        Text("Failed to load \(config.path.wrappedValue)")
+                    }
                     DeleteButton(action: {
                         if let index = self.configs.firstIndex(of: config.wrappedValue) {
                             self.configs.remove(at: index)

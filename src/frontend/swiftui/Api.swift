@@ -423,13 +423,23 @@ func hydraLoaderPluginManagerRefresh() {
     hydra_loader_plugin_manager_refresh()
 }
 
+enum HydraPluginError: Error {
+    case unknown
+}
+
 class HydraLoaderPlugin {
     private let handle: UnsafeMutableRawPointer
 
-    init(path: String) {
-        self.handle = path.withHydraString { hydraPath in
-            hydra_create_loader_plugin(hydraPath)
+    init(path: String) throws {
+        guard
+            let handle =
+                (path.withHydraString { hydraPath in
+                    hydra_create_loader_plugin(hydraPath)
+                })
+        else {
+            throw HydraPluginError.unknown
         }
+        self.handle = handle
     }
 
     deinit {
