@@ -37,7 +37,7 @@ struct LoaderPluginOptionView: View {
                             PathControl(
                                 url: urlBinding,
                                 allowedTypes: nil,
-                                placeholderString: config.description,
+                                placeholderString: config.description
                             )
                             .frame(height: 24)
                         #else

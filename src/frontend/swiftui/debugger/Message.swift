@@ -1,5 +1,7 @@
 import SwiftUI
 
+extension HydraLogLevel: Hashable {}
+
 struct Message: Hashable {
     let log_level: HydraLogLevel
     let function: String
