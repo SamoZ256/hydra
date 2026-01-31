@@ -13,7 +13,7 @@ struct BufferEntry {
     BufferBase* buffer{nullptr};
     Range<uptr> range;
     std::optional<Range<uptr>> invalidation_range{};
-    bool inline_copy{true}; // TODO: reset to true when not in use
+    bool inline_copy{false}; // TODO: implement
 };
 
 // TODO: optional data hashing
