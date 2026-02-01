@@ -5,9 +5,15 @@ include(FetchContent)
 
 project(hydra VERSION 0.3.0 LANGUAGES CXX)
 
+if (CMAKE_OSX_ARCHITECTURES)
+    set(TARGET_ARCHS "${CMAKE_OSX_ARCHITECTURES}")
+else ()
+    set(TARGET_ARCHS "${CMAKE_HOST_SYSTEM_PROCESSOR}")
+endif ()
+
 option(CUBEB_ENABLED "Enable the cubeb audio backend" ON)
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    if (CMAKE_OSX_ARCHITECTURES MATCHES "arm64")
+    if (TARGET_ARCHS MATCHES "arm64")
         option(HYPERVISOR_ENABLED "Enable the Hypervisor CPU backend" ON)
     else ()
         set(HYPERVISOR_ENABLED OFF)
