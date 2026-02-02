@@ -68,17 +68,16 @@ struct EmulationToolbarItems: ToolbarContent {
             #endif
             
             ToolbarItemGroup(placement: .confirmationAction) {
-                Button("Console Mode", systemImage: "inset.filled.tv") {
-                    globalState.isHandheldMode.toggle()
+                Picker("Mode", selection: $globalState.isHandheldMode) {
+                    Label("Console Mode", systemImage: "inset.filled.tv")
+                    .tag(false)
+                    .help("Change to Console Mode")
+                        
+                    Label("Handheld Mode", systemImage: "formfitting.gamecontroller.fill")
+                    .tag(true)
+                    .help("Change to Handheld Mode")
                 }
-                .disabled(!globalState.isHandheldMode)
-                .help("Change to Console mode")
-                
-                Button("Handheld Mode", systemImage: "formfitting.gamecontroller.fill") {
-                    globalState.isHandheldMode.toggle()
-                }
-                .disabled(globalState.isHandheldMode)
-                .help("Change to Handheld mode")
+                .pickerStyle(.segmented)
             }
         #else
             // TODO: options
