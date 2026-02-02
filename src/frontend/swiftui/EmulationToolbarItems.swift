@@ -87,13 +87,11 @@ struct EmulationToolbarItems: ToolbarContent {
                         Button("Console Mode", systemImage: "inset.filled.tv") {
                             globalState.isHandheldMode.toggle()
                         }
-                        .disabled(!globalState.isHandheldMode)
                         .help("Change to Console mode")
                     } else {
                        Button("Handheld Mode", systemImage: "formfitting.gamecontroller.fill") {
                            globalState.isHandheldMode.toggle()
                        }
-                       .disabled(globalState.isHandheldMode)
                        .help("Change to Handheld mode")
                     }
                 }
