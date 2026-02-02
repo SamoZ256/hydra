@@ -60,9 +60,12 @@ struct EmulationToolbarItems: ToolbarContent {
                 }
             }
             
-            if #available(macOS 26, *) {
-                ToolbarSpacer(.fixed)
-            }
+            // This compiler check is only needed when compiling on a macOS version earlier than 26
+            #if compiler(>=6.2.3)
+                if #available(macOS 26.0, *) {
+                    ToolbarSpacer(.fixed)
+                }
+            #endif
             
             ToolbarItemGroup(placement: .confirmationAction) {
                 Button("Console Mode", systemImage: "inset.filled.tv") {
@@ -82,5 +85,4 @@ struct EmulationToolbarItems: ToolbarContent {
             ToolbarItemGroup(placement: .principal) {}
         #endif
     }
-
 }
