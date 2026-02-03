@@ -37,19 +37,6 @@ struct EmulationToolbarItems: ToolbarContent {
                     } label: {
                         ZStack {
                             Image(systemName: "square.stack.3d.down.forward")
-                            Image(systemName: "lock.open")
-                                .symbolVariant(.none)
-                                .font(.footnote)
-                                .offset(x: 10, y: 5)
-                        }
-                    }
-                    .help("Unlock Framerate")
-                } else {
-                    Button{
-                        isFramerateUnlocked.toggle()
-                    } label: {
-                        ZStack {
-                            Image(systemName: "square.stack.3d.down.forward")
                             Image(systemName: "lock")
                                 .symbolVariant(.none)
                                 .font(.footnote)
@@ -57,6 +44,19 @@ struct EmulationToolbarItems: ToolbarContent {
                         }
                     }
                     .help("Lock Framerate to 60fps")
+                } else {
+                    Button{
+                        isFramerateUnlocked.toggle()
+                    } label: {
+                        ZStack {
+                            Image(systemName: "square.stack.3d.down.forward")
+                            Image(systemName: "lock.open")
+                                .symbolVariant(.none)
+                                .font(.footnote)
+                                .offset(x: 10, y: 5)
+                        }
+                    }
+                    .help("Unlock Framerate")
                 }
             }
             
