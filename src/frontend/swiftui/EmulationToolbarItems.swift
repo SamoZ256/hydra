@@ -37,26 +37,26 @@ struct EmulationToolbarItems: ToolbarContent {
                     } label: {
                         ZStack {
                             Image(systemName: "square.stack.3d.down.forward")
-                            Image(systemName: "lock")
+                            Image(systemName: "lock.open")
                                 .symbolVariant(.none)
                                 .font(.footnote)
-                            .offset(x: 10, y: 5)
+                                .offset(x: 10, y: 5)
                         }
                     }
-                    .help("Unlock Framerate")
+                    .help("Lock Framerate to 60fps")
                 } else {
                     Button{
                         isFramerateUnlocked.toggle()
                     } label: {
                         ZStack {
                             Image(systemName: "square.stack.3d.down.forward")
-                            Image(systemName: "lock.open")
+                            Image(systemName: "lock")
                                 .symbolVariant(.none)
                                 .font(.footnote)
-                            .offset(x: 10, y: 5)
+                                .offset(x: 10, y: 5)
                         }
                     }
-                    .help("Lock Framerate to 60fps")
+                    .help("Unlock Framerate")
                 }
             }
             
