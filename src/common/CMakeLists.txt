@@ -3,6 +3,7 @@ add_library(hydra-common
     macros.hpp
     type_aliases.hpp
     types.hpp
+    range.hpp
     traits.hpp
     functions.hpp
     atomic.hpp
@@ -15,6 +16,7 @@ add_library(hydra-common
     pool.hpp
     static_pool.hpp
     dynamic_pool.hpp
+    small_cache.hpp
     filesystem.hpp
     log.cpp
     log.hpp

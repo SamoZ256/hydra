@@ -129,4 +129,23 @@ inline bool HandlePredCond(ir::Builder& builder, pred_t pred, bool pred_inv) {
     }
 }
 
+enum class EnsureIntegerSignednessError {
+    NotAnInteger,
+};
+
+template <bool signed_>
+ir::Value EnsureIntegerSignedness(ir::Builder& builder,
+                                  const ir::Value& value) {
+    const auto type = value.GetType();
+    if (signed_) {
+        if (type.IsUnsignedInteger())
+            return builder.OpCast(value, type.SignedEquivalent());
+    } else {
+        if (type.IsSignedInteger())
+            return builder.OpCast(value, type.UnsignedEquivalent());
+    }
+
+    return value;
+}
+
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

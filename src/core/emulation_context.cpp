@@ -25,6 +25,8 @@
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
 #include "core/hw/tegra_x1/cpu/thread.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/command_buffer.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/surface_compositor.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 #include "core/input/device_manager.hpp"
 
@@ -273,8 +275,9 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
         u32 width, height;
         if (auto data = loader->LoadNintendoLogo(width, height)) {
             hw::tegra_x1::gpu::renderer::TextureDescriptor descriptor(
-                0x0, hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
-                hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 0x0,
+                0x0, hw::tegra_x1::gpu::renderer::TextureType::_2D,
+                hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
+                hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 1, 0x0,
                 width * 4);
             nintendo_logo = gpu->GetRenderer().CreateTexture(descriptor);
             nintendo_logo->CopyFrom(reinterpret_cast<uptr>(data));
@@ -287,8 +290,9 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
         if (auto data = loader->LoadStartupMovie(startup_movie_delays, width,
                                                  height, frame_count)) {
             hw::tegra_x1::gpu::renderer::TextureDescriptor descriptor(
-                0x0, hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
-                hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 0x0,
+                0x0, hw::tegra_x1::gpu::renderer::TextureType::_2D,
+                hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
+                hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 1, 0x0,
                 width * 4);
             startup_movie.reserve(frame_count);
             for (u32 i = 0; i < frame_count; i++) {
@@ -431,12 +435,8 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
     // Present
 
     // Acquire surface
-    auto& renderer = gpu->GetRenderer();
-    // NOTE: this waits for a surface to be available. We don't lock the mutex,
-    // as that would block all other rendering for a long time. The mutex also
-    // doesn't need to be locked, as all surface related operations are done on
-    // this thread.
-    if (!renderer.AcquireNextSurface())
+    auto compositor = gpu->GetRenderer().AcquireNextSurface();
+    if (!compositor)
         return;
 
     // Delta time
@@ -446,80 +446,81 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
             accumulated_dt += layer->GetAccumulatedDT();
     }
 
-    renderer.LockMutex();
+    // Command buffer
+    auto command_buffer = gpu->GetRenderer().CreateCommandBuffer();
 
     // Acquire present textures
-    bool acquired = os->GetDisplayDriver().AcquirePresentTextures();
+    bool acquired =
+        os->GetDisplayDriver().AcquirePresentTextures(command_buffer);
 
     // Render pass
-    renderer.BeginSurfaceRenderPass();
-    os->GetDisplayDriver().Present(width, height);
+    os->GetDisplayDriver().Present(command_buffer, compositor, width, height);
 
-    if (acquired && loading) {
-        // TODO: till when should the loading screen be shown?
-        // Stop the loading screen on the first present
-        loading = false;
+    if (loading) {
+        if (acquired) {
+            // TODO: till when should the loading screen be shown?
+            // Stop the loading screen on the first present
+            loading = false;
 
-        // Free loading assets
-        if (nintendo_logo) {
-            delete nintendo_logo;
-            nintendo_logo = nullptr;
-        }
-        if (!startup_movie.empty()) {
-            for (auto frame : startup_movie)
-                delete frame;
-            startup_movie.clear();
-            startup_movie.shrink_to_fit();
-            startup_movie_delays.clear();
-            startup_movie_delays.shrink_to_fit();
-        }
-    } else if (loading) {
-        const auto crnt_time = clock_t::now();
+            // Free loading assets
+            if (nintendo_logo) {
+                delete nintendo_logo;
+                nintendo_logo = nullptr;
+            }
+            if (!startup_movie.empty()) {
+                for (auto frame : startup_movie)
+                    delete frame;
+                startup_movie.clear();
+                startup_movie.shrink_to_fit();
+                startup_movie_delays.clear();
+                startup_movie_delays.shrink_to_fit();
+            }
+        } else {
+            const auto crnt_time = clock_t::now();
 
-        // Display loading screen
+            // Display loading screen
 
-        // Fade in
-        f32 opacity = 1.0f;
-        if (crnt_time < startup_movie_fade_in_time)
-            opacity =
-                1.0f -
-                std::chrono::duration_cast<std::chrono::duration<f32>>(
-                    startup_movie_fade_in_time - crnt_time) /
+            // Fade in
+            f32 opacity = 1.0f;
+            if (crnt_time < startup_movie_fade_in_time)
+                opacity =
+                    1.0f -
                     std::chrono::duration_cast<std::chrono::duration<f32>>(
-                        STARTUP_MOVIE_FADE_IN_DURATION);
+                        startup_movie_fade_in_time - crnt_time) /
+                        std::chrono::duration_cast<std::chrono::duration<f32>>(
+                            STARTUP_MOVIE_FADE_IN_DURATION);
 
-        // Nintendo logo
-        if (nintendo_logo) {
-            int2 size = {(i32)nintendo_logo->GetDescriptor().width,
-                         (i32)nintendo_logo->GetDescriptor().height};
-            int2 dst_offset = {32, 32};
-            renderer.DrawTextureToSurface(
-                nintendo_logo, IntRect2D({0, 0}, size),
-                IntRect2D(dst_offset, size), true, opacity);
-        }
-
-        // Startup movie
-        if (!startup_movie.empty()) {
-            // Progress frame
-            while (crnt_time > next_startup_movie_frame_time) {
-                startup_movie_frame =
-                    (startup_movie_frame + 1) % startup_movie.size();
-                next_startup_movie_frame_time +=
-                    startup_movie_delays[startup_movie_frame];
+            // Nintendo logo
+            if (nintendo_logo) {
+                int2 size = {(i32)nintendo_logo->GetDescriptor().width,
+                             (i32)nintendo_logo->GetDescriptor().height};
+                int2 dst_offset = {32, 32};
+                compositor->DrawTexture(
+                    command_buffer, nintendo_logo, IntRect2D({0, 0}, size),
+                    IntRect2D(dst_offset, size), true, opacity);
             }
 
-            auto frame = startup_movie[startup_movie_frame];
-            int2 size = {(i32)frame->GetDescriptor().width,
-                         (i32)frame->GetDescriptor().height};
-            int2 dst_offset = {(i32)width - size.x() - 32,
-                               (i32)height - size.y() - 32};
-            renderer.DrawTextureToSurface(frame, IntRect2D({0, 0}, size),
-                                          IntRect2D(dst_offset, size), true,
-                                          opacity);
-        }
-    }
+            // Startup movie
+            if (!startup_movie.empty()) {
+                // Progress frame
+                while (crnt_time > next_startup_movie_frame_time) {
+                    startup_movie_frame =
+                        (startup_movie_frame + 1) % startup_movie.size();
+                    next_startup_movie_frame_time +=
+                        startup_movie_delays[startup_movie_frame];
+                }
 
-    if (!loading) {
+                auto frame = startup_movie[startup_movie_frame];
+                int2 size = {(i32)frame->GetDescriptor().width,
+                             (i32)frame->GetDescriptor().height};
+                int2 dst_offset = {(i32)width - size.x() - 32,
+                                   (i32)height - size.y() - 32};
+                compositor->DrawTexture(
+                    command_buffer, frame, IntRect2D({0, 0}, size),
+                    IntRect2D(dst_offset, size), true, opacity);
+            }
+        }
+    } else {
         // Delta time
         const auto now = clock_t::now();
         const auto time_since_last_dt_averaging = now - last_dt_averaging_time;
@@ -537,10 +538,10 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
         }
     }
 
-    renderer.EndSurfaceRenderPass();
-    renderer.PresentSurface();
-    renderer.EndCommandBuffer();
-    renderer.UnlockMutex();
+    compositor->Present(command_buffer);
+
+    delete command_buffer;
+    delete compositor;
 
     // Signal V-Sync
     os->GetDisplayDriver().SignalVSync();
@@ -582,12 +583,11 @@ void EmulationContext::TakeScreenshot() {
         }
 
         // Copy to a buffer
-        RENDERER_INSTANCE.LockMutex();
+        auto command_buffer = RENDERER_INSTANCE.CreateCommandBuffer();
         auto buffer = RENDERER_INSTANCE.AllocateTemporaryBuffer(
             static_cast<u32>(rect.size.y() * rect.size.x() * 4));
-        buffer->CopyFrom(texture, rect.origin, rect.size);
-        RENDERER_INSTANCE.EndCommandBuffer();
-        RENDERER_INSTANCE.UnlockMutex();
+        buffer->CopyFrom(command_buffer, texture, rect.origin, rect.size);
+        delete command_buffer;
 
         // TODO: wait for the command buffer to finish
 
@@ -600,22 +600,19 @@ void EmulationContext::TakeScreenshot() {
 
         stbi_flip_vertically_on_write(flip_y);
         if (!stbi_write_jpg(filename.c_str(), rect.size.x(), rect.size.y(), 4,
-                            (void*)buffer->GetDescriptor().ptr, 100))
+                            (void*)buffer->GetPtr(), 100))
             LOG_ERROR(Other, "Failed to save screenshot to {}", filename);
         stbi_flip_vertically_on_write(false);
 
         // Free the buffer
-        RENDERER_INSTANCE.LockMutex();
         RENDERER_INSTANCE.FreeTemporaryBuffer(buffer);
-        RENDERER_INSTANCE.UnlockMutex();
     });
     thread.detach();
 }
 
 void EmulationContext::CaptureGpuFrame() {
-    gpu->GetRenderer().LockMutex();
-    gpu->GetRenderer().CaptureFrame();
-    gpu->GetRenderer().UnlockMutex();
+    // TODO: allow multiple frames
+    gpu->GetRenderer().CaptureFrames(1);
 }
 
 void EmulationContext::TryApplyPatch(horizon::kernel::Process* process,

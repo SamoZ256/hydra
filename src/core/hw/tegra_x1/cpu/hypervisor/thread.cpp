@@ -176,12 +176,26 @@ void Thread::Run() {
                     break;
                 }
                 case ExceptionClass::DataAbortLowerEl: {
+                    // TODO: use the correct size
+                    if (MMU.TrackWrite(Range<vaddr_t>::FromSize(far, 8)))
+                        break;
+
                     bool far_valid = (esr & 0x00000400) == 0;
                     ASSERT_DEBUG(far_valid, Hypervisor, "FAR not valid");
 
-                    GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(
-                        "Data abort (PC: 0x{:08x}, FAR: 0x{:08x})", state.pc,
-                        far);
+                    if (CONFIG_INSTANCE.GetRecoverFromSegfault()) {
+                        LOG_ERROR(
+                            Hypervisor,
+                            "Data abort (PC: 0x{:08x}, address: 0x{:08x})",
+                            state.pc, far);
+
+                        // Just move on to the next instruction
+                        state.pc += 4;
+                    } else {
+                        GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(
+                            "Data abort (PC: 0x{:08x}, address: 0x{:08x})",
+                            state.pc, far);
+                    }
                     break;
                 }
                 default:

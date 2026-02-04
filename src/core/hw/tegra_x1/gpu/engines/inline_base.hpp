@@ -5,11 +5,11 @@
 #define INLINE_ENGINE_TABLE                                                    \
     0x6c, 1, LaunchDMA, u32, 0x6d, 1, LoadInlineData, u32
 #define DEFINE_INLINE_ENGINE_METHODS                                           \
-    void LaunchDMA(GMmu& gmmu, const u32 index, const u32 data) {              \
-        LaunchDMAImpl(gmmu, regs.regs_inline, index, data);                    \
+    void LaunchDMA(const u32 index, const u32 data) {                          \
+        LaunchDMAImpl(regs.regs_inline, index, data);                          \
     }                                                                          \
-    void LoadInlineData(GMmu& gmmu, const u32 index, const u32 data) {         \
-        LoadInlineDataImpl(gmmu, regs.regs_inline, index, data);               \
+    void LoadInlineData(const u32 index, const u32 data) {                     \
+        LoadInlineDataImpl(regs.regs_inline, index, data);                     \
     }
 
 namespace hydra::hw::tegra_x1::gpu::engines {
@@ -36,10 +36,8 @@ struct RegsInline {
 class InlineBase {
   protected:
     // Commands
-    void LaunchDMAImpl(GMmu& gmmu, RegsInline& regs, const u32 index,
-                       const u32 data);
-    void LoadInlineDataImpl(GMmu& gmmu, RegsInline& regs, const u32 index,
-                            const u32 data);
+    void LaunchDMAImpl(RegsInline& regs, const u32 index, const u32 data);
+    void LoadInlineDataImpl(RegsInline& regs, const u32 index, const u32 data);
 
   private:
     std::vector<u32> inline_data;

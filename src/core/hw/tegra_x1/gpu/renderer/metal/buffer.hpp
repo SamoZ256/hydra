@@ -7,24 +7,29 @@ namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 class Buffer final : public BufferBase {
   public:
-    Buffer(const BufferDescriptor& descriptor);
-    Buffer(MTL::Buffer* buffer_, u32 offset_);
+    Buffer(u64 size);
+    Buffer(MTL::Buffer* buffer_);
     ~Buffer() override;
 
+    uptr GetPtr() const override {
+        return reinterpret_cast<uptr>(buffer->contents());
+    }
+
     // Copying
-    void CopyFrom(const uptr data) override;
-    void CopyFrom(BufferBase* src) override;
-    void CopyFrom(TextureBase* src, const uint3 src_origin,
-                  const uint3 src_size) override;
+    void CopyFrom(ICommandBuffer* command_buffer, TextureBase* src,
+                  const uint3 src_origin, const uint3 src_size,
+                  u64 dst_offset) override;
 
   private:
     MTL::Buffer* buffer;
-    u32 offset{0};
-    bool owns_buffer{true};
+
+    // Copying
+    void CopyFromImpl(const uptr data, u64 dst_offset, u64 size_) override;
+    void CopyFromImpl(ICommandBuffer* command_buffer, BufferBase* src,
+                      u64 dst_offset, u64 src_offset, u64 size_) override;
 
   public:
     GETTER(buffer, GetBuffer);
-    GETTER(offset, GetOffset);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal

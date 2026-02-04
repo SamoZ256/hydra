@@ -73,7 +73,7 @@ class GdbServer {
 
     void NotifySupervisorPausedImpl(horizon::kernel::GuestThread* thread,
                                     Signal signal);
-    void NotifyMemoryChanged(range<vaddr_t> mem_range);
+    void NotifyMemoryChanged(Range<vaddr_t> mem_range);
 };
 
 } // namespace hydra::debugger

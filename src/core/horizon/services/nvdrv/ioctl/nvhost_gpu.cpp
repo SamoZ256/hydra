@@ -48,8 +48,7 @@ NvResult NvHostGpu::SubmitGpfifo(
 
     GPU_INSTANCE.GetPfifo().SubmitEntries(
         *process->GetGMmu(),
-        std::vector<hw::tegra_x1::gpu::GpfifoEntry>(entries,
-                                                    entries + num_entries),
+        std::span<const hw::tegra_x1::gpu::GpfifoEntry>(entries, num_entries),
         inout_flags_and_detailed_error);
 
     // HACK
@@ -59,21 +58,25 @@ NvResult NvHostGpu::SubmitGpfifo(
 }
 
 NvResult NvHostGpu::AllocObjCtx(u32 class_num, u32 flags, u64* out_obj_id) {
-    LOG_FUNC_WITH_ARGS_STUBBED(Services, "class number: {}, flags: {:#x}", class_num, flags);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "class number: {}, flags: {:#x}",
+                               class_num, flags);
 
     // HACK
     *out_obj_id = 0;
     return NvResult::Success;
 }
 
-NvResult NvHostGpu::ZCullBind(gpu_vaddr_t addr, u32 mode, [[maybe_unused]] u32 reserved) {
-    LOG_FUNC_WITH_ARGS_STUBBED(Services, "address: {:#x}, mode: {}", addr, mode);
+NvResult NvHostGpu::ZCullBind(gpu_vaddr_t addr, u32 mode,
+                              [[maybe_unused]] u32 reserved) {
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "address: {:#x}, mode: {}", addr,
+                               mode);
     return NvResult::Success;
 }
 
 NvResult NvHostGpu::SetErrorNotifier(u64 offset, u64 size, u32 mem,
                                      [[maybe_unused]] u32 reserved) {
-    LOG_FUNC_WITH_ARGS_STUBBED(Services, "offset: {:#x}, size: {:#x}, memory: {}", offset, size, mem);
+    LOG_FUNC_WITH_ARGS_STUBBED(
+        Services, "offset: {:#x}, size: {:#x}, memory: {}", offset, size, mem);
     return NvResult::Success;
 }
 
@@ -89,10 +92,13 @@ NvResult NvHostGpu::GetErrorNotification(u64* out_timestamp, u32* out_info32,
     return NvResult::Success;
 }
 
-NvResult NvHostGpu::AllocGpfifoEX(u32 num_entries, u32 num_jobs, u32 flags,
-                                  hw::tegra_x1::gpu::Fence* out_fence,
-                                  [[maybe_unused]] std::array<u32, 3> reserved) {
-    LOG_FUNC_WITH_ARGS_STUBBED(Services, "number of entries: {}, num_jobs: {}, flags: {:#x}", num_entries, num_jobs, flags);
+NvResult
+NvHostGpu::AllocGpfifoEX(u32 num_entries, u32 num_jobs, u32 flags,
+                         hw::tegra_x1::gpu::Fence* out_fence,
+                         [[maybe_unused]] std::array<u32, 3> reserved) {
+    LOG_FUNC_WITH_ARGS_STUBBED(
+        Services, "number of entries: {}, num_jobs: {}, flags: {:#x}",
+        num_entries, num_jobs, flags);
 
     // HACK
     *out_fence = {};

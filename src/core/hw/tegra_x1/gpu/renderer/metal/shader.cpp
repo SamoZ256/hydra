@@ -5,6 +5,15 @@
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 Shader::Shader(const ShaderDescriptor& descriptor) : ShaderBase(descriptor) {
+    // Options
+    NS_STACK_SCOPED MTL::CompileOptions* options =
+        MTL::CompileOptions::alloc()->init();
+    if (false) // TODO: make this configurable
+        options->setFastMathEnabled(true);
+    if (true) // TODO: make this configurable
+        options->setPreserveInvariance(true);
+
+    // Library
     MTL::Library* library;
     switch (descriptor.backend) {
     case ShaderBackend::Msl: {
@@ -12,8 +21,15 @@ Shader::Shader(const ShaderDescriptor& descriptor) : ShaderBase(descriptor) {
         std::string source;
         source.assign(descriptor.code.begin(), descriptor.code.end());
 
-        library = CreateLibraryFromSource(METAL_RENDERER_INSTANCE.GetDevice(),
-                                          source);
+        NS::Error* error;
+        library = METAL_RENDERER_INSTANCE.GetDevice()->newLibrary(
+            ToNSString(source), options, &error);
+        if (error) {
+            LOG_ERROR(MetalRenderer, "Failed to create Metal library: {}",
+                      error->localizedDescription()->utf8String());
+            error->release(); // TODO: autorelease
+            return;
+        }
         break;
     }
     case ShaderBackend::Air: {
@@ -24,12 +40,14 @@ Shader::Shader(const ShaderDescriptor& descriptor) : ShaderBase(descriptor) {
                                  });
 
         NS::Error* error;
+        // TODO: options
         library = METAL_RENDERER_INSTANCE.GetDevice()->newLibrary(dispatch_data,
                                                                   &error);
         if (error) {
             LOG_ERROR(MetalRenderer, "Failed to create Metal library: {}",
                       error->localizedDescription()->utf8String());
-            error->release(); // TODO: release?
+            error->release(); // TODO: autorelease
+            return;
         }
         break;
     }
@@ -40,6 +58,7 @@ Shader::Shader(const ShaderDescriptor& descriptor) : ShaderBase(descriptor) {
         break;
     }
 
+    // Function
     function = library->newFunction(ToNSString("main_"));
     library->release();
 }

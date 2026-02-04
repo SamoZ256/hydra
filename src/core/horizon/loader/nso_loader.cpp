@@ -96,24 +96,6 @@ NsoLoader::NsoLoader(filesystem::IFile* file_, const std::string_view name_,
 
     text_offset = header.text.memory_offset;
 
-    // Determine executable memory size
-    executable_size =
-        std::max(executable_size, static_cast<usize>(header.text.memory_offset +
-                                                     header.text.size));
-    executable_size =
-        std::max(executable_size,
-                 static_cast<usize>(header.ro.memory_offset + header.ro.size));
-    executable_size =
-        std::max(executable_size, static_cast<usize>(header.data.memory_offset +
-                                                     header.data.size));
-    executable_size += header.bss_size;
-    LOG_DEBUG(Loader,
-              "NSO: 0x{:08x} + 0x{:08x}, 0x{:08x} + 0x{:08x}, 0x{:08x} + "
-              "0x{:08x}, 0x{:08x}",
-              header.text.memory_offset, header.text.size,
-              header.ro.memory_offset, header.ro.size,
-              header.data.memory_offset, header.data.size, header.bss_size);
-
     // Segments
     segments[0] = {header.text, header.text_file_size,
                    any(header.flags & NsoFlags::TextCompressed)};
@@ -121,6 +103,20 @@ NsoLoader::NsoLoader(filesystem::IFile* file_, const std::string_view name_,
                    any(header.flags & NsoFlags::RoCompressed)};
     segments[2] = {header.data, header.data_file_size,
                    any(header.flags & NsoFlags::DataCompressed)};
+    segments[2].seg.size += header.bss_size;
+
+    // Determine executable memory size
+    for (u32 i = 0; i < 3; i++) {
+        executable_size = std::max(
+            executable_size, static_cast<usize>(segments[i].seg.memory_offset +
+                                                segments[i].seg.size));
+    }
+    LOG_DEBUG(Loader,
+              "NSO: 0x{:08x} + 0x{:08x}, 0x{:08x} + 0x{:08x}, 0x{:08x} + "
+              "0x{:08x}, 0x{:08x}",
+              header.text.memory_offset, header.text.size,
+              header.ro.memory_offset, header.ro.size,
+              header.data.memory_offset, header.data.size, header.bss_size);
 
     dyn_str_offset = header.dyn_str_offset;
     dyn_str_size = header.dyn_str_size;
@@ -139,10 +135,16 @@ void NsoLoader::LoadProcess(kernel::Process* process) {
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
 
     // Create executable memory
+    const auto set =
+        kernel::CodeSet{executable_size,
+                        Range<u64>::FromSize(segments[0].seg.memory_offset,
+                                             segments[0].seg.size),
+                        Range<u64>::FromSize(segments[1].seg.memory_offset,
+                                             segments[1].seg.size),
+                        Range<u64>::FromSize(segments[2].seg.memory_offset,
+                                             segments[2].seg.size)};
     vaddr_t base;
-    auto ptr = process->CreateExecutableMemory(
-        name, executable_size, kernel::MemoryPermission::ReadExecute, true,
-        base);
+    auto ptr = process->CreateExecutableMemory(name, set, base);
     LOG_DEBUG(Loader, "Base: 0x{:08x}, size: 0x{:08x}", base, executable_size);
 
     // Segments
@@ -161,7 +163,7 @@ void NsoLoader::LoadProcess(kernel::Process* process) {
     auto arg_data_ptr = reinterpret_cast<ArgData*>(process->CreateMemory(
         kernel::EXECUTABLE_REGION, ARG_DATA_SIZE,
         static_cast<kernel::MemoryType>(4), kernel::MemoryPermission::ReadWrite,
-        false, arg_data_base));
+        arg_data_base));
     arg_data_ptr->allocated_size = ARG_DATA_SIZE;
     arg_data_ptr->string_size = static_cast<u32>(arg_data_str.size() + 1);
     std::memcpy(arg_data_ptr->str, arg_data_str.c_str(), arg_data_str.size());
@@ -207,7 +209,7 @@ void NsoLoader::LoadProcess(kernel::Process* process) {
                 .GetFunctionTable()
                 .RegisterSymbol(
                     {demangle(std::string(name)),
-                     range<vaddr_t>(base + symbol.st_value,
+                     Range<vaddr_t>(base + symbol.st_value,
                                     base + symbol.st_value + symbol.st_size)});
         }
     }
@@ -220,7 +222,8 @@ void NsoLoader::LoadProcess(kernel::Process* process) {
 
         // Main thread
         auto main_thread = new kernel::GuestThread(
-            process, kernel::STACK_REGION.begin + main_thread_stack_size - 0x10,
+            process,
+            kernel::STACK_REGION.GetBegin() + main_thread_stack_size - 0x10,
             main_thread_priority);
         const auto main_thread_handle_id = process->SetMainThread(main_thread);
 

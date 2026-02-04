@@ -3,11 +3,13 @@
 #include "core/horizon/kernel/process.hpp"
 #include "core/horizon/os.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/surface_compositor.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 
 namespace hydra::horizon::display {
 
-bool Layer::AcquirePresentTexture() {
+bool Layer::AcquirePresentTexture(
+    hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer) {
     // Get the buffer to present
     auto& binder = OS_INSTANCE.GetDisplayDriver().GetBinder(binder_id);
 
@@ -18,8 +20,8 @@ bool Layer::AcquirePresentTexture() {
     const auto& buffer = binder.GetBuffer(slot);
 
     // Texture
-    present_texture =
-        GPU_INSTANCE.GetTexture(process->GetMmu(), buffer.nv_buffer);
+    present_texture = GPU_INSTANCE.GetTexture(command_buffer, process->GetMmu(),
+                                              buffer.nv_buffer);
 
     // Rect
     src_rect = {};
@@ -57,7 +59,9 @@ bool Layer::AcquirePresentTexture() {
     return true;
 }
 
-void Layer::Present(FloatRect2D dst_rect, f32 dst_scale, bool transparent) {
+void Layer::Present(hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer,
+                    hw::tegra_x1::gpu::renderer::ISurfaceCompositor* compositor,
+                    FloatRect2D dst_rect, f32 dst_scale, bool transparent) {
     if (!present_texture)
         return;
 
@@ -66,8 +70,8 @@ void Layer::Present(FloatRect2D dst_rect, f32 dst_scale, bool transparent) {
         dst_rect.size = float2(size) * dst_scale;
 
     // Draw
-    RENDERER_INSTANCE.DrawTextureToSurface(present_texture, src_rect, dst_rect,
-                                           transparent);
+    compositor->DrawTexture(command_buffer, present_texture, src_rect, dst_rect,
+                            transparent);
 }
 
 AccumulatedTime Layer::GetAccumulatedDT() {

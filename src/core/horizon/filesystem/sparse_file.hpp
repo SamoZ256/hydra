@@ -85,7 +85,7 @@ class SparseFile : public IFile {
         streams.reserve(entries.size());
         for (const auto& entry : entries) {
             streams.push_back(
-                {range(entry.offset, entry.offset + entry.file->GetSize()),
+                {Range(entry.offset, entry.offset + entry.file->GetSize()),
                  entry.file->Open(flags)});
         }
 

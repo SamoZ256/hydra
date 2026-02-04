@@ -4,6 +4,12 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
+struct BlitParams {
+    float2 src_offset;
+    float2 src_scale;
+    f32 opacity;
+};
+
 struct BlitPipelineDescriptor {
     MTL::PixelFormat pixel_format;
     bool transparent;

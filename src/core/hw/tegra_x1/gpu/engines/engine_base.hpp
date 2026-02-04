@@ -4,11 +4,11 @@
 
 #define METHOD_CASE(method_begin, method_count, func, arg_type)                \
     case method_begin ...(method_begin + method_count - 1):                    \
-        func(gmmu, method - method_begin, std::bit_cast<arg_type>(arg));       \
+        func(method - method_begin, std::bit_cast<arg_type>(arg));             \
         break;
 
 #define DEFINE_METHOD_TABLE(type, ...)                                         \
-    void type::Method(GMmu& gmmu, u32 method, u32 arg) {                       \
+    void type::Method(u32 method, u32 arg) {                                   \
         if (method >= MACRO_METHODS_REGION) {                                  \
             Macro(method, arg);                                                \
             return;                                                            \
@@ -36,9 +36,9 @@ class EngineBase {
 
     virtual ~EngineBase() = default;
 
-    virtual void Method(GMmu& gmmu, u32 method, u32 arg) = 0;
+    virtual void Method(u32 method, u32 arg) = 0;
 
-    virtual void FlushMacro([[maybe_unused]] GMmu& gmmu) {
+    virtual void FlushMacro() {
         LOG_ERROR(Engines, "This engine does not support macros");
         throw Error::MacrosNotSupported;
     }

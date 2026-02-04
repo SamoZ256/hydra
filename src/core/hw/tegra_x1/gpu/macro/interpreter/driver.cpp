@@ -2,12 +2,12 @@
 
 namespace hydra::hw::tegra_x1::gpu::macro::interpreter {
 
-void Driver::ExecuteImpl(GMmu& gmmu, u32 pc_, u32 param1) {
+void Driver::ExecuteImpl(u32 pc_, u32 param1) {
     pc = pc_;
     SetRegU32(1, param1);
 
     while (true) {
-        if (ParseInstruction(gmmu, pc))
+        if (ParseInstruction(pc))
             break;
 
         if (pc == branch_after) {
@@ -130,7 +130,7 @@ void Driver::InstBranch(BranchCondition cond, u8 rA, i32 imm, bool& branched) {
     }
 }
 
-void Driver::InstResult(GMmu& gmmu, ResultOperation op, u8 rD, u32 value) {
+void Driver::InstResult(ResultOperation op, u8 rD, u32 value) {
     LOG_DEBUG(Macro, "result op: {}, r{}, value: 0x{:08x}", op, rD, value);
 
     switch (op) {
@@ -146,11 +146,11 @@ void Driver::InstResult(GMmu& gmmu, ResultOperation op, u8 rD, u32 value) {
         break;
     case ResultOperation::FetchAndSend:
         SetRegU32(rD, FetchParam());
-        Send(gmmu, value);
+        Send(value);
         break;
     case ResultOperation::MoveAndSend:
         SetRegU32(rD, value);
-        Send(gmmu, value);
+        Send(value);
         break;
     case ResultOperation::FetchAndSetMethod:
         SetRegU32(rD, FetchParam());
@@ -159,12 +159,12 @@ void Driver::InstResult(GMmu& gmmu, ResultOperation op, u8 rD, u32 value) {
     case ResultOperation::MoveAndSetMethodFetchAndSend:
         SetRegU32(rD, value);
         SetMethod(value);
-        Send(gmmu, FetchParam());
+        Send(FetchParam());
         break;
     case ResultOperation::MoveAndSetMethodSend:
         SetRegU32(rD, value);
         SetMethod(value);
-        Send(gmmu, (value >> 12) & 0x3f);
+        Send((value >> 12) & 0x3f);
         break;
     }
 }

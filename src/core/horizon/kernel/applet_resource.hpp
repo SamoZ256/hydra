@@ -84,7 +84,7 @@ class AppletResourcePool {
     }
 
   private:
-    ResourceArray resources = {std::nullopt};
+    ResourceArray resources{};
 
     // Helpers
     std::optional<T>& GetResourceOpt(AppletResourceUserId aruid) {

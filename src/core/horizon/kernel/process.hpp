@@ -29,20 +29,23 @@ enum class ProcessState {
     DebugSuspended = 7,
 };
 
+struct CodeSet {
+    u64 size;
+    Range<u64> code;
+    Range<u64> ro_data;
+    Range<u64> data;
+};
+
 class Process : public SynchronizationObject {
   public:
     Process(const std::string_view debug_name = "Process");
     ~Process() override;
 
     // Memory
-    // TODO: remove add_guard_page
-    uptr CreateMemory(range<vaddr_t> region, usize size, MemoryType type,
-                      MemoryPermission perm, bool add_guard_page,
-                      vaddr_t& out_base);
-    // TODO: should the caller be able to specify permissions?
-    uptr CreateExecutableMemory(const std::string_view module_name, usize size,
-                                MemoryPermission perm, bool add_guard_page,
-                                vaddr_t& out_base);
+    uptr CreateMemory(Range<vaddr_t> region, usize size, MemoryType type,
+                      MemoryPermission perm, vaddr_t& out_base);
+    uptr CreateExecutableMemory(const std::string_view module_name,
+                                CodeSet code_set, vaddr_t& out_base);
     hw::tegra_x1::cpu::IMemory* CreateTlsMemory(vaddr_t& base);
     void CreateStackMemory(usize stack_size);
 
@@ -149,7 +152,7 @@ class Process : public SynchronizationObject {
     std::vector<hw::tegra_x1::cpu::IMemory*> executable_mems;
     hw::tegra_x1::cpu::IMemory* main_thread_stack_mem{nullptr};
 
-    vaddr_t tls_mem_base{TLS_REGION.begin};
+    vaddr_t tls_mem_base{TLS_REGION.GetBegin()};
 
     // Thread
     GuestThread* main_thread{nullptr};

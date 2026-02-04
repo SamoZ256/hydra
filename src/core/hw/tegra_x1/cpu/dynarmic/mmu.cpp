@@ -6,41 +6,52 @@
 
 namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
-void Mmu::Map(vaddr_t dst_va, uptr ptr, usize size,
+void Mmu::Map(vaddr_t dst_va, Range<uptr> range,
               const horizon::kernel::MemoryState state) {
-    ASSERT_ALIGNMENT(size, GUEST_PAGE_SIZE, Dynarmic, "size");
+    ASSERT_ALIGNMENT(range.GetSize(), GUEST_PAGE_SIZE, Dynarmic, "size");
 
     u64 va_page = dst_va / GUEST_PAGE_SIZE;
-    u64 size_page = size / GUEST_PAGE_SIZE;
+    u64 size_page = range.GetSize() / GUEST_PAGE_SIZE;
     u64 va_page_end = va_page + size_page;
     for (u64 page = va_page; page < va_page_end; ++page) {
-        auto page_ptr = ptr + ((page - va_page) * GUEST_PAGE_SIZE);
+        auto page_ptr = range.GetBegin() + ((page - va_page) * GUEST_PAGE_SIZE);
         pages[page] = page_ptr;
         states[page] = state;
     }
 }
 
-void Mmu::Map(vaddr_t dst_va, vaddr_t src_va, usize size) {
-    ASSERT_ALIGNMENT(size, GUEST_PAGE_SIZE, Dynarmic, "size");
+void Mmu::Map(vaddr_t dst_va, Range<vaddr_t> range) {
+    ASSERT_ALIGNMENT(range.GetBegin(), GUEST_PAGE_SIZE, Dynarmic, "begin");
+    ASSERT_ALIGNMENT(range.GetEnd(), GUEST_PAGE_SIZE, Dynarmic, "end");
 
-    auto src_page = src_va / GUEST_PAGE_SIZE;
+    auto src_page = range.GetBegin() / GUEST_PAGE_SIZE;
     auto dst_page = dst_va / GUEST_PAGE_SIZE;
-    auto size_page = size / GUEST_PAGE_SIZE;
-    for (u64 i = 0; i < size_page; i++) {
+    for (u64 i = 0; i < range.GetSize() / GUEST_PAGE_SIZE; i++) {
         pages[dst_page + i] = pages[src_page + i];
         states[dst_page + i] = states[src_page + i];
     }
 }
 
-void Mmu::Unmap(vaddr_t va, usize size) {
-    ASSERT_ALIGNMENT(size, GUEST_PAGE_SIZE, Dynarmic, "size");
+void Mmu::Unmap(Range<vaddr_t> range) {
+    ASSERT_ALIGNMENT(range.GetBegin(), GUEST_PAGE_SIZE, Dynarmic, "begin");
+    ASSERT_ALIGNMENT(range.GetEnd(), GUEST_PAGE_SIZE, Dynarmic, "end");
 
-    auto va_page = va / GUEST_PAGE_SIZE;
-    auto size_page = size / GUEST_PAGE_SIZE;
-    auto va_page_end = va_page + size_page;
-    for (u64 page = va_page; page < va_page_end; ++page) {
+    for (u64 page = range.GetBegin() / GUEST_PAGE_SIZE;
+         page < range.GetEnd() / GUEST_PAGE_SIZE; ++page) {
         pages[page] = 0x0;
         states[page] = {.type = horizon::kernel::MemoryType::Free};
+    }
+}
+
+// TODO: actually protect the memory
+void Mmu::Protect(Range<vaddr_t> range,
+                  horizon::kernel::MemoryPermission perm) {
+    ASSERT_ALIGNMENT(range.GetBegin(), GUEST_PAGE_SIZE, Dynarmic, "begin");
+    ASSERT_ALIGNMENT(range.GetEnd(), GUEST_PAGE_SIZE, Dynarmic, "end");
+
+    for (u64 page = range.GetBegin() / GUEST_PAGE_SIZE;
+         page < range.GetEnd() / GUEST_PAGE_SIZE; ++page) {
+        states[page].perm = perm;
     }
 }
 
@@ -81,15 +92,14 @@ MemoryRegion Mmu::QueryRegion(vaddr_t va) const {
     };
 }
 
-void Mmu::SetMemoryAttribute(vaddr_t va, usize size,
+void Mmu::SetMemoryAttribute(Range<vaddr_t> range,
                              horizon::kernel::MemoryAttribute mask,
                              horizon::kernel::MemoryAttribute value) {
-    ASSERT_ALIGNMENT(size, GUEST_PAGE_SIZE, Dynarmic, "size");
+    ASSERT_ALIGNMENT(range.GetBegin(), GUEST_PAGE_SIZE, Dynarmic, "begin");
+    ASSERT_ALIGNMENT(range.GetEnd(), GUEST_PAGE_SIZE, Dynarmic, "end");
 
-    auto va_page = va / GUEST_PAGE_SIZE;
-    auto size_page = size / GUEST_PAGE_SIZE;
-    auto va_page_end = va_page + size_page;
-    for (u64 page = va_page; page < va_page_end; ++page) {
+    for (u64 page = range.GetBegin() / GUEST_PAGE_SIZE;
+         page < range.GetEnd() / GUEST_PAGE_SIZE; ++page) {
         auto& state = states[page];
         state.attr = (state.attr & ~mask) | (value & mask);
     }

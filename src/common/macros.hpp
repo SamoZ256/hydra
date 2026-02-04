@@ -104,6 +104,8 @@
     decltype(member)& name() { return member; }
 #define CONST_REF_GETTER(member, name)                                         \
     const decltype(member)& name() const { return member; }
+#define CONSTEXPR_GETTER(member, name)                                         \
+    constexpr decltype(member) name() const { return member; }
 
 #define SETTER(member, name)                                                   \
     void name(const decltype(member) member##_) { member = member##_; }
@@ -131,6 +133,9 @@
                                               setter_name)                     \
     CONST_REF_GETTER(member, getter_name)                                      \
     CONST_REF_SETTER(member, setter_name)
+#define CONSTEXPR_GETTER_AND_SETTER(member, getter_name, setter_name)          \
+    CONSTEXPR_GETTER(member, getter_name)                                      \
+    SETTER(member, setter_name)
 
 #define PARENS ()
 

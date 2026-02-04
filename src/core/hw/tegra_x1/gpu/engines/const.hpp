@@ -128,7 +128,18 @@ enum class CompareOp : u32 {
     Always = 8,
 };
 
-// Pitch - buffer, block linear - texture
+enum class TextureType : u32 {
+    _1D = 0,
+    _2D = 1,
+    _3D = 2,
+    Cubemap = 3,
+    _1DArray = 4,
+    _2DArray = 5,
+    _1DBuffer = 6,
+    _2DNoMipmap = 7,
+    CubeArray = 8,
+};
+
 enum class MemoryLayout : u32 {
     BlockLinear,
     Pitch,

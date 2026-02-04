@@ -37,7 +37,7 @@ Gpu::~Gpu() {
     SINGLETON_UNSET_INSTANCE();
 }
 
-void Gpu::SubchannelMethod(GMmu& gmmu, u32 subchannel, u32 method, u32 arg) {
+void Gpu::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
     if (method == 0x0) { // SetEngine
         ASSERT_DEBUG(subchannel <= SUBCHANNEL_COUNT, Gpu,
                      "Invalid subchannel {}", subchannel);
@@ -76,11 +76,14 @@ void Gpu::SubchannelMethod(GMmu& gmmu, u32 subchannel, u32 method, u32 arg) {
         return;
     }
 
-    GetEngineAtSubchannel(subchannel)->Method(gmmu, method, arg);
+    GetEngineAtSubchannel(subchannel)->Method(method, arg);
 }
 
-renderer::TextureBase* Gpu::GetTexture(cpu::IMmu* mmu,
+renderer::TextureBase* Gpu::GetTexture(renderer::ICommandBuffer* command_buffer,
+                                       cpu::IMmu* mmu,
                                        const NvGraphicsBuffer& buff) {
+    std::lock_guard texture_cache_lock(renderer->GetTextureCache().GetMutex());
+
     LOG_DEBUG(Gpu,
               "Map id: {}, width: {}, "
               "height: {}",
@@ -89,12 +92,13 @@ renderer::TextureBase* Gpu::GetTexture(cpu::IMmu* mmu,
     // TODO: why are there more planes?
     renderer::TextureDescriptor descriptor(
         mmu->UnmapAddr(GetMap(buff.nvmap_id).addr + buff.planes[0].offset),
+        renderer::TextureType::_2D,
         renderer::to_texture_format(buff.planes[0].color_format),
-        buff.planes[0].kind, buff.planes[0].width, buff.planes[0].height,
+        buff.planes[0].kind, buff.planes[0].width, buff.planes[0].height, 1,
         buff.planes[0].block_height_log2, buff.planes[0].pitch);
 
-    return renderer->GetTextureCache().GetTextureView(
-        descriptor, renderer::TextureUsage::Present);
+    return renderer->GetTextureCache().Find(command_buffer, descriptor,
+                                            renderer::TextureUsage::Present);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu

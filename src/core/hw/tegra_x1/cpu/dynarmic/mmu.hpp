@@ -6,24 +6,46 @@
 namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
 constexpr usize PAGE_COUNT =
-    horizon::kernel::ADDRESS_SPACE.end / GUEST_PAGE_SIZE;
+    horizon::kernel::ADDRESS_SPACE.GetEnd() / GUEST_PAGE_SIZE;
 
 class Mmu : public IMmu {
   public:
-    void Map(vaddr_t dst_va, uptr ptr, usize size,
+    void Map(vaddr_t dst_va, Range<uptr> range,
              const horizon::kernel::MemoryState state) override;
-    void Map(vaddr_t dst_va, vaddr_t src_va, usize size) override;
-    void Unmap(vaddr_t va, usize size) override;
+    void Map(vaddr_t dst_va, Range<vaddr_t> range) override;
+    void Unmap(Range<vaddr_t> range) override;
+    void Protect(Range<vaddr_t> range,
+                 horizon::kernel::MemoryPermission perm) override;
 
     void ResizeHeap(IMemory* heap_mem, vaddr_t va, usize size) override;
 
     uptr UnmapAddr(vaddr_t va) const override;
     MemoryRegion QueryRegion(vaddr_t va) const override;
-    void SetMemoryAttribute(vaddr_t va, usize size,
+    void SetMemoryAttribute(Range<vaddr_t> range,
                             horizon::kernel::MemoryAttribute mask,
                             horizon::kernel::MemoryAttribute value) override;
 
     uptr GetPageTablePtr() const { return reinterpret_cast<uptr>(&pages); }
+
+  protected:
+    // Write tracking
+    void SetWriteTrackingEnabled(Range<vaddr_t> range, bool enable) override {
+        // TODO: implement
+        (void)range;
+        (void)enable;
+        ONCE(LOG_FUNC_NOT_IMPLEMENTED(Dynarmic));
+    }
+    bool TrySuspendWriteTracking(Range<vaddr_t> range) override {
+        // TODO: implement
+        (void)range;
+        ONCE(LOG_FUNC_NOT_IMPLEMENTED(Dynarmic));
+        return false;
+    }
+    void ResumeWriteTracking(Range<vaddr_t> range) override {
+        // TODO: implement
+        (void)range;
+        ONCE(LOG_FUNC_NOT_IMPLEMENTED(Dynarmic));
+    }
 
   private:
     uptr pages[PAGE_COUNT] = {0x0};

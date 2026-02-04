@@ -118,7 +118,7 @@ struct RegsCopy {
 
 class Copy : public EngineWithRegsBase<RegsCopy> {
   public:
-    void Method(GMmu& gmmu, u32 method, u32 arg) override;
+    void Method(u32 method, u32 arg) override;
 
   private:
     // Commands
@@ -140,10 +140,10 @@ class Copy : public EngineWithRegsBase<RegsCopy> {
         BypassL2 bypass_l2 : 1;
     };
 
-    void LaunchDMA(GMmu& gmmu, const u32 index, const LaunchDMAData data);
+    void LaunchDMA(const u32 index, const LaunchDMAData data);
 
     // Helpers
-    // static renderer::BufferBase* GetBuffer(GMmu& gmmu, const Iova addr,
+    // static renderer::BufferBase* GetBuffer(const Iova addr,
     //                                       const usize size);
     // static renderer::TextureBase* GetTexture(const u32 gpu_addr_lo,
     //                                          const u32 gpu_addr_hi,

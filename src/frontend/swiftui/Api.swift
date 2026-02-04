@@ -402,6 +402,10 @@ func hydraConfigGetProcessArgs() -> HydraStringList {
     HydraStringList(handle: hydra_config_get_process_args())
 }
 
+func hydraConfigGetRecoverFromSegfault() -> UnsafeMutablePointer<Bool> {
+    hydra_config_get_recover_from_segfault()
+}
+
 func hydraConfigGetGdbEnabled() -> UnsafeMutablePointer<Bool> {
     hydra_config_get_gdb_enabled()
 }

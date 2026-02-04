@@ -14,18 +14,26 @@ class Mmu : public IMmu {
     Mmu();
     ~Mmu() override;
 
-    void Map(vaddr_t dst_va, uptr ptr, usize size,
+    void Map(vaddr_t dst_va, Range<uptr> range,
              const horizon::kernel::MemoryState state) override;
-    void Map(vaddr_t dst_va, vaddr_t src_va, usize size) override;
-    void Unmap(vaddr_t va, usize size) override;
+    void Map(vaddr_t dst_va, Range<vaddr_t> range) override;
+    void Unmap(Range<vaddr_t> range) override;
+    void Protect(Range<vaddr_t> range,
+                 horizon::kernel::MemoryPermission perm) override;
 
     void ResizeHeap(IMemory* heap_mem, vaddr_t va, usize size) override;
 
     uptr UnmapAddr(vaddr_t va) const override;
     MemoryRegion QueryRegion(vaddr_t va) const override;
-    void SetMemoryAttribute(vaddr_t va, usize size,
+    void SetMemoryAttribute(Range<vaddr_t> range,
                             horizon::kernel::MemoryAttribute mask,
                             horizon::kernel::MemoryAttribute value) override;
+
+  protected:
+    // Write tracking
+    void SetWriteTrackingEnabled(Range<vaddr_t> range, bool enable) override;
+    bool TrySuspendWriteTracking(Range<vaddr_t> range) override;
+    void ResumeWriteTracking(Range<vaddr_t> range) override;
 
   private:
     PageTable user_page_table;

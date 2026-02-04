@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/hw/tegra_x1/gpu/renderer/const.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/buffer_view.hpp"
 
 namespace hydra::hw::tegra_x1::cpu {
 class IMmu;
@@ -8,20 +8,30 @@ class IMmu;
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
-class BufferBase;
+// TODO: also release the buffer
+struct BufferEntry {
+    BufferBase* buffer{nullptr};
+    Range<uptr> range;
+    std::optional<Range<uptr>> invalidation_range{};
+    bool inline_copy{true}; // TODO: reset to true when not in use
+};
 
-class BufferCache
-    : public CacheBase<BufferCache, BufferBase*, BufferDescriptor> {
+// TODO: optional data hashing
+class BufferCache {
   public:
-    void Destroy() {}
+    ~BufferCache();
 
-    BufferBase* Create(const BufferDescriptor& descriptor);
-    void Update(BufferBase* buffer);
-    u32 Hash(const BufferDescriptor& descriptor);
+    BufferView Get(ICommandBuffer* command_buffer, Range<uptr> range);
 
-    void DestroyElement(BufferBase* buffer);
+    void InvalidateMemory(Range<uptr> range);
 
   private:
+    std::map<uptr, BufferEntry> entries;
+
+    // Helpers
+    static void UpdateRange(ICommandBuffer* command_buffer, BufferEntry& entry,
+                            Range<uptr> range);
+    BufferEntry& Find(Range<uptr> range);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

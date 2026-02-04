@@ -11,7 +11,7 @@ namespace hydra::horizon::kernel {
 
 Process::Process(const std::string_view debug_name)
     : SynchronizationObject(false, debug_name), mmu{CPU_INSTANCE.CreateMmu()},
-      gmmu{new hw::tegra_x1::gpu::GMmu()} {
+      gmmu{new hw::tegra_x1::gpu::GMmu(mmu)} {
     // TODO: use title ID and name as debugger name?
     DEBUGGER_MANAGER_INSTANCE.AttachDebugger(
         this,
@@ -29,14 +29,9 @@ Process::~Process() {
     DEBUGGER_MANAGER_INSTANCE.DetachDebugger(this);
 }
 
-uptr Process::CreateMemory(range<vaddr_t> region, usize size, MemoryType type,
-                           MemoryPermission perm, bool add_guard_page,
-                           vaddr_t& out_base) {
-    out_base = mmu->FindFreeMemory(
-        region,
-        size + (add_guard_page ? hw::tegra_x1::cpu::GUEST_PAGE_SIZE : 0x0));
-    if (add_guard_page && out_base != region.begin)
-        out_base += hw::tegra_x1::cpu::GUEST_PAGE_SIZE;
+uptr Process::CreateMemory(Range<vaddr_t> region, usize size, MemoryType type,
+                           MemoryPermission perm, vaddr_t& out_base) {
+    out_base = mmu->FindFreeMemory(region, size);
     ASSERT(out_base != 0x0, Kernel, "Failed to find free memory");
 
     auto mem = CPU_INSTANCE.AllocateMemory(size);
@@ -47,13 +42,33 @@ uptr Process::CreateMemory(range<vaddr_t> region, usize size, MemoryType type,
 }
 
 uptr Process::CreateExecutableMemory(const std::string_view module_name,
-                                     usize size, MemoryPermission perm,
-                                     bool add_guard_page, vaddr_t& out_base) {
-    // TODO: use MemoryType::Static
-    auto ptr = CreateMemory(EXECUTABLE_REGION, size, static_cast<MemoryType>(3),
-                            perm, add_guard_page, out_base);
+                                     CodeSet code_set, vaddr_t& out_base) {
+    // TODO: use MemoryType::Static?
+    auto ptr = CreateMemory(EXECUTABLE_REGION, code_set.size,
+                            static_cast<MemoryType>(3), MemoryPermission::Read,
+                            out_base);
+
+    // Protect
+    mmu->Protect(
+        Range<vaddr_t>::FromSize(
+            out_base + code_set.code.GetBegin(),
+            align(code_set.code.GetSize(), hw::tegra_x1::cpu::GUEST_PAGE_SIZE)),
+        MemoryPermission::ReadExecute);
+    // mmu->Protect(
+    //     Range<vaddr_t>::FromSize(out_base + code_set.ro_data.GetBegin(),
+    //                              align(code_set.ro_data.GetSize(),
+    //                                    hw::tegra_x1::cpu::GUEST_PAGE_SIZE)),
+    //     MemoryPermission::Read);
+    mmu->Protect(
+        Range<vaddr_t>::FromSize(
+            out_base + code_set.data.GetBegin(),
+            align(code_set.data.GetSize(), hw::tegra_x1::cpu::GUEST_PAGE_SIZE)),
+        MemoryPermission::ReadWrite);
+
+    // Debug
     DEBUGGER_MANAGER_INSTANCE.GetDebugger(this).GetModuleTable().RegisterSymbol(
-        {std::string(module_name), range<vaddr_t>(out_base, out_base + size)});
+        {std::string(module_name),
+         Range<vaddr_t>(out_base, out_base + code_set.size)});
 
     return ptr;
 }
@@ -74,7 +89,7 @@ void Process::CreateStackMemory(usize stack_size) {
     // 0x10, priority); auto handle_id = AddHandle(main_thread);
 
     main_thread_stack_mem = CPU_INSTANCE.AllocateMemory(stack_size);
-    mmu->Map(STACK_REGION.begin, main_thread_stack_mem,
+    mmu->Map(STACK_REGION.GetBegin(), main_thread_stack_mem,
              {MemoryType::Stack, MemoryAttribute::None,
               MemoryPermission::ReadWrite});
 }

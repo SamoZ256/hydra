@@ -65,7 +65,8 @@
 
 #define ASSERT_ALIGNMENT(value, alignment, c, name)                            \
     ASSERT(is_aligned<decltype(value)>(value, alignment), c,                   \
-           name " must be {}-byte aligned", alignment)
+           name " must be {:#x}-byte aligned (value: {:#x})", alignment,       \
+           value)
 
 #ifdef HYDRA_DEBUG
 #define ASSERT_DEBUG(condition, c, ...) ASSERT(condition, c, __VA_ARGS__)

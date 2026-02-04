@@ -26,7 +26,7 @@ class Memory : public IMemory {
 
     void Allocate() {
         const auto size = GetSizeAligned();
-        ptr = allocate_vm_memory(size);
+        ptr = AllocateVmMemory(size);
 
         // Map
         // TODO: Why does this fail occasionally?

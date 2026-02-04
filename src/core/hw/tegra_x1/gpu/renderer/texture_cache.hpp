@@ -8,59 +8,28 @@ class IMmu;
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
+class ICommandBuffer;
 class TextureBase;
 
 typedef std::chrono::steady_clock TextureCacheClock;
 typedef TextureCacheClock::time_point TextureCacheTimePoint;
 
-struct Tex {
+struct TextureGroup {
     TextureBase* base{nullptr};
-    small_cache<u32, TextureBase*> view_cache;
-    TextureCacheTimePoint cpu_sync_timestamp{};
-    u32 data_hash{0};
+    SmallCache<u32, TextureBase*> view_cache;
+    TextureCacheTimePoint update_timestamp{};
 
-    void MarkCpuSynced() { cpu_sync_timestamp = TextureCacheClock::now(); }
+    void MarkUpdated() { update_timestamp = TextureCacheClock::now(); }
 };
 
-struct DataHash {
-    static constexpr f32 MIN_SUCCESS_RATE = 0.2f;
-    static constexpr f32 MIX_AMOUNT = 0.1f;
-
-    u32 hash{0};
-    TextureCacheTimePoint updated_timestamp{};
-    f32 check_success_rate{MIN_SUCCESS_RATE};
-
-    bool ShouldCheck() const {
-        // The farther away the success rate is from MIN_SUCCESS_RATE, the
-        // longer the check interval
-        f32 amount;
-        if (check_success_rate >= MIN_SUCCESS_RATE)
-            amount = (check_success_rate - MIN_SUCCESS_RATE) /
-                     (1.0f - MIN_SUCCESS_RATE);
-        else
-            amount = (MIN_SUCCESS_RATE - check_success_rate) / MIN_SUCCESS_RATE;
-        f32 amount_squared = amount * amount;
-        std::chrono::milliseconds check_interval =
-            std::chrono::milliseconds(static_cast<i32>(amount_squared * 10000));
-
-        return TextureCacheClock::now() > updated_timestamp + check_interval;
-    }
-
-    void Update(u32 hash_) {
-        hash = hash_;
-        updated_timestamp = TextureCacheClock::now();
-        check_success_rate =
-            check_success_rate * (1.0f - MIX_AMOUNT) + MIX_AMOUNT;
-    }
-
-    void NotifyNotChanged() { check_success_rate *= 1.0f - MIX_AMOUNT; }
+struct SparseTexture {
+    SmallCache<uptr, TextureGroup> cache;
 };
 
 struct TextureMemInfo {
     TextureCacheTimePoint modified_timestamp{};
     TextureCacheTimePoint read_timestamp{};
     TextureCacheTimePoint written_timestamp{};
-    DataHash data_hash{};
 
     void MarkModified() { modified_timestamp = TextureCacheClock::now(); }
     void MarkRead() { read_timestamp = TextureCacheClock::now(); }
@@ -68,36 +37,50 @@ struct TextureMemInfo {
 };
 
 struct TextureMem {
+    Range<uptr> range;
     TextureMemInfo info;
-    small_cache<u32, Tex> cache;
+    SmallCache<u32, SparseTexture> cache;
 };
 
-// TODO: track GPU modifications as well?
+// TODO: destroy textures
+// TODO: texture readback
 class TextureCache {
   public:
     ~TextureCache();
 
-    TextureBase* GetTextureView(const TextureDescriptor& descriptor,
-                                TextureUsage usage);
+    TextureBase* Find(ICommandBuffer* command_buffer,
+                      const TextureDescriptor& descriptor, TextureUsage usage);
 
-    void NotifyGuestModifiedData(const range<uptr> mem_range);
+    void InvalidateMemory(Range<uptr> range);
 
   private:
+    std::mutex mutex;
     TextureDecoder texture_decoder;
 
-    // TODO: use a more memory lookup friendly data structure
-    std::map<uptr, TextureMem> texture_mem_map;
+    std::map<uptr, TextureMem> entries;
 
-    void Create(const TextureDescriptor& descriptor, Tex& tex,
-                TextureMemInfo& info);
-    void Update(Tex& tex, TextureMemInfo& info, TextureUsage usage);
+    TextureMem MergeMemories(const TextureMem& a, const TextureMem& b);
+    TextureBase* AddToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
+                             const TextureDescriptor& descriptor,
+                             TextureUsage usage);
+    TextureBase* GetTexture(ICommandBuffer* command_buffer, TextureGroup& group,
+                            TextureMem& mem,
+                            const TextureDescriptor& descriptor,
+                            TextureUsage usage);
+    TextureBase* GetTextureView(TextureGroup& group,
+                                const TextureViewDescriptor& descriptor);
+    void Create(ICommandBuffer* command_buffer,
+                const TextureDescriptor& descriptor, TextureGroup& group);
+    void Update(ICommandBuffer* command_buffer, TextureGroup& group,
+                TextureMem& mem, TextureUsage usage);
 
     // Helpers
-    u32 GetTextureHash(const TextureDescriptor& descriptor);
-    u32 GetTextureDataHash(const TextureBase* texture);
-    void DecodeTexture(Tex& tex, TextureMemInfo& info,
-                       bool update_data_hash = true);
+    u32 GetDataHash(const TextureBase* texture);
+    void DecodeTexture(ICommandBuffer* command_buffer, TextureGroup& group);
     // TODO: encode texture
+
+  public:
+    REF_GETTER(mutex, GetMutex);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

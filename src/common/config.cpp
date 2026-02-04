@@ -137,6 +137,7 @@ void Config::LoadDefaults() {
     log_fs_access = GetDefaultLogFsAccess();
     debug_logging = GetDefaultDebugLogging();
     process_args = GetDefaultProcessArgs();
+    recover_from_segfault = GetDefaultRecoverFromSegfault();
     gdb_enabled = GetDefaultGdbEnabled();
     gdb_port = GetDefaultGdbPort();
     gdb_wait_for_client = GetDefaultGdbWaitForClient();
@@ -218,6 +219,7 @@ void Config::Serialize() {
         debug["log_fs_access"] = log_fs_access;
         debug["debug_logging"] = debug_logging;
         debug["process_args"] = process_args;
+        debug["recover_from_segfault"] = recover_from_segfault;
         debug["gdb_enabled"] = gdb_enabled;
         debug["gdb_port"] = gdb_port;
         debug["gdb_wait_for_client"] = gdb_wait_for_client;
@@ -303,6 +305,8 @@ void Config::Deserialize() {
                                             GetDefaultDebugLogging());
         process_args = toml::find_or<std::vector<std::string>>(
             debug, "process_args", GetDefaultProcessArgs());
+        recover_from_segfault = toml::find_or<bool>(
+            debug, "recover_from_segfault", GetDefaultRecoverFromSegfault());
         gdb_enabled =
             toml::find_or<bool>(debug, "gdb_enabled", GetDefaultGdbEnabled());
         gdb_port = toml::find_or<u16>(debug, "gdb_port", GetDefaultGdbPort());
@@ -365,6 +369,7 @@ void Config::Log() {
     LOG_INFO(Other, "Log FS access: {}", log_fs_access);
     LOG_INFO(Other, "Debug logging: {}", debug_logging);
     LOG_INFO(Other, "Process arguments: {}", process_args);
+    LOG_INFO(Other, "Recover from segfault: {}", recover_from_segfault);
     LOG_INFO(Other, "GDB enabled: {}", gdb_enabled);
     LOG_INFO(Other, "GDB port: {}", gdb_port);
     LOG_INFO(Other, "GDB wait for client: {}", gdb_wait_for_client);

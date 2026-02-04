@@ -28,11 +28,16 @@ void EmitLoadAttribute(DecoderContext& context, pred_t pred, bool pred_inv,
         unreachable();
     }
 
+    std::vector<ir::Value> values;
+    values.reserve(count);
     for (u32 i = 0; i < count; i++) {
-        context.builder.OpCopy(
-            ir::Value::Register(dst + static_cast<u8>(i)),
-            ir::Value::AttrMemory(
-                AMem(src, src_offset + i * sizeof(u32), is_input)));
+        values.push_back(context.builder.OpCopy(ir::Value::AttrMemory(
+            AMem(src, src_offset + i * sizeof(u32), is_input))));
+    }
+
+    for (u32 i = 0; i < count; i++) {
+        context.builder.OpCopy(ir::Value::Register(dst + static_cast<u8>(i)),
+                               values[i]);
     }
 
     if (conditional)
@@ -105,11 +110,16 @@ void EmitLoadConstant(DecoderContext& context, pred_t pred, bool pred_inv,
         size == LsSize2::S16)
         LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Small integer loading");
 
+    std::vector<ir::Value> values;
+    values.reserve(count);
     for (u32 i = 0; i < count; i++) {
-        context.builder.OpCopy(
-            ir::Value::Register(dst + static_cast<u8>(i)),
-            ir::Value::ConstMemory(
-                CMem(cbuf_slot, src, cbuf_offset + i * sizeof(u32))));
+        values.push_back(context.builder.OpCopy(ir::Value::ConstMemory(
+            CMem(cbuf_slot, src, cbuf_offset + i * sizeof(u32)))));
+    }
+
+    for (u32 i = 0; i < count; i++) {
+        context.builder.OpCopy(ir::Value::Register(dst + static_cast<u8>(i)),
+                               values[i]);
     }
 
     if (conditional)
@@ -149,10 +159,16 @@ void EmitLoadGlobal(DecoderContext& context, pred_t pred, bool pred_inv,
     LOG_FUNC_WITH_ARGS_NOT_IMPLEMENTED(
         ShaderDecompiler, "size: {}, src: {}, offset: {}", size, src, offset);
 
+    std::vector<ir::Value> values;
+    values.reserve(count);
     for (u32 i = 0; i < count; i++) {
         // TODO: global memory
+        values.push_back(ir::Value::ConstantU(0));
+    }
+
+    for (u32 i = 0; i < count; i++) {
         context.builder.OpCopy(ir::Value::Register(dst + static_cast<u8>(i)),
-                               ir::Value::ConstantU(0));
+                               values[i]);
     }
 
     if (conditional)

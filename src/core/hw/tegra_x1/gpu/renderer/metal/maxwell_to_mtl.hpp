@@ -5,6 +5,8 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
+MTL::TextureType ToMtlTextureType(TextureType type);
+
 struct PixelFormatInfo {
     MTL::PixelFormat pixel_format;
     bool has_depth{false};

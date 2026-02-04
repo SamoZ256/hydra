@@ -14,11 +14,11 @@ class MemoryAnalyzer {
     void Analyze(const ir::Module& modul);
 
   private:
-    std::vector<SvSemantic> input_svs;
-    std::vector<SvSemantic> output_svs;
-    std::vector<u8> stage_inputs;
-    std::vector<u8> stage_outputs;
-    std::map<u32, usize> uniform_buffers;
+    std::unordered_set<SvSemantic> input_svs;
+    std::unordered_set<SvSemantic> output_svs;
+    std::unordered_set<u8> stage_inputs;
+    std::unordered_set<u8> stage_outputs;
+    std::unordered_set<u32> const_buffers;
     std::map<u32, TextureInfo> textures;
 
     // Helpers
@@ -32,7 +32,7 @@ class MemoryAnalyzer {
     CONST_REF_GETTER(output_svs, GetOutputSVs);
     CONST_REF_GETTER(stage_inputs, GetStageInputs);
     CONST_REF_GETTER(stage_outputs, GetStageOutputs);
-    CONST_REF_GETTER(uniform_buffers, GetUniformBuffers);
+    CONST_REF_GETTER(const_buffers, GetConstBuffers);
     CONST_REF_GETTER(textures, GetTextures);
 };
 

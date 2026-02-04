@@ -52,11 +52,12 @@ Cpu::Cpu()
     // simplicity reasons
 
     // Kernel memory
-    kernel_page_table.Map(0x0, kernel_mem.GetPtr(), KERNEL_MEM_SIZE,
-                          {horizon::kernel::MemoryType::Kernel,
-                           horizon::kernel::MemoryAttribute::None,
-                           horizon::kernel::MemoryPermission::Execute},
-                          ApFlags::UserNoneKernelReadExecute);
+    kernel_page_table.Map(
+        0x0, Range<uptr>::FromSize(kernel_mem.GetPtr(), KERNEL_MEM_SIZE),
+        {horizon::kernel::MemoryType::Kernel,
+         horizon::kernel::MemoryAttribute::None,
+         horizon::kernel::MemoryPermission::Execute},
+        ApFlags::UserNoneKernelReadExecute);
 
     for (u64 offset = 0; offset < 0x780; offset += 0x80) {
         memcpy(reinterpret_cast<void*>(kernel_mem.GetPtr() + offset),
@@ -71,11 +72,11 @@ Cpu::Cpu()
     /*
     GET_CURRENT_PROCESS_DEBUGGER().GetModuleTable().RegisterSymbol(
         {"Hypervisor::handler",
-         range<vaddr_t>(KERNEL_REGION_BASE,
+         Range<vaddr_t>(KERNEL_REGION_BASE,
                         KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET)});
     GET_CURRENT_PROCESS_DEBUGGER().GetModuleTable().RegisterSymbol(
         {"Hypervisor::trampoline",
-         range<vaddr_t>(KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET,
+         Range<vaddr_t>(KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET,
                         KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET +
                             sizeof(exception_trampoline))});
     */

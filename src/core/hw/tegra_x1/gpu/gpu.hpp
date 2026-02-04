@@ -18,6 +18,10 @@ class IMmu;
 
 namespace hydra::hw::tegra_x1::gpu {
 
+namespace renderer {
+class ICommandBuffer;
+}
+
 struct MemoryMap {
     uptr addr = 0;
     usize size;
@@ -27,6 +31,9 @@ struct MemoryMap {
 };
 
 constexpr usize SUBCHANNEL_COUNT = 5; // TODO: correct?
+
+inline thread_local GMmu* tls_crnt_gmmu = nullptr;
+inline thread_local renderer::ICommandBuffer* tls_crnt_command_buffer = nullptr;
 
 class Gpu {
   public:
@@ -80,14 +87,15 @@ class Gpu {
         return engine;
     }
 
-    void SubchannelMethod(GMmu& gmmu, u32 subchannel, u32 method, u32 arg);
+    void SubchannelMethod(u32 subchannel, u32 method, u32 arg);
 
-    void SubchannelFlushMacro(GMmu& gmmu, u32 subchannel) {
-        GetEngineAtSubchannel(subchannel)->FlushMacro(gmmu);
+    void SubchannelFlushMacro(u32 subchannel) {
+        GetEngineAtSubchannel(subchannel)->FlushMacro();
     }
 
     // Texture
-    renderer::TextureBase* GetTexture(cpu::IMmu* mmu,
+    renderer::TextureBase* GetTexture(renderer::ICommandBuffer* command_buffer,
+                                      cpu::IMmu* mmu,
                                       const NvGraphicsBuffer& buff);
 
     // Getters

@@ -4,7 +4,11 @@ struct DebugSettingsView: View {
     @State private var logOutput: HydraLogOutput = HYDRA_LOG_OUTPUT_INVALID
     @State private var logFsAccess = false
     @State private var debugLogging = false
+
     // TODO: process args
+
+    @State private var recoverFromSegfault = false
+
     @State private var gdbEnabled = false
     @State private var gdbPort: UInt16 = 0
     @State private var gdbWaitForClient = false
@@ -37,7 +41,16 @@ struct DebugSettingsView: View {
                             hydraConfigGetDebugLogging().pointee = newValue
                         }
                 }
+
                 // TODO: process arguments
+
+                Section("Error handling") {
+                    Toggle("Recover from segfault", isOn: self.$recoverFromSegfault)
+                        .onChange(of: self.recoverFromSegfault) { _, newValue in
+                            hydraConfigGetRecoverFromSegfault().pointee = newValue
+                        }
+                }
+
                 Section("GDB") {
                     Toggle("Enabled", isOn: self.$gdbEnabled)
                         .onChange(of: self.gdbEnabled) { _, newValue in
@@ -58,6 +71,9 @@ struct DebugSettingsView: View {
                 self.logOutput.rawValue = hydraConfigGetLogOutput().pointee
                 self.logFsAccess = hydraConfigGetLogFsAccess().pointee
                 self.debugLogging = hydraConfigGetDebugLogging().pointee
+
+                self.recoverFromSegfault = hydraConfigGetRecoverFromSegfault().pointee
+
                 self.gdbEnabled = hydraConfigGetGdbEnabled().pointee
                 self.gdbPort = hydraConfigGetGdbPort().pointee
                 self.gdbWaitForClient = hydraConfigGetGdbWaitForClient().pointee

@@ -16,11 +16,6 @@ enum class NroSectionType {
     Data,
 };
 
-struct NroSection {
-    u32 offset;
-    u32 size;
-};
-
 struct NroHeader {
     u8 rocrt[16];
     u32 magic;
@@ -60,7 +55,10 @@ NroLoader::NroLoader(filesystem::IFile* file_, const bool is_entry_point_)
                     header.magic);
 
     size = header.size;
-    text_offset = header.GetSection(NroSectionType::Text).offset;
+    sections[0] = header.GetSection(NroSectionType::Text);
+    sections[1] = header.GetSection(NroSectionType::Ro);
+    sections[2] = header.GetSection(NroSectionType::Data);
+    sections[2].size += header.bss_size;
     bss_size = header.bss_size;
 
     delete stream;
@@ -70,15 +68,17 @@ void NroLoader::LoadProcess(kernel::Process* process) {
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
 
     // Create executable memory
-    executable_size = stream->GetSize() + bss_size;
+    // TODO: is the size correct?
+    const auto set = kernel::CodeSet{
+        GetExecutableSize() + 0x1000, // HACK: one extra page
+        Range<u64>::FromSize(sections[0].offset, sections[0].size),
+        Range<u64>::FromSize(sections[1].offset, sections[1].size),
+        Range<u64>::FromSize(sections[2].offset, sections[2].size)};
     // TODO: module name
-    executable_ptr = process->CreateExecutableMemory(
-        "main.nro", executable_size, kernel::MemoryPermission::ReadWriteExecute,
-        true,
-        executable_base); // TODO: is the permission correct?
+    executable_ptr =
+        process->CreateExecutableMemory("main.nro", set, executable_base);
     stream->SeekTo(0);
-    stream->ReadToSpan(
-        std::span(reinterpret_cast<u8*>(executable_ptr), stream->GetSize()));
+    stream->ReadToSpan(std::span(reinterpret_cast<u8*>(executable_ptr), size));
 
     // Debug symbols
     // TODO
@@ -102,7 +102,7 @@ void NroLoader::LoadProcess(kernel::Process* process) {
 }
 
 vaddr_t NroLoader::GetEntryPoint() const {
-    return executable_base + sizeof(NroHeader) + text_offset;
+    return executable_base + sizeof(NroHeader) + sections[0].offset;
 }
 
 } // namespace hydra::horizon::loader

@@ -11,7 +11,7 @@ class Shader final : public ShaderBase {
     ~Shader() override;
 
   private:
-    MTL::Function* function;
+    MTL::Function* function{nullptr};
 
   public:
     GETTER(function, GetFunction);

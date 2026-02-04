@@ -22,45 +22,49 @@ constexpr uptr EXCEPTION_TRAMPOLINE_OFFSET = 0x800;
                u64(res));                                                      \
     }
 
+constexpr u32 AP_SHIFT = 6;
+constexpr u32 PNX_SHIFT = 53;
+constexpr u32 UXN_SHIFT = 54;
+
 // From Ryujinx
 enum class ApFlags : u64 {
-    ApShift = 6,
-    PxnShift = 53,
-    UxnShift = 54,
+    UserExecuteKernelReadWriteExecute = (0ull << AP_SHIFT),
+    UserReadWriteExecuteKernelReadWrite = (1ull << AP_SHIFT),
+    UserExecuteKernelReadExecute = (2ull << AP_SHIFT),
+    UserReadExecuteKernelReadExecute = (3ull << AP_SHIFT),
 
-    UserExecuteKernelReadWriteExecute = (0UL << (int)ApShift),
-    UserReadWriteExecuteKernelReadWrite = (1UL << (int)ApShift),
-    UserExecuteKernelReadExecute = (2UL << (int)ApShift),
-    UserReadExecuteKernelReadExecute = (3UL << (int)ApShift),
+    UserExecuteKernelReadWrite = (1ull << PNX_SHIFT) | (0ull << AP_SHIFT),
+    UserExecuteKernelRead = (1ull << PNX_SHIFT) | (2ull << AP_SHIFT),
+    UserReadExecuteKernelRead = (1ull << PNX_SHIFT) | (3ull << AP_SHIFT),
 
-    UserExecuteKernelReadWrite = (1UL << (int)PxnShift) | (0UL << (int)ApShift),
-    UserExecuteKernelRead = (1UL << (int)PxnShift) | (2UL << (int)ApShift),
-    UserReadExecuteKernelRead = (1UL << (int)PxnShift) | (3UL << (int)ApShift),
-
-    UserNoneKernelReadWriteExecute =
-        (1UL << (int)UxnShift) | (0UL << (int)ApShift),
-    UserReadWriteKernelReadWrite =
-        (1UL << (int)UxnShift) | (1UL << (int)ApShift),
-    UserNoneKernelReadExecute = (1UL << (int)UxnShift) | (2UL << (int)ApShift),
-    UserReadKernelReadExecute = (1UL << (int)UxnShift) | (3UL << (int)ApShift),
+    UserNoneKernelReadWriteExecute = (1ull << UXN_SHIFT) | (0ull << AP_SHIFT),
+    UserReadWriteKernelReadWrite = (1ull << UXN_SHIFT) | (1ull << AP_SHIFT),
+    UserNoneKernelReadExecute = (1ull << UXN_SHIFT) | (2ull << AP_SHIFT),
+    UserReadKernelReadExecute = (1ull << UXN_SHIFT) | (3ull << AP_SHIFT),
 
     UserNoneKernelReadWrite =
-        (1UL << (int)PxnShift) | (1UL << (int)UxnShift) | (0UL << (int)ApShift),
+        (1ull << PNX_SHIFT) | (1ull << UXN_SHIFT) | (0ull << AP_SHIFT),
     UserNoneKernelRead =
-        (1UL << (int)PxnShift) | (1UL << (int)UxnShift) | (2UL << (int)ApShift),
+        (1ull << PNX_SHIFT) | (1ull << UXN_SHIFT) | (2ull << AP_SHIFT),
     UserReadKernelRead =
-        (1UL << (int)PxnShift) | (1UL << (int)UxnShift) | (3UL << (int)ApShift),
+        (1ull << PNX_SHIFT) | (1ull << UXN_SHIFT) | (3ull << AP_SHIFT),
 };
 
-inline uptr allocate_vm_memory(usize size) {
+constexpr u64 AP_FLAGS_MASK =
+    (1ull << PNX_SHIFT) | (1ull << UXN_SHIFT) | (3ull << AP_SHIFT);
+
+enum class AllocateVmMemoryError {
+    AllocationFailed,
+};
+
+inline uptr AllocateVmMemory(usize size) {
     ASSERT_ALIGNMENT(size, APPLE_PAGE_SIZE, Hypervisor, "size")
 
     void* ptr;
-    posix_memalign(&ptr, APPLE_PAGE_SIZE, size);
-    if (!ptr) {
-        LOG_FATAL(Hypervisor, "Failed to allocate memory");
-        return 0x0;
-    }
+    const auto res = posix_memalign(&ptr, APPLE_PAGE_SIZE, size);
+    ASSERT_THROWING(res == 0, Hypervisor,
+                    AllocateVmMemoryError::AllocationFailed,
+                    "Failed to allocate memory: {:#x}", res);
 
     // Clear the memory
     memset(ptr, 0, size);

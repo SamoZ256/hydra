@@ -107,6 +107,7 @@ class Config {
     bool log_fs_access;
     bool debug_logging;
     std::vector<std::string> process_args;
+    bool recover_from_segfault;
     bool gdb_enabled;
     u16 gdb_port;
     bool gdb_wait_for_client;
@@ -154,6 +155,7 @@ class Config {
     bool GetDefaultLogFsAccess() const { return false; }
     bool GetDefaultDebugLogging() const { return false; }
     std::vector<std::string> GetDefaultProcessArgs() const { return {}; }
+    bool GetDefaultRecoverFromSegfault() const { return false; }
     bool GetDefaultGdbEnabled() const { return false; }
     u16 GetDefaultGdbPort() const { return 1234; }
     bool GetDefaultGdbWaitForClient() const { return false; }
@@ -179,6 +181,7 @@ class Config {
     REF_GETTER(log_fs_access, GetLogFsAccess);
     REF_GETTER(debug_logging, GetDebugLogging);
     REF_GETTER(process_args, GetProcessArgs);
+    REF_GETTER(recover_from_segfault, GetRecoverFromSegfault);
     REF_GETTER(gdb_enabled, GetGdbEnabled);
     REF_GETTER(gdb_port, GetGdbPort);
     REF_GETTER(gdb_wait_for_client, GetGdbWaitForClient);

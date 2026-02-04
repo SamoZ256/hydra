@@ -4,13 +4,13 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer {
 
 namespace {
 
-void push_sv(std::vector<SvSemantic>& svs, std::vector<u8>& stage_in_outs,
-             u64 addr) {
+void push_sv(std::unordered_set<SvSemantic>& svs,
+             std::unordered_set<u8>& stage_in_outs, u64 addr) {
     const auto sv = get_sv_access_from_addr(addr).sv;
     if (sv.semantic == SvSemantic::UserInOut)
-        push_unique(stage_in_outs, sv.index);
+        stage_in_outs.insert(sv.index);
     else
-        push_unique(svs, sv.semantic);
+        svs.insert(sv.semantic);
 }
 
 } // namespace
@@ -85,12 +85,7 @@ void MemoryAnalyzer::HandleAMemLoad(const AMem amem) {
 }
 
 void MemoryAnalyzer::HandleCMemLoad(const CMem cmem) {
-    if (cmem.reg != RZ)
-        LOG_WARN(ShaderDecompiler, "Indexing not implemented (src: {})",
-                 cmem.reg);
-
-    auto& size = uniform_buffers[cmem.idx];
-    size = std::max(size, static_cast<usize>(cmem.imm) + sizeof(u32));
+    const_buffers.insert(cmem.idx);
 }
 
 void MemoryAnalyzer::HandleAMemStore(const AMem amem) {

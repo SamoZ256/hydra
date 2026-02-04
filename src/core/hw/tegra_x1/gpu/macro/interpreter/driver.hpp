@@ -9,7 +9,7 @@ class Driver : public DriverBase {
     Driver(engines::ThreeD* engine_3d) : DriverBase(engine_3d) {}
 
   protected:
-    void ExecuteImpl(GMmu& gmmu, u32 pc_, u32 param1) override;
+    void ExecuteImpl(u32 pc_, u32 param1) override;
 
     u32 InstAlu(AluOperation op, u8 rA, u8 rB) override;
     u32 InstAddImmediate(u8 rA, i32 imm) override;
@@ -19,7 +19,7 @@ class Driver : public DriverBase {
     u32 InstRead(u8 rA, u32 imm) override;
     void InstBranch(BranchCondition cond, u8 rA, i32 imm,
                     bool& branched) override;
-    void InstResult(GMmu& gmmu, ResultOperation op, u8 rD, u32 value) override;
+    void InstResult(ResultOperation op, u8 rD, u32 value) override;
 
   private:
     u32 pc;

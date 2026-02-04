@@ -1,11 +1,12 @@
 #pragma once
 
 #include "common/io/stream.hpp"
+#include "common/range.hpp"
 
 namespace hydra::io {
 
 struct SparseStreamEntry {
-    range<u64> range;
+    Range<u64> range;
     IStream* stream;
 };
 
@@ -38,9 +39,9 @@ class SparseStream : public IStream {
 
             const auto entry = GetEntry(seek);
             const auto max_read_size = std::min(
-                entry.range.end - seek, static_cast<u64>(buffer.size()));
+                entry.range.GetEnd() - seek, static_cast<u64>(buffer.size()));
             if (entry.stream) {
-                entry.stream->SeekTo(seek - entry.range.begin);
+                entry.stream->SeekTo(seek - entry.range.GetBegin());
                 entry.stream->ReadRaw(buffer.subspan(0, max_read_size));
             } else {
                 std::fill(buffer.begin(),
@@ -59,9 +60,9 @@ class SparseStream : public IStream {
 
             const auto entry = GetEntry(seek);
             const auto max_write_size = std::min(
-                entry.range.end - seek, static_cast<u64>(buffer.size()));
+                entry.range.GetEnd() - seek, static_cast<u64>(buffer.size()));
             if (entry.stream) {
-                entry.stream->SeekTo(seek - entry.range.begin);
+                entry.stream->SeekTo(seek - entry.range.GetBegin());
                 entry.stream->WriteRaw(buffer.subspan(0, max_write_size));
             }
 
@@ -92,12 +93,12 @@ class SparseStream : public IStream {
         auto next_it =
             std::upper_bound(entries.begin(), entries.end(), offset,
                              [](u64 offset, const SparseStreamEntry& entry) {
-                                 return offset < entry.range.begin;
+                                 return offset < entry.range.GetBegin();
                              });
 
         // If the offset is before the first entry, return an empty entry
         if (next_it == entries.begin())
-            return {.stream = nullptr, .range = {0, next_it->range.begin}};
+            return {.stream = nullptr, .range = {0, next_it->range.GetBegin()}};
 
         auto it = std::prev(next_it);
 
@@ -105,10 +106,10 @@ class SparseStream : public IStream {
         if (!it->range.Contains(offset)) {
             if (next_it == entries.end())
                 return {.stream = nullptr,
-                        .range = {it->range.end, size - offset}};
+                        .range = {it->range.GetEnd(), size - offset}};
 
             return {.stream = nullptr,
-                    .range = {it->range.end, next_it->range.begin}};
+                    .range = {it->range.GetEnd(), next_it->range.GetBegin()}};
         }
 
         // Cache the entry and return it

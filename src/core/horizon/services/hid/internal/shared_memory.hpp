@@ -24,17 +24,19 @@ struct RingLifo {
         atomic_store(&index, next_index);
 
         // TODO: why?
-        if (ReadCount() < max_entries - 1) {
+        // TODO: should be max_entries - 1
+        if (ReadCount() < 1) {
             atomic_fetch_add(&count, 1ull);
         }
     }
 
-    void WriteNext(const T& data_) {
-        auto data = data_;
+    void WriteNext(const T& data) {
+        // HACK: const cast
         try {
-            data.sampling_number = GetCurrentStorage().sampling_number + 1;
+            const_cast<T&>(data).sampling_number =
+                GetCurrentStorage().sampling_number + 1;
         } catch (Error error) {
-            data.sampling_number = 0;
+            const_cast<T&>(data).sampling_number = 0;
         }
         Write(data);
     }

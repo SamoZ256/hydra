@@ -194,6 +194,7 @@ uint32_t* hydra_config_get_log_output();
 bool* hydra_config_get_log_fs_access();
 bool* hydra_config_get_debug_logging();
 void* hydra_config_get_process_args();
+bool* hydra_config_get_recover_from_segfault();
 bool* hydra_config_get_gdb_enabled();
 uint16_t* hydra_config_get_gdb_port();
 bool* hydra_config_get_gdb_wait_for_client();

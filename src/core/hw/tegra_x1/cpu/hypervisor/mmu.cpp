@@ -19,10 +19,7 @@ namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 namespace {
 
-inline ApFlags to_ap_flags(horizon::kernel::MemoryPermission perm) {
-    // HACK
-    return ApFlags::UserReadWriteExecuteKernelReadWrite;
-
+inline ApFlags ToApFlags(horizon::kernel::MemoryPermission perm) {
     if (any(perm & horizon::kernel::MemoryPermission::Read)) {
         if (any(perm & horizon::kernel::MemoryPermission::Write)) {
             if (any(perm & horizon::kernel::MemoryPermission::Execute)) {
@@ -99,22 +96,37 @@ Mmu::Mmu() : user_page_table(FindFreePageTableRegion()) {
 
 Mmu::~Mmu() { ReleasePageTableRegion(user_page_table.GetBase()); }
 
-void Mmu::Map(vaddr_t dst_va, uptr ptr, usize size,
+void Mmu::Map(vaddr_t dst_va, Range<uptr> range,
               const horizon::kernel::MemoryState state) {
-    ASSERT_ALIGNMENT(size, GUEST_PAGE_SIZE, Hypervisor, "size");
-    user_page_table.Map(dst_va, ptr, size, state, to_ap_flags(state.perm));
+    ASSERT_ALIGNMENT(dst_va, GUEST_PAGE_SIZE, Hypervisor, "destination VA");
+    ASSERT_ALIGNMENT(range.GetSize(), GUEST_PAGE_SIZE, Hypervisor, "size");
+    user_page_table.Map(dst_va, range, state, ToApFlags(state.perm));
 }
 
 // HACK: this assumes that the whole src range is stored contiguously in
 // physical memory
-void Mmu::Map(vaddr_t dst_va, vaddr_t src_va, usize size) {
-    const auto region = user_page_table.QueryRegion(src_va);
-    paddr_t pa = region.UnmapAddr(src_va);
-    user_page_table.Map(dst_va, pa, size, region.state,
-                        to_ap_flags(region.state.perm));
+void Mmu::Map(vaddr_t dst_va, Range<vaddr_t> range) {
+    ASSERT_ALIGNMENT(range.GetBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
+    ASSERT_ALIGNMENT(range.GetEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
+    const auto region = user_page_table.QueryRegion(range.GetBegin());
+    paddr_t pa = region.UnmapAddr(range.GetBegin());
+    // TODO: also inherit flags
+    user_page_table.Map(dst_va, Range<uptr>::FromSize(pa, range.GetSize()),
+                        region.state, ToApFlags(region.state.perm));
 }
 
-void Mmu::Unmap(vaddr_t va, usize size) { user_page_table.Unmap(va, size); }
+void Mmu::Unmap(Range<vaddr_t> range) {
+    ASSERT_ALIGNMENT(range.GetBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
+    ASSERT_ALIGNMENT(range.GetEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
+    user_page_table.Unmap(range);
+}
+
+void Mmu::Protect(Range<vaddr_t> range,
+                  horizon::kernel::MemoryPermission perm) {
+    ASSERT_ALIGNMENT(range.GetBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
+    ASSERT_ALIGNMENT(range.GetEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
+    user_page_table.SetMemoryPermission(range, perm, ToApFlags(perm));
+}
 
 // TODO: just improve this...
 void Mmu::ResizeHeap(IMemory* heap_mem, vaddr_t va, usize size) {
@@ -122,8 +134,8 @@ void Mmu::ResizeHeap(IMemory* heap_mem, vaddr_t va, usize size) {
 
     const auto region = user_page_table.QueryRegion(va);
     paddr_t pa = region.UnmapAddr(va);
-    user_page_table.Map(va, pa, size, region.state,
-                        to_ap_flags(region.state.perm));
+    user_page_table.Map(va, Range<uptr>::FromSize(pa, size), region.state,
+                        ToApFlags(region.state.perm));
 }
 
 uptr Mmu::UnmapAddr(vaddr_t va) const { return user_page_table.UnmapAddr(va); }
@@ -138,10 +150,28 @@ MemoryRegion Mmu::QueryRegion(vaddr_t va) const {
     };
 }
 
-void Mmu::SetMemoryAttribute(vaddr_t va, usize size,
+void Mmu::SetMemoryAttribute(Range<vaddr_t> range,
                              horizon::kernel::MemoryAttribute mask,
                              horizon::kernel::MemoryAttribute value) {
-    user_page_table.SetMemoryAttribute(va, size, mask, value);
+    user_page_table.SetMemoryAttribute(range, mask, value);
+}
+
+void Mmu::SetWriteTrackingEnabled(Range<vaddr_t> range, bool enable) {
+    ASSERT_ALIGNMENT(range.GetBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
+    ASSERT_ALIGNMENT(range.GetEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
+    user_page_table.SetWriteTrackingEnabled(range, enable);
+}
+
+bool Mmu::TrySuspendWriteTracking(Range<vaddr_t> range) {
+    ASSERT_ALIGNMENT(range.GetBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
+    ASSERT_ALIGNMENT(range.GetEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
+    return user_page_table.TrySuspendWriteTracking(range);
+}
+
+void Mmu::ResumeWriteTracking(Range<vaddr_t> range) {
+    ASSERT_ALIGNMENT(range.GetBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
+    ASSERT_ALIGNMENT(range.GetEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
+    user_page_table.ResumeWriteTracking(range);
 }
 
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor

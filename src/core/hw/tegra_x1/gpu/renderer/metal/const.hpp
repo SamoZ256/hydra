@@ -12,6 +12,17 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
+__attribute__((unused)) static inline void StackAutoRelease(void* object) {
+    (*(NS::Object**)object)->release();
+}
+
+#define NS_STACK_SCOPED                                                        \
+    __attribute__((cleanup(StackAutoRelease))) __attribute__((unused))
+
+#define TMP_AUTORELEASE_POOL_BEGIN()                                           \
+    NS::AutoreleasePool* tmp_pool_ = NS::AutoreleasePool::alloc()->init()
+#define TMP_AUTORELEASE_POOL_END() tmp_pool_->release()
+
 // Cast from const char* to NS::String*
 inline NS::String* ToNSString(const char* str) {
     return NS::String::string(str, NS::ASCIIStringEncoding);

@@ -2,6 +2,35 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
+namespace {
+
+enum class TextureTypeCompatibility {
+    _1D,
+    _1DBuffer,
+    _2D,
+    _3D,
+    Cube,
+};
+
+static TextureTypeCompatibility ToTextureTypeCompatibility(TextureType type) {
+    switch (type) {
+    case TextureType::_1D:
+    case TextureType::_1DArray:
+        return TextureTypeCompatibility::_1D;
+    case TextureType::_1DBuffer:
+        return TextureTypeCompatibility::_1DBuffer;
+    case TextureType::_2D:
+    case TextureType::_2DArray:
+    case TextureType::_3D: // TODO: 2D arrays aren't compatible with 3D
+        return TextureTypeCompatibility::_2D;
+    case TextureType::Cube:
+    case TextureType::CubeArray:
+        return TextureTypeCompatibility::Cube;
+    }
+}
+
+} // namespace
+
 TextureFormat to_texture_format(NvColorFormat color_format) {
 #define NV_COLOR_FORMAT_CASE(color_format, texture_format)                     \
     case NvColorFormat::color_format:                                          \
@@ -25,43 +54,56 @@ TextureFormat to_texture_format(NvColorFormat color_format) {
 #undef NV_COLOR_FORMAT_CASE
 }
 
-TextureFormat to_texture_format(const ImageFormatWord image_format_word) {
-#define IMAGE_FORMAT_CASE(img_format, c_r, c_g, c_b, c_a, texture_format)      \
+TextureFormat to_texture_format(const ImageFormatWord image_format_word,
+                                bool is_srgb) {
+#define IMAGE_FORMAT_CASE_IMPL(img_format, c_r, c_g, c_b, c_a, texture_format, \
+                               is_srgb_)                                       \
     else if (image_format_word.image_format == ImageFormat::img_format &&      \
              image_format_word.component_r == ImageComponent::c_r &&           \
              image_format_word.component_g == ImageComponent::c_g &&           \
              image_format_word.component_b == ImageComponent::c_b &&           \
-             image_format_word.component_a ==                                  \
-                 ImageComponent::c_a) return TextureFormat::texture_format;
+             image_format_word.component_a == ImageComponent::c_a &&           \
+             is_srgb == is_srgb_) return TextureFormat::texture_format;
+
+#define IMAGE_FORMAT_CASE(img_format, c_r, c_g, c_b, c_a, texture_format)      \
+    IMAGE_FORMAT_CASE_IMPL(img_format, c_r, c_g, c_b, c_a, texture_format,     \
+                           false)
+#define IMAGE_FORMAT_CASE_SRGB(img_format, c_r, c_g, c_b, c_a, texture_format) \
+    IMAGE_FORMAT_CASE_IMPL(img_format, c_r, c_g, c_b, c_a, texture_format, true)
 
     // TODO: more formats
+    // TODO: check
     if (image_format_word.image_format == ImageFormat::Invalid)
         return TextureFormat::Invalid;
     IMAGE_FORMAT_CASE(R16, Float, Float, Float, Float, R16Float)
     IMAGE_FORMAT_CASE(R32, Float, Float, Float, Float, R32Float)
-    IMAGE_FORMAT_CASE(ARGB8, Unorm, Unorm, Unorm, Unorm,
-                      RGBA8Unorm) // TODO: why argb?
+    IMAGE_FORMAT_CASE(ARGB8, Unorm, Unorm, Unorm, Unorm, RGBA8Unorm)
+    IMAGE_FORMAT_CASE_SRGB(ARGB8, Unorm, Unorm, Unorm, Unorm, RGBA8Unorm_sRGB)
     IMAGE_FORMAT_CASE(R8, Unorm, Unorm, Unorm, Unorm, R8Unorm)
     IMAGE_FORMAT_CASE(R16, Unorm, Unorm, Unorm, Unorm, R16Unorm)
-    IMAGE_FORMAT_CASE(GR8, Unorm, Unorm, Unorm, Unorm,
-                      RG8Unorm) // TODO: correct?
+    IMAGE_FORMAT_CASE(GR8, Unorm, Unorm, Unorm, Unorm, RG8Unorm)
+    IMAGE_FORMAT_CASE(GR8, Snorm, Snorm, Snorm, Snorm, RG8Snorm)
     IMAGE_FORMAT_CASE(RG16, Unorm, Unorm, Unorm, Unorm, RG16Unorm)
     IMAGE_FORMAT_CASE(RG16, Snorm, Snorm, Snorm, Snorm, RG16Snorm)
     IMAGE_FORMAT_CASE(RG16, Uint, Uint, Uint, Uint, RG16Uint)
     IMAGE_FORMAT_CASE(RG16, Sint, Sint, Sint, Sint, RG16Sint)
     IMAGE_FORMAT_CASE(RG16, Float, Float, Float, Float, RG16Float)
     IMAGE_FORMAT_CASE(DXT1, Unorm, Unorm, Unorm, Unorm, BC1_RGB)
+    IMAGE_FORMAT_CASE_SRGB(DXT1, Unorm, Unorm, Unorm, Unorm, BC1_RGB_sRGB)
     IMAGE_FORMAT_CASE(DXT23, Unorm, Unorm, Unorm, Unorm, BC2_RGBA)
+    IMAGE_FORMAT_CASE_SRGB(DXT23, Unorm, Unorm, Unorm, Unorm, BC2_RGBA_sRGB)
     IMAGE_FORMAT_CASE(DXT45, Unorm, Unorm, Unorm, Unorm, BC3_RGBA)
+    IMAGE_FORMAT_CASE_SRGB(DXT45, Unorm, Unorm, Unorm, Unorm, BC3_RGBA_sRGB)
     IMAGE_FORMAT_CASE(DXN2, Unorm, Unorm, Unorm, Unorm, BC5_RGUnorm)
     IMAGE_FORMAT_CASE(DXN2, Snorm, Snorm, Snorm, Snorm, BC5_RGSnorm)
     IMAGE_FORMAT_CASE(B5G6R5, Unorm, Unorm, Unorm, Unorm, B5G6R5Unorm)
-    IMAGE_FORMAT_CASE(ABGR4, Unorm, Unorm, Unorm, Unorm,
-                      RGBA4Unorm) // TODO: correct?
+    IMAGE_FORMAT_CASE(ABGR4, Unorm, Unorm, Unorm, Unorm, RGBA4Unorm)
     IMAGE_FORMAT_CASE(A1BGR5, Unorm, Unorm, Unorm, Unorm, A1BGR5Unorm)
     IMAGE_FORMAT_CASE(B10GR11Float, Float, Float, Float, Float, RG11B10Float)
     IMAGE_FORMAT_CASE(A2BGR10, Unorm, Unorm, Unorm, Unorm, RGB10A2Unorm)
     IMAGE_FORMAT_CASE(ASTC_2D_4X4, Unorm, Unorm, Unorm, Unorm, ASTC_RGBA_4x4)
+    IMAGE_FORMAT_CASE_SRGB(ASTC_2D_4X4, Unorm, Unorm, Unorm, Unorm,
+                           ASTC_RGBA_4x4_sRGB)
     IMAGE_FORMAT_CASE(DXN1, Unorm, Unorm, Unorm, Unorm, BC4_RUnorm)
     IMAGE_FORMAT_CASE(Z24S8, Uint, Unorm, Unorm, Unorm, Z24Unorm_S8Uint)
     IMAGE_FORMAT_CASE(Z16, Unorm, Unorm, Unorm, Unorm, Z16Unorm)
@@ -71,12 +113,10 @@ TextureFormat to_texture_format(const ImageFormatWord image_format_word) {
     IMAGE_FORMAT_CASE(RGBA32, Float, Float, Float, Float, RGBA32Float)
     IMAGE_FORMAT_CASE(BC7U, Unorm, Unorm, Unorm, Unorm, BC7_RGBAUnorm)
     else {
-        LOG_NOT_IMPLEMENTED(
-            Gpu, "Image format {}, components: {}, {}, {}, {}",
-            image_format_word.image_format, image_format_word.component_r,
-            image_format_word.component_g, image_format_word.component_b,
-            image_format_word.component_a);
-        throw;
+        LOG_FATAL(Gpu, "Image format {}, components: {}, {}, {}, {}, sRGB: {}",
+                  image_format_word.image_format, image_format_word.component_r,
+                  image_format_word.component_g, image_format_word.component_b,
+                  image_format_word.component_a, is_srgb);
     }
 
 #undef IMAGE_FORMAT_CASE
@@ -152,9 +192,7 @@ TextureFormat to_texture_format(ColorSurfaceFormat color_surface_format) {
         COLOR_SURFACE_FORMAT_CASE(BGRX8UnormUnknownFE, Invalid)
         COLOR_SURFACE_FORMAT_CASE(Y32UintUnknownFF, Invalid)
     default:
-        LOG_NOT_IMPLEMENTED(Gpu, "Color surface format {}",
-                            color_surface_format);
-        return TextureFormat::Invalid;
+        LOG_FATAL(Gpu, "Color surface format {}", color_surface_format);
     }
 
 #undef COLOR_SURFACE_FORMAT_CASE
@@ -178,14 +216,117 @@ TextureFormat to_texture_format(DepthSurfaceFormat depth_surface_format) {
         DEPTH_SURFACE_FORMAT_CASE(Z32X8C8X16Float, Invalid)
         DEPTH_SURFACE_FORMAT_CASE(Z32S8C8X16Float, Invalid)
     default:
-        LOG_NOT_IMPLEMENTED(Gpu, "Depth surface format {}",
-                            depth_surface_format);
-        // TODO: don't throw
-        throw;
-        return TextureFormat::Invalid;
+        LOG_FATAL(Gpu, "Depth surface format {}", depth_surface_format);
     }
 
 #undef DEPTH_SURFACE_FORMAT_CASE
+}
+
+u32 get_texture_format_bpp(const TextureFormat format) {
+    switch (format) {
+    case TextureFormat::Invalid:
+        throw GetTextureFormatBppError::InvalidFormat;
+    case TextureFormat::R8Unorm:
+    case TextureFormat::R8Snorm:
+    case TextureFormat::R8Uint:
+    case TextureFormat::R8Sint:
+        return 1;
+    case TextureFormat::R16Float:
+    case TextureFormat::R16Unorm:
+    case TextureFormat::R16Snorm:
+    case TextureFormat::R16Uint:
+    case TextureFormat::R16Sint:
+        return 2;
+    case TextureFormat::R32Float:
+    case TextureFormat::R32Uint:
+    case TextureFormat::R32Sint:
+        return 4;
+    case TextureFormat::RG8Unorm:
+    case TextureFormat::RG8Snorm:
+    case TextureFormat::RG8Uint:
+    case TextureFormat::RG8Sint:
+        return 2;
+    case TextureFormat::RG16Float:
+    case TextureFormat::RG16Unorm:
+    case TextureFormat::RG16Snorm:
+    case TextureFormat::RG16Uint:
+    case TextureFormat::RG16Sint:
+        return 4;
+    case TextureFormat::RG32Float:
+    case TextureFormat::RG32Uint:
+    case TextureFormat::RG32Sint:
+        return 8;
+    case TextureFormat::RGB32Float:
+    case TextureFormat::RGB32Uint:
+    case TextureFormat::RGB32Sint:
+        return 12;
+    case TextureFormat::RGBA8Unorm:
+    case TextureFormat::RGBA8Snorm:
+    case TextureFormat::RGBA8Uint:
+    case TextureFormat::RGBA8Sint:
+    case TextureFormat::RGBA8Unorm_sRGB:
+    case TextureFormat::RGBX8Unorm:
+    case TextureFormat::RGBX8Snorm:
+    case TextureFormat::RGBX8Uint:
+    case TextureFormat::RGBX8Sint:
+    case TextureFormat::RGBX8Unorm_sRGB:
+        return 4;
+    case TextureFormat::RGBA16Float:
+    case TextureFormat::RGBA16Unorm:
+    case TextureFormat::RGBA16Snorm:
+    case TextureFormat::RGBA16Uint:
+    case TextureFormat::RGBA16Sint:
+    case TextureFormat::RGBX16Float:
+    case TextureFormat::RGBX16Unorm:
+    case TextureFormat::RGBX16Snorm:
+    case TextureFormat::RGBX16Uint:
+    case TextureFormat::RGBX16Sint:
+        return 8;
+    case TextureFormat::RGBA32Float:
+    case TextureFormat::RGBA32Uint:
+    case TextureFormat::RGBA32Sint:
+    case TextureFormat::RGBX32Float:
+    case TextureFormat::RGBX32Uint:
+    case TextureFormat::RGBX32Sint:
+        return 16;
+    case TextureFormat::S8Uint:
+        return 1;
+    case TextureFormat::Z16Unorm:
+        return 2;
+    case TextureFormat::Z24Unorm_X8Uint:
+    case TextureFormat::Z24Unorm_S8Uint:
+        return 4;
+    case TextureFormat::Z32Float:
+        return 4;
+    case TextureFormat::Z32Float_X24S8Uint:
+        return 8;
+        return 4;
+    case TextureFormat::RGBA4Unorm:
+        return 2;
+    case TextureFormat::RGB5Unorm:
+    case TextureFormat::RGB5A1Unorm:
+    case TextureFormat::R5G6B5Unorm:
+        return 2;
+    case TextureFormat::RGB10A2Unorm:
+    case TextureFormat::RGB10A2Uint:
+        return 4;
+    case TextureFormat::RG11B10Float:
+        return 4;
+    case TextureFormat::E5BGR9Float:
+        return 4;
+    case TextureFormat::B5G6R5Unorm:
+    case TextureFormat::BGR5Unorm:
+    case TextureFormat::BGR5A1Unorm:
+    case TextureFormat::A1BGR5Unorm:
+        return 2;
+    case TextureFormat::BGRX8Unorm:
+    case TextureFormat::BGRA8Unorm:
+    case TextureFormat::BGRX8Unorm_sRGB:
+    case TextureFormat::BGRA8Unorm_sRGB:
+        return 4;
+    default:
+        throw GetTextureFormatBppError::UnsupportedFormatForBpp;
+    }
 }
 
 u32 get_texture_format_stride(const TextureFormat format, u32 width) {
@@ -832,6 +973,39 @@ get_texture_format_default_swizzle_channels(const TextureFormat format) {
     }
 
 #undef SWIZZLE
+}
+
+u32 TextureDescriptor::GetHash() const {
+    HashCode hash;
+    hash.Add(ptr);
+    hash.Add(width);
+    hash.Add(height);
+    hash.Add(depth);
+    hash.Add(stride);
+
+    hash.Add(ToTextureTypeCompatibility(type));
+
+    // TODO: get format info from the renderer instead
+    hash.Add(is_texture_format_compressed(format));
+    hash.Add(is_texture_format_depth_or_stencil(format));
+    hash.Add(get_texture_format_stride(format, 16));
+
+    return hash.ToHashCode();
+}
+
+u32 TextureViewDescriptor::GetHash() const {
+    HashCode hash;
+    hash.Add(format);
+    hash.Add(swizzle_channels.r);
+    hash.Add(swizzle_channels.g);
+    hash.Add(swizzle_channels.b);
+    hash.Add(swizzle_channels.a);
+    hash.Add(levels.GetBegin());
+    hash.Add(levels.GetEnd());
+    hash.Add(layers.GetBegin());
+    hash.Add(layers.GetEnd());
+
+    return hash.ToHashCode();
 }
 
 usize get_vertex_format_size(engines::VertexAttribSize size) {

@@ -104,7 +104,7 @@ class Thread {
 
 struct Symbol {
     std::string name;
-    range<vaddr_t> guest_mem_range;
+    Range<vaddr_t> guest_mem_range;
 };
 
 class SymbolTable {

@@ -1,56 +1,55 @@
 #include "core/hw/tegra_x1/gpu/renderer/metal/buffer.hpp"
 
+#include "core/hw/tegra_x1/gpu/renderer/metal/command_buffer.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/texture.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
-Buffer::Buffer(const BufferDescriptor& descriptor) : BufferBase(descriptor) {
+Buffer::Buffer(u64 size) : BufferBase(size) {
     buffer = METAL_RENDERER_INSTANCE.GetDevice()->newBuffer(
-        reinterpret_cast<void*>(descriptor.ptr), descriptor.size,
-        MTL::ResourceStorageModeShared, nullptr);
+        size, MTL::ResourceStorageModeShared);
 }
 
-Buffer::Buffer(MTL::Buffer* buffer_, u32 offset_)
-    : BufferBase({reinterpret_cast<uptr>(buffer_->contents()) + offset_,
-                  buffer_->allocatedSize()}),
-      buffer{buffer_}, offset{offset_} {
-    owns_buffer = false;
-}
+Buffer::Buffer(MTL::Buffer* buffer_)
+    : BufferBase(buffer_->allocatedSize()), buffer{buffer_} {}
 
-Buffer::~Buffer() {
-    if (owns_buffer)
-        buffer->release();
-}
+Buffer::~Buffer() { buffer->release(); }
 
-void Buffer::CopyFrom(const uptr data) {
-    memcpy((u8*)buffer->contents() + offset, reinterpret_cast<void*>(data),
-           descriptor.size);
-}
-
-void Buffer::CopyFrom(BufferBase* src) {
-    auto src_impl = static_cast<Buffer*>(src);
-
-    auto blit_encoder = METAL_RENDERER_INSTANCE.GetBlitCommandEncoder();
-    blit_encoder->copyFromBuffer(src_impl->GetBuffer(), src_impl->GetOffset(),
-                                 buffer, offset, descriptor.size);
-}
-
-void Buffer::CopyFrom(TextureBase* src, const uint3 src_origin,
-                      const uint3 src_size) {
+void Buffer::CopyFrom(ICommandBuffer* command_buffer, TextureBase* src,
+                      const uint3 src_origin, const uint3 src_size,
+                      u64 dst_offset) {
+    const auto command_buffer_impl =
+        static_cast<CommandBuffer*>(command_buffer);
     auto src_impl = static_cast<Texture*>(src);
 
-    auto blit_encoder = METAL_RENDERER_INSTANCE.GetBlitCommandEncoder();
+    auto blit_encoder = command_buffer_impl->GetBlitCommandEncoder();
     // TODO: bytes per image
     // TODO: calculate the stride for the Metal pixel format
     blit_encoder->copyFromTexture(
         src_impl->GetTexture(), 0, 0,
         MTL::Origin::Make(src_origin.x(), src_origin.y(), src_origin.z()),
         MTL::Size::Make(src_size.x(), src_size.y(), src_size.z()), buffer,
-        offset,
+        dst_offset,
         get_texture_format_stride(src_impl->GetDescriptor().format,
                                   src_size.x()),
         0);
+}
+
+void Buffer::CopyFromImpl(const uptr data, u64 dst_offset, u64 size_) {
+    memcpy((u8*)buffer->contents() + dst_offset, reinterpret_cast<void*>(data),
+           size_);
+}
+
+void Buffer::CopyFromImpl(ICommandBuffer* command_buffer, BufferBase* src,
+                          u64 dst_offset, u64 src_offset, u64 size_) {
+    const auto command_buffer_impl =
+        static_cast<CommandBuffer*>(command_buffer);
+    auto src_impl = static_cast<Buffer*>(src);
+
+    auto blit_encoder = command_buffer_impl->GetBlitCommandEncoder();
+    blit_encoder->copyFromBuffer(src_impl->GetBuffer(), src_offset, buffer,
+                                 dst_offset, size_);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal

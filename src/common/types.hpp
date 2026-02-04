@@ -10,49 +10,6 @@
 
 namespace hydra {
 
-template <typename T>
-struct range {
-  public:
-    T begin;
-    T end;
-
-    static constexpr range<T> FromSize(T begin, T size) {
-        return range<T>(begin, begin + size);
-    }
-
-    constexpr range() : begin{0}, end{0} {}
-    constexpr range(T begin_) : begin{begin_}, end{invalid<T>()} {}
-    constexpr range(T begin_, T end_) : begin{begin_}, end{end_} {}
-
-    bool operator==(const range& other) const {
-        return begin == other.begin && end == other.end;
-    }
-
-    void Shift(T offset) {
-        begin += offset;
-        end += offset;
-    }
-    void ShiftLeft(T offset) {
-        begin -= offset;
-        end -= offset;
-    }
-
-    bool Contains(const T other) const { return other >= begin && other < end; }
-    bool Contains(const range<T>& other) const {
-        return other.begin >= begin && other.end <= end;
-    }
-
-    bool Intersects(const range<T>& other) const {
-        return begin < other.end && end > other.begin;
-    }
-
-    T GetSize() const { return end - begin; }
-
-  public:
-    GETTER(begin, GetBegin);
-    GETTER(end, GetEnd);
-};
-
 struct sized_ptr {
   public:
     sized_ptr() : ptr{0x0}, size{0} {}
@@ -373,50 +330,6 @@ class strong_number_typedef {
         using strong_number_typedef::strong_number_typedef;                    \
     }
 
-template <typename KeyT, typename T, usize fast_cache_size = 4>
-class small_cache {
-  public:
-    T& Find(KeyT key) {
-        // Check fast cache
-        for (auto& entry : fast_cache) {
-            if (entry.key == key) {
-                return entry.value;
-            }
-        }
-
-        // Check slow cache
-        auto it = slow_cache.find(key);
-        if (it != slow_cache.end()) {
-            return it->second;
-        }
-
-        // Not found
-
-        // Attempt to add to fast cache
-        for (auto& entry : fast_cache) {
-            if (entry.key == KeyT{}) {
-                entry.key = key;
-                entry.value = T{};
-                return entry.value;
-            }
-        }
-
-        // Add to slow cache as a fallback
-        slow_cache[key] = T{};
-
-        return slow_cache[key];
-    }
-
-  private:
-    struct FastCacheEntry {
-        KeyT key;
-        T value;
-    };
-
-    std::array<FastCacheEntry, fast_cache_size> fast_cache;
-    std::map<KeyT, T> slow_cache;
-};
-
 template <typename Subclass, typename T, typename DescriptorT>
 class CacheBase {
   public:
@@ -460,16 +373,6 @@ struct fmt::formatter<hydra::aligned<T, alignment>> : formatter<string_view> {
     auto format(const hydra::aligned<T, alignment>& value,
                 FormatContext& ctx) const {
         return value_formatter.format(value.Get(), ctx);
-    }
-};
-
-// TODO: rework
-template <typename T>
-struct fmt::formatter<hydra::range<T>> : formatter<string_view> {
-    template <typename FormatContext>
-    auto format(hydra::range<T> value, FormatContext& ctx) const {
-        return formatter<string_view>::format(
-            fmt::format("<{}...{})", value.begin, value.end), ctx);
     }
 };
 

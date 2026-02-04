@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/hw/tegra_x1/gpu/engines/inline_base.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/const.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/buffer_view.hpp"
 
 #define REGS_3D engines::ThreeD::GetInstance().GetRegs()
 
@@ -10,7 +10,6 @@ class DriverBase;
 }
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
-class BufferBase;
 class TextureBase;
 class SamplerBase;
 class RenderPassBase;
@@ -69,8 +68,8 @@ struct TextureImageControl {
     u32 width_minus_one : 16;
     u32 view_layer_base_0_2 : 3;
     u32 aniso_spread_max_log2 : 3;
-    u32 is_sRGB : 1;
-    u32 texture_type : 4;     // TextureType
+    u32 is_srgb : 1;
+    TextureType texture_type : 4;
     u32 sector_promotion : 2; // SectorPromotion
     u32 border_size : 3;      // BorderSize
 
@@ -559,9 +558,9 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
     ThreeD();
     ~ThreeD() override;
 
-    void Method(GMmu& gmmu, u32 method, u32 arg) override;
+    void Method(u32 method, u32 arg) override;
 
-    void FlushMacro(GMmu& gmmu) override;
+    void FlushMacro() override;
 
     // Getters
     const Regs3D& GetRegs() const { return regs; }
@@ -574,24 +573,23 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
     macro::DriverBase* macro_driver;
 
     // Active state (for quick access)
-    renderer::ShaderBase* active_shaders[u32(renderer::ShaderType::Count)] = {
-        nullptr};
+    renderer::ShaderBase* active_shaders[static_cast<usize>(
+        renderer::ShaderType::Count)] = {nullptr};
 
     // State
-    uptr bound_const_buffers[CONST_BUFFER_BINDING_COUNT] = {0x0};
+    Range<uptr> bound_const_buffers[static_cast<usize>(ShaderStage::Count) - 1]
+                                   [CONST_BUFFER_BINDING_COUNT];
 
     // Methods
     DEFINE_INLINE_ENGINE_METHODS;
 
-    void LoadMmeInstructionRamPointer(GMmu& gmmu, const u32 index,
-                                      const u32 ptr);
-    void LoadMmeInstructionRam(GMmu& gmmu, const u32 index, const u32 data);
-    void LoadMmeStartAddressRamPointer(GMmu& gmmu, const u32 index,
-                                       const u32 ptr);
-    void LoadMmeStartAddressRam(GMmu& gmmu, const u32 index, const u32 data);
+    void LoadMmeInstructionRamPointer(const u32 index, const u32 ptr);
+    void LoadMmeInstructionRam(const u32 index, const u32 data);
+    void LoadMmeStartAddressRamPointer(const u32 index, const u32 ptr);
+    void LoadMmeStartAddressRam(const u32 index, const u32 data);
 
-    void DrawVertexArray(GMmu& gmmu, const u32 index, u32 count);
-    void DrawVertexElements(GMmu& gmmu, const u32 index, u32 count);
+    void DrawVertexArray(const u32 index, u32 count);
+    void DrawVertexElements(const u32 index, u32 count);
 
     struct ClearBufferData {
         bool depth : 1;
@@ -601,37 +599,34 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
         u32 layer_id : 11;
     };
 
-    void ClearBuffer(GMmu& gmmu, const u32 index, const ClearBufferData data);
+    void ClearBuffer(const u32 index, const ClearBufferData data);
 
     // HACK
-    void SetReportSemaphore(GMmu& gmmu, const u32 index, const u32 data);
+    void SetReportSemaphore(const u32 index, const u32 data);
 
-    void FirmwareCall4(GMmu& gmmu, const u32 index, const u32 data);
+    void FirmwareCall4(const u32 index, const u32 data);
 
-    void LoadConstBuffer(GMmu& gmmu, const u32 index, const u32 data);
-    void BindGroup(GMmu& gmmu, const u32 index, const u32 data);
+    void LoadConstBuffer(const u32 index, const u32 data);
+    void BindGroup(const u32 index, const u32 data);
 
     // Helpers
-    renderer::TextureBase* GetColorTargetTexture(GMmu& gmmu,
-                                                 u32 render_target_index) const;
-    renderer::TextureBase* GetDepthStencilTargetTexture(GMmu& gmmu) const;
-    renderer::RenderPassBase* GetRenderPass(GMmu& gmmu) const;
+    renderer::TextureBase* GetColorTargetTexture(u32 render_target_index) const;
+    renderer::TextureBase* GetDepthStencilTargetTexture() const;
+    renderer::RenderPassBase* GetRenderPass() const;
     renderer::Viewport GetViewport(u32 index);
     renderer::Scissor GetScissor(u32 index);
     renderer::ShaderBase* GetShaderUnchecked(ShaderStage stage) const;
-    renderer::ShaderBase* GetShader(GMmu& gmmu, ShaderStage stage);
-    renderer::PipelineBase* GetPipeline(GMmu& gmmu);
-    renderer::BufferBase* GetVertexBuffer(GMmu& gmmu,
-                                          u32 vertex_array_index) const;
-    renderer::TextureBase* GetTexture(GMmu& gmmu,
-                                      const TextureImageControl& tic) const;
+    renderer::ShaderBase* GetShader(ShaderStage stage);
+    renderer::PipelineBase* GetPipeline();
+    renderer::BufferView GetVertexBuffer(u32 vertex_array_index) const;
+    renderer::TextureBase* GetTexture(const TextureImageControl& tic) const;
     renderer::SamplerBase* GetSampler(const TextureSamplerControl& tsc) const;
 
-    void ConfigureShaderStage(GMmu& gmmu, const ShaderStage stage,
+    void ConfigureShaderStage(const ShaderStage stage,
                               const TextureImageControl* tex_header_pool,
                               const TextureSamplerControl* tex_sampler_pool);
 
-    bool DrawInternal(GMmu& gmmu);
+    bool DrawInternal();
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::engines

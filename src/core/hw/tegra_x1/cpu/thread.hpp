@@ -38,7 +38,7 @@ class IThread {
     virtual void Run() = 0;
 
     virtual void
-    NotifyMemoryChanged([[maybe_unused]] range<vaddr_t> mem_range) {}
+    NotifyMemoryChanged([[maybe_unused]] Range<vaddr_t> mem_range) {}
 
     // Debug
     void GetStackTrace(stack_frame_callback_fn_t callback);

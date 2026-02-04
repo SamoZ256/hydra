@@ -19,26 +19,41 @@ class IMmu {
   public:
     virtual ~IMmu() = default;
 
-    virtual void Map(vaddr_t dst_va, uptr ptr, usize size,
+    virtual void Map(vaddr_t dst_va, Range<uptr> range,
                      const horizon::kernel::MemoryState state) = 0;
     void Map(vaddr_t dst_va, IMemory* memory,
              const horizon::kernel::MemoryState state) {
-        Map(dst_va, memory->GetPtr(), memory->GetSize(), state);
+        Map(dst_va, Range<uptr>::FromSize(memory->GetPtr(), memory->GetSize()),
+            state);
     }
-    virtual void Map(vaddr_t dst_va, vaddr_t src_va, usize size) = 0;
-    virtual void Unmap(vaddr_t va, usize size) = 0;
+    virtual void Map(vaddr_t dst_va, Range<vaddr_t> range) = 0;
+    virtual void Unmap(Range<vaddr_t> range) = 0;
+    virtual void Protect(Range<vaddr_t> range,
+                         horizon::kernel::MemoryPermission perm) = 0;
+
     virtual void ResizeHeap(IMemory* heap_mem, vaddr_t va,
                             usize size) = 0; // TODO: remove this
 
     virtual uptr UnmapAddr(vaddr_t va) const = 0;
     virtual MemoryRegion QueryRegion(vaddr_t va) const = 0;
-    virtual void SetMemoryAttribute(vaddr_t va, usize size,
+    virtual void SetMemoryAttribute(Range<vaddr_t> range,
                                     horizon::kernel::MemoryAttribute mask,
                                     horizon::kernel::MemoryAttribute value) = 0;
 
     horizon::kernel::MemoryInfo QueryMemory(vaddr_t va) const;
-    vaddr_t FindFreeMemory(range<vaddr_t> region, usize size) const;
+    vaddr_t FindFreeMemory(Range<vaddr_t> region, usize size) const;
 
+    // Write tracking
+    void EnableWriteTracking(Range<vaddr_t> range) {
+        SetWriteTrackingEnabled(range, true);
+    }
+    void DisableWriteTracking(Range<vaddr_t> range) {
+        SetWriteTrackingEnabled(range, false);
+    }
+    bool TrackWrite(Range<vaddr_t> range);
+    void FlushTrackedPages();
+
+    // Read
     template <typename T>
     bool TryRead(vaddr_t va, T& out_value) const {
         const auto ptr = UnmapAddr(va);
@@ -57,6 +72,7 @@ class IMmu {
         return value;
     }
 
+    // Write
     template <typename T>
     bool TryWrite(vaddr_t va, T value) const {
         const auto ptr = UnmapAddr(va);
@@ -79,6 +95,16 @@ class IMmu {
         ASSERT_DEBUG(ptr != 0x0, Cpu, "Failed to unmap va 0x{:08x}", va);
         atomic_store(reinterpret_cast<T*>(ptr), value);
     }
+
+  protected:
+    // Write tracking
+    virtual void SetWriteTrackingEnabled(Range<vaddr_t> range, bool enable) = 0;
+    virtual bool TrySuspendWriteTracking(Range<vaddr_t> range) = 0;
+    virtual void ResumeWriteTracking(Range<vaddr_t> range) = 0;
+
+  private:
+    std::mutex write_tracking_mutex;
+    std::vector<Range<vaddr_t>> tracked_pages;
 };
 
 } // namespace hydra::hw::tegra_x1::cpu

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/hw/tegra_x1/gpu/renderer/buffer_cache.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/const.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/buffer_view.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/index_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/pipeline_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/render_pass_cache.hpp"
@@ -11,7 +11,8 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
-class BufferBase;
+class ICommandBuffer;
+class ISurfaceCompositor;
 class TextureBase;
 class SamplerBase;
 class RenderPassBase;
@@ -34,38 +35,20 @@ class RendererBase {
   public:
     virtual ~RendererBase() {}
 
-    // Mutex
-    void LockMutex() { mutex.lock(); }
-    void UnlockMutex() { mutex.unlock(); }
+    // TODO: make this thread safe
+    void InvalidateMemory(Range<uptr> range) {
+        buffer_cache.InvalidateMemory(range);
+        texture_cache.InvalidateMemory(range);
+        // TODO: shader cache
+    }
 
     // Surface
     virtual void SetSurface(void* surface) = 0;
-    virtual bool AcquireNextSurface() = 0;
-    virtual void BeginSurfaceRenderPass() = 0;
-    // Uses lower left origin
-    virtual void DrawTextureToSurface(const TextureBase* texture,
-                                      const FloatRect2D src_rect,
-                                      const FloatRect2D dst_rect,
-                                      bool transparent, f32 opacity = 1.0f) = 0;
-    virtual void EndSurfaceRenderPass() = 0;
-    void PresentSurface() {
-        PresentSurfaceImpl();
-
-        if (is_capturing) {
-            EndCapture();
-            is_capturing = false;
-        }
-
-        if (begin_capture) {
-            BeginCapture();
-            is_capturing = true;
-            begin_capture = false;
-        }
-    }
+    virtual ISurfaceCompositor* AcquireNextSurface() = 0;
 
     // Buffer
-    virtual BufferBase* CreateBuffer(const BufferDescriptor& descriptor) = 0;
-    virtual BufferBase* AllocateTemporaryBuffer(const u32 size) = 0;
+    virtual BufferBase* CreateBuffer(u64 size) = 0;
+    virtual BufferBase* AllocateTemporaryBuffer(const u64 size) = 0;
     virtual void FreeTemporaryBuffer(BufferBase* buffer) = 0;
 
     // Texture
@@ -75,7 +58,7 @@ class RendererBase {
     virtual SamplerBase* CreateSampler(const SamplerDescriptor& descriptor) = 0;
 
     // Command buffer
-    virtual void EndCommandBuffer() = 0;
+    virtual ICommandBuffer* CreateCommandBuffer() = 0;
 
     // Render pass
     virtual RenderPassBase*
@@ -83,10 +66,13 @@ class RendererBase {
     virtual void BindRenderPass(const RenderPassBase* render_pass) = 0;
 
     // Clear
-    virtual void ClearColor(u32 render_target_id, u32 layer, u8 mask,
+    virtual void ClearColor(ICommandBuffer* command_buffer,
+                            u32 render_target_id, u32 layer, u8 mask,
                             const uint4 color) = 0;
-    virtual void ClearDepth(u32 layer, const float value) = 0;
-    virtual void ClearStencil(u32 layer, const u32 value) = 0;
+    virtual void ClearDepth(ICommandBuffer* command_buffer, u32 layer,
+                            const float value) = 0;
+    virtual void ClearStencil(ICommandBuffer* command_buffer, u32 layer,
+                              const u32 value) = 0;
 
     // Viewport and scissor
     virtual void SetViewport(u32 index, const Viewport& viewport) = 0;
@@ -101,44 +87,55 @@ class RendererBase {
     virtual void BindPipeline(const PipelineBase* pipeline) = 0;
 
     // Resource binding
-    virtual void BindVertexBuffer(BufferBase* buffer, u32 index) = 0;
-    virtual void BindIndexBuffer(BufferBase* index_buffer,
+    virtual void BindVertexBuffer(const BufferView& buffer, u32 index) = 0;
+    virtual void BindIndexBuffer(const BufferView& index_buffer,
                                  engines::IndexType index_type) = 0;
-    virtual void BindUniformBuffer(BufferBase* buffer, ShaderType shader_type,
-                                   u32 index) = 0;
+    virtual void BindUniformBuffer(const BufferView& buffer,
+                                   ShaderType shader_type, u32 index) = 0;
     // TODO: storage buffers
     virtual void BindTexture(TextureBase* texture, SamplerBase* sampler,
                              ShaderType shader_type, u32 index) = 0;
     // TODO: images
 
     // Resource unbinding
+    virtual void UnbindUniformBuffers(ShaderType shader_type) = 0;
     virtual void UnbindTextures(ShaderType shader_type) = 0;
 
     // Draw
-    virtual void Draw(const engines::PrimitiveType primitive_type,
+    virtual void Draw(ICommandBuffer* command_buffer,
+                      const engines::PrimitiveType primitive_type,
                       const u32 start, const u32 count, const u32 base_instance,
                       const u32 instance_count) = 0;
-    virtual void DrawIndexed(const engines::PrimitiveType primitive_type,
+    virtual void DrawIndexed(ICommandBuffer* command_buffer,
+                             const engines::PrimitiveType primitive_type,
                              const u32 start, const u32 count,
                              const u32 base_vertex, const u32 base_instance,
                              const u32 instance_count) = 0;
 
-    // Capture
-    void CaptureFrame() { begin_capture = true; }
+    // Debug
+    void CaptureFrames(u32 count) { frames_to_capture = count; }
+    void NotifyDebugFrameBoundary() {
+        if (frames_to_capture > 0) {
+            if (capturing) {
+                if (--frames_to_capture == 0) {
+                    EndCapture();
+                    capturing = false;
+                }
+            } else {
+                BeginCapture();
+                capturing = true;
+            }
+        }
+    }
 
   protected:
     Info info{};
-
-    // Surface
-    virtual void PresentSurfaceImpl() = 0;
 
     // Capture
     virtual void BeginCapture() = 0;
     virtual void EndCapture() = 0;
 
   private:
-    std::mutex mutex;
-
     // Caches
     BufferCache buffer_cache;
     TextureCache texture_cache;
@@ -149,8 +146,8 @@ class RendererBase {
     IndexCache index_cache;
 
     // Capture
-    bool begin_capture{false};
-    bool is_capturing{false};
+    u32 frames_to_capture{0};
+    bool capturing{false};
 
   public:
     CONST_REF_GETTER(info, GetInfo);

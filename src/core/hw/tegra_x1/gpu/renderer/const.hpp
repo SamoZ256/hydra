@@ -7,6 +7,17 @@ namespace hydra::hw::tegra_x1::gpu::renderer {
 class TextureBase;
 class ShaderBase;
 
+enum class TextureType {
+    _1D,
+    _1DArray,
+    _1DBuffer,
+    _2D,
+    _2DArray,
+    _3D,
+    Cube,
+    CubeArray,
+};
+
 enum class TextureFormat {
     Invalid,
 
@@ -142,10 +153,17 @@ enum class TextureFormat {
 };
 
 TextureFormat to_texture_format(NvColorFormat color_format);
-TextureFormat to_texture_format(const ImageFormatWord image_format_word);
+TextureFormat to_texture_format(const ImageFormatWord image_format_word,
+                                bool is_srgb);
 TextureFormat to_texture_format(ColorSurfaceFormat color_surface_format);
 TextureFormat to_texture_format(DepthSurfaceFormat depth_surface_format);
 
+enum class GetTextureFormatBppError {
+    InvalidFormat,
+    UnsupportedFormatForBpp,
+};
+
+u32 get_texture_format_bpp(const TextureFormat format);
 u32 get_texture_format_stride(const TextureFormat format, u32 width);
 bool is_texture_format_compressed(const TextureFormat format);
 bool is_texture_format_depth_or_stencil(const TextureFormat format);
@@ -165,6 +183,10 @@ struct SwizzleChannels {
     ImageSwizzle b : 3;
     ImageSwizzle a : 3;
 
+    SwizzleChannels()
+        : r{ImageSwizzle::R}, g{ImageSwizzle::G}, b{ImageSwizzle::B},
+          a{ImageSwizzle::A} {}
+
     SwizzleChannels(const ImageSwizzle r_, const ImageSwizzle g_,
                     const ImageSwizzle b_, const ImageSwizzle a_)
         : r{r_}, g{g_}, b{b_}, a{a_} {}
@@ -181,78 +203,59 @@ struct SwizzleChannels {
 SwizzleChannels
 get_texture_format_default_swizzle_channels(const TextureFormat format);
 
-enum class BlendOperation {
-    Add = 1,
-    Sub = 2,
-    RevSub = 3,
-    Min = 4,
-    Max = 5,
-};
-
-enum class BlendFactor {
-    Zero = 1,
-    One = 2,
-    SrcColor = 3,
-    InvSrcColor = 4,
-    SrcAlpha = 5,
-    InvSrcAlpha = 6,
-    DstAlpha = 7,
-    InvDstAlpha = 8,
-    DstColor = 9,
-    InvDstColor = 10,
-    SrcAlphaSaturate = 11,
-    Src1Color = 16,
-    InvSrc1Color = 17,
-    Src1Alpha = 18,
-    InvSrc1Alpha = 19,
-    ConstColor = 20,
-    InvConstColor = 21,
-    ConstAlpha = 22,
-    InvConstAlpha = 23,
-};
-
-struct BufferDescriptor {
-    uptr ptr;
-    usize size;
-};
-
 struct TextureDescriptor {
     uptr ptr;
+    TextureType type;
     TextureFormat format;
     NvKind kind;
     u32 width;
     u32 height;
+    u32 depth;
     u32 block_height_log2;
     u32 stride;
     SwizzleChannels swizzle_channels;
     // TODO: more
 
-    TextureDescriptor(const uptr ptr_, const TextureFormat format_,
-                      const NvKind kind_, const u32 width_, const u32 height_,
+    TextureDescriptor(const uptr ptr_, const TextureType type_,
+                      const TextureFormat format_, const NvKind kind_,
+                      const u32 width_, const u32 height_, const u32 depth_,
                       const u32 block_height_log2_, const u32 stride_,
                       const SwizzleChannels& swizzle_channels_)
-        : ptr{ptr_}, format{format_}, kind{kind_}, width{width_},
-          height{height_}, block_height_log2{block_height_log2_},
+        : ptr{ptr_}, type{type_}, format{format_}, kind{kind_}, width{width_},
+          height{height_}, depth{depth_}, block_height_log2{block_height_log2_},
           stride{stride_}, swizzle_channels{swizzle_channels_} {}
 
-    TextureDescriptor(const uptr ptr_, const TextureFormat format_,
-                      const NvKind kind_, const u32 width_, const u32 height_,
+    TextureDescriptor(const uptr ptr_, const TextureType type_,
+                      const TextureFormat format_, const NvKind kind_,
+                      const u32 width_, const u32 height_, const u32 depth_,
                       const u32 block_height_log2_, const u32 stride_)
         : TextureDescriptor(
-              ptr_, format_, kind_, width_, height_, block_height_log2_,
-              stride_, get_texture_format_default_swizzle_channels(format_)) {}
+              ptr_, type_, format_, kind_, width_, height_, depth_,
+              block_height_log2_, stride_,
+              get_texture_format_default_swizzle_channels(format_)) {}
+
+    u64 GetLayerSizeInBytes() const { return height * stride; }
+    u64 GetSizeInBytes() const { return depth * GetLayerSizeInBytes(); }
+    Range<uptr> GetRange() const {
+        return Range<uptr>::FromSize(ptr, GetSizeInBytes());
+    }
+
+    u32 GetHash() const;
 };
 
 struct TextureViewDescriptor {
     TextureFormat format;
     SwizzleChannels swizzle_channels;
+    Range<u32> levels;
+    Range<u32> layers;
 
-    u32 GetHash() const {
-        return (u32)format | ((u32)swizzle_channels.r << 8) |
-               ((u32)swizzle_channels.g << 11) |
-               ((u32)swizzle_channels.b << 14) |
-               ((u32)swizzle_channels.a << 17);
-    }
+    TextureViewDescriptor(TextureFormat format_,
+                          SwizzleChannels swizzle_channels_, Range<u32> levels_,
+                          Range<u32> layers_)
+        : format{format_}, swizzle_channels{swizzle_channels_}, levels{levels_},
+          layers{layers_} {}
+
+    u32 GetHash() const;
 };
 
 enum class SamplerFilter {
@@ -287,6 +290,36 @@ struct SamplerDescriptor {
     engines::CompareOp depth_compare_op;
     uint4 border_color_u;
     // TODO: more
+};
+
+enum class BlendOperation {
+    Add = 1,
+    Sub = 2,
+    RevSub = 3,
+    Min = 4,
+    Max = 5,
+};
+
+enum class BlendFactor {
+    Zero = 1,
+    One = 2,
+    SrcColor = 3,
+    InvSrcColor = 4,
+    SrcAlpha = 5,
+    InvSrcAlpha = 6,
+    DstAlpha = 7,
+    InvDstAlpha = 8,
+    DstColor = 9,
+    InvDstColor = 10,
+    SrcAlphaSaturate = 11,
+    Src1Color = 16,
+    InvSrc1Color = 17,
+    Src1Alpha = 18,
+    InvSrc1Alpha = 19,
+    ConstColor = 20,
+    InvConstColor = 21,
+    ConstAlpha = 22,
+    InvConstAlpha = 23,
 };
 
 struct RenderTargetDescriptor {
@@ -324,13 +357,13 @@ enum class ShaderType {
 };
 
 struct ResourceMapping {
-    u32 uniform_buffers[UNIFORM_BUFFER_BINDING_COUNT];
+    u32 uniform_buffers[CONST_BUFFER_BINDING_COUNT];
     // TODO: storage buffers
     std::map<u32, u32> textures;
     // TODO: images
 
     ResourceMapping() {
-        for (u32 i = 0; i < UNIFORM_BUFFER_BINDING_COUNT; i++)
+        for (u32 i = 0; i < CONST_BUFFER_BINDING_COUNT; i++)
             uniform_buffers[i] = invalid<u32>();
         // TODO: storage buffers
         // TODO: images
@@ -383,6 +416,11 @@ enum class TextureUsage {
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer
+
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::renderer::TextureType, _1D,
+                       "1D", _1DArray, "1D array", _1DBuffer, "1D buffer", _2D,
+                       "2D", _2DArray, "2D array", _3D, "3D", Cube, "cube",
+                       CubeArray, "cube array")
 
 ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::TextureFormat, Invalid, "invalid",

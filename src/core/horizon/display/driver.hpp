@@ -61,8 +61,11 @@ class Driver {
     }
 
     // Presenting
-    bool AcquirePresentTextures();
-    void Present(u32 width, u32 height);
+    bool AcquirePresentTextures(
+        hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer);
+    void Present(hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer,
+                 hw::tegra_x1::gpu::renderer::ISurfaceCompositor* compositor,
+                 u32 width, u32 height);
     void SignalVSync();
 
     Layer* GetFirstLayerForProcess(kernel::Process* process);

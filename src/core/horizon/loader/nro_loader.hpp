@@ -4,6 +4,11 @@
 
 namespace hydra::horizon::loader {
 
+struct NroSection {
+    u32 offset;
+    u32 size;
+};
+
 class NroLoader : public LoaderBase {
   public:
     enum class Error {
@@ -16,17 +21,19 @@ class NroLoader : public LoaderBase {
 
     vaddr_t GetEntryPoint() const;
 
+    u64 GetExecutableSize() const { return size + bss_size; }
+
   private:
     filesystem::IFile* file;
     const bool is_entry_point;
 
     u64 size;
-    u32 text_offset;
-    u32 bss_size;
+    NroSection sections[3];
+    u64 bss_size;
 
     uptr executable_ptr{invalid<uptr>()};
     vaddr_t executable_base{invalid<vaddr_t>()};
-    usize executable_size{invalid<usize>()};
+    usize executable_size{0};
 
     void TryLoadAssetSection(filesystem::IFile* file);
 
@@ -34,7 +41,6 @@ class NroLoader : public LoaderBase {
     GETTER(size, GetSize);
     GETTER(executable_ptr, GetExecutablePtr);
     GETTER(executable_base, GetExecutableBase);
-    GETTER(executable_size, GetExecutableSize);
 };
 
 } // namespace hydra::horizon::loader

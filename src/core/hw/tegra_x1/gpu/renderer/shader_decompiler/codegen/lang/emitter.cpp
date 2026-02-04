@@ -33,8 +33,9 @@ void LangEmitter::Start() {
     EnterScope("struct State");
     Write("Reg r[256];");
     Write("bool p[8];"); // TODO: is the size correct?
-    for (const auto& [index, size] : memory_analyzer.GetUniformBuffers())
-        Write("Reg c{}[{}];", index, size);
+    // TODO: move this to the backend
+    for (auto index : memory_analyzer.GetConstBuffers())
+        Write("constant Reg* c{};", index);
     Write("Reg a_in[0x200];");  // TODO: what should the size be?
     Write("Reg a_out[0x200];"); // TODO: what should the size be?
     EmitStateBindings();
@@ -135,15 +136,8 @@ void LangEmitter::EmitMainFunctionPrologue() {
     WriteNewline();
 
     // Constant memory
-
-    // Uniform buffers
-    for (const auto& [index, size] : memory_analyzer.GetUniformBuffers()) {
-        const auto u32_count = static_cast<u32>(size / sizeof(u32));
-        for (u32 i = 0; i < u32_count; i++)
-            WriteStatement("{} = ubuff{}.data[{}]",
-                           GetConstMemoryStr({index, RZ, i * sizeof(u32)}),
-                           index, i);
-    }
+    for (auto index : memory_analyzer.GetConstBuffers())
+        WriteStatement("state.c{} = c{}", index, index);
     WriteNewline();
 
     EmitStateBindingAssignments();

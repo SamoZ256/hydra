@@ -11,27 +11,37 @@ namespace hydra::hw::tegra_x1::gpu {
 
 class GMmu;
 
+struct GpfifoEntryList {
+    GMmu& gmmu;
+    std::vector<GpfifoEntry> entries;
+    GpfifoFlags flags;
+};
+
 class Pfifo {
   public:
-    // TODO: use std::span instead
-    void SubmitEntries(GMmu& gmmu, const std::vector<GpfifoEntry>& entries,
+    Pfifo();
+    ~Pfifo();
+
+    void SubmitEntries(GMmu& gmmu, std::span<const GpfifoEntry> entries,
                        GpfifoFlags flags);
 
   private:
-    void SubmitEntry(GMmu& gmmu, const GpfifoEntry entry);
-    bool SubmitCommand(GMmu& gmmu, uptr& gpu_addr); // TODO: return void
+    std::mutex mutex;
+    std::condition_variable cond_var;
+
+    std::queue<GpfifoEntryList> entry_lists;
+    bool stop{false};
+
+    std::thread thread; // TODO: jthread
+
+    void ThreadFunc();
+
+    void SubmitEntry(const GpfifoEntry entry);
+    bool SubmitCommand(uptr& gpu_addr); // TODO: return void
 
     // Helpers
-    template <typename T>
-    T Read(GMmu& gmmu, uptr& gpu_addr) {
-        T word = gmmu.Load<T>(gpu_addr);
-        gpu_addr += sizeof(T);
-
-        return word;
-    }
-
-    void ProcessMethodArg(GMmu& gmmu, u32 subchannel, uptr& gpu_addr,
-                          u32& method, bool increment);
+    void ProcessMethodArg(u32 subchannel, uptr& gpu_addr, u32& method,
+                          bool increment);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu

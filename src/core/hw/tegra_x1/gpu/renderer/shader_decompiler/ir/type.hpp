@@ -23,6 +23,16 @@ enum class ScalarType {
     F32,
 };
 
+enum class TypeError {
+    NotAScalar,
+    NotAVector,
+    NotABoolean,
+    NotAnInteger,
+    NotAFloatingPoint,
+    NotSigned,
+    NotUnsigned,
+};
+
 inline bool ScalarIsInteger(ScalarType scalar) {
     switch (scalar) {
     case ScalarType::U8:
@@ -48,6 +58,17 @@ inline bool ScalarIsSignedInteger(ScalarType scalar) {
     }
 }
 
+inline bool ScalarIsUnsignedInteger(ScalarType scalar) {
+    switch (scalar) {
+    case ScalarType::U8:
+    case ScalarType::U16:
+    case ScalarType::U32:
+        return true;
+    default:
+        return false;
+    }
+}
+
 inline bool ScalarIsFloatingPoint(ScalarType scalar) {
     switch (scalar) {
     case ScalarType::F16:
@@ -57,6 +78,9 @@ inline bool ScalarIsFloatingPoint(ScalarType scalar) {
         return false;
     }
 }
+
+ScalarType ScalarSignedEquivalent(ScalarType scalar);
+ScalarType ScalarUnsignedEquivalent(ScalarType scalar);
 
 class VectorType {
   public:
@@ -70,7 +94,16 @@ class VectorType {
     // Check
     bool IsInteger() const { return ScalarIsInteger(element_type); }
     bool IsSignedInteger() const { return ScalarIsSignedInteger(element_type); }
+    bool IsUnsignedInteger() const {
+        return ScalarIsUnsignedInteger(element_type);
+    }
     bool IsFloatingPoint() const { return ScalarIsFloatingPoint(element_type); }
+    VectorType SignedEquivalent() const {
+        return VectorType(ScalarSignedEquivalent(element_type), size);
+    }
+    VectorType UnsignedEquivalent() const {
+        return VectorType(ScalarUnsignedEquivalent(element_type), size);
+    }
 
   private:
     ScalarType element_type;
@@ -134,6 +167,17 @@ class Type {
         }
     }
 
+    bool IsUnsignedInteger() const {
+        switch (kind) {
+        case TypeKind::Scalar:
+            return ScalarIsUnsignedInteger(scalar);
+        case TypeKind::Vector:
+            return vector.IsUnsignedInteger();
+        default:
+            return false;
+        }
+    }
+
     bool IsFloatingPoint() const {
         switch (kind) {
         case TypeKind::Scalar:
@@ -146,15 +190,12 @@ class Type {
     }
 
     // Get
-    ScalarType GetScalarType() const {
-        ASSERT_DEBUG(IsScalar(), ShaderDecompiler, "Type is not a scalar");
-        return scalar;
-    }
+    ScalarType GetScalarType() const;
+    VectorType GetVectorType() const;
 
-    VectorType GetVectorType() const {
-        ASSERT_DEBUG(IsVector(), ShaderDecompiler, "Type is not a vector");
-        return vector;
-    }
+    // Type creation
+    Type SignedEquivalent() const;
+    Type UnsignedEquivalent() const;
 
   private:
     TypeKind kind;

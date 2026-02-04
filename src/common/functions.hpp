@@ -63,7 +63,7 @@ T align(T v, T alignment) {
 
 template <typename T>
 bool is_aligned(T v, T alignment) {
-    return (v & (alignment - 1)) == 0x0;
+    return (v % alignment) == 0x0;
 }
 
 template <typename T>
@@ -134,14 +134,6 @@ inline constexpr u64 str_to_u64(const char* str, size_t idx = 0,
 inline std::string u64_to_str(u64 value) {
     char* str = reinterpret_cast<char*>(&value);
     return std::string(str, std::min(strlen(str), size_t(8)));
-}
-
-template <typename T>
-void push_unique(std::vector<T>& vec, T value) {
-    auto it = std::find_if(vec.begin(), vec.end(),
-                           [&](const T v) { return v == value; });
-    if (it == vec.end())
-        vec.push_back(value);
 }
 
 inline std::string demangle(const char* mangled_name) {

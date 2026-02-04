@@ -17,6 +17,8 @@ struct AddressSpace {
 // TODO: free memory
 class GMmu : public GenericMmu<GMmu, AddressSpace> {
   public:
+    GMmu(cpu::IMmu* mmu_) : mmu{mmu_} {}
+
     usize ImplGetSize(const AddressSpace& as) const { return as.size; }
 
     AddressSpace& UnmapAddrToAddressSpace(uptr gpu_addr) {
@@ -37,32 +39,19 @@ class GMmu : public GenericMmu<GMmu, AddressSpace> {
                    [[maybe_unused]] AddressSpace as) {}
 
     // Address space
-    uptr CreateAddressSpace(uptr ptr, usize size, uptr gpu_addr) {
-        if (ptr == 0x0)
-            ptr = reinterpret_cast<uptr>(malloc(size));
-
-        AddressSpace as;
-        as.ptr = ptr;
-        as.size = size;
-
-        if (gpu_addr == invalid<uptr>()) {
-            gpu_addr = address_space_base;
-            address_space_base += align(size, GPU_PAGE_SIZE);
-        }
-        Map(gpu_addr, as);
-
-        return gpu_addr;
-    }
+    uptr CreateAddressSpace(Range<vaddr_t> range, uptr gpu_addr);
 
     uptr AllocatePrivateAddressSpace(usize size, uptr gpu_addr) {
-        return CreateAddressSpace(0x0, size, gpu_addr);
+        return CreateAddressSpace(Range<vaddr_t>::FromSize(0x0, size),
+                                  gpu_addr);
     }
 
-    uptr MapBufferToAddressSpace(uptr ptr, usize size, uptr gpu_addr) {
-        return CreateAddressSpace(ptr, size, gpu_addr);
+    uptr MapBufferToAddressSpace(Range<vaddr_t> range, uptr gpu_addr) {
+        return CreateAddressSpace(range, gpu_addr);
     }
 
-    // TODO: correct?
+    // TODO
+    /*
     void ModifyAddressSpace(uptr ptr, usize size, uptr gpu_addr) {
         auto& as = UnmapAddrToAddressSpace(gpu_addr);
         ASSERT_DEBUG(size == as.size, Gpu, "Size mismatch: {} != {}", size,
@@ -70,10 +59,16 @@ class GMmu : public GenericMmu<GMmu, AddressSpace> {
 
         as.ptr = ptr;
     }
+    */
 
   private:
+    cpu::IMmu* mmu;
+
     // TODO: use a better way to allocate new memory
     uptr address_space_base{GPU_PAGE_SIZE};
+
+  public:
+    GETTER(mmu, GetMmu);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu

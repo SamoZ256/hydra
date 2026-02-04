@@ -14,10 +14,12 @@ void TextureDecoder::Decode(const TextureDescriptor& descriptor, u8* out_data) {
     switch (descriptor.kind) {
     case NvKind::Pitch:
     case NvKind::PitchNoSwizzle:
-        std::memcpy(out_data, in_data, descriptor.stride * descriptor.height);
+        std::memcpy(out_data, in_data,
+                    descriptor.depth * descriptor.height * descriptor.stride);
         break;
     default:
-        decode_generic_16bx2(descriptor.stride, descriptor.height,
+        decode_generic_16bx2(descriptor.stride,
+                             descriptor.depth * descriptor.height,
                              descriptor.block_height_log2, in_data, out_data);
         break;
     }

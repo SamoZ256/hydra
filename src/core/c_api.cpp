@@ -290,6 +290,10 @@ HYDRA_EXPORT void* hydra_config_get_process_args() {
     return &hydra::CONFIG_INSTANCE.GetProcessArgs();
 }
 
+HYDRA_EXPORT bool* hydra_config_get_recover_from_segfault() {
+    return &hydra::CONFIG_INSTANCE.GetRecoverFromSegfault();
+}
+
 HYDRA_EXPORT bool* hydra_config_get_gdb_enabled() {
     return &hydra::CONFIG_INSTANCE.GetGdbEnabled();
 }

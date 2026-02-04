@@ -6,8 +6,16 @@ result_t Applet::Run() {
     const auto arg_private = PopInData<ArgPrivate>();
 
     // Mode
-    ASSERT(arg_private.mode == Mode::ShowControllerSupport, Applets,
-           "Unimplemented mode {}", arg_private.mode);
+    if (arg_private.mode != Mode::ShowControllerSupport) {
+        LOG_WARN(Applets, "Unimplemented mode {}", arg_private.mode);
+
+        // Dummy response
+        PushOutData(ResultInfoInternal{
+            .info = {},
+            .result = RESULT_SUCCESS,
+        });
+        return RESULT_SUCCESS;
+    }
 
     // Run with the correct args
     switch (arg_private.controller_support_arg_size) {

@@ -9,6 +9,20 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang::
 
 namespace {
 
+std::string PixelImapTypeToStr(PixelImapType type) {
+    switch (type) {
+    case PixelImapType::Constant:
+        return "flat";
+    case PixelImapType::Perspective:
+        return "";
+    case PixelImapType::ScreenLinear:
+        return "center_no_perspective";
+    default:
+        LOG_ERROR(ShaderDecompiler, "Pixel imap unused");
+        return "";
+    }
+}
+
 std::string TextureTypeToStr(TextureType type, bool is_depth) {
     // TODO: check if depth can be used with the type
     std::string prefix = is_depth ? "depth" : "texture";
@@ -69,7 +83,7 @@ MslEmitter::MslEmitter(const DecompilerContext& context,
                        ResourceMapping& out_resource_mapping)
     : LangEmitter(context, memory_analyzer, state, out_code,
                   out_resource_mapping) {
-    for (const auto& [index, size] : memory_analyzer.GetUniformBuffers()) {
+    for (auto index : memory_analyzer.GetConstBuffers()) {
         out_resource_mapping.uniform_buffers[index] = index;
     }
 
@@ -120,7 +134,7 @@ void MslEmitter::EmitDeclarations() {
                 continue;
 
             const auto sv = Sv(SvSemantic::UserInOut, i);
-            Write("vec<{}, 4> {} {};", ToType(vertex_attrib_state.type),
+            Write("vec<{}, 4> {} [[{}]];", ToType(vertex_attrib_state.type),
                   GetSvStr(sv), GetSvQualifierStr(sv, false));
         }
         break;
@@ -128,8 +142,12 @@ void MslEmitter::EmitDeclarations() {
         Write("float4 position [[position]];");
         for (const auto input : memory_analyzer.GetStageInputs()) {
             const auto sv = Sv(SvSemantic::UserInOut, input);
+            std::string attribute = PixelImapTypeToStr(
+                context.frag.pixel_imaps[input].GetFirstUsedType());
             // TODO: don't hardcode the type
-            Write("float4 {} {};", GetSvStr(sv), GetSvQualifierStr(sv, false));
+            Write("float4 {} [[{}{}{}]];", GetSvStr(sv),
+                  GetSvQualifierStr(sv, false), attribute.empty() ? "" : ", ",
+                  attribute);
         }
         break;
     default:
@@ -146,7 +164,7 @@ void MslEmitter::EmitDeclarations() {
     // SVs
     // HACK: always write position in vertex shaders
     if (context.type == ShaderType::Vertex)
-        Write("float4 position [[position]];");
+        Write("float4 position [[position, invariant]];");
     for (const auto sv_semantic : memory_analyzer.GetOutputSVs()) {
         switch (sv_semantic) {
         case SvSemantic::Position:
@@ -165,7 +183,8 @@ void MslEmitter::EmitDeclarations() {
         for (const auto output : memory_analyzer.GetStageOutputs()) {
             const auto sv = Sv(SvSemantic::UserInOut, output);
             // TODO: don't hardcode the type
-            Write("float4 {} {};", GetSvStr(sv), GetSvQualifierStr(sv, true));
+            Write("float4 {} [[{}]];", GetSvStr(sv),
+                  GetSvQualifierStr(sv, true));
         }
         break;
     case ShaderType::Fragment:
@@ -176,7 +195,7 @@ void MslEmitter::EmitDeclarations() {
                 continue;
 
             const auto sv = Sv(SvSemantic::UserInOut, i);
-            Write("vec<{}, 4> {} {};", ToType(color_target_data_type),
+            Write("vec<{}, 4> {} [[{}]];", ToType(color_target_data_type),
                   GetSvStr(sv), GetSvQualifierStr(sv, true));
         }
         break;
@@ -186,17 +205,7 @@ void MslEmitter::EmitDeclarations() {
 
     ExitScopeEmpty(true);
     WriteNewline();
-
-    // Uniform buffers
-    for (const auto& [index, size] : memory_analyzer.GetUniformBuffers()) {
-        EnterScope("struct UBuff{}", index);
-
-        // Data
-        Write("uint data[0x{:x}];", size / sizeof(u32));
-
-        ExitScopeEmpty(true);
-    }
-    WriteNewline();
+    ;
 }
 
 void MslEmitter::EmitStateBindings() {
@@ -256,8 +265,8 @@ void MslEmitter::EmitMainPrototype() {
     }
 
     // Uniform buffers
-    for (const auto& [index, size] : memory_analyzer.GetUniformBuffers()) {
-        ADD_ARG("constant UBuff{}& ubuff{} [[buffer({})]]", index, index,
+    for (auto index : memory_analyzer.GetConstBuffers()) {
+        ADD_ARG("constant Reg* c{} [[buffer({})]]", index, index,
                 out_resource_mapping.uniform_buffers[index]);
     }
 
@@ -454,26 +463,26 @@ std::string MslEmitter::GetSvStr(const Sv& sv) {
 std::string MslEmitter::GetSvQualifierStr(const Sv& sv, bool output) {
     switch (sv.semantic) {
     case SvSemantic::Position:
-        return "[[position]]";
+        return "position";
     case SvSemantic::UserInOut:
         switch (context.type) {
         case ShaderType::Vertex:
             if (output)
-                return fmt::format("[[user(locn{})]]", sv.index);
+                return fmt::format("user(locn{})", sv.index);
             else
-                return fmt::format("[[attribute({})]]", sv.index);
+                return fmt::format("attribute({})", sv.index);
         case ShaderType::Fragment:
             if (output)
-                return fmt::format("[[color({})]]", sv.index);
+                return fmt::format("color({})", sv.index);
             else
-                return fmt::format("[[user(locn{})]]", sv.index);
+                return fmt::format("user(locn{})", sv.index);
         default:
             return INVALID_VALUE;
         }
     case SvSemantic::InstanceID:
-        return "[[instance_id]]";
+        return "instance_id";
     case SvSemantic::VertexID:
-        return "[[vertex_id]]";
+        return "vertex_id";
     default:
         LOG_ERROR(ShaderDecompiler, "Unknown SV semantic {}", sv.semantic);
         return INVALID_VALUE;

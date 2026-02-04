@@ -17,8 +17,8 @@ result_t IRoInterface::MapManualLoadModuleMemory(kernel::Process* process,
     auto mmu = process->GetMmu();
     const auto base =
         mmu->FindFreeMemory(kernel::EXECUTABLE_REGION, nro_size + bss_size);
-    mmu->Map(base, nro_addr, nro_size);
-    mmu->Map(base + nro_size, bss_addr, bss_size);
+    mmu->Map(base, Range<vaddr_t>::FromSize(nro_addr, nro_size));
+    mmu->Map(base + nro_size, Range<vaddr_t>::FromSize(bss_addr, bss_size));
 
     *out_addr = base;
     return RESULT_SUCCESS;

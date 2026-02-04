@@ -15,8 +15,8 @@ SharedMemory::SharedMemory(usize size, const std::string_view debug_name)
 SharedMemory::~SharedMemory() { delete memory; }
 
 void SharedMemory::MapToRange(hw::tegra_x1::cpu::IMmu* mmu,
-                              const range<uptr> range, MemoryPermission perm) {
-    mmu->Map(range.begin, memory,
+                              const Range<uptr> range, MemoryPermission perm) {
+    mmu->Map(range.GetBegin(), memory,
              {MemoryType::Shared, MemoryAttribute::None, perm});
 }
 

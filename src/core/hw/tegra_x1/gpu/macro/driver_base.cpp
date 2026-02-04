@@ -4,8 +4,8 @@
 
 namespace hydra::hw::tegra_x1::gpu::macro {
 
-void DriverBase::Execute(GMmu& gmmu) {
-    ExecuteImpl(gmmu, start_address_ram[index], param1);
+void DriverBase::Execute() {
+    ExecuteImpl(start_address_ram[index], param1);
 
     // TODO: what should happen when there are still parameters in the queue?
     if (!param_queue.empty()) {
@@ -31,7 +31,7 @@ void DriverBase::LoadStartAddressRam(u32 data) {
     start_address_ram[start_address_ram_ptr++] = data;
 }
 
-bool DriverBase::ParseInstruction(GMmu& gmmu, u32 pc) {
+bool DriverBase::ParseInstruction(u32 pc) {
     u32 instruction = instruction_ram[pc];
     // LOG_DEBUG(Macro, "PC: 0x{:08x}, instruction: 0x{:08x}", pc, instruction);
 
@@ -110,7 +110,7 @@ bool DriverBase::ParseInstruction(GMmu& gmmu, u32 pc) {
         ResultOperation result_op =
             static_cast<ResultOperation>(GET_DATA_U32(4, 3));
         u8 rD = GET_REG(8);
-        InstResult(gmmu, result_op, rD, value);
+        InstResult(result_op, rD, value);
     }
 
     // Check if exit
@@ -128,8 +128,8 @@ void DriverBase::SetMethod(u32 value) {
     increment = (value >> 12) & 0x3f;
 }
 
-void DriverBase::Send(GMmu& gmmu, u32 arg) {
-    engine_3d->Method(gmmu, method, arg);
+void DriverBase::Send(u32 arg) {
+    engine_3d->Method(method, arg);
     method += increment;
 }
 

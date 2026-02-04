@@ -1,7 +1,9 @@
 #include "core/hw/tegra_x1/gpu/pfifo.hpp"
 
+#include "core/debugger/debugger_manager.hpp"
 #include "core/hw/tegra_x1/gpu/const.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/command_buffer.hpp"
 
 namespace hydra::hw::tegra_x1::gpu {
 
@@ -57,23 +59,74 @@ struct CommandHeader {
     SecondaryOpcode secondary_opcode : 3;
 };
 
-} // namespace
+template <typename T>
+T Read(uptr& gpu_addr) {
+    T word = tls_crnt_gmmu->Load<T>(gpu_addr);
+    gpu_addr += sizeof(T);
 
-void Pfifo::SubmitEntries(GMmu& gmmu, const std::vector<GpfifoEntry>& entries,
-                          GpfifoFlags flags) {
-    // TODO: flags
-    (void)flags;
-    LOG_DEBUG(Gpu, "Flags: {}", flags);
-
-    RENDERER_INSTANCE.LockMutex();
-    for (const auto& entry : entries) {
-        SubmitEntry(gmmu, entry);
-    }
-    RENDERER_INSTANCE.EndCommandBuffer();
-    RENDERER_INSTANCE.UnlockMutex();
+    return word;
 }
 
-void Pfifo::SubmitEntry(GMmu& gmmu, const GpfifoEntry entry) {
+} // namespace
+
+Pfifo::Pfifo() : thread(&Pfifo::ThreadFunc, this) {}
+
+Pfifo::~Pfifo() {
+    stop = true;
+    cond_var.notify_all();
+    thread.join();
+}
+
+void Pfifo::SubmitEntries(GMmu& gmmu, std::span<const GpfifoEntry> entries,
+                          GpfifoFlags flags) {
+    LOG_DEBUG(Gpu, "Flags: {}", flags);
+
+    {
+        std::lock_guard lock(mutex);
+        entry_lists.emplace(
+            gmmu, std::vector<GpfifoEntry>(entries.begin(), entries.end()),
+            flags);
+    }
+
+    cond_var.notify_all();
+}
+
+void Pfifo::ThreadFunc() {
+    DEBUGGER_MANAGER_INSTANCE.GetDebuggerForCurrentProcess().RegisterThisThread(
+        "GPU thread");
+
+    std::unique_lock lock(mutex);
+    while (true) {
+        cond_var.wait(lock);
+        if (stop)
+            break;
+
+        // Process entry lists
+        while (!entry_lists.empty()) {
+            const auto entry_list = entry_lists.front();
+            entry_lists.pop();
+
+            lock.unlock();
+
+            // Entries
+            // TODO: flags
+            tls_crnt_gmmu = &entry_list.gmmu;
+            tls_crnt_command_buffer = RENDERER_INSTANCE.CreateCommandBuffer();
+            for (const auto& entry : entry_list.entries)
+                SubmitEntry(entry);
+            delete tls_crnt_command_buffer;
+            tls_crnt_command_buffer = nullptr;
+            tls_crnt_gmmu = nullptr;
+
+            lock.lock();
+        }
+    }
+
+    DEBUGGER_MANAGER_INSTANCE.GetDebuggerForCurrentProcess()
+        .UnregisterThisThread();
+}
+
+void Pfifo::SubmitEntry(const GpfifoEntry entry) {
     LOG_DEBUG(
         Gpu,
         "Gpfifo entry (addr lo: {:#x}, addr hi: {:#x}, size: {:#x}, allow "
@@ -88,7 +141,7 @@ void Pfifo::SubmitEntry(GMmu& gmmu, const GpfifoEntry entry) {
 
     while (gpu_addr < end) {
         try {
-            if (!SubmitCommand(gmmu, gpu_addr))
+            if (!SubmitCommand(gpu_addr))
                 break;
         } catch (Gpu::GetEngineAtSubchannelError error) {
             break;
@@ -98,8 +151,8 @@ void Pfifo::SubmitEntry(GMmu& gmmu, const GpfifoEntry entry) {
     }
 }
 
-bool Pfifo::SubmitCommand(GMmu& gmmu, uptr& gpu_addr) {
-    const auto header = Read<CommandHeader>(gmmu, gpu_addr);
+bool Pfifo::SubmitCommand(uptr& gpu_addr) {
+    const auto header = Read<CommandHeader>(gpu_addr);
     LOG_DEBUG(
         Gpu, "Method: {:#x}, subchannel: {}, arg: {:#x}, secondary opcode: {}",
         header.method, header.subchannel, header.arg, header.secondary_opcode);
@@ -123,7 +176,7 @@ bool Pfifo::SubmitCommand(GMmu& gmmu, uptr& gpu_addr) {
     }
     case SecondaryOpcode::IncMethod:
         for (u32 i = 0; i < header.arg; i++)
-            ProcessMethodArg(gmmu, header.subchannel, gpu_addr, offset, true);
+            ProcessMethodArg(header.subchannel, gpu_addr, offset, true);
         break;
     case SecondaryOpcode::Grp2UseTert: {
         const auto tert = static_cast<TertiaryOpcode>(header.arg & 0x3);
@@ -136,15 +189,15 @@ bool Pfifo::SubmitCommand(GMmu& gmmu, uptr& gpu_addr) {
     }
     case SecondaryOpcode::NonIncMethod:
         for (u32 i = 0; i < header.arg; i++)
-            ProcessMethodArg(gmmu, header.subchannel, gpu_addr, offset, false);
+            ProcessMethodArg(header.subchannel, gpu_addr, offset, false);
         break;
     case SecondaryOpcode::ImmDataMethod:
-        Gpu::GetInstance().SubchannelMethod(gmmu, header.subchannel, offset,
+        Gpu::GetInstance().SubchannelMethod(header.subchannel, offset,
                                             header.arg);
         break;
     case SecondaryOpcode::OneInc:
         for (u32 i = 0; i < header.arg; i++)
-            ProcessMethodArg(gmmu, header.subchannel, gpu_addr, offset, i == 0);
+            ProcessMethodArg(header.subchannel, gpu_addr, offset, i == 0);
         break;
     default:
         LOG_NOT_IMPLEMENTED(Gpu, "Secondary opcode {}",
@@ -155,15 +208,15 @@ bool Pfifo::SubmitCommand(GMmu& gmmu, uptr& gpu_addr) {
     // TODO: is it okay to prefetch the parameters and then execute the
     // macro?
     if (header.method >= MACRO_METHODS_REGION)
-        Gpu::GetInstance().SubchannelFlushMacro(gmmu, header.subchannel);
+        Gpu::GetInstance().SubchannelFlushMacro(header.subchannel);
 
     return true;
 }
 
-void Pfifo::ProcessMethodArg(GMmu& gmmu, u32 subchannel, uptr& gpu_addr,
-                             u32& method, bool increment) {
-    u32 arg = Read<u32>(gmmu, gpu_addr);
-    Gpu::GetInstance().SubchannelMethod(gmmu, subchannel, method, arg);
+void Pfifo::ProcessMethodArg(u32 subchannel, uptr& gpu_addr, u32& method,
+                             bool increment) {
+    u32 arg = Read<u32>(gpu_addr);
+    Gpu::GetInstance().SubchannelMethod(subchannel, method, arg);
     if (increment)
         method++;
 }

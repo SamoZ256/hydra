@@ -71,16 +71,14 @@ struct Regs2D {
 
 class TwoD : public EngineWithRegsBase<Regs2D> {
   public:
-    void Method(GMmu& gmmu, u32 method, u32 arg) override;
+    void Method(u32 method, u32 arg) override;
 
   private:
     // Commands
-    void Copy(GMmu& gmmu, const u32 index,
-              const u32 pixels_from_memory_src_y0_int);
+    void Copy(const u32 index, const u32 pixels_from_memory_src_y0_int);
 
     // Helpers
-    static renderer::TextureBase* GetTexture(GMmu& gmmu,
-                                             const Texture2DInfo& info,
+    static renderer::TextureBase* GetTexture(const Texture2DInfo& info,
                                              renderer::TextureUsage usage);
 };
 

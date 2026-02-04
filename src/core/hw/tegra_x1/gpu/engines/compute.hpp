@@ -12,7 +12,7 @@ struct RegsCompute {
 
 class Compute : public EngineWithRegsBase<RegsCompute>, public InlineBase {
   public:
-    void Method(GMmu& gmmu, u32 method, u32 arg) override;
+    void Method(u32 method, u32 arg) override;
 
   private:
     // Methods

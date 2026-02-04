@@ -2,6 +2,27 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
+MTL::TextureType ToMtlTextureType(TextureType type) {
+    switch (type) {
+    case TextureType::_1D:
+        return MTL::TextureType1D;
+    case TextureType::_1DArray:
+        return MTL::TextureType1DArray;
+    case TextureType::_1DBuffer:
+        return MTL::TextureTypeTextureBuffer;
+    case TextureType::_2D:
+        return MTL::TextureType2D;
+    case TextureType::_2DArray:
+        return MTL::TextureType2DArray;
+    case TextureType::_3D:
+        return MTL::TextureType3D;
+    case TextureType::Cube:
+        return MTL::TextureTypeCube;
+    case TextureType::CubeArray:
+        return MTL::TextureTypeCubeArray;
+    }
+}
+
 #define PIXEL_FORMAT_ENTRY(format, pixel_format, has_depth, has_stencil,       \
                            component_indices)                                  \
     {                                                                          \
@@ -73,13 +94,14 @@ std::map<TextureFormat, PixelFormatInfo> pixel_format_lut = {
     COLOR_PIXEL_FORMAT_ENTRY_RGBA(RGBX8Unorm_sRGB, RGBA8Unorm_sRGB), // HACK
     COLOR_PIXEL_FORMAT_ENTRY_RGBA(RGBA8Unorm_sRGB, RGBA8Unorm_sRGB),
     COLOR_PIXEL_FORMAT_ENTRY(RGBA4Unorm, ABGR4Unorm, PASS({3, 2, 1, 0})),
-    COLOR_PIXEL_FORMAT_ENTRY_RGBA(RGB5Unorm, BGR5A1Unorm),     // HACK
-    COLOR_PIXEL_FORMAT_ENTRY_RGBA(R5G6B5Unorm, B5G6R5Unorm),   // HACK
-    COLOR_PIXEL_FORMAT_ENTRY_RGBA(RGB10A2Unorm, RGB10A2Unorm), // HACK
-    COLOR_PIXEL_FORMAT_ENTRY_RGBA(RGB10A2Uint, RGB10A2Uint),   // HACK
-    COLOR_PIXEL_FORMAT_ENTRY_RGBA(RG11B10Float, RG11B10Float), // HACK
-    COLOR_PIXEL_FORMAT_ENTRY_RGBA(E5BGR9Float, RGB9E5Float),   // HACK
-    COLOR_PIXEL_FORMAT_ENTRY_RGBA(BC1_RGB, BC1_RGBA),          // HACK
+    COLOR_PIXEL_FORMAT_ENTRY_RGBA(RGB5Unorm, BGR5A1Unorm), // HACK
+    COLOR_PIXEL_FORMAT_ENTRY(R5G6B5Unorm, B5G6R5Unorm,
+                             PASS({2, 1, 0, 3})), // TODO: correct?
+    COLOR_PIXEL_FORMAT_ENTRY_RGBA(RGB10A2Unorm, RGB10A2Unorm),
+    COLOR_PIXEL_FORMAT_ENTRY_RGBA(RGB10A2Uint, RGB10A2Uint),
+    COLOR_PIXEL_FORMAT_ENTRY_RGBA(RG11B10Float, RG11B10Float),
+    COLOR_PIXEL_FORMAT_ENTRY_RGBA(E5BGR9Float, RGB9E5Float), // HACK
+    COLOR_PIXEL_FORMAT_ENTRY_RGBA(BC1_RGB, BC1_RGBA),
     COLOR_PIXEL_FORMAT_ENTRY_RGBA(BC1_RGBA, BC1_RGBA),
     COLOR_PIXEL_FORMAT_ENTRY_RGBA(BC2_RGBA, BC2_RGBA),
     COLOR_PIXEL_FORMAT_ENTRY_RGBA(BC3_RGBA, BC3_RGBA),
