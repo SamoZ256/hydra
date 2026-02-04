@@ -16,7 +16,6 @@ class TextureBase {
     CreateView(const TextureViewDescriptor& descriptor) = 0;
 
     // Copying
-    virtual void CopyFrom(const uptr data) = 0;
     virtual void CopyFrom(const BufferBase* src, const usize src_stride,
                           const uint3 dst_origin, const usize3 size) = 0;
     void CopyFrom(const BufferBase* src) {
