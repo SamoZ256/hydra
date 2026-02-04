@@ -85,10 +85,16 @@ uptr Mmu::UnmapAddr(vaddr_t va) const {
 }
 
 MemoryRegion Mmu::QueryRegion(vaddr_t va) const {
+    const auto page = va / GUEST_PAGE_SIZE;
+    if (page >= PAGE_COUNT)
+        return {.va = page * GUEST_PAGE_SIZE,
+                .size = GUEST_PAGE_SIZE,
+                .state = {.type = horizon::kernel::MemoryType::Free}};
+
     return {
-        .va = align_down(va, GUEST_PAGE_SIZE),
+        .va = page * GUEST_PAGE_SIZE,
         .size = GUEST_PAGE_SIZE,
-        .state = states[va / GUEST_PAGE_SIZE],
+        .state = states[page],
     };
 }
 

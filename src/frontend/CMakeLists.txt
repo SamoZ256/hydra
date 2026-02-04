@@ -4,10 +4,11 @@ set(NATIVE_SOURCE_FILES
     native/cocoa/native.mm
 )
 
+set(CMAKE_OSX_DEPLOYMENT_TARGET 14.4)
+set(MACOSX_MINIMUM_SYSTEM_VERSION "14.4")
+
 if (FRONTEND STREQUAL "SDL3")
     message(STATUS "Using SDL3 frontend")
-    set(CMAKE_OSX_DEPLOYMENT_TARGET 14.4)
-    set(MACOSX_MINIMUM_SYSTEM_VERSION "14.4")
 
     find_package(SDL3 CONFIG REQUIRED)
 
@@ -23,8 +24,6 @@ if (FRONTEND STREQUAL "SDL3")
     target_link_libraries(hydra PRIVATE hydra_warnings SDL3::SDL3 "-framework Cocoa")
 elseif (FRONTEND STREQUAL "SwiftUI")
     message(STATUS "Using SwiftUI frontend")
-    set(CMAKE_OSX_DEPLOYMENT_TARGET 15.0)
-    set(MACOSX_MINIMUM_SYSTEM_VERSION "15.0")
     set(SWIFT_BUILD_TYPE_CONDITION "$<UPPER_CASE:$<CONFIG>>")
 
     add_executable(hydra
