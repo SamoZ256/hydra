@@ -3,7 +3,7 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.15)
 
 include(FetchContent)
 
-project(hydra VERSION 0.3.0 LANGUAGES CXX)
+project(hydra VERSION 0.4.0 LANGUAGES CXX)
 
 option(CUBEB_ENABLED "Enable the cubeb audio backend" ON)
 if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
