@@ -47,7 +47,14 @@ jobs:
                   path: hydra
 
             - name: Install Dependencies
-              run: brew install boost fmt sdl3 dylibbundler
+              run: |
+                  if [[ "${{ matrix.suffix }}" == *"x86"* ]]; then
+                    echo "Using x86_64 Homebrew"
+                    arch -x86_64 /usr/local/bin/brew install boost fmt sdl3 dylibbundler
+                  else
+                    echo "Using ARM Homebrew"
+                    brew install boost fmt sdl3 dylibbundler
+                  fi
 
             - name: Verify CMake Version
               run: cmake --version
