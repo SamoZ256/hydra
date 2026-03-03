@@ -49,9 +49,21 @@ jobs:
             - name: Install Dependencies
               run: |
                   if [[ "${{ matrix.suffix }}" == *"x86"* ]]; then
-                    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-                    arch -x86_64 /usr/local/bin/brew install boost fmt sdl3 dylibbundler
+                    echo "Installing x86_64 deps under Rosetta"
+
+                    arch -x86_64 /bin/bash -c '
+                      export HOMEBREW_PREFIX=/usr/local
+                      export PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+
+                      if ! command -v brew >/dev/null; then
+                        echo "Installing Intel Homebrew"
+                        NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                      fi
+
+                      brew install boost fmt sdl3 dylibbundler
+                    '
                   else
+                    echo "Installing arm64 deps"
                     brew install boost fmt sdl3 dylibbundler
                   fi
 
