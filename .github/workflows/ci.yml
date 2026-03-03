@@ -49,10 +49,9 @@ jobs:
             - name: Install Dependencies
               run: |
                   if [[ "${{ matrix.suffix }}" == *"x86"* ]]; then
-                    echo "Using x86_64 Homebrew"
+                    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
                     arch -x86_64 /usr/local/bin/brew install boost fmt sdl3 dylibbundler
                   else
-                    echo "Using ARM Homebrew"
                     brew install boost fmt sdl3 dylibbundler
                   fi
 
