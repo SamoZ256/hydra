@@ -95,7 +95,6 @@ jobs:
                   -DCMAKE_BUILD_TYPE=${{ env.BUILD_MODE }} \
                   -DFRONTEND=${{ env.FRONTEND_MODE }} \
                   -DMACOS_BUNDLE=ON \
-                  -DCMAKE_Swift_FLAGS="-target x86_64-apple-macosx14.4" \
                   -GNinja
                   ninja -C build
                   dylibbundler -of -cd -b -x build/bin/Hydra.app/Contents/MacOS/Hydra -d build/bin/Hydra.app/Contents/libs
