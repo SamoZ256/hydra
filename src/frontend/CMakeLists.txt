@@ -91,7 +91,14 @@ endif ()
 
 set(CMAKE_OSX_DEPLOYMENT_TARGET ${MACOS_VERSION})
 set(MACOSX_MINIMUM_SYSTEM_VERSION "${MACOS_VERSION}")
-set(CMAKE_Swift_FLAGS "-target x86_64-apple-macosx${MACOS_VERSION}")
+
+# Manually set Swift target on macOS
+if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    # TODO: what about universal binaries?
+    list(GET TARGET_ARCHS 0 TARGET_ARCH)
+
+    set(CMAKE_Swift_FLAGS "-target ${TARGET_ARCH}-apple-macosx${MACOS_VERSION}")
+endif ()
 
 target_link_libraries(hydra PRIVATE hydra-common hydra-core)
 
