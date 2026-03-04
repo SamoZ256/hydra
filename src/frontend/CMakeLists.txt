@@ -24,6 +24,8 @@ if (FRONTEND STREQUAL "SDL3")
 elseif (FRONTEND STREQUAL "SwiftUI")
     message(STATUS "Using SwiftUI frontend")
 
+    set(MACOS_VERSION 15.0)
+
     set(SWIFT_BUILD_TYPE_CONDITION "$<UPPER_CASE:$<CONFIG>>")
 
     add_executable(hydra
@@ -89,7 +91,7 @@ endif ()
 
 set(CMAKE_OSX_DEPLOYMENT_TARGET ${MACOS_VERSION})
 set(MACOSX_MINIMUM_SYSTEM_VERSION "${MACOS_VERSION}")
-set(CMAKE_Swift_FLAGS x86_64-apple-macosx${MACOS_VERSION})
+set(CMAKE_Swift_FLAGS -target x86_64-apple-macosx${MACOS_VERSION})
 
 target_link_libraries(hydra PRIVATE hydra-common hydra-core)
 
