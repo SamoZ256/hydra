@@ -91,7 +91,7 @@ endif ()
 
 set(CMAKE_OSX_DEPLOYMENT_TARGET ${MACOS_VERSION})
 set(MACOSX_MINIMUM_SYSTEM_VERSION "${MACOS_VERSION}")
-set(CMAKE_Swift_FLAGS -target x86_64-apple-macosx${MACOS_VERSION})
+set(CMAKE_Swift_FLAGS "-target x86_64-apple-macosx${MACOS_VERSION}")
 
 target_link_libraries(hydra PRIVATE hydra-common hydra-core)
 
