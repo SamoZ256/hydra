@@ -29,10 +29,10 @@ struct EmulationToolbarItems: ToolbarContent {
                     isRunning = globalState.emulationContext!.isRunning()
                 }
             }
-            
+
             ToolbarItemGroup(placement: .confirmationAction) {
                 if isFramerateUnlocked {
-                    Button{
+                    Button {
                         isFramerateUnlocked.toggle()
                     } label: {
                         ZStack {
@@ -44,8 +44,9 @@ struct EmulationToolbarItems: ToolbarContent {
                         }
                     }
                     .help("Lock Framerate to 60fps")
+
                 } else {
-                    Button{
+                    Button {
                         isFramerateUnlocked.toggle()
                     } label: {
                         ZStack {
@@ -59,43 +60,31 @@ struct EmulationToolbarItems: ToolbarContent {
                     .help("Unlock Framerate")
                 }
             }
-            
+
             // This compiler check is only needed when compiling on a macOS version earlier than 26
             #if compiler(>=6.2.3)
                 if #available(macOS 26.0, *) {
                     ToolbarSpacer(.fixed)
                 }
             #endif
-            
-            if #available(macOS 26.0, *) {
-                ToolbarItemGroup(placement: .confirmationAction) {
+
+            ToolbarItemGroup(placement: .confirmationAction) {
+                Picker("Mode", selection: $globalState.isHandheldMode) {
                     Button("Console Mode", systemImage: "inset.filled.tv") {
                         globalState.isHandheldMode.toggle()
                     }
-                    .disabled(!globalState.isHandheldMode)
-                    .help("Change to Console mode")
-                    
+                    .tag(false)
+                    .help("Console mode")
+
                     Button("Handheld Mode", systemImage: "formfitting.gamecontroller.fill") {
                         globalState.isHandheldMode.toggle()
                     }
-                    .disabled(globalState.isHandheldMode)
-                    .help("Change to Handheld mode")
+                    .tag(true)
+                    .help("Handheld mode")
                 }
-            } else {
-                ToolbarItemGroup(placement: .confirmationAction) {
-                    if globalState.isHandheldMode {
-                        Button("Console Mode", systemImage: "inset.filled.tv") {
-                            globalState.isHandheldMode.toggle()
-                        }
-                        .help("Change to Console mode")
-                    } else {
-                       Button("Handheld Mode", systemImage: "formfitting.gamecontroller.fill") {
-                           globalState.isHandheldMode.toggle()
-                       }
-                       .help("Change to Handheld mode")
-                    }
-                }
+                .pickerStyle(.segmented)
             }
+
         #else
             // TODO: options
             ToolbarItemGroup(placement: .principal) {}
