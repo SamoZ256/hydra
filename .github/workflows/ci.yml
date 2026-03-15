@@ -40,7 +40,7 @@ jobs:
                   xcode-version: latest-stable
 
             - name: Checkout Hydra
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
               with:
                   repository: SamoZ256/hydra
                   submodules: recursive
@@ -114,7 +114,7 @@ jobs:
                   hdiutil create -volname "Hydra" -srcfolder image Hydra-${{ matrix.suffix }}
 
             - name: Upload Artifacts - ${{ matrix.suffix }}
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v6
               with:
                   name: Hydra-${{ matrix.suffix }}
                   path: Hydra-${{ matrix.suffix }}.dmg
