@@ -9,10 +9,10 @@ namespace hydra::hw::tegra_x1::gpu::renderer {
 
 TextureCache::~TextureCache() {
     for (auto& [key, mem] : entries) {
-        for (const auto& [key, sparse_tex] : mem.cache) {
-            for (const auto& [key, group] : sparse_tex.cache) {
+        for (auto& [key, sparse_tex] : mem.cache) {
+            for (auto& [key, group] : sparse_tex.cache) {
                 delete group.base;
-                for (const auto& [key, view] : group.view_cache)
+                for (auto& [key, view] : group.view_cache)
                     delete view;
             }
         }
@@ -43,22 +43,22 @@ TextureBase* TextureCache::Find(ICommandBuffer* command_buffer,
     // Merge with previous if overlapping
     if (it != entries.begin()) {
         auto prev = std::prev(it);
-        const auto& prev_mem = prev->second;
+        auto& prev_mem = prev->second;
         if (prev_mem.range.GetEnd() > mem.range.GetBegin()) {
-            mem = MergeMemories(mem, prev_mem);
+            MergeMemories(mem, prev_mem);
             it = entries.erase(prev);
         }
     }
 
     // Merge with following entries
     while (it != entries.end() && it->first < mem.range.GetEnd()) {
-        const auto& crnt_mem = it->second;
-        mem = MergeMemories(mem, crnt_mem);
+        auto& crnt_mem = it->second;
+        MergeMemories(mem, crnt_mem);
         it = entries.erase(it);
     }
 
     // Insert merged interval
-    auto inserted = entries.emplace(mem.range.GetBegin(), mem);
+    auto inserted = entries.emplace(mem.range.GetBegin(), std::move(mem));
     return AddToMemory(command_buffer, inserted.first->second, descriptor,
                        usage);
 }
@@ -82,27 +82,19 @@ void TextureCache::InvalidateMemory(Range<uptr> range) {
     }
 }
 
-TextureMem TextureCache::MergeMemories(const TextureMem& a,
-                                       const TextureMem& b) {
-    TextureMem res;
-    res.range = a.range.Union(b.range);
-    res.info = {
-        .modified_timestamp =
-            std::max(a.info.modified_timestamp, b.info.modified_timestamp),
+void TextureCache::MergeMemories(TextureMem& mem, TextureMem& other) {
+    mem.range = mem.range.Union(other.range);
+    mem.info = {
+        .modified_timestamp = std::max(mem.info.modified_timestamp,
+                                       other.info.modified_timestamp),
         .read_timestamp =
-            std::max(a.info.read_timestamp, b.info.read_timestamp),
+            std::max(mem.info.read_timestamp, other.info.read_timestamp),
         .written_timestamp =
-            std::max(a.info.written_timestamp, b.info.written_timestamp),
+            std::max(mem.info.written_timestamp, other.info.written_timestamp),
     };
 
-    // HACK
-    for (const auto& [key, tex] : const_cast<TextureMem&>(a).cache)
-        res.cache.Add(key, tex);
-
-    for (const auto& [key, tex] : const_cast<TextureMem&>(b).cache)
-        res.cache.Add(key, tex);
-
-    return res;
+    for (auto& [key, tex] : other.cache)
+        mem.cache.Add(key, std::move(tex));
 }
 
 TextureBase* TextureCache::AddToMemory(ICommandBuffer* command_buffer,
@@ -133,7 +125,7 @@ TextureBase* TextureCache::AddToMemory(ICommandBuffer* command_buffer,
     }
 
     // Check if it is a proper layer view
-    for (const auto& [key, group] : sparse_tex.cache) {
+    for (auto& [key, group] : sparse_tex.cache) {
         if (group.base->GetDescriptor().GetRange().Contains(range)) {
             const auto offset = static_cast<u32>(
                 range.GetBegin() - group.base->GetDescriptor().ptr);
@@ -283,10 +275,10 @@ void TextureCache::Update(ICommandBuffer* command_buffer, TextureGroup& group,
         const auto& descriptor = base->GetDescriptor();
         const auto range = descriptor.GetRange();
         const auto layer_size = descriptor.GetLayerSizeInBytes();
-        for (const auto& [key, sparse_tex] : mem.cache) {
+        for (auto& [key, sparse_tex] : mem.cache) {
             // TODO: skip this sparse texture
 
-            for (const auto& [key, other_group] : sparse_tex.cache) {
+            for (auto& [key, other_group] : sparse_tex.cache) {
                 const auto other_base = other_group.base;
                 const auto& other_descriptor = other_base->GetDescriptor();
                 const auto other_range = other_descriptor.GetRange();
