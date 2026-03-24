@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iterator>
 #include <map>
 #include <string>
 
@@ -20,30 +21,44 @@ class SmallCache {
       public:
         using map_iter = typename std::map<KeyT, T>::iterator;
 
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = std::pair<const KeyT, T>;
+        using difference_type = std::ptrdiff_t;
+        using pointer = value_type*;
+        using reference = value_type&;
+
         iterator(SmallCache* cache_, usize fast_index_)
             : cache{cache_}, fast_index{fast_index_} {
-            advance_fast();
+            AdvanceFast();
         }
 
         iterator(SmallCache* cache, map_iter slow_it)
-            : cache(cache), fast_index(fast_cache_size), slow_it(slow_it) {}
+            : cache{cache}, fast_index{fast_cache_size}, slow_it{slow_it} {}
 
-        std::pair<const KeyT&, T&> operator*() const {
-            if (fast_index < fast_cache_size) {
-                auto& e = cache->fast_cache[fast_index];
-                return {e.key, e.value};
-            }
-            return {slow_it->first, slow_it->second};
+        reference operator*() const {
+            if (fast_index < fast_cache_size)
+                return cache->fast_cache[fast_index].value();
+
+            return *slow_it;
         }
+
+        pointer operator->() const { return &(**this); }
 
         iterator& operator++() {
             if (fast_index < fast_cache_size) {
                 ++fast_index;
-                advance_fast();
+                AdvanceFast();
             } else {
                 ++slow_it;
             }
+
             return *this;
+        }
+
+        iterator operator++(int) {
+            iterator tmp = *this;
+            ++(*this);
+            return tmp;
         }
 
         bool operator==(const iterator& other) const {
@@ -56,9 +71,9 @@ class SmallCache {
         }
 
       private:
-        void advance_fast() {
+        void AdvanceFast() {
             while (fast_index < fast_cache_size &&
-                   !cache->fast_cache[fast_index].occupied) {
+                   !cache->fast_cache[fast_index].has_value()) {
                 ++fast_index;
             }
 
@@ -72,8 +87,28 @@ class SmallCache {
         map_iter slow_it;
     };
 
+    SmallCache() = default;
+
+    SmallCache(const SmallCache&) = delete;
+    SmallCache& operator=(const SmallCache&) = delete;
+
+    SmallCache(SmallCache&&) = default;
+    SmallCache& operator=(SmallCache&&) = default;
+
+    // TODO: const versions as well
     iterator begin() { return iterator(this, 0); }
     iterator end() { return iterator(this, slow_cache.end()); }
+
+    // Functions
+    usize GetCount() const {
+        usize count = 0;
+        for (auto& entry : fast_cache) {
+            if (entry.has_value())
+                count++;
+        }
+
+        return count + slow_cache.size();
+    }
 
     void Clear() {
         fast_cache.fill({});
@@ -84,23 +119,26 @@ class SmallCache {
         AlreadyPresent,
     };
 
-    T& Add(KeyT key, const T& value = {}) {
+    template <typename... Args>
+    T& Add(KeyT key, Args&&... args) {
         // Insert into fast cache if possible
         for (auto& entry : fast_cache) {
-            if (!entry.occupied) {
-                entry.occupied = true;
-                entry.key = key;
-                entry.value = value;
-                return entry.value;
+            if (!entry.has_value()) {
+                entry.emplace(
+                    std::piecewise_construct, std::forward_as_tuple(key),
+                    std::forward_as_tuple(std::forward<Args>(args)...));
+                return entry.value().second;
             } else {
-                ASSERT_THROWING(entry.key != key, Common,
+                ASSERT_THROWING(entry.value().first != key, Common,
                                 AddError::AlreadyPresent,
                                 "Entry already present");
             }
         }
 
         // Fallback to slow cache
-        auto res = slow_cache.emplace(key, value);
+        auto res = slow_cache.emplace(
+            std::piecewise_construct, std::forward_as_tuple(key),
+            std::forward_as_tuple(std::forward<Args>(args)...));
         ASSERT_THROWING(res.second, Common, AddError::AlreadyPresent,
                         "Entry already present");
         return res.first->second;
@@ -109,7 +147,7 @@ class SmallCache {
     iterator Remove(iterator it) {
         // Fast cache
         if (it.fast_index < fast_cache_size) {
-            fast_cache[it.fast_index].occupied = false;
+            fast_cache[it.fast_index] = std::nullopt;
 
             // Advance to the next element
             iterator next = it;
@@ -132,7 +170,7 @@ class SmallCache {
     iterator FindIter(KeyT key) {
         // Fast cache
         for (u32 i = 0; i < fast_cache_size; i++) {
-            if (fast_cache[i].occupied && fast_cache[i].key == key)
+            if (fast_cache[i].has_value() && fast_cache[i].value().first == key)
                 return iterator(this, i);
         }
 
@@ -150,7 +188,7 @@ class SmallCache {
         if (it == end())
             return std::nullopt;
 
-        return &(*it).second;
+        return &it->second;
     }
 
     T& FindOrAdd(KeyT key) {
@@ -162,11 +200,7 @@ class SmallCache {
     }
 
   private:
-    struct FastCacheEntry {
-        bool occupied{false};
-        KeyT key;
-        T value;
-    };
+    using FastCacheEntry = std::optional<std::pair<const KeyT, T>>;
 
     std::array<FastCacheEntry, fast_cache_size> fast_cache;
     std::map<KeyT, T> slow_cache;

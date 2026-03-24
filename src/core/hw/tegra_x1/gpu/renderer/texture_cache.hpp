@@ -24,6 +24,16 @@ struct TextureGroup {
 
 struct SparseTexture {
     SmallCache<uptr, TextureGroup> cache;
+
+    // Debug
+    usize GetGroupCount() const { return cache.GetCount(); }
+
+    const TextureGroup& GetGroup(u32 index) const {
+        // HACK: const cast
+        auto it = const_cast<SmallCache<uptr, TextureGroup>&>(cache).begin();
+        std::advance(it, index);
+        return it->second;
+    }
 };
 
 struct TextureMemInfo {
@@ -40,6 +50,16 @@ struct TextureMem {
     Range<uptr> range;
     TextureMemInfo info;
     SmallCache<u32, SparseTexture> cache;
+
+    // Debug
+    usize GetSparseTextureCount() const { return cache.GetCount(); }
+
+    const SparseTexture& GetSparseTexture(u32 index) const {
+        // HACK: const cast
+        auto it = const_cast<SmallCache<u32, SparseTexture>&>(cache).begin();
+        std::advance(it, index);
+        return it->second;
+    }
 };
 
 // TODO: destroy textures
@@ -53,13 +73,22 @@ class TextureCache {
 
     void InvalidateMemory(Range<uptr> range);
 
+    // Debug
+    usize GetMemoryCount() const { return entries.size(); }
+
+    const TextureMem& GetMemory(u32 index) const {
+        auto it = entries.begin();
+        std::advance(it, index);
+        return it->second;
+    }
+
   private:
     std::mutex mutex;
     TextureDecoder texture_decoder;
 
     std::map<uptr, TextureMem> entries;
 
-    TextureMem MergeMemories(const TextureMem& a, const TextureMem& b);
+    void MergeMemories(TextureMem& mem, TextureMem& other);
     TextureBase* AddToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
                              const TextureDescriptor& descriptor,
                              TextureUsage usage);

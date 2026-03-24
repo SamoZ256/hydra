@@ -1,5 +1,73 @@
 import SwiftUI
 
+protocol HandleStruct: Identifiable, Hashable {
+    var handle: UnsafeRawPointer { get }
+}
+
+extension HandleStruct {
+    var id: UnsafeRawPointer { handle }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(handle)
+    }
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.handle == rhs.handle
+    }
+}
+
+protocol MutableHandleStruct: Identifiable, Hashable {
+    var handle: UnsafeMutableRawPointer { get }
+}
+
+extension MutableHandleStruct {
+    var id: UnsafeMutableRawPointer { handle }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(handle)
+    }
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.handle == rhs.handle
+    }
+}
+
+class HandleClass: Identifiable, Hashable {
+    fileprivate var handle: UnsafeRawPointer
+
+    fileprivate init(handle: UnsafeRawPointer) {
+        self.handle = handle
+    }
+
+    static func == (lhs: HandleClass, rhs: HandleClass)
+        -> Bool
+    {
+        lhs.handle == rhs.handle
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(self.handle)
+    }
+}
+
+class MutableHandleClass: Identifiable, Hashable {
+    fileprivate var handle: UnsafeMutableRawPointer
+
+    fileprivate init(handle: UnsafeMutableRawPointer) {
+        self.handle = handle
+    }
+
+    static func == (lhs: MutableHandleClass, rhs: MutableHandleClass)
+        -> Bool
+    {
+        lhs.handle == rhs.handle
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(self.handle)
+    }
+}
+
 // Types
 // TODO: avoid copying
 /*
@@ -113,7 +181,7 @@ extension String {
 
 // String list
 struct HydraStringList {
-    private let handle: UnsafeMutableRawPointer
+    internal let handle: UnsafeMutableRawPointer
 
     fileprivate init(handle: UnsafeMutableRawPointer) {
         self.handle = handle
@@ -155,7 +223,7 @@ struct HydraStringList {
 
 // String view list
 struct HydraStringViewList {
-    private let handle: UnsafeMutableRawPointer
+    internal let handle: UnsafeMutableRawPointer
 
     fileprivate init(handle: UnsafeMutableRawPointer) {
         self.handle = handle
@@ -197,7 +265,7 @@ struct HydraStringViewList {
 
 // String to string map
 struct HydraStringToStringMap {
-    private let handle: UnsafeMutableRawPointer
+    internal let handle: UnsafeMutableRawPointer
 
     fileprivate init(handle: UnsafeMutableRawPointer) {
         self.handle = handle
@@ -240,7 +308,7 @@ struct HydraStringToStringMap {
 
 // Loader plugin
 struct HydraLoaderPluginConfig {
-    private let handle: UnsafeMutableRawPointer
+    internal let handle: UnsafeMutableRawPointer
 
     fileprivate init(handle: UnsafeMutableRawPointer) {
         self.handle = handle
@@ -265,7 +333,7 @@ struct HydraLoaderPluginConfig {
 }
 
 struct HydraLoaderPluginConfigList {
-    private let handle: UnsafeMutableRawPointer
+    internal let handle: UnsafeMutableRawPointer
 
     fileprivate init(handle: UnsafeMutableRawPointer) {
         self.handle = handle
@@ -432,7 +500,7 @@ enum HydraPluginError: Error {
 }
 
 class HydraLoaderPlugin {
-    private let handle: UnsafeMutableRawPointer
+    internal let handle: UnsafeMutableRawPointer
 
     init(path: String) throws {
         guard
@@ -479,25 +547,13 @@ class HydraLoaderPlugin {
     }
 }
 
-class HydraLoaderPluginOptionConfig: Hashable, Identifiable {
-    private let handle: UnsafeMutableRawPointer
-
-    fileprivate init(handle: UnsafeMutableRawPointer) {
-        self.handle = hydra_loader_plugin_option_config_copy(handle)
+class HydraLoaderPluginOptionConfig: MutableHandleClass {
+    fileprivate override init(handle: UnsafeMutableRawPointer) {
+        super.init(handle: hydra_loader_plugin_option_config_copy(handle))
     }
 
     deinit {
         hydra_loader_plugin_option_config_destroy(self.handle)
-    }
-
-    static func == (lhs: HydraLoaderPluginOptionConfig, rhs: HydraLoaderPluginOptionConfig)
-        -> Bool
-    {
-        lhs.handle == rhs.handle
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(self.handle)
     }
 
     var name: String {
@@ -531,25 +587,13 @@ class HydraLoaderPluginOptionConfig: Hashable, Identifiable {
 }
 
 // Filesystem
-class HydraFilesystem {
-    fileprivate let handle: UnsafeMutableRawPointer
-
+class HydraFilesystem: MutableHandleClass {
     init() {
-        self.handle = hydra_create_filesystem()
+        super.init(handle: hydra_create_filesystem())
     }
 
     deinit {
         hydra_filesystem_destroy(self.handle)
-    }
-
-    static func == (lhs: HydraFilesystem, rhs: HydraFilesystem)
-        -> Bool
-    {
-        lhs.handle == rhs.handle
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(self.handle)
     }
 
     func tryInstallFirmware() {
@@ -557,52 +601,28 @@ class HydraFilesystem {
     }
 }
 
-class HydraFile: Hashable, Identifiable {
-    fileprivate let handle: UnsafeMutableRawPointer
-
+class HydraFile: MutableHandleClass {
     init(path: String) {
-        self.handle = path.withHydraString { hydraPath in
+        super.init(handle: path.withHydraString { hydraPath in
             hydra_open_file(hydraPath)
-        }
+        })
     }
 
     deinit {
         hydra_file_close(self.handle)
     }
-
-    static func == (lhs: HydraFile, rhs: HydraFile)
-        -> Bool
-    {
-        lhs.handle == rhs.handle
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(self.handle)
-    }
 }
 
-class HydraContentArchive: Hashable, Identifiable {
+class HydraContentArchive: MutableHandleClass {
     private let file: HydraFile  // For ref counting
-
-    fileprivate let handle: UnsafeMutableRawPointer
 
     init(file: HydraFile) {
         self.file = file
-        self.handle = hydra_create_content_archive(file.handle)
+        super.init(handle: hydra_create_content_archive(file.handle))
     }
 
     deinit {
         hydra_content_archive_destroy(self.handle)
-    }
-
-    static func == (lhs: HydraContentArchive, rhs: HydraContentArchive)
-        -> Bool
-    {
-        lhs.handle == rhs.handle
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(self.handle)
     }
 
     var contentType: HydraContentArchiveContentType {
@@ -621,13 +641,7 @@ enum HydraLoaderContent {
     case romfs
 }
 
-class HydraLoader: Hashable, Identifiable {
-    fileprivate let handle: UnsafeMutableRawPointer
-
-    fileprivate init(handle: UnsafeMutableRawPointer) {
-        self.handle = handle
-    }
-
+class HydraLoader: MutableHandleClass {
     convenience init(path: String) throws {
         guard
             let handle = path.withHydraString({ hydraPath in
@@ -641,16 +655,6 @@ class HydraLoader: Hashable, Identifiable {
 
     deinit {
         hydra_loader_destroy(self.handle)
-    }
-
-    static func == (lhs: HydraLoader, rhs: HydraLoader)
-        -> Bool
-    {
-        lhs.handle == rhs.handle
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(self.handle)
     }
 
     var titleId: UInt64 {
@@ -734,21 +738,11 @@ class HydraNcaLoader: HydraLoader {
     }
 }
 
-class HydraNacp: Hashable, Identifiable {
-    private let handle: UnsafeMutableRawPointer
+struct HydraNacp: MutableHandleStruct {
+    internal let handle: UnsafeMutableRawPointer
 
-    fileprivate init(handle: UnsafeMutableRawPointer) {
+    init(handle: UnsafeMutableRawPointer) {
         self.handle = handle
-    }
-
-    static func == (lhs: HydraNacp, rhs: HydraNacp)
-        -> Bool
-    {
-        lhs.handle == rhs.handle
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(self.handle)
     }
 
     var title: HydraNacpTitle {
@@ -760,21 +754,11 @@ class HydraNacp: Hashable, Identifiable {
     }
 }
 
-class HydraNacpTitle: Hashable, Identifiable {
-    private let handle: UnsafeRawPointer
+struct HydraNacpTitle: HandleStruct {
+    internal let handle: UnsafeRawPointer
 
-    fileprivate init(handle: UnsafeRawPointer) {
+    init(handle: UnsafeRawPointer) {
         self.handle = handle
-    }
-
-    static func == (lhs: HydraNacpTitle, rhs: HydraNacpTitle)
-        -> Bool
-    {
-        lhs.handle == rhs.handle
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(self.handle)
     }
 
     var name: String {
@@ -787,25 +771,13 @@ class HydraNacpTitle: Hashable, Identifiable {
 }
 
 // User manager
-class HydraUserManager: Hashable, Identifiable {
-    private let handle: UnsafeMutableRawPointer
-
+class HydraUserManager: MutableHandleClass {
     init() {
-        self.handle = hydra_create_user_manager()
+        super.init(handle: hydra_create_user_manager())
     }
 
     deinit {
         hydra_user_manager_destroy(self.handle)
-    }
-
-    static func == (lhs: HydraUserManager, rhs: HydraUserManager)
-        -> Bool
-    {
-        lhs.handle == rhs.handle
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(self.handle)
     }
 
     func flush() {
@@ -848,15 +820,11 @@ class HydraUserManager: Hashable, Identifiable {
     }
 }
 
-struct HydraUser: Hashable, Identifiable {
-    private let handle: UnsafeMutableRawPointer
+struct HydraUser: MutableHandleStruct {
+    internal let handle: UnsafeMutableRawPointer
 
-    fileprivate init(handle: UnsafeMutableRawPointer) {
+    init(handle: UnsafeMutableRawPointer) {
         self.handle = handle
-    }
-
-    var id: UnsafeMutableRawPointer {
-        self.handle
     }
 
     var nickname: String {
@@ -892,25 +860,13 @@ struct HydraUser: Hashable, Identifiable {
 }
 
 // Emulation context
-class HydraEmulationContext: Hashable, Identifiable {
-    private let handle: UnsafeMutableRawPointer
-
+class HydraEmulationContext: MutableHandleClass {
     init() {
-        self.handle = hydra_create_emulation_context()
+        super.init(handle: hydra_create_emulation_context())
     }
 
     deinit {
         hydra_emulation_context_destroy(self.handle)
-    }
-
-    static func == (lhs: HydraEmulationContext, rhs: HydraEmulationContext)
-        -> Bool
-    {
-        lhs.handle == rhs.handle
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(self.handle)
     }
 
     var surface: UnsafeMutableRawPointer {
@@ -990,15 +946,11 @@ func hydraDebuggerManagerGetDebuggerForCurrentProcess() -> HydraDebugger {
     HydraDebugger(handle: hydra_debugger_manager_get_debugger_for_process(nil))
 }
 
-struct HydraDebugger: Hashable, Identifiable {
-    private var handle: UnsafeMutableRawPointer
+struct HydraDebugger: MutableHandleStruct {
+    internal let handle: UnsafeMutableRawPointer
 
-    fileprivate init(handle: UnsafeMutableRawPointer) {
+    init(handle: UnsafeMutableRawPointer) {
         self.handle = handle
-    }
-
-    var id: UnsafeMutableRawPointer {
-        self.handle
     }
 
     var name: String {
@@ -1032,15 +984,11 @@ struct HydraDebugger: Hashable, Identifiable {
     }
 }
 
-struct HydraDebuggerThread: Hashable, Identifiable {
-    private var handle: UnsafeMutableRawPointer
+struct HydraDebuggerThread: MutableHandleStruct {
+    internal let handle: UnsafeMutableRawPointer
 
-    fileprivate init(handle: UnsafeMutableRawPointer) {
+    init(handle: UnsafeMutableRawPointer) {
         self.handle = handle
-    }
-
-    var id: UnsafeMutableRawPointer {
-        self.handle
     }
 
     var name: String {
@@ -1072,16 +1020,8 @@ struct HydraDebuggerThread: Hashable, Identifiable {
     }
 }
 
-struct HydraDebuggerMessage: Hashable, Identifiable {
-    private var handle: UnsafeRawPointer
-
-    fileprivate init(handle: UnsafeRawPointer) {
-        self.handle = handle
-    }
-
-    var id: UnsafeRawPointer {
-        self.handle
-    }
+struct HydraDebuggerMessage: HandleStruct {
+    internal let handle: UnsafeRawPointer
 
     var logLevel: HydraLogLevel {
         hydra_debugger_message_get_log_level(self.handle)
@@ -1114,25 +1054,9 @@ struct HydraDebuggerMessage: Hashable, Identifiable {
     }
 }
 
-class HydraDebuggerStackTrace: Hashable, Identifiable {
-    private var handle: UnsafeMutableRawPointer
-
-    fileprivate init(handle: UnsafeMutableRawPointer) {
-        self.handle = handle
-    }
-
+class HydraDebuggerStackTrace: MutableHandleClass {
     deinit {
         hydra_debugger_stack_trace_destroy(self.handle)
-    }
-
-    static func == (lhs: HydraDebuggerStackTrace, rhs: HydraDebuggerStackTrace)
-        -> Bool
-    {
-        lhs.handle == rhs.handle
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(self.handle)
     }
 
     var frameCount: Int {
@@ -1145,41 +1069,17 @@ class HydraDebuggerStackTrace: Hashable, Identifiable {
     }
 }
 
-struct HydraDebuggerStackFrame: Hashable, Identifiable {
-    private var handle: UnsafeRawPointer
-
-    fileprivate init(handle: UnsafeRawPointer) {
-        self.handle = handle
-    }
-
-    var id: UnsafeRawPointer {
-        self.handle
-    }
+struct HydraDebuggerStackFrame: HandleStruct {
+    internal let handle: UnsafeRawPointer
 
     func resolve() -> HydraDebuggerResolvedStackFrame {
         HydraDebuggerResolvedStackFrame(handle: hydra_debugger_stack_frame_resolve(self.handle))
     }
 }
 
-class HydraDebuggerResolvedStackFrame: Hashable, Identifiable {
-    private var handle: UnsafeMutableRawPointer
-
-    fileprivate init(handle: UnsafeMutableRawPointer) {
-        self.handle = handle
-    }
-
+class HydraDebuggerResolvedStackFrame: MutableHandleClass {
     deinit {
         hydra_debugger_resolved_stack_frame_destroy(self.handle)
-    }
-
-    static func == (lhs: HydraDebuggerResolvedStackFrame, rhs: HydraDebuggerResolvedStackFrame)
-        -> Bool
-    {
-        lhs.handle == rhs.handle
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(self.handle)
     }
 
     var module: String {
@@ -1192,5 +1092,96 @@ class HydraDebuggerResolvedStackFrame: Hashable, Identifiable {
 
     var address: UInt64 {
         hydra_debugger_resolved_stack_frame_get_address(self.handle)
+    }
+}
+
+// Texture cache
+
+// Texture cache
+func hydraTextureCacheLock() {
+    hydra_texture_cache_lock()
+}
+
+func hydraTextureCacheUnlock() {
+    hydra_texture_cache_unlock()
+}
+
+func hydraTextureCacheGetTextureMemoryCount() -> Int {
+    Int(hydra_texture_cache_get_texture_memory_count())
+}
+
+func hydraTextureCacheGetTextureMemory(at index: Int) -> HydraTextureMemory {
+    HydraTextureMemory(handle: hydra_texture_cache_get_texture_memory(UInt32(index)))
+}
+
+// Texture memory
+struct HydraTextureMemory: HandleStruct {
+    internal let handle: UnsafeRawPointer
+
+    var sparseTextureCount: Int {
+        Int(hydra_texture_memory_get_sparse_texture_count(self.handle))
+    }
+
+    func getSparseTexture(at index: Int) -> HydraSparseTexture {
+        HydraSparseTexture(handle: hydra_texture_memory_get_sparse_texture(self.handle, UInt32(index)))
+    }
+}
+
+// Sparse texture
+struct HydraSparseTexture: HandleStruct {
+    internal let handle: UnsafeRawPointer
+
+    var textureGroupCount: Int {
+        Int(hydra_sparse_texture_get_texture_group_count(self.handle))
+    }
+
+    func getTextureGroup(at index: Int) -> HydraTextureGroup {
+        HydraTextureGroup(handle: hydra_sparse_texture_get_texture_group(self.handle, UInt32(index)))
+    }
+}
+
+// Texture group
+struct HydraTextureGroup: HandleStruct {
+    internal let handle: UnsafeRawPointer
+
+    var descriptor: HydraTextureDescriptor {
+        HydraTextureDescriptor(handle: hydra_texture_group_get_texture_descriptor(self.handle))
+    }
+}
+
+// Texture descriptor
+struct HydraTextureDescriptor: HandleStruct {
+    internal let handle: UnsafeRawPointer
+
+    var ptr: UInt64 {
+        hydra_texture_descriptor_get_ptr(self.handle)
+    }
+
+    var type: HydraTextureType {
+        hydra_texture_descriptor_get_type(self.handle)
+    }
+
+    var format: HydraTextureFormat {
+        hydra_texture_descriptor_get_format(self.handle)
+    }
+
+    var width: UInt32 {
+        hydra_texture_descriptor_get_width(self.handle)
+    }
+
+    var height: UInt32 {
+        hydra_texture_descriptor_get_height(self.handle)
+    }
+
+    var depth: UInt32 {
+        hydra_texture_descriptor_get_depth(self.handle)
+    }
+
+    var layerSize: UInt64 {
+        hydra_texture_descriptor_get_layer_size(self.handle)
+    }
+
+    var size: UInt64 {
+        hydra_texture_descriptor_get_size(self.handle)
     }
 }

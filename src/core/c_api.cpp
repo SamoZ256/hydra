@@ -8,6 +8,8 @@
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/plugins/manager.hpp"
 #include "core/horizon/ui/handler_base.hpp"
+#include "core/hw/tegra_x1/gpu/gpu.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 #include <string>
 
 #define HYDRA_EXPORT extern "C" __attribute__((visibility("default")))
@@ -989,4 +991,134 @@ HYDRA_EXPORT uint64_t hydra_debugger_resolved_stack_frame_get_address(
     return reinterpret_cast<const hydra::debugger::ResolvedStackFrame*>(
                resolved_stack_frame)
         ->addr;
+}
+
+// Texture cache
+
+// Texture cache
+HYDRA_EXPORT void hydra_texture_cache_lock() {
+    hydra::RENDERER_INSTANCE.GetTextureCache().GetMutex().lock();
+}
+
+HYDRA_EXPORT void hydra_texture_cache_unlock() {
+    hydra::RENDERER_INSTANCE.GetTextureCache().GetMutex().unlock();
+}
+
+HYDRA_EXPORT uint32_t hydra_texture_cache_get_texture_memory_count() {
+    // HACK
+    return static_cast<uint32_t>(
+        hydra::RENDERER_INSTANCE.GetTextureCache().GetMemoryCount());
+}
+
+HYDRA_EXPORT const void*
+hydra_texture_cache_get_texture_memory(uint32_t index) {
+    return &hydra::RENDERER_INSTANCE.GetTextureCache().GetMemory(index);
+}
+
+// Texture memory
+HYDRA_EXPORT uint32_t
+hydra_texture_memory_get_sparse_texture_count(const void* mem) {
+    // HACK
+    return static_cast<uint32_t>(
+        static_cast<const hydra::hw::tegra_x1::gpu::renderer::TextureMem*>(mem)
+            ->GetSparseTextureCount());
+}
+
+HYDRA_EXPORT const void*
+hydra_texture_memory_get_sparse_texture(const void* mem, uint32_t index) {
+    return &static_cast<const hydra::hw::tegra_x1::gpu::renderer::TextureMem*>(
+                mem)
+                ->GetSparseTexture(index);
+}
+
+// Sparse texture
+HYDRA_EXPORT uint32_t
+hydra_sparse_texture_get_texture_group_count(const void* sparse_tex) {
+    // HACK
+    return static_cast<uint32_t>(
+        static_cast<const hydra::hw::tegra_x1::gpu::renderer::SparseTexture*>(
+            sparse_tex)
+            ->GetGroupCount());
+}
+
+HYDRA_EXPORT const void*
+hydra_sparse_texture_get_texture_group(const void* sparse_tex, uint32_t index) {
+    return &static_cast<
+                const hydra::hw::tegra_x1::gpu::renderer::SparseTexture*>(
+                sparse_tex)
+                ->GetGroup(index);
+}
+
+// Texture group
+HYDRA_EXPORT const void*
+hydra_texture_group_get_texture_descriptor(const void* group) {
+    return &static_cast<
+                const hydra::hw::tegra_x1::gpu::renderer::TextureGroup*>(group)
+                ->base->GetDescriptor();
+}
+
+// Texture descriptor
+HYDRA_EXPORT uint64_t hydra_texture_descriptor_get_ptr(const void* descriptor) {
+    return static_cast<
+               const hydra::hw::tegra_x1::gpu::renderer::TextureDescriptor*>(
+               descriptor)
+        ->ptr;
+}
+
+HYDRA_EXPORT HydraTextureType
+hydra_texture_descriptor_get_type(const void* descriptor) {
+    return static_cast<HydraTextureType>(
+        static_cast<
+            const hydra::hw::tegra_x1::gpu::renderer::TextureDescriptor*>(
+            descriptor)
+            ->type);
+}
+
+HYDRA_EXPORT HydraTextureFormat
+hydra_texture_descriptor_get_format(const void* descriptor) {
+    return static_cast<HydraTextureFormat>(
+        static_cast<
+            const hydra::hw::tegra_x1::gpu::renderer::TextureDescriptor*>(
+            descriptor)
+            ->format);
+}
+
+HYDRA_EXPORT uint32_t
+hydra_texture_descriptor_get_width(const void* descriptor) {
+    return static_cast<
+               const hydra::hw::tegra_x1::gpu::renderer::TextureDescriptor*>(
+               descriptor)
+        ->width;
+}
+
+HYDRA_EXPORT uint32_t
+hydra_texture_descriptor_get_height(const void* descriptor) {
+    return static_cast<
+               const hydra::hw::tegra_x1::gpu::renderer::TextureDescriptor*>(
+               descriptor)
+        ->height;
+}
+
+HYDRA_EXPORT uint32_t
+hydra_texture_descriptor_get_depth(const void* descriptor) {
+    return static_cast<
+               const hydra::hw::tegra_x1::gpu::renderer::TextureDescriptor*>(
+               descriptor)
+        ->depth;
+}
+
+HYDRA_EXPORT uint64_t
+hydra_texture_descriptor_get_layer_size(const void* descriptor) {
+    return static_cast<
+               const hydra::hw::tegra_x1::gpu::renderer::TextureDescriptor*>(
+               descriptor)
+        ->GetLayerSizeInBytes();
+}
+
+HYDRA_EXPORT uint64_t
+hydra_texture_descriptor_get_size(const void* descriptor) {
+    return static_cast<
+               const hydra::hw::tegra_x1::gpu::renderer::TextureDescriptor*>(
+               descriptor)
+        ->GetSizeInBytes();
 }
