@@ -21,7 +21,7 @@ class GlobalState: ObservableObject {
     init() {
         hydraLoaderPluginManagerRefresh()
         isHandheldMode = hydraConfigGetHandheldMode().pointee
-        
+
         let gamePathsOption = hydraConfigGetGamePaths()
         for i in 0..<gamePathsOption.count {
             let gamePath = gamePathsOption.get(at: i)
@@ -57,6 +57,11 @@ struct HydraApp: App {
 
             Window("Debugger", id: "debugger") {
                 DebuggersView()
+            }
+            .defaultLaunchBehavior(.suppressed)
+
+            Window("Texture Viewer", id: "texture-viewer") {
+                TextureViewer()
             }
             .defaultLaunchBehavior(.suppressed)
 
