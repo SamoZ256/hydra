@@ -222,9 +222,7 @@ ThreeD::ThreeD() {
     SINGLETON_SET_INSTANCE(ThreeD, Engines);
 
     // TODO: choose based on Macro backend
-    {
-        macro_driver = new macro::interpreter::Driver(this);
-    }
+    { macro_driver = new macro::interpreter::Driver(this); }
 
     // Initialize default state
 
@@ -849,29 +847,30 @@ void ThreeD::ConfigureShaderStage(
     // TODO: storage buffers
 
     // Textures
-    RENDERER_INSTANCE.UnbindTextures(shader_type);
-    auto tex_const_buffer = reinterpret_cast<const u32*>(
-        bound_const_buffers[stage_index]
-                           [regs.bindless_texture_const_buffer_slot]
-                               .GetBegin());
-    for (const auto [const_buffer_index, renderer_index] :
-         resource_mapping.textures) {
-        const auto texture_handle = tex_const_buffer[const_buffer_index];
+    if (tex_header_pool && tex_sampler_pool) {
+        RENDERER_INSTANCE.UnbindTextures(shader_type);
+        auto tex_const_buffer = reinterpret_cast<const u32*>(
+            bound_const_buffers[stage_index]
+                               [regs.bindless_texture_const_buffer_slot]
+                                   .GetBegin());
+        for (const auto [const_buffer_index, renderer_index] :
+             resource_mapping.textures) {
+            const auto texture_handle = tex_const_buffer[const_buffer_index];
 
-        // Image
-        const auto image_handle = get_image_handle(texture_handle);
-        const auto& tic = tex_header_pool[image_handle];
-        const auto texture = GetTexture(tic);
+            // Image
+            const auto image_handle = get_image_handle(texture_handle);
+            const auto& tic = tex_header_pool[image_handle];
+            const auto texture = GetTexture(tic);
 
-        // Sampler
-        const auto sampler_handle = get_sampler_handle(texture_handle);
-        const auto& tsc = tex_sampler_pool[sampler_handle];
-        const auto sampler = GetSampler(tsc);
+            // Sampler
+            const auto sampler_handle = get_sampler_handle(texture_handle);
+            const auto& tsc = tex_sampler_pool[sampler_handle];
+            const auto sampler = GetSampler(tsc);
 
-        if (texture && sampler)
-            RENDERER_INSTANCE.BindTexture(texture, sampler, shader_type,
-                                          renderer_index);
-        // TODO: else bind null texture
+            if (texture && sampler)
+                RENDERER_INSTANCE.BindTexture(texture, sampler, shader_type,
+                                              renderer_index);
+        }
     }
 }
 
@@ -913,19 +912,22 @@ bool ThreeD::DrawInternal() {
     // Configure stages
     const auto tex_header_pool_gpu_addr = u64(regs.tex_header_pool);
     const auto tex_sampler_pool_gpu_addr = u64(regs.tex_sampler_pool);
-    // TODO: remove the condition
-    if (tex_header_pool_gpu_addr != 0x0 && tex_sampler_pool_gpu_addr != 0x0) {
-        const auto tex_header_pool = reinterpret_cast<TextureImageControl*>(
-            tls_crnt_gmmu->UnmapAddr(tex_header_pool_gpu_addr));
-        const auto tex_sampler_pool = reinterpret_cast<TextureSamplerControl*>(
-            tls_crnt_gmmu->UnmapAddr(tex_sampler_pool_gpu_addr));
+    const auto tex_header_pool =
+        tex_header_pool_gpu_addr != 0x0
+            ? reinterpret_cast<TextureImageControl*>(
+                  tls_crnt_gmmu->UnmapAddr(tex_header_pool_gpu_addr))
+            : nullptr;
+    const auto tex_sampler_pool =
+        tex_sampler_pool_gpu_addr != 0x0
+            ? reinterpret_cast<TextureSamplerControl*>(
+                  tls_crnt_gmmu->UnmapAddr(tex_sampler_pool_gpu_addr))
+            : nullptr;
 
-        // TODO: configure all stages
-        ConfigureShaderStage(ShaderStage::VertexB, tex_header_pool,
-                             tex_sampler_pool);
-        ConfigureShaderStage(ShaderStage::Fragment, tex_header_pool,
-                             tex_sampler_pool);
-    }
+    // TODO: configure all stages
+    ConfigureShaderStage(ShaderStage::VertexB, tex_header_pool,
+                         tex_sampler_pool);
+    ConfigureShaderStage(ShaderStage::Fragment, tex_header_pool,
+                         tex_sampler_pool);
 
     return true;
 }
