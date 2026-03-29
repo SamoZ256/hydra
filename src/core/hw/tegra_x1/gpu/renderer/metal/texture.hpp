@@ -15,16 +15,21 @@ class Texture final : public TextureBase {
 
     // Copying
     void CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
-                  const usize src_stride, const uint3 dst_origin,
-                  const usize3 size) override;
+                  const uint3 dst_origin, const usize3 size,
+                  const Range<u32> levels, const Range<u32> layers) override;
     void CopyFrom(ICommandBuffer* command_buffer, const TextureBase* src,
-                  const uint3 src_origin, const uint3 dst_origin,
-                  const usize3 size) override;
+                  const uint3 src_origin, const u32 src_level,
+                  const u32 src_layer, const uint3 dst_origin,
+                  const u32 dst_level, const u32 dst_layer, const usize3 size,
+                  const u32 level_count, const u32 layer_count) override;
 
     // Blitting
     void BlitFrom(ICommandBuffer* command_buffer, const TextureBase* src,
                   const float3 src_origin, const usize3 src_size,
-                  const float3 dst_origin, const usize3 dst_size) override;
+                  const u32 src_level, const u32 src_layer,
+                  const float3 dst_origin, const usize3 dst_size,
+                  const u32 dst_level, const u32 dst_layer,
+                  const u32 level_count, const u32 layer_count) override;
 
   private:
     bool owns_base{false};

@@ -15,26 +15,30 @@ Texture::Texture(const TextureDescriptor& descriptor)
     desc->setTextureType(type);
     desc->setWidth(descriptor.width);
     desc->setHeight(descriptor.height);
+    desc->setDepth(descriptor.depth);
+    // TODO
+    // desc->setMipmapLevelCount(descriptor.level_count);
     desc->setStorageMode(MTL::StorageModePrivate);
 
     switch (descriptor.type) {
     case TextureType::_1DArray:
     case TextureType::_2DArray:
-        desc->setArrayLength(descriptor.depth);
+        desc->setArrayLength(descriptor.layer_count);
+        break;
+    case TextureType::Cube:
+        ASSERT_DEBUG(descriptor.layer_count == 6, MetalRenderer,
+                     "Invalid cube layer count {}", descriptor.layer_count);
         break;
     case TextureType::CubeArray:
-        // TODO: correct?
-        ASSERT_DEBUG(descriptor.depth % 6 == 0, MetalRenderer,
-                     "Invalid cube array depth {}", descriptor.depth);
-        desc->setArrayLength(descriptor.depth / 6);
-        break;
-    case TextureType::_3D:
-        desc->setDepth(descriptor.depth);
+        ASSERT_DEBUG(descriptor.layer_count % 6 == 0, MetalRenderer,
+                     "Invalid cube array layer count {}",
+                     descriptor.layer_count);
+        desc->setArrayLength(descriptor.layer_count / 6);
         break;
     default:
-        ASSERT_DEBUG(descriptor.depth == 1, MetalRenderer,
-                     "Invalid depth {} for type {}", descriptor.depth,
-                     descriptor.type);
+        ASSERT_DEBUG(descriptor.layer_count == 1, MetalRenderer,
+                     "Invalid {} layer count {}", descriptor.type,
+                     descriptor.layer_count);
         break;
     }
 
@@ -86,72 +90,73 @@ TextureBase* Texture::CreateView(const TextureViewDescriptor& descriptor) {
 }
 
 void Texture::CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
-                       const usize src_stride, uint3 dst_origin, usize3 size) {
+                       const uint3 dst_origin, const usize3 size,
+                       const Range<u32> levels, const Range<u32> layers) {
     const auto command_buffer_impl =
         static_cast<CommandBuffer*>(command_buffer);
     const auto mtl_src = static_cast<const Buffer*>(src)->GetBuffer();
 
     auto encoder = command_buffer_impl->GetBlitCommandEncoder();
 
-    u32 dst_layer = 0;
-    u32 layer_count = 1;
-    if (descriptor.type != TextureType::_3D) {
-        dst_layer = dst_origin.z();
-        dst_origin.z() = 0;
-        layer_count = static_cast<u32>(size.z());
-        size.z() = 1;
-    }
-
-    const auto bytes_per_image = descriptor.depth * src_stride;
-    for (u32 i = 0; i < layer_count; i++) {
-        const auto crnt_dst_layer = dst_layer + i;
-        encoder->copyFromBuffer(
-            mtl_src, crnt_dst_layer * bytes_per_image, src_stride,
-            bytes_per_image, MTL::Size(size.x(), size.y(), size.z()), texture,
-            crnt_dst_layer, 0,
-            MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
+    // TODO: bytes per image
+    for (u32 layer = layers.GetBegin(); layer < layers.GetEnd(); layer++) {
+        for (u32 level = levels.GetBegin(); level < levels.GetEnd(); level++) {
+            encoder->copyFromBuffer(
+                mtl_src,
+                layer * descriptor.GetLayerSize() +
+                    /*descriptor.GetLevelOffset(level)*/ 0,
+                descriptor.stride,
+                align(descriptor.height, 16u) * descriptor.stride,
+                MTL::Size(size.x(), size.y(), size.z()), texture, layer, level,
+                MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
+        }
     }
 }
 
 void Texture::CopyFrom(ICommandBuffer* command_buffer, const TextureBase* src,
-                       uint3 src_origin, uint3 dst_origin, usize3 size) {
+                       const uint3 src_origin, const u32 src_level,
+                       const u32 src_layer, const uint3 dst_origin,
+                       const u32 dst_level, const u32 dst_layer,
+                       const usize3 size, const u32 level_count,
+                       const u32 layer_count) {
     const auto command_buffer_impl =
         static_cast<CommandBuffer*>(command_buffer);
     const auto mtl_src = static_cast<const Texture*>(src)->GetTexture();
 
     auto encoder = command_buffer_impl->GetBlitCommandEncoder();
 
-    u32 src_layer = 0;
-    u32 dst_layer = 0;
-    u32 layer_count = 1;
-    if (descriptor.type != TextureType::_3D) {
-        dst_layer = dst_origin.z();
-        dst_origin.z() = 0;
-    }
-
-    if (src->GetDescriptor().type != TextureType::_3D) {
-        src_layer = src_origin.z();
-        src_origin.z() = 0;
-    }
-
-    if (descriptor.type != TextureType::_3D ||
-        src->GetDescriptor().type != TextureType::_3D) {
-        layer_count = static_cast<u32>(size.z());
-        size.z() = 1;
-    }
-
     for (u32 i = 0; i < layer_count; i++) {
-        encoder->copyFromTexture(
-            mtl_src, src_layer + i, 0,
-            MTL::Origin(src_origin.x(), src_origin.y(), src_origin.z()),
-            MTL::Size(size.x(), size.y(), size.z()), texture, dst_layer + i, 0,
-            MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
+        for (u32 j = 0; j < level_count; j++) {
+            encoder->copyFromTexture(
+                mtl_src, src_layer + i, src_level + j,
+                MTL::Origin(src_origin.x(), src_origin.y(), src_origin.z()),
+                MTL::Size(size.x(), size.y(), size.z()), texture, dst_layer + i,
+                dst_level + j,
+                MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
+        }
     }
 }
 
 void Texture::BlitFrom(ICommandBuffer* command_buffer, const TextureBase* src,
                        const float3 src_origin, const usize3 src_size,
-                       const float3 dst_origin, const usize3 dst_size) {
+                       const u32 src_level, const u32 src_layer,
+                       const float3 dst_origin, const usize3 dst_size,
+                       const u32 dst_level, const u32 dst_layer,
+                       const u32 level_count, const u32 layer_count) {
+    // TODO: support a wider range of parameters
+    ASSERT_DEBUG(src_level == 0, MetalRenderer, "Unsupported source level {}",
+                 src_level);
+    ASSERT_DEBUG(src_layer == 0, MetalRenderer, "Unsupported source layer {}",
+                 src_layer);
+    ASSERT_DEBUG(dst_level == 0, MetalRenderer,
+                 "Unsupported destination level {}", dst_level);
+    ASSERT_DEBUG(dst_layer == 0, MetalRenderer,
+                 "Unsupported destination layer {}", dst_layer);
+    ASSERT_DEBUG(level_count == 1, MetalRenderer, "Unsupported level_count {}",
+                 level_count);
+    ASSERT_DEBUG(layer_count == 1, MetalRenderer, "Unsupported layer_count {}",
+                 layer_count);
+
     const auto command_buffer_impl =
         static_cast<CommandBuffer*>(command_buffer);
     METAL_RENDERER_INSTANCE.BlitTexture(
@@ -173,29 +178,10 @@ MTL::Texture* Texture::CreateViewImpl(TextureFormat format,
         swizzle_components[pixel_format_info.component_indices[2]],
         swizzle_components[pixel_format_info.component_indices[3]]);
 
-    // TODO: ranges and levels
-
-    u32 levels = 1;
-    switch (descriptor.type) {
-    case TextureType::_1DArray:
-    case TextureType::_2DArray:
-    case TextureType::CubeArray:
-        levels = descriptor.depth;
-        break;
-    case TextureType::Cube:
-        // TODO: assert that depth is 6
-        levels = 6;
-        break;
-    case TextureType::_3D:
-        // TODO: assert that depth matches
-        break;
-    default:
-        break;
-    }
-
     return base_texture->newTextureView(
         to_mtl_pixel_format(format), ToMtlTextureType(this->descriptor.type),
-        NS::Range(0, 1), NS::Range(0, levels), swizzle_channels_mtl);
+        NS::Range(0, 1), NS::Range(0, descriptor.layer_count),
+        swizzle_channels_mtl);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal

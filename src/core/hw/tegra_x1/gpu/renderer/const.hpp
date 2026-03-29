@@ -220,7 +220,11 @@ struct TextureDescriptor {
     u32 width;
     u32 height;
     u32 depth;
+    u32 level_count;
+    u32 layer_count;
+    u32 block_width_log2;
     u32 block_height_log2;
+    u32 block_depth_log2;
     u32 stride;
     SwizzleChannels swizzle_channels;
     // TODO: more
@@ -228,25 +232,33 @@ struct TextureDescriptor {
     TextureDescriptor(const uptr ptr_, const TextureType type_,
                       const TextureFormat format_, const NvKind kind_,
                       const u32 width_, const u32 height_, const u32 depth_,
-                      const u32 block_height_log2_, const u32 stride_,
+                      const u32 level_count_, const u32 layer_count_,
+                      const u32 block_width_log2_, const u32 block_height_log2_,
+                      const u32 block_depth_log2_, const u32 stride_,
                       const SwizzleChannels& swizzle_channels_)
         : ptr{ptr_}, type{type_}, format{format_}, kind{kind_}, width{width_},
-          height{height_}, depth{depth_}, block_height_log2{block_height_log2_},
-          stride{stride_}, swizzle_channels{swizzle_channels_} {}
+          height{height_}, depth{depth_}, level_count{level_count_},
+          layer_count{layer_count_}, block_width_log2{block_width_log2_},
+          block_height_log2{block_height_log2_},
+          block_depth_log2{block_depth_log2_}, stride{stride_},
+          swizzle_channels{swizzle_channels_} {}
 
     TextureDescriptor(const uptr ptr_, const TextureType type_,
                       const TextureFormat format_, const NvKind kind_,
                       const u32 width_, const u32 height_, const u32 depth_,
-                      const u32 block_height_log2_, const u32 stride_)
+                      const u32 level_count_, const u32 layer_count_,
+                      const u32 block_width_log2_, const u32 block_height_log2_,
+                      const u32 block_depth_log2_, const u32 stride_)
         : TextureDescriptor(
               ptr_, type_, format_, kind_, width_, height_, depth_,
-              block_height_log2_, stride_,
+              level_count_, layer_count_, block_width_log2_, block_height_log2_,
+              block_depth_log2_, stride_,
               get_texture_format_default_swizzle_channels(format_)) {}
 
-    u64 GetLayerSizeInBytes() const { return height * stride; }
-    u64 GetSizeInBytes() const { return depth * GetLayerSizeInBytes(); }
+    u32 GetLayerSize() const { return depth * align(height, 16u) * stride; }
+    u32 GetSize() const { return layer_count * GetLayerSize(); }
     Range<uptr> GetRange() const {
-        return Range<uptr>::FromSize(ptr, GetSizeInBytes());
+        return Range<uptr>::FromSize(ptr, GetSize());
     }
 
     u32 GetHash() const;

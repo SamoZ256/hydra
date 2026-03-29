@@ -1112,7 +1112,7 @@ hydra_texture_descriptor_get_layer_size(const void* descriptor) {
     return static_cast<
                const hydra::hw::tegra_x1::gpu::renderer::TextureDescriptor*>(
                descriptor)
-        ->GetLayerSizeInBytes();
+        ->GetLayerSize();
 }
 
 HYDRA_EXPORT uint64_t
@@ -1120,5 +1120,5 @@ hydra_texture_descriptor_get_size(const void* descriptor) {
     return static_cast<
                const hydra::hw::tegra_x1::gpu::renderer::TextureDescriptor*>(
                descriptor)
-        ->GetSizeInBytes();
+        ->GetSize();
 }

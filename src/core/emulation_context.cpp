@@ -282,8 +282,8 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
             hw::tegra_x1::gpu::renderer::TextureDescriptor descriptor(
                 0x0, hw::tegra_x1::gpu::renderer::TextureType::_2D,
                 hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
-                hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 1, 0x0,
-                stride);
+                hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 1, 1,
+                1, 0x0, 0x0, 0x0, stride);
             nintendo_logo = gpu->GetRenderer().CreateTexture(descriptor);
 
             // Command buffer
@@ -294,9 +294,7 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
             std::memcpy(reinterpret_cast<void*>(tmp_buffer->GetPtr()), data,
                         size);
             free(data);
-            nintendo_logo->CopyFrom(command_buffer, tmp_buffer, stride,
-                                    uint3({0, 0, 0}),
-                                    usize3({width, height, 1}));
+            nintendo_logo->CopyFrom(command_buffer, tmp_buffer);
             gpu->GetRenderer().FreeTemporaryBuffer(tmp_buffer);
         }
     }
@@ -310,8 +308,8 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
             hw::tegra_x1::gpu::renderer::TextureDescriptor descriptor(
                 0x0, hw::tegra_x1::gpu::renderer::TextureType::_2D,
                 hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
-                hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 1, 0x0,
-                stride);
+                hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 1, 1,
+                1, 0x0, 0x0, 0x0, stride);
             startup_movie.reserve(frame_count);
 
             // Command buffer
@@ -327,8 +325,7 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
                     gpu->GetRenderer().AllocateTemporaryBuffer(size);
                 std::memcpy(reinterpret_cast<void*>(tmp_buffer->GetPtr()),
                             data + i * height * width, size);
-                frame->CopyFrom(command_buffer, tmp_buffer, stride,
-                                uint3({0, 0, 0}), usize3({width, height, 1}));
+                frame->CopyFrom(command_buffer, tmp_buffer);
                 gpu->GetRenderer().FreeTemporaryBuffer(tmp_buffer);
                 startup_movie.push_back(frame);
             }

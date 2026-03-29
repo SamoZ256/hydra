@@ -656,6 +656,9 @@ u32 TextureDescriptor::GetHash() const {
     hash.Add(width);
     hash.Add(height);
     hash.Add(depth);
+    // TODO
+    // hash.Add(level_count);
+    hash.Add(layer_count);
     hash.Add(stride);
 
     hash.Add(ToTextureTypeCompatibility(type));

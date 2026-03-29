@@ -102,7 +102,6 @@ TextureBase* TextureCache::AddToMemory(ICommandBuffer* command_buffer,
                                        const TextureDescriptor& descriptor,
                                        TextureUsage usage) {
     const auto range = descriptor.GetRange();
-    const auto layer_size = descriptor.GetLayerSizeInBytes();
 
     // Check if it is a new entry
     auto sparse_tex_opt = mem.cache.Find(descriptor.GetHash());
@@ -129,10 +128,10 @@ TextureBase* TextureCache::AddToMemory(ICommandBuffer* command_buffer,
         if (group.base->GetDescriptor().GetRange().Contains(range)) {
             const auto offset = static_cast<u32>(
                 range.GetBegin() - group.base->GetDescriptor().ptr);
-            ASSERT_ALIGNMENT_DEBUG(offset, layer_size, Gpu,
+            ASSERT_ALIGNMENT_DEBUG(offset, descriptor.GetLayerSize(), Gpu,
                                    "texture view offset");
-            const auto layers =
-                Range<u32>::FromSize(offset / layer_size, descriptor.depth);
+            const auto layers = Range<u32>::FromSize(
+                offset / descriptor.GetLayerSize(), descriptor.GetLayerSize());
             return GetTextureView(
                 group, TextureViewDescriptor(descriptor.format,
                                              descriptor.swizzle_channels,
@@ -235,9 +234,10 @@ TextureBase* TextureCache::GetTexture(ICommandBuffer* command_buffer,
     }
 
     // Otherwise, get a texture view
-    auto view_desc = TextureViewDescriptor(
-        descriptor.format, descriptor.swizzle_channels, Range<u32>(0, 1),
-        Range<u32>(0, descriptor.depth));
+    auto view_desc =
+        TextureViewDescriptor(descriptor.format, descriptor.swizzle_channels,
+                              Range<u32>(0, descriptor.level_count),
+                              Range<u32>(0, descriptor.layer_count));
     return GetTextureView(group, view_desc);
 }
 
@@ -274,7 +274,6 @@ void TextureCache::Update(ICommandBuffer* command_buffer, TextureGroup& group,
         const auto base = group.base;
         const auto& descriptor = base->GetDescriptor();
         const auto range = descriptor.GetRange();
-        const auto layer_size = descriptor.GetLayerSizeInBytes();
         for (auto& [key, sparse_tex] : mem.cache) {
             // TODO: skip this sparse texture
 
@@ -286,6 +285,7 @@ void TextureCache::Update(ICommandBuffer* command_buffer, TextureGroup& group,
                 // Check if the textures can actually be copied
                 if (other_descriptor.width != descriptor.width ||
                     other_descriptor.height != descriptor.height ||
+                    other_descriptor.depth != descriptor.depth ||
                     other_descriptor.stride != descriptor.stride)
                     continue;
 
@@ -295,24 +295,24 @@ void TextureCache::Update(ICommandBuffer* command_buffer, TextureGroup& group,
                         copy_range.GetBegin() - range.GetBegin();
 
                     // Check if the textures are aligned properly
-                    if (dst_offset % layer_size != 0x0)
+                    if (dst_offset % descriptor.GetLayerSize() != 0x0)
                         continue;
 
                     // Now copy
                     const auto src_layer = static_cast<u32>(
                         (copy_range.GetBegin() - other_range.GetBegin()) /
-                        layer_size);
-                    const auto dst_layer =
-                        static_cast<u32>(dst_offset / layer_size);
-                    const auto layer_count =
-                        static_cast<u32>(copy_range.GetSize() / layer_size);
+                        descriptor.GetLayerSize());
+                    const auto dst_layer = static_cast<u32>(
+                        dst_offset / descriptor.GetLayerSize());
+                    const auto layer_count = static_cast<u32>(
+                        copy_range.GetSize() / descriptor.GetLayerSize());
 
                     // TODO: make sure the formats match
-                    base->CopyFrom(command_buffer, other_base,
-                                   uint3({0, 0, src_layer}),
-                                   uint3({0, 0, dst_layer}),
+                    base->CopyFrom(command_buffer, other_base, uint3({0, 0, 0}),
+                                   0, src_layer, uint3({0, 0, 0}), 0, dst_layer,
                                    usize3({descriptor.width, descriptor.height,
-                                           layer_count}));
+                                           descriptor.depth}),
+                                   descriptor.level_count, layer_count);
                 }
             }
         }
@@ -359,8 +359,8 @@ void TextureCache::DecodeTexture(ICommandBuffer* command_buffer,
     const auto& descriptor = group.base->GetDescriptor();
 
     // Align the height to 16 bytes (TODO: why 16?)
-    auto tmp_buffer = RENDERER_INSTANCE.AllocateTemporaryBuffer(
-        descriptor.depth * align(descriptor.height, 16u) * descriptor.stride);
+    auto tmp_buffer =
+        RENDERER_INSTANCE.AllocateTemporaryBuffer(descriptor.GetSize());
     texture_decoder.Decode(descriptor, (u8*)tmp_buffer->GetPtr());
     group.base->CopyFrom(command_buffer, tmp_buffer);
     RENDERER_INSTANCE.FreeTemporaryBuffer(tmp_buffer);

@@ -95,8 +95,8 @@ renderer::TextureBase* Gpu::GetTexture(renderer::ICommandBuffer* command_buffer,
                        buff.planes[0].offset),
         renderer::TextureType::_2D,
         renderer::to_texture_format(buff.planes[0].color_format),
-        buff.planes[0].kind, buff.planes[0].width, buff.planes[0].height, 1,
-        buff.planes[0].block_height_log2, buff.planes[0].pitch);
+        buff.planes[0].kind, buff.planes[0].width, buff.planes[0].height, 1, 1,
+        1, 0x0, buff.planes[0].block_height_log2, 0x0, buff.planes[0].pitch);
 
     return renderer->GetTextureCache().Find(command_buffer, descriptor,
                                             renderer::TextureUsage::Present);
