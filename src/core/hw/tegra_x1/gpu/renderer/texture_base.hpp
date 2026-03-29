@@ -18,12 +18,11 @@ class TextureBase {
 
     // Copying
     virtual void CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
-                          const usize src_stride, const uint3 dst_origin,
-                          const usize3 size, const Range<u32> levels,
-                          const Range<u32> layers) = 0;
+                          const uint3 dst_origin, const usize3 size,
+                          const Range<u32> levels, const Range<u32> layers) = 0;
     void CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src) {
         CopyFrom(
-            command_buffer, src, descriptor.stride, uint3({0, 0, 0}),
+            command_buffer, src, uint3({0, 0, 0}),
             usize3({descriptor.width, descriptor.height, descriptor.depth}),
             Range<u32>(0, descriptor.level_count),
             Range<u32>(0, descriptor.layer_count));

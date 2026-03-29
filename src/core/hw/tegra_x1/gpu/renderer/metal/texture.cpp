@@ -91,27 +91,24 @@ TextureBase* Texture::CreateView(const TextureViewDescriptor& descriptor) {
 }
 
 void Texture::CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
-                       const usize src_stride, const uint3 dst_origin,
-                       const usize3 size, const Range<u32> levels,
-                       const Range<u32> layers) {
+                       const uint3 dst_origin, const usize3 size,
+                       const Range<u32> levels, const Range<u32> layers) {
     const auto command_buffer_impl =
         static_cast<CommandBuffer*>(command_buffer);
     const auto mtl_src = static_cast<const Buffer*>(src)->GetBuffer();
 
     auto encoder = command_buffer_impl->GetBlitCommandEncoder();
 
-    // TODO: bytes per image
-    for (u32 i = 0; i < layers.GetSize(); i++) {
-        const auto crnt_dst_level = levels.GetBegin() + i;
-        const auto crnt_dst_layer = layers.GetBegin() + i;
-        encoder->copyFromBuffer(
-            mtl_src,
-            crnt_dst_layer * descriptor.layer_stride +
-                descriptor.GetLevelOffset(crnt_dst_level),
-            src_stride, align(descriptor.height, 16u) * src_stride,
-            MTL::Size(size.x(), size.y(), size.z()), texture, crnt_dst_layer,
-            crnt_dst_level,
-            MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
+    for (u32 layer = layers.GetBegin(); layer < layers.GetEnd(); layer++) {
+        for (u32 level = levels.GetBegin(); level < levels.GetEnd(); level++) {
+            encoder->copyFromBuffer(
+                mtl_src,
+                layer * descriptor.layer_stride +
+                    descriptor.GetLevelOffset(level),
+                descriptor.stride, descriptor.height * descriptor.stride,
+                MTL::Size(size.x(), size.y(), size.z()), texture, layer, level,
+                MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
+        }
     }
 }
 

@@ -41,17 +41,16 @@ void TwoD::Copy(const u32 index, const u32 pixels_from_memory_src_y0_int) {
 
 renderer::TextureBase* TwoD::GetTexture(const Texture2DInfo& info,
                                         renderer::TextureUsage usage) {
-    // TODO: strides
+    // TODO: stride and layer stride
+    const auto stride = renderer::get_texture_format_stride(
+        renderer::to_texture_format(info.format), info.width);
     const renderer::TextureDescriptor descriptor(
         tls_crnt_gmmu->UnmapAddr(info.addr), renderer::TextureType::_2D,
         renderer::to_texture_format(info.format),
         NvKind::Pitch, // TODO: correct?
         info.width, info.height, info.depth, 1, 0x0, 0x0,
         0x0, // TODO: block size
-        /*u32(info.stride)*/
-        renderer::get_texture_format_stride(
-            renderer::to_texture_format(info.format), info.width),
-        info.stride * info.height);
+        stride, info.height * stride);
 
     return RENDERER_INSTANCE.GetTextureCache().Find(tls_crnt_command_buffer,
                                                     descriptor, usage);
