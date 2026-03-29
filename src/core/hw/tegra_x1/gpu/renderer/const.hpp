@@ -152,6 +152,15 @@ enum class TextureFormat {
     ETC2_RGBA_sRGB,
 };
 
+struct TextureFormatInfo {
+    u32 bytes_per_block;
+    u32 block_width;
+    u32 block_height;
+    bool is_depth_stencil;
+};
+
+const TextureFormatInfo& GetTextureFormatInfo(TextureFormat format);
+
 TextureFormat to_texture_format(NvColorFormat color_format);
 TextureFormat to_texture_format(const ImageFormatWord image_format_word,
                                 bool is_srgb);
