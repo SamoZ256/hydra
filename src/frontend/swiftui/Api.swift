@@ -1177,11 +1177,11 @@ struct HydraTextureDescriptor: HandleStruct {
         hydra_texture_descriptor_get_depth(self.handle)
     }
 
-    var layerSize: UInt64 {
-        hydra_texture_descriptor_get_layer_size(self.handle)
+    var layerStride: UInt32 {
+        hydra_texture_descriptor_get_layer_stride(self.handle)
     }
 
-    var size: UInt64 {
+    var size: UInt32 {
         hydra_texture_descriptor_get_size(self.handle)
     }
 }

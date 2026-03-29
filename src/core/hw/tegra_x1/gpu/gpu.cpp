@@ -90,13 +90,16 @@ renderer::TextureBase* Gpu::GetTexture(renderer::ICommandBuffer* command_buffer,
               buff.nvmap_id, buff.planes[0].width, buff.planes[0].height);
 
     // TODO: why are there more planes?
+    const auto& plane = buff.planes[0];
+    // TODO: block width?
     renderer::TextureDescriptor descriptor(
         mmu->UnmapAddr(GetMap(static_cast<u32>(buff.nvmap_id)).addr +
-                       buff.planes[0].offset),
+                       plane.offset),
         renderer::TextureType::_2D,
-        renderer::to_texture_format(buff.planes[0].color_format),
-        buff.planes[0].kind, buff.planes[0].width, buff.planes[0].height, 1,
-        buff.planes[0].block_height_log2, buff.planes[0].pitch);
+        renderer::to_texture_format(plane.color_format), plane.kind,
+        plane.width, plane.height, 1, 1, 0x0,
+        static_cast<u8>(plane.block_height_log2), 0x0, plane.pitch,
+        static_cast<u32>(plane.size));
 
     return renderer->GetTextureCache().Find(command_buffer, descriptor,
                                             renderer::TextureUsage::Present);

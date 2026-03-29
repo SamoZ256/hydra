@@ -465,9 +465,11 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
         NvKind::Pitch, // TODO: correct?
         GetMinimumWidth(render_target.width, format, width_hint,
                         render_target.tile_mode.is_linear),
-        render_target.height, 1,
-        0, // TODO
-        get_texture_format_stride(format, render_target.width));
+        render_target.height, 1, render_target.array_mode.layers,
+        render_target.tile_mode.width, render_target.tile_mode.height,
+        render_target.tile_mode.depth,
+        get_texture_format_stride(format, render_target.width),
+        render_target.array_pitch);
 
     return RENDERER_INSTANCE.GetTextureCache().Find(
         tls_crnt_command_buffer, descriptor, renderer::TextureUsage::Write);
@@ -488,9 +490,11 @@ renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture() const {
         tls_crnt_gmmu->UnmapAddr(gpu_addr), renderer::TextureType::_2D, format,
         NvKind::Pitch, // TODO: correct?
         GetMinimumWidth(regs.depth_target_width, format, width_hint, false),
-        regs.depth_target_height, 1,
-        0, // TODO
-        get_texture_format_stride(format, regs.depth_target_width));
+        regs.depth_target_height, 1, regs.depth_target_array_mode.layers,
+        regs.depth_target_tile_mode.width, regs.depth_target_tile_mode.height,
+        regs.depth_target_tile_mode.depth,
+        get_texture_format_stride(format, regs.depth_target_width),
+        regs.depth_target_layer_stride);
 
     return RENDERER_INSTANCE.GetTextureCache().Find(
         tls_crnt_command_buffer, descriptor, renderer::TextureUsage::Write);
@@ -778,13 +782,22 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
         break;
     }
 
+    const auto type = ToTextureType(tic.texture_type);
+    u32 depth = tic.depth_minus_one + 1;
+    u32 layer_count = 1;
+    if (type != renderer::TextureType::_3D) {
+        layer_count = depth;
+        depth = 1;
+        if (type == renderer::TextureType::Cube ||
+            type == renderer::TextureType::CubeArray)
+            layer_count *= 6;
+    }
+
     const renderer::TextureDescriptor descriptor(
-        tls_crnt_gmmu->UnmapAddr(gpu_addr), ToTextureType(tic.texture_type),
-        format, kind, static_cast<u32>(tic.width_minus_one + 1),
-        static_cast<u32>(tic.height_minus_one + 1),
-        static_cast<u32>(tic.depth_minus_one + 1),
-        tic.tile_height_gobs_log2, // TODO: correct?
-        stride,
+        tls_crnt_gmmu->UnmapAddr(gpu_addr), type, format, kind,
+        tic.width_minus_one + 1, tic.height_minus_one + 1, depth,
+        tic.mip_max_levels + 1, layer_count, tic.tile_width_gobs_log2,
+        tic.tile_height_gobs_log2, tic.tile_depth_gobs_log2, stride,
         renderer::SwizzleChannels(
             format, tic.format_word.swizzle_x, tic.format_word.swizzle_y,
             tic.format_word.swizzle_z, tic.format_word.swizzle_w));

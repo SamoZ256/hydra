@@ -152,6 +152,22 @@ enum class TextureFormat {
     ETC2_RGBA_sRGB,
 };
 
+enum class ColorDataType : u8 {
+    Invalid,
+    Float,
+    Int,
+    UInt,
+};
+
+struct TextureFormatInfo {
+    u32 bytes_per_block;
+    u32 block_width;
+    u32 block_height;
+    bool is_depth_stencil;
+};
+
+const TextureFormatInfo& GetTextureFormatInfo(TextureFormat format);
+
 TextureFormat to_texture_format(NvColorFormat color_format);
 TextureFormat to_texture_format(const ImageFormatWord image_format_word,
                                 bool is_srgb);
@@ -167,13 +183,6 @@ u32 get_texture_format_bpp(const TextureFormat format);
 u32 get_texture_format_stride(const TextureFormat format, u32 width);
 bool is_texture_format_compressed(const TextureFormat format);
 bool is_texture_format_depth_or_stencil(const TextureFormat format);
-
-enum class ColorDataType : u8 {
-    Invalid,
-    Float,
-    Int,
-    UInt,
-};
 
 ColorDataType to_color_data_type(ColorSurfaceFormat format);
 
@@ -211,36 +220,91 @@ struct TextureDescriptor {
     u32 width;
     u32 height;
     u32 depth;
-    u32 block_height_log2;
+    u32 level_count;
+    u32 layer_count;
+    u8 block_width_log2;
+    u8 block_height_log2;
+    u8 block_depth_log2;
     u32 stride;
+    u32 layer_stride;
     SwizzleChannels swizzle_channels;
-    // TODO: more
 
     TextureDescriptor(const uptr ptr_, const TextureType type_,
                       const TextureFormat format_, const NvKind kind_,
                       const u32 width_, const u32 height_, const u32 depth_,
-                      const u32 block_height_log2_, const u32 stride_,
+                      const u32 level_count_, const u32 layer_count_,
+                      const u8 block_width_log2_, const u8 block_height_log2_,
+                      const u8 block_depth_log2_, const u32 stride_,
                       const SwizzleChannels& swizzle_channels_)
-        : ptr{ptr_}, type{type_}, format{format_}, kind{kind_}, width{width_},
-          height{height_}, depth{depth_}, block_height_log2{block_height_log2_},
-          stride{stride_}, swizzle_channels{swizzle_channels_} {}
+        : TextureDescriptor(ptr_, type_, format_, kind_, width_, height_,
+                            depth_, level_count_, layer_count_,
+                            block_width_log2_, block_height_log2_,
+                            block_depth_log2_, stride_, 0, swizzle_channels_) {
+        CalculateLayerStride();
+    }
 
     TextureDescriptor(const uptr ptr_, const TextureType type_,
                       const TextureFormat format_, const NvKind kind_,
                       const u32 width_, const u32 height_, const u32 depth_,
-                      const u32 block_height_log2_, const u32 stride_)
+                      const u32 layer_count_, const u8 block_width_log2_,
+                      const u8 block_height_log2_, const u8 block_depth_log2_,
+                      const u32 stride_, const u32 layer_stride_)
         : TextureDescriptor(
-              ptr_, type_, format_, kind_, width_, height_, depth_,
-              block_height_log2_, stride_,
-              get_texture_format_default_swizzle_channels(format_)) {}
+              ptr_, type_, format_, kind_, width_, height_, depth_, 1,
+              layer_count_, block_width_log2_, block_height_log2_,
+              block_depth_log2_, stride_, layer_stride_,
+              get_texture_format_default_swizzle_channels(format_)) {
+        if (layer_count == 1)
+            CalculateLayerStride();
+    }
 
-    u64 GetLayerSizeInBytes() const { return height * stride; }
-    u64 GetSizeInBytes() const { return depth * GetLayerSizeInBytes(); }
+    u32 GetLevelOffset(const u32 level) const;
+
+    u32 GetSize() const { return layer_count * layer_stride; }
+
     Range<uptr> GetRange() const {
-        return Range<uptr>::FromSize(ptr, GetSizeInBytes());
+        return Range<uptr>::FromSize(ptr, GetSize());
     }
 
     u32 GetHash() const;
+
+  private:
+    TextureDescriptor(const uptr ptr_, const TextureType type_,
+                      const TextureFormat format_, const NvKind kind_,
+                      const u32 width_, const u32 height_, const u32 depth_,
+                      const u32 level_count_, const u32 layer_count_,
+                      const u8 block_width_log2_, const u8 block_height_log2_,
+                      const u8 block_depth_log2_, const u32 stride_,
+                      const u32 layer_stride_,
+                      const SwizzleChannels& swizzle_channels_)
+        : ptr{ptr_}, type{type_}, format{format_}, kind{kind_}, width{width_},
+          height{height_}, depth{depth_}, level_count{level_count_},
+          layer_count{layer_count_}, block_width_log2{block_width_log2_},
+          block_height_log2{block_height_log2_},
+          block_depth_log2{block_depth_log2_}, stride{stride_},
+          layer_stride{layer_stride_}, swizzle_channels{swizzle_channels_} {}
+
+    constexpr u8 AdjustTileSize(u8 shift, u8 unit_factor, u32 dimension) const;
+
+    constexpr u32 AdjustMipSize(u32 size, unsigned level) const {
+        size >>= level;
+        return size ? size : 1;
+    }
+
+    constexpr u32 AdjustBlockSize(u32 size, u32 block_size) const {
+        return ceil_divide(size, block_size);
+    }
+
+    constexpr u32 AdjustSize(u32 size, unsigned level, u32 block_size) const {
+        return AdjustBlockSize(AdjustMipSize(size, level), block_size);
+    }
+
+    void CalculateLayerStride() {
+        // HACK
+        layer_stride = depth * align(height, 16u) * stride;
+        // layer_stride = GetLevelOffset(level_count);
+        // TODO: align
+    }
 };
 
 struct TextureViewDescriptor {

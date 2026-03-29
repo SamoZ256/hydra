@@ -27,30 +27,31 @@ void TwoD::Copy(const u32 index, const u32 pixels_from_memory_src_y0_int) {
     const auto src_width = static_cast<u32>(pixels.dst_width * dudx);
     const auto src_height = static_cast<u32>(pixels.dst_height * dvdy);
 
+    // TODO: are levels and layers correct?
     dst->BlitFrom(tls_crnt_command_buffer, src,
-                  {static_cast<f32>(src_x0), static_cast<f32>(src_y0),
-                   static_cast<f32>(regs.src.layer)},
-                  {src_width, src_height, 1},
+                  {static_cast<f32>(src_x0), static_cast<f32>(src_y0), 0.0f},
+                  {src_width, src_height, 1}, 0, regs.src.layer,
                   {static_cast<f32>(pixels.dst_x0),
-                   static_cast<f32>(pixels.dst_y0),
-                   static_cast<f32>(regs.dst.layer)},
-                  {pixels.dst_width, pixels.dst_height, 1});
+                   static_cast<f32>(pixels.dst_y0), 0.0f},
+                  {pixels.dst_width, pixels.dst_height, 1}, 0, regs.dst.layer,
+                  1, 1);
 }
 
 #pragma GCC diagnostic pop
 
 renderer::TextureBase* TwoD::GetTexture(const Texture2DInfo& info,
                                         renderer::TextureUsage usage) {
+    // TODO: strides
     const renderer::TextureDescriptor descriptor(
         tls_crnt_gmmu->UnmapAddr(info.addr), renderer::TextureType::_2D,
         renderer::to_texture_format(info.format),
         NvKind::Pitch, // TODO: correct?
-        u32(info.width), u32(info.height), 1,
-        0, // HACK
-           /*u32(info.stride)*/
+        info.width, info.height, info.depth, 1, 0x0, 0x0,
+        0x0, // TODO: block size
+        /*u32(info.stride)*/
         renderer::get_texture_format_stride(
-            renderer::to_texture_format(info.format), info.width) // HACK
-    );
+            renderer::to_texture_format(info.format), info.width),
+        info.stride * info.height);
 
     return RENDERER_INSTANCE.GetTextureCache().Find(tls_crnt_command_buffer,
                                                     descriptor, usage);
