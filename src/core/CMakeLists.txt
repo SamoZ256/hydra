@@ -555,8 +555,6 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/buffer_cache.cpp
     hw/tegra_x1/gpu/renderer/buffer_cache.hpp
     hw/tegra_x1/gpu/renderer/texture_base.hpp
-    hw/tegra_x1/gpu/renderer/texture_decoder.cpp
-    hw/tegra_x1/gpu/renderer/texture_decoder.hpp
     hw/tegra_x1/gpu/renderer/texture_cache.cpp
     hw/tegra_x1/gpu/renderer/texture_cache.hpp
     hw/tegra_x1/gpu/renderer/sampler_base.hpp

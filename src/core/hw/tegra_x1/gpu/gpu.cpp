@@ -84,19 +84,24 @@ renderer::TextureBase* Gpu::GetTexture(renderer::ICommandBuffer* command_buffer,
                                        const NvGraphicsBuffer& buff) {
     std::lock_guard texture_cache_lock(renderer->GetTextureCache().GetMutex());
 
+    const auto& plane = buff.planes[0];
+
     LOG_DEBUG(Gpu,
               "Map id: {}, width: {}, "
               "height: {}",
-              buff.nvmap_id, buff.planes[0].width, buff.planes[0].height);
+              buff.nvmap_id, plane.width, plane.height);
+
+    const bool is_linear =
+        (plane.kind == NvKind::Pitch || plane.kind == NvKind::PitchNoSwizzle);
 
     // TODO: why are there more planes?
     renderer::TextureDescriptor descriptor(
         mmu->UnmapAddr(GetMap(static_cast<u32>(buff.nvmap_id)).addr +
-                       buff.planes[0].offset),
+                       plane.offset),
         renderer::TextureType::_2D,
-        renderer::to_texture_format(buff.planes[0].color_format),
-        buff.planes[0].kind, buff.planes[0].width, buff.planes[0].height, 1, 1,
-        1, 0x0, buff.planes[0].block_height_log2, 0x0, buff.planes[0].pitch);
+        renderer::to_texture_format(plane.color_format), is_linear, plane.pitch,
+        plane.width, plane.height, 1, 1, 0x0, plane.block_height_log2, 0x0,
+        static_cast<u32>(plane.size));
 
     return renderer->GetTextureCache().Find(command_buffer, descriptor,
                                             renderer::TextureUsage::Present);

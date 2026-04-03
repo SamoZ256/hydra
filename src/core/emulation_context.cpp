@@ -281,9 +281,12 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
             const u32 size = height * stride;
             hw::tegra_x1::gpu::renderer::TextureDescriptor descriptor(
                 0x0, hw::tegra_x1::gpu::renderer::TextureType::_2D,
-                hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
-                hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 1, 1,
-                1, 0x0, 0x0, 0x0, stride);
+                hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm, true,
+                stride, width, height, 1, 1, 1, 0x0, 0x0, 0x0,
+                hw::tegra_x1::gpu::renderer::
+                    get_texture_format_default_swizzle_channels(
+                        hw::tegra_x1::gpu::renderer::TextureFormat::
+                            RGBA8Unorm));
             nintendo_logo = gpu->GetRenderer().CreateTexture(descriptor);
 
             // Command buffer
@@ -307,9 +310,12 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
             const u32 size = height * stride;
             hw::tegra_x1::gpu::renderer::TextureDescriptor descriptor(
                 0x0, hw::tegra_x1::gpu::renderer::TextureType::_2D,
-                hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
-                hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 1, 1,
-                1, 0x0, 0x0, 0x0, stride);
+                hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm, true,
+                stride, width, height, 1, 1, 1, 0x0, 0x0, 0x0,
+                hw::tegra_x1::gpu::renderer::
+                    get_texture_format_default_swizzle_channels(
+                        hw::tegra_x1::gpu::renderer::TextureFormat::
+                            RGBA8Unorm));
             startup_movie.reserve(frame_count);
 
             // Command buffer

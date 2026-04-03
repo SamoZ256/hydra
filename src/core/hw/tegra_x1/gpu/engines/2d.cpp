@@ -40,15 +40,14 @@ void TwoD::Copy(const u32 index, const u32 pixels_from_memory_src_y0_int) {
 
 renderer::TextureBase* TwoD::GetTexture(const Texture2DInfo& info,
                                         renderer::TextureUsage usage) {
+    // TODO: layer
     const renderer::TextureDescriptor descriptor(
         tls_crnt_gmmu->UnmapAddr(info.addr), renderer::TextureType::_2D,
         renderer::to_texture_format(info.format),
-        NvKind::Pitch, // TODO: correct?
-        u32(info.width), u32(info.height), 1, 1, 1, 0x0, 0x0, 0x0, // HACK
-        /*u32(info.stride)*/
-        renderer::get_texture_format_stride(
-            renderer::to_texture_format(info.format), info.width) // HACK
-    );
+        info.layout == MemoryLayout::Pitch, info.stride, info.width,
+        info.height, 1, 1, info.depth, 0x0, 0x0, 0x0, // HACK
+        renderer::get_texture_format_default_swizzle_channels(
+            renderer::to_texture_format(info.format)));
 
     return RENDERER_INSTANCE.GetTextureCache().Find(tls_crnt_command_buffer,
                                                     descriptor, usage);

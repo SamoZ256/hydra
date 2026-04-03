@@ -4,6 +4,7 @@
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/tegra_x1/gpu/macro/interpreter/driver.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/const.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/render_pass_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/sampler_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_base.hpp"
@@ -186,9 +187,8 @@ renderer::BlendFactor get_blend_factor(u32 blend_factor) {
 
 // Render target width is aligned to the stride, lets try to figure out the real
 // one
-u32 GetMinimumWidth(u32 width, renderer::TextureFormat format, u32 width_hint,
-                    bool is_linear) {
-    if (is_linear || width <= width_hint)
+u32 GetMinimumWidth(u32 width, renderer::TextureFormat format, u32 width_hint) {
+    if (width <= width_hint)
         return width;
 
     // Get the smallest width that would still align up to the same GOB
@@ -458,17 +458,41 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
     }
 
     const auto format = renderer::to_texture_format(render_target.format);
-    const u32 width_hint =
-        regs.screen_scissor.horizontal.x + regs.screen_scissor.horizontal.width;
+
+    // Depth and layer count
+    auto type = renderer::TextureType::_2D;
+    u32 depth = 1;
+    u32 layer_count = 1;
+    if (render_target.tile_mode.is_3d) {
+        type = renderer::TextureType::_3D;
+        depth = render_target.array_mode.layers;
+    } else {
+        layer_count = render_target.array_mode.layers;
+        if (layer_count > 1)
+            type = renderer::TextureType::_2DArray;
+    }
+
+    // Width and stride
+    const bool is_linear = render_target.tile_mode.is_linear;
+    u32 width, stride;
+    if (is_linear) {
+        width = render_target.width_or_stride /
+                renderer::get_texture_format_bpp(format);
+        stride = render_target.width_or_stride;
+    } else {
+        const u32 width_hint = regs.screen_scissor.horizontal.x +
+                               regs.screen_scissor.horizontal.width;
+        width =
+            GetMinimumWidth(render_target.width_or_stride, format, width_hint);
+        stride = 0;
+    }
+
     const renderer::TextureDescriptor descriptor(
-        tls_crnt_gmmu->UnmapAddr(gpu_addr), renderer::TextureType::_2D, format,
-        NvKind::Pitch, // TODO: correct?
-        GetMinimumWidth(render_target.width, format, width_hint,
-                        render_target.tile_mode.is_linear),
-        render_target.height, 1, 1, render_target.array_mode.layers,
+        tls_crnt_gmmu->UnmapAddr(gpu_addr), type, format, is_linear, stride,
+        width, render_target.height, depth, layer_count,
         render_target.tile_mode.width, render_target.tile_mode.height,
         render_target.tile_mode.depth,
-        get_texture_format_stride(format, render_target.width));
+        !is_linear ? render_target.layer_stride * 4 : 0);
 
     return RENDERER_INSTANCE.GetTextureCache().Find(
         tls_crnt_command_buffer, descriptor, renderer::TextureUsage::Write);
@@ -482,17 +506,17 @@ renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture() const {
         return nullptr;
     }
 
-    const auto format = renderer::to_texture_format(regs.depth_target_format);
-    const u32 width_hint =
-        regs.screen_scissor.horizontal.x + regs.screen_scissor.horizontal.width;
+    const auto type = regs.depth_target_array_mode.layers > 1
+                          ? renderer::TextureType::_2DArray
+                          : renderer::TextureType::_2D;
+
     const renderer::TextureDescriptor descriptor(
-        tls_crnt_gmmu->UnmapAddr(gpu_addr), renderer::TextureType::_2D, format,
-        NvKind::Pitch, // TODO: correct?
-        GetMinimumWidth(regs.depth_target_width, format, width_hint, false),
-        regs.depth_target_height, 1, 1, regs.depth_target_array_mode.layers,
-        regs.depth_target_tile_mode.width, regs.depth_target_tile_mode.height,
-        regs.depth_target_tile_mode.depth,
-        get_texture_format_stride(format, regs.depth_target_width));
+        tls_crnt_gmmu->UnmapAddr(gpu_addr), type,
+        renderer::to_texture_format(regs.depth_target_format), false, 0,
+        regs.depth_target_width, regs.depth_target_height, 1,
+        regs.depth_target_array_mode.layers, regs.depth_target_tile_mode.width,
+        regs.depth_target_tile_mode.height, regs.depth_target_tile_mode.depth,
+        regs.depth_target_layer_stride * 4);
 
     return RENDERER_INSTANCE.GetTextureCache().Find(
         tls_crnt_command_buffer, descriptor, renderer::TextureUsage::Write);
@@ -760,23 +784,17 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
     const auto format =
         renderer::to_texture_format(tic.format_word, tic.is_srgb);
 
-    NvKind kind;
-    u32 stride;
+    bool is_linear = false;
+    u32 linear_stride = 0;
     switch (tic.hdr_version) {
     case TicHdrVersion::Pitch:
-        kind = NvKind::Pitch;
-        stride = static_cast<u32>(tic.pitch_5_20) << 5u;
+        is_linear = true;
+        linear_stride = static_cast<u32>(tic.pitch_5_20) << 5u;
         break;
     case TicHdrVersion::BlockLinear:
-        kind = NvKind::Generic_16BX2;
-        // TODO: is the alignment correct?
-        stride = align(
-            get_texture_format_stride(format, tic.width_minus_one + 1), 64u);
         break;
     default:
         LOG_NOT_IMPLEMENTED(Engines, "TIC HDR version {}", tic.hdr_version);
-        kind = NvKind::Pitch;
-        stride = get_texture_format_stride(format, tic.width_minus_one + 1);
         break;
     }
 
@@ -793,10 +811,10 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
     }
 
     const renderer::TextureDescriptor descriptor(
-        tls_crnt_gmmu->UnmapAddr(gpu_addr), type, format, kind,
-        tic.width_minus_one + 1, tic.height_minus_one + 1, depth,
+        tls_crnt_gmmu->UnmapAddr(gpu_addr), type, format, is_linear,
+        linear_stride, tic.width_minus_one + 1, tic.height_minus_one + 1, depth,
         tic.mip_max_levels + 1, layer_count, tic.tile_width_gobs_log2,
-        tic.tile_height_gobs_log2, tic.tile_depth_gobs_log2, stride,
+        tic.tile_height_gobs_log2, tic.tile_depth_gobs_log2,
         renderer::SwizzleChannels(
             format, tic.format_word.swizzle_x, tic.format_word.swizzle_y,
             tic.format_word.swizzle_z, tic.format_word.swizzle_w));

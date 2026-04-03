@@ -216,7 +216,8 @@ struct TextureDescriptor {
     uptr ptr;
     TextureType type;
     TextureFormat format;
-    NvKind kind;
+    bool is_linear;
+    u32 linear_stride;
     u32 width;
     u32 height;
     u32 depth;
@@ -225,43 +226,66 @@ struct TextureDescriptor {
     u32 block_width_log2;
     u32 block_height_log2;
     u32 block_depth_log2;
-    u32 stride;
+    u32 layer_size;
     SwizzleChannels swizzle_channels;
-    // TODO: more
 
     TextureDescriptor(const uptr ptr_, const TextureType type_,
-                      const TextureFormat format_, const NvKind kind_,
-                      const u32 width_, const u32 height_, const u32 depth_,
+                      const TextureFormat format_, const bool is_linear_,
+                      const u32 linear_stride_, const u32 width_,
+                      const u32 height_, const u32 depth_,
                       const u32 level_count_, const u32 layer_count_,
                       const u32 block_width_log2_, const u32 block_height_log2_,
-                      const u32 block_depth_log2_, const u32 stride_,
+                      const u32 block_depth_log2_,
                       const SwizzleChannels& swizzle_channels_)
-        : ptr{ptr_}, type{type_}, format{format_}, kind{kind_}, width{width_},
-          height{height_}, depth{depth_}, level_count{level_count_},
-          layer_count{layer_count_}, block_width_log2{block_width_log2_},
+        : ptr{ptr_}, type{type_}, format{format_}, is_linear{is_linear_},
+          linear_stride{linear_stride_}, width{width_}, height{height_},
+          depth{depth_}, level_count{level_count_}, layer_count{layer_count_},
+          block_width_log2{block_width_log2_},
           block_height_log2{block_height_log2_},
-          block_depth_log2{block_depth_log2_}, stride{stride_},
-          swizzle_channels{swizzle_channels_} {}
+          block_depth_log2{block_depth_log2_}, swizzle_channels{
+                                                   swizzle_channels_} {
+        layer_size = CalculateLayerSize();
+    }
 
     TextureDescriptor(const uptr ptr_, const TextureType type_,
-                      const TextureFormat format_, const NvKind kind_,
-                      const u32 width_, const u32 height_, const u32 depth_,
-                      const u32 level_count_, const u32 layer_count_,
-                      const u32 block_width_log2_, const u32 block_height_log2_,
-                      const u32 block_depth_log2_, const u32 stride_)
-        : TextureDescriptor(
-              ptr_, type_, format_, kind_, width_, height_, depth_,
-              level_count_, layer_count_, block_width_log2_, block_height_log2_,
-              block_depth_log2_, stride_,
-              get_texture_format_default_swizzle_channels(format_)) {}
+                      const TextureFormat format_, const bool is_linear_,
+                      const u32 linear_stride_, const u32 width_,
+                      const u32 height_, const u32 depth_,
+                      const u32 layer_count_, const u32 block_width_log2_,
+                      const u32 block_height_log2_, const u32 block_depth_log2_,
+                      const u32 layer_size_ = 0)
+        : ptr{ptr_}, type{type_}, format{format_}, is_linear{is_linear_},
+          linear_stride{linear_stride_}, width{width_}, height{height_},
+          depth{depth_}, layer_count{layer_count_},
+          block_width_log2{block_width_log2_},
+          block_height_log2{block_height_log2_},
+          block_depth_log2{block_depth_log2_}, layer_size{layer_size_},
+          swizzle_channels{
+              get_texture_format_default_swizzle_channels(format_)} {
+        // HACK
+        level_count = 1;
 
-    u32 GetLayerSize() const { return depth * align(height, 16u) * stride; }
-    u32 GetSize() const { return layer_count * GetLayerSize(); }
+        if (layer_size == 0)
+            layer_size = CalculateLayerSize();
+    }
+
+    u32 GetSize() const { return layer_count * layer_size; }
     Range<uptr> GetRange() const {
         return Range<uptr>::FromSize(ptr, GetSize());
     }
 
     u32 GetHash() const;
+
+  private:
+    u32 CalculateLayerSize() const {
+        // HACK
+        if (is_linear) {
+            return depth * align(height, 16u) * linear_stride;
+        } else {
+            return depth * align(height, 16u) *
+                   align(get_texture_format_stride(format, width), 64u);
+        }
+    }
 };
 
 struct TextureViewDescriptor {

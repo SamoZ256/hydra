@@ -154,7 +154,7 @@ struct TextureSamplerControl {
 
 struct RenderTarget {
     Iova addr;
-    u32 width;
+    u32 width_or_stride;
     u32 height;
     ColorSurfaceFormat format;
     struct {
@@ -169,7 +169,7 @@ struct RenderTarget {
         u16 layers;
         bool volume : 1; // TODO: what is this?
     } array_mode;
-    u32 array_pitch;
+    u32 layer_stride;
     u32 base_layer;
     u32 mark; // TODO: what is this?
     u32 padding[6];

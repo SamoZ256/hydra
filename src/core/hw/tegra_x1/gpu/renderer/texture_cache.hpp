@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/hw/tegra_x1/gpu/renderer/texture_decoder.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/const.hpp"
 
 namespace hydra::hw::tegra_x1::cpu {
 class IMmu;
@@ -84,7 +84,6 @@ class TextureCache {
 
   private:
     std::mutex mutex;
-    TextureDecoder texture_decoder;
 
     std::map<uptr, TextureMem> entries;
 

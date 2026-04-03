@@ -99,14 +99,16 @@ void Texture::CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
     auto encoder = command_buffer_impl->GetBlitCommandEncoder();
 
     // TODO: bytes per image
+    // TODO: don't align
+    const auto stride = align(
+        get_texture_format_stride(descriptor.format, descriptor.width), 64u);
     for (u32 layer = layers.GetBegin(); layer < layers.GetEnd(); layer++) {
         for (u32 level = levels.GetBegin(); level < levels.GetEnd(); level++) {
             encoder->copyFromBuffer(
                 mtl_src,
-                layer * descriptor.GetLayerSize() +
+                layer * descriptor.layer_size +
                     /*descriptor.GetLevelOffset(level)*/ 0,
-                descriptor.stride,
-                align(descriptor.height, 16u) * descriptor.stride,
+                stride, descriptor.height * stride,
                 MTL::Size(size.x(), size.y(), size.z()), texture, layer, level,
                 MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
         }
