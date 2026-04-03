@@ -125,13 +125,15 @@ void Texture::CopyFrom(ICommandBuffer* command_buffer, const TextureBase* src,
 
     auto encoder = command_buffer_impl->GetBlitCommandEncoder();
 
+    // TODO: levels
+    (void)level_count;
     for (u32 i = 0; i < layer_count; i++) {
-        for (u32 j = 0; j < level_count; j++) {
+        for (u32 j = 0; j < /*level_count*/ 1; j++) {
             encoder->copyFromTexture(
-                mtl_src, src_layer + i, src_level + j,
+                mtl_src, src_layer + i, src_level /* + j*/,
                 MTL::Origin(src_origin.x(), src_origin.y(), src_origin.z()),
                 MTL::Size(size.x(), size.y(), size.z()), texture, dst_layer + i,
-                dst_level + j,
+                dst_level /* + j*/,
                 MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
         }
     }

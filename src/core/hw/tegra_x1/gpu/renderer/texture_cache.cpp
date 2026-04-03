@@ -131,7 +131,7 @@ TextureBase* TextureCache::AddToMemory(ICommandBuffer* command_buffer,
             ASSERT_ALIGNMENT_DEBUG(offset, descriptor.GetLayerSize(), Gpu,
                                    "texture view offset");
             const auto layers = Range<u32>::FromSize(
-                offset / descriptor.GetLayerSize(), descriptor.GetLayerSize());
+                offset / descriptor.GetLayerSize(), descriptor.layer_count);
             return GetTextureView(
                 group, TextureViewDescriptor(descriptor.format,
                                              descriptor.swizzle_channels,
@@ -285,7 +285,6 @@ void TextureCache::Update(ICommandBuffer* command_buffer, TextureGroup& group,
                 // Check if the textures can actually be copied
                 if (other_descriptor.width != descriptor.width ||
                     other_descriptor.height != descriptor.height ||
-                    other_descriptor.depth != descriptor.depth ||
                     other_descriptor.stride != descriptor.stride)
                     continue;
 
@@ -294,25 +293,79 @@ void TextureCache::Update(ICommandBuffer* command_buffer, TextureGroup& group,
                     const auto dst_offset =
                         copy_range.GetBegin() - range.GetBegin();
 
-                    // Check if the textures are aligned properly
-                    if (dst_offset % descriptor.GetLayerSize() != 0x0)
-                        continue;
+                    if (descriptor.type != TextureType::_3D &&
+                        other_descriptor.type !=
+                            TextureType::_3D) { // Neither 3D
+                        // Layer
+                        const auto src_layer = static_cast<u32>(
+                            (copy_range.GetBegin() - other_range.GetBegin()) /
+                            descriptor.GetLayerSize());
+                        const auto dst_layer = static_cast<u32>(
+                            dst_offset / descriptor.GetLayerSize());
+                        const auto layer_count = static_cast<u32>(
+                            copy_range.GetSize() / descriptor.GetLayerSize());
 
-                    // Now copy
-                    const auto src_layer = static_cast<u32>(
-                        (copy_range.GetBegin() - other_range.GetBegin()) /
-                        descriptor.GetLayerSize());
-                    const auto dst_layer = static_cast<u32>(
-                        dst_offset / descriptor.GetLayerSize());
-                    const auto layer_count = static_cast<u32>(
-                        copy_range.GetSize() / descriptor.GetLayerSize());
+                        // Copy
+                        // TODO: make sure the formats match
+                        base->CopyFrom(
+                            command_buffer, other_base, uint3({0, 0, 0}), 0,
+                            src_layer, uint3({0, 0, 0}), 0, dst_layer,
+                            usize3({descriptor.width, descriptor.height, 1}),
+                            std::min(descriptor.level_count,
+                                     other_descriptor.level_count),
+                            layer_count);
+                    } else if (descriptor.type == TextureType::_3D &&
+                               other_descriptor.type ==
+                                   TextureType::_3D) { // Both 3D
+                        const auto slice_size =
+                            descriptor.height *
+                            descriptor.stride; // TODO: calculate properly
 
-                    // TODO: make sure the formats match
-                    base->CopyFrom(command_buffer, other_base, uint3({0, 0, 0}),
-                                   0, src_layer, uint3({0, 0, 0}), 0, dst_layer,
-                                   usize3({descriptor.width, descriptor.height,
-                                           descriptor.depth}),
-                                   descriptor.level_count, layer_count);
+                        // Z
+                        const auto src_z = static_cast<u32>(
+                            (copy_range.GetBegin() - other_range.GetBegin()) /
+                            slice_size);
+                        const auto dst_z =
+                            static_cast<u32>(dst_offset / slice_size);
+                        const auto z_count =
+                            static_cast<u32>(copy_range.GetSize() / slice_size);
+
+                        // Copy
+                        // TODO: make sure the formats match
+                        base->CopyFrom(command_buffer, other_base,
+                                       uint3({0, 0, src_z}), 0, 0,
+                                       uint3({0, 0, dst_z}), 0, 0,
+                                       usize3({descriptor.width,
+                                               descriptor.height, z_count}),
+                                       std::min(descriptor.level_count,
+                                                other_descriptor.level_count),
+                                       1);
+                    } else if (descriptor.type == TextureType::_3D &&
+                               other_descriptor.type ==
+                                   TextureType::_2D) { // HACK: special case
+                        const auto slice_size =
+                            descriptor.height *
+                            descriptor.stride; // TODO: calculate properly
+
+                        // Z
+                        const auto dst_z =
+                            static_cast<u32>(dst_offset / slice_size);
+
+                        // Copy
+                        // TODO: make sure the formats match
+                        base->CopyFrom(
+                            command_buffer, other_base, uint3({0, 0, 0}), 0, 0,
+                            uint3({0, 0, dst_z}), 0, 0,
+                            usize3({descriptor.width, descriptor.height, 1}),
+                            std::min(descriptor.level_count,
+                                     other_descriptor.level_count),
+                            1);
+                    } else {
+                        LOG_WARN(Gpu,
+                                 "Unimplemented texture copy (source: {}, "
+                                 "destination: {})",
+                                 descriptor.type, other_descriptor.type);
+                    }
                 }
             }
         }
