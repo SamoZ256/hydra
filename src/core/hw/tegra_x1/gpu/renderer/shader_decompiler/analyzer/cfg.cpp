@@ -12,8 +12,7 @@ CfgBasicBlock* CfgBuilder::Build(const ir::Function& function) {
         case ir::Opcode::Branch:
             cfg_block->edge = {
                 .type = CfgBlockEdgeType::Branch,
-                .branch.target = GetBlock(last_inst.GetOperand(0).GetLabel()),
-            };
+                .branch = {GetBlock(last_inst.GetOperand(0).GetLabel())}};
             break;
         case ir::Opcode::BranchConditional:
             cfg_block->edge = {
