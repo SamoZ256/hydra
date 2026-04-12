@@ -59,12 +59,12 @@ void Driver::Present(
     if (scale_x > scale_y) {
         dst_scale = scale_y;
         const auto dst_width = src_size.x() * dst_scale;
-        dst_rect.origin = {(width - dst_width) / 2.f, 0.f};
+        dst_rect.origin = {(f32(width) - dst_width) / 2.f, 0.f};
         dst_rect.size = {dst_width, f32(height)};
     } else {
         dst_scale = scale_x;
         const auto dst_height = src_size.y() * dst_scale;
-        dst_rect.origin = {0.f, (height - dst_height) / 2.f};
+        dst_rect.origin = {0.f, (f32(height) - dst_height) / 2.f};
         dst_rect.size = {f32(width), dst_height};
     }
 
