@@ -18,7 +18,7 @@ struct SharedFontName {
 };
 
 #define SHARED_FONT_ENTRY(type, name, filename)                                \
-    [(u32)SharedFontType::type] = SharedFontName { name, filename ".bfttf" }
+    SharedFontName{name, filename ".bfttf"}
 
 constexpr SharedFontName shared_font_names[] = {
     SHARED_FONT_ENTRY(JapanUsEurope, "FontStandard", "nintendo_udsg-r_std_003"),
