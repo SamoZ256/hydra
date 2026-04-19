@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct TextureView: View {
-    let group: HydraTextureGroup
+    let storage: HydraTextureStorage
 
     private let type: HydraTextureType
     private let format: HydraTextureFormat
@@ -9,10 +9,10 @@ struct TextureView: View {
     private let height: UInt32
     private let depth: UInt32
 
-    init(group: HydraTextureGroup) {
-        self.group = group
+    init(storage: HydraTextureStorage) {
+        self.storage = storage
 
-        let descriptor = group.descriptor
+        let descriptor = storage.descriptor
         self.type = descriptor.type
         self.format = descriptor.format
         self.width = descriptor.width

@@ -4,7 +4,6 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
 class BufferBase;
-class TextureBase;
 } // namespace hydra::hw::tegra_x1::gpu::renderer
 
 namespace hydra::hw::tegra_x1::gpu::engines {

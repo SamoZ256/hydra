@@ -12,9 +12,10 @@ class SurfaceCompositor final : public ISurfaceCompositor {
     SurfaceCompositor(CA::MetalDrawable* drawable_);
     ~SurfaceCompositor() override;
 
-    void DrawTexture(ICommandBuffer* command_buffer, const TextureBase* texture,
-                     const FloatRect2D src_rect, const FloatRect2D dst_rect,
-                     bool transparent, f32 opacity) override;
+    void DrawTexture(ICommandBuffer* command_buffer,
+                     const ITextureView* texture, const FloatRect2D src_rect,
+                     const FloatRect2D dst_rect, bool transparent,
+                     f32 opacity) override;
     void Present(ICommandBuffer* command_buffer) override;
 
   private:

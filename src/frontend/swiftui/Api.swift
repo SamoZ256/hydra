@@ -1118,25 +1118,12 @@ func hydraTextureCacheGetTextureMemory(at index: Int) -> HydraTextureMemory {
 struct HydraTextureMemory: HandleStruct {
     internal let handle: UnsafeRawPointer
 
-    var sparseTextureCount: Int {
-        Int(hydra_texture_memory_get_sparse_texture_count(self.handle))
-    }
-
-    func getSparseTexture(at index: Int) -> HydraSparseTexture {
-        HydraSparseTexture(handle: hydra_texture_memory_get_sparse_texture(self.handle, UInt32(index)))
-    }
-}
-
-// Sparse texture
-struct HydraSparseTexture: HandleStruct {
-    internal let handle: UnsafeRawPointer
-
     var textureGroupCount: Int {
-        Int(hydra_sparse_texture_get_texture_group_count(self.handle))
+        Int(hydra_texture_memory_get_texture_group_count(self.handle))
     }
 
     func getTextureGroup(at index: Int) -> HydraTextureGroup {
-        HydraTextureGroup(handle: hydra_sparse_texture_get_texture_group(self.handle, UInt32(index)))
+        HydraTextureGroup(handle: hydra_texture_memory_get_texture_group(self.handle, UInt32(index)))
     }
 }
 
@@ -1144,8 +1131,21 @@ struct HydraSparseTexture: HandleStruct {
 struct HydraTextureGroup: HandleStruct {
     internal let handle: UnsafeRawPointer
 
+    var textureStorageCount: Int {
+        Int(hydra_texture_group_get_texture_storage_count(self.handle))
+    }
+
+    func getTextureStorage(at index: Int) -> HydraTextureStorage {
+        HydraTextureStorage(handle: hydra_texture_group_get_texture_storage(self.handle, UInt32(index)))
+    }
+}
+
+// Texture storage
+struct HydraTextureStorage: HandleStruct {
+    internal let handle: UnsafeRawPointer
+
     var descriptor: HydraTextureDescriptor {
-        HydraTextureDescriptor(handle: hydra_texture_group_get_texture_descriptor(self.handle))
+        HydraTextureDescriptor(handle: hydra_texture_storage_get_texture_descriptor(self.handle))
     }
 }
 

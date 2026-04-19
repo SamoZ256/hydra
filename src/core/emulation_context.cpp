@@ -27,7 +27,8 @@
 #include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/command_buffer.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/surface_compositor.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/texture.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/texture_view.hpp"
 #include "core/input/device_manager.hpp"
 
 #if HYDRA_HYPERVISOR_ENABLED
@@ -46,6 +47,12 @@ constexpr auto STARTUP_MOVIE_FADE_IN_DURATION = 100ms;
 constexpr auto STARTUP_MOVIE_BREAK_AFTER_FADE_IN_DURATION = 200ms;
 
 } // namespace
+
+CombinedTextureView::~CombinedTextureView() {
+    // TODO: uncomment
+    // delete view;
+    // delete base;
+}
 
 EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
     LOGGER_INSTANCE.SetOutput(CONFIG_INSTANCE.GetLogOutput());
@@ -279,15 +286,19 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
             // Create texture
             const u32 stride = width * 4;
             const u32 size = height * stride;
-            hw::tegra_x1::gpu::renderer::TextureDescriptor descriptor(
-                0x0, hw::tegra_x1::gpu::renderer::TextureType::_2D,
-                hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm, true,
-                stride, width, height, 1, 1, 1, 0x0, 0x0, 0x0,
-                hw::tegra_x1::gpu::renderer::
-                    get_texture_format_default_swizzle_channels(
-                        hw::tegra_x1::gpu::renderer::TextureFormat::
-                            RGBA8Unorm));
-            nintendo_logo = gpu->GetRenderer().CreateTexture(descriptor);
+            const auto descriptor = hw::tegra_x1::gpu::renderer::
+                TextureDescriptor::CreateWithLevelCount(
+                    0x0, hw::tegra_x1::gpu::renderer::TextureType::_2D,
+                    hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
+                    true, stride, width, height, 1, 1, 1, 0x0, 0x0, 0x0);
+            const auto texture = gpu->GetRenderer().CreateTexture(descriptor);
+
+            const auto view_descriptor =
+                hw::tegra_x1::gpu::renderer::TextureViewDescriptor(
+                    descriptor.type, descriptor.format, Range<u32>(0, 1),
+                    Range<u32>(0, 1));
+            const auto texture_view = texture->CreateView(view_descriptor);
+            nintendo_logo = {texture, texture_view};
 
             // Command buffer
             command_buffer = gpu->GetRenderer().CreateCommandBuffer();
@@ -297,7 +308,7 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
             std::memcpy(reinterpret_cast<void*>(tmp_buffer->GetPtr()), data,
                         size);
             free(data);
-            nintendo_logo->CopyFrom(command_buffer, tmp_buffer);
+            texture->CopyFrom(command_buffer, tmp_buffer);
             gpu->GetRenderer().FreeTemporaryBuffer(tmp_buffer);
         }
     }
@@ -308,14 +319,15 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
                                                  height, frame_count)) {
             const u32 stride = width * 4;
             const u32 size = height * stride;
-            hw::tegra_x1::gpu::renderer::TextureDescriptor descriptor(
-                0x0, hw::tegra_x1::gpu::renderer::TextureType::_2D,
-                hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm, true,
-                stride, width, height, 1, 1, 1, 0x0, 0x0, 0x0,
-                hw::tegra_x1::gpu::renderer::
-                    get_texture_format_default_swizzle_channels(
-                        hw::tegra_x1::gpu::renderer::TextureFormat::
-                            RGBA8Unorm));
+            const auto descriptor = hw::tegra_x1::gpu::renderer::
+                TextureDescriptor::CreateWithLevelCount(
+                    0x0, hw::tegra_x1::gpu::renderer::TextureType::_2D,
+                    hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
+                    true, stride, width, height, 1, 1, 1, 0x0, 0x0, 0x0);
+            const auto view_descriptor =
+                hw::tegra_x1::gpu::renderer::TextureViewDescriptor(
+                    descriptor.type, descriptor.format, Range<u32>(0, 1),
+                    Range<u32>(0, 1));
             startup_movie.reserve(frame_count);
 
             // Command buffer
@@ -324,16 +336,18 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
 
             for (u32 i = 0; i < frame_count; i++) {
                 // Create texture
-                auto frame = gpu->GetRenderer().CreateTexture(descriptor);
+                const auto texture =
+                    gpu->GetRenderer().CreateTexture(descriptor);
+                const auto texture_view = texture->CreateView(view_descriptor);
 
                 // Copy data
                 auto tmp_buffer =
                     gpu->GetRenderer().AllocateTemporaryBuffer(size);
                 std::memcpy(reinterpret_cast<void*>(tmp_buffer->GetPtr()),
                             data + i * height * width, size);
-                frame->CopyFrom(command_buffer, tmp_buffer);
+                texture->CopyFrom(command_buffer, tmp_buffer);
                 gpu->GetRenderer().FreeTemporaryBuffer(tmp_buffer);
-                startup_movie.push_back(frame);
+                startup_movie.push_back({texture, texture_view});
             }
             free(data);
 
@@ -500,13 +514,9 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
             loading = false;
 
             // Free loading assets
-            if (nintendo_logo) {
-                delete nintendo_logo;
-                nintendo_logo = nullptr;
-            }
+            if (nintendo_logo)
+                nintendo_logo = std::nullopt;
             if (!startup_movie.empty()) {
-                for (auto frame : startup_movie)
-                    delete frame;
                 startup_movie.clear();
                 startup_movie.shrink_to_fit();
                 startup_movie_delays.clear();
@@ -529,11 +539,12 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
 
             // Nintendo logo
             if (nintendo_logo) {
-                int2 size = {(i32)nintendo_logo->GetDescriptor().width,
-                             (i32)nintendo_logo->GetDescriptor().height};
+                const auto tex = *nintendo_logo;
+                int2 size = {(i32)tex.base->GetDescriptor().width,
+                             (i32)tex.base->GetDescriptor().height};
                 int2 dst_offset = {32, 32};
                 compositor->DrawTexture(
-                    command_buffer, nintendo_logo, IntRect2D({0, 0}, size),
+                    command_buffer, tex.view, IntRect2D({0, 0}, size),
                     IntRect2D(dst_offset, size), true, opacity);
             }
 
@@ -548,12 +559,12 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
                 }
 
                 auto frame = startup_movie[startup_movie_frame];
-                int2 size = {(i32)frame->GetDescriptor().width,
-                             (i32)frame->GetDescriptor().height};
+                int2 size = {(i32)frame.base->GetDescriptor().width,
+                             (i32)frame.base->GetDescriptor().height};
                 int2 dst_offset = {(i32)width - size.x() - 32,
                                    (i32)height - size.y() - 32};
                 compositor->DrawTexture(
-                    command_buffer, frame, IntRect2D({0, 0}, size),
+                    command_buffer, frame.view, IntRect2D({0, 0}, size),
                     IntRect2D(dst_offset, size), true, opacity);
             }
         }
@@ -623,7 +634,8 @@ void EmulationContext::TakeScreenshot() {
         auto command_buffer = RENDERER_INSTANCE.CreateCommandBuffer();
         auto buffer = RENDERER_INSTANCE.AllocateTemporaryBuffer(
             static_cast<u32>(rect.size.y() * rect.size.x() * 4));
-        buffer->CopyFrom(command_buffer, texture, rect.origin, rect.size);
+        buffer->CopyFrom(command_buffer, texture, rect.origin, rect.size,
+                         Range<u32>(0, 1), Range<u32>(0, 1));
         delete command_buffer;
 
         // TODO: wait for the command buffer to finish

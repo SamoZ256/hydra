@@ -8,7 +8,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/render_pass_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/sampler_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_base.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/texture_view.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::engines {
 
@@ -445,7 +445,7 @@ void ThreeD::BindGroup(const u32 index, const u32 data) {
 
 #pragma GCC diagnostic pop
 
-renderer::TextureBase*
+renderer::ITextureView*
 ThreeD::GetColorTargetTexture(u32 render_target_index) const {
     const auto& render_target = regs.color_targets[render_target_index];
 
@@ -487,7 +487,7 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
         stride = 0;
     }
 
-    const renderer::TextureDescriptor descriptor(
+    const auto descriptor = renderer::TextureDescriptor::CreateWithLayerSize(
         tls_crnt_gmmu->UnmapAddr(gpu_addr), type, format, is_linear, stride,
         width, render_target.height, depth, layer_count,
         render_target.tile_mode.width, render_target.tile_mode.height,
@@ -498,7 +498,7 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
         tls_crnt_command_buffer, descriptor, renderer::TextureUsage::Write);
 }
 
-renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture() const {
+renderer::ITextureView* ThreeD::GetDepthStencilTargetTexture() const {
     const auto gpu_addr = u64(regs.depth_target_addr);
     if (gpu_addr == 0x0) {
         // TODO: is this really an error?
@@ -510,7 +510,7 @@ renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture() const {
                           ? renderer::TextureType::_2DArray
                           : renderer::TextureType::_2D;
 
-    const renderer::TextureDescriptor descriptor(
+    const auto descriptor = renderer::TextureDescriptor::CreateWithLayerSize(
         tls_crnt_gmmu->UnmapAddr(gpu_addr), type,
         renderer::to_texture_format(regs.depth_target_format), false, 0,
         regs.depth_target_width, regs.depth_target_height, 1,
@@ -767,7 +767,7 @@ renderer::BufferView ThreeD::GetVertexBuffer(u32 vertex_array_index) const {
         tls_crnt_command_buffer, Range<uptr>::FromSize(ptr, size));
 }
 
-renderer::TextureBase*
+renderer::ITextureView*
 ThreeD::GetTexture(const TextureImageControl& tic) const {
     // HACK
     if (tic.hdr_version == TicHdrVersion::_1DBuffer) {
@@ -810,17 +810,21 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
             layer_count *= 6;
     }
 
-    const renderer::TextureDescriptor descriptor(
+    const u32 level_count = tic.mip_max_levels + 1;
+    const auto descriptor = renderer::TextureDescriptor::CreateWithLevelCount(
         tls_crnt_gmmu->UnmapAddr(gpu_addr), type, format, is_linear,
         linear_stride, tic.width_minus_one + 1, tic.height_minus_one + 1, depth,
-        tic.mip_max_levels + 1, layer_count, tic.tile_width_gobs_log2,
-        tic.tile_height_gobs_log2, tic.tile_depth_gobs_log2,
+        level_count, layer_count, tic.tile_width_gobs_log2,
+        tic.tile_height_gobs_log2, tic.tile_depth_gobs_log2);
+    const renderer::TextureViewDescriptor view_descriptor(
+        type, format, Range<u32>(0, level_count), Range<u32>(0, layer_count),
         renderer::SwizzleChannels(
             format, tic.format_word.swizzle_x, tic.format_word.swizzle_y,
             tic.format_word.swizzle_z, tic.format_word.swizzle_w));
 
     return RENDERER_INSTANCE.GetTextureCache().Find(
-        tls_crnt_command_buffer, descriptor, renderer::TextureUsage::Read);
+        tls_crnt_command_buffer, descriptor, view_descriptor,
+        renderer::TextureUsage::Read);
 }
 
 renderer::SamplerBase*

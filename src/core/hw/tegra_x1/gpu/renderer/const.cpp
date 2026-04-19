@@ -616,40 +616,6 @@ SwizzleChannels::SwizzleChannels(const TextureFormat format,
 #undef SWIZZLE
 }
 
-SwizzleChannels
-get_texture_format_default_swizzle_channels(const TextureFormat format) {
-    if (is_texture_format_depth_or_stencil(format))
-        return {ImageSwizzle::Zero, ImageSwizzle::Zero, ImageSwizzle::Zero,
-                ImageSwizzle::Zero};
-
-#define SWIZZLE(r, g, b, a)                                                    \
-    SwizzleChannels(ImageSwizzle::r, ImageSwizzle::g, ImageSwizzle::b,         \
-                    ImageSwizzle::a)
-
-    // TODO: implement all formats
-    switch (format) {
-    case TextureFormat::R8Unorm:
-        return SWIZZLE(R, Zero, Zero, OneFloat);
-    case TextureFormat::B5G6R5Unorm:
-    case TextureFormat::BC1_RGB:
-        return SWIZZLE(R, G, B, OneFloat);
-    case TextureFormat::RG8Unorm:
-        return SWIZZLE(R, G, Zero, OneFloat);
-    case TextureFormat::RGBA8Unorm:
-    case TextureFormat::BGRA8Unorm:
-    case TextureFormat::RGBA8Unorm_sRGB:
-    case TextureFormat::RGB10A2Unorm:
-    case TextureFormat::BC2_RGBA:
-    case TextureFormat::BC3_RGBA:
-        return SWIZZLE(R, G, B, A);
-    default:
-        ONCE(LOG_NOT_IMPLEMENTED(Gpu, "{} default swizzle", format));
-        return SWIZZLE(R, G, B, A);
-    }
-
-#undef SWIZZLE
-}
-
 u32 TextureDescriptor::GetHash() const {
     HashCode hash;
     hash.Add(ptr);
@@ -665,25 +631,27 @@ u32 TextureDescriptor::GetHash() const {
 
     hash.Add(ToTextureTypeCompatibility(type));
 
-    // TODO: get format info from the renderer instead
-    hash.Add(is_texture_format_compressed(format));
-    hash.Add(is_texture_format_depth_or_stencil(format));
-    hash.Add(get_texture_format_stride(format, 16));
+    const auto& format_info = GetTextureFormatInfo(format);
+    hash.Add(format_info.bytes_per_block);
+    hash.Add(format_info.block_width);
+    hash.Add(format_info.block_height);
+    hash.Add(format_info.is_depth_stencil);
 
     return hash.ToHashCode();
 }
 
 u32 TextureViewDescriptor::GetHash() const {
     HashCode hash;
+    hash.Add(type);
     hash.Add(format);
-    hash.Add(swizzle_channels.r);
-    hash.Add(swizzle_channels.g);
-    hash.Add(swizzle_channels.b);
-    hash.Add(swizzle_channels.a);
     hash.Add(levels.GetBegin());
     hash.Add(levels.GetEnd());
     hash.Add(layers.GetBegin());
     hash.Add(layers.GetEnd());
+    hash.Add(swizzle_channels.r);
+    hash.Add(swizzle_channels.g);
+    hash.Add(swizzle_channels.b);
+    hash.Add(swizzle_channels.a);
 
     return hash.ToHashCode();
 }

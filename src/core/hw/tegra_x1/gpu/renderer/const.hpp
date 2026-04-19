@@ -4,7 +4,7 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
-class TextureBase;
+class ITextureView;
 class ShaderBase;
 
 enum class TextureType {
@@ -209,9 +209,6 @@ struct SwizzleChannels {
     }
 };
 
-SwizzleChannels
-get_texture_format_default_swizzle_channels(const TextureFormat format);
-
 struct TextureDescriptor {
     uptr ptr;
     TextureType type;
@@ -227,46 +224,58 @@ struct TextureDescriptor {
     u32 block_height_log2;
     u32 block_depth_log2;
     u32 layer_size;
-    SwizzleChannels swizzle_channels;
 
-    TextureDescriptor(const uptr ptr_, const TextureType type_,
-                      const TextureFormat format_, const bool is_linear_,
-                      const u32 linear_stride_, const u32 width_,
-                      const u32 height_, const u32 depth_,
-                      const u32 level_count_, const u32 layer_count_,
-                      const u32 block_width_log2_, const u32 block_height_log2_,
-                      const u32 block_depth_log2_,
-                      const SwizzleChannels& swizzle_channels_)
-        : ptr{ptr_}, type{type_}, format{format_}, is_linear{is_linear_},
-          linear_stride{linear_stride_}, width{width_}, height{height_},
-          depth{depth_}, level_count{level_count_}, layer_count{layer_count_},
-          block_width_log2{block_width_log2_},
-          block_height_log2{block_height_log2_},
-          block_depth_log2{block_depth_log2_}, swizzle_channels{
-                                                   swizzle_channels_} {
-        layer_size = CalculateLayerSize();
+    static TextureDescriptor
+    CreateWithLevelCount(uptr ptr, TextureType type, TextureFormat format,
+                         bool is_linear, u32 linear_stride, u32 width,
+                         u32 height, u32 depth, u32 level_count,
+                         u32 layer_count, u32 block_width_log2,
+                         u32 block_height_log2, u32 block_depth_log2) {
+        TextureDescriptor d;
+        d.ptr = ptr;
+        d.type = type;
+        d.format = format;
+        d.is_linear = is_linear;
+        d.linear_stride = linear_stride;
+        d.width = width;
+        d.height = height;
+        d.depth = depth;
+        d.level_count = level_count;
+        d.layer_count = layer_count;
+        d.block_width_log2 = block_width_log2;
+        d.block_height_log2 = block_height_log2;
+        d.block_depth_log2 = block_depth_log2;
+
+        d.CalculateLayerSize();
+        return d;
     }
 
-    TextureDescriptor(const uptr ptr_, const TextureType type_,
-                      const TextureFormat format_, const bool is_linear_,
-                      const u32 linear_stride_, const u32 width_,
-                      const u32 height_, const u32 depth_,
-                      const u32 layer_count_, const u32 block_width_log2_,
-                      const u32 block_height_log2_, const u32 block_depth_log2_,
-                      const u32 layer_size_ = 0)
-        : ptr{ptr_}, type{type_}, format{format_}, is_linear{is_linear_},
-          linear_stride{linear_stride_}, width{width_}, height{height_},
-          depth{depth_}, layer_count{layer_count_},
-          block_width_log2{block_width_log2_},
-          block_height_log2{block_height_log2_},
-          block_depth_log2{block_depth_log2_}, layer_size{layer_size_},
-          swizzle_channels{
-              get_texture_format_default_swizzle_channels(format_)} {
-        // HACK
-        level_count = 1;
+    static TextureDescriptor
+    CreateWithLayerSize(uptr ptr, TextureType type, TextureFormat format,
+                        bool is_linear, u32 linear_stride, u32 width,
+                        u32 height, u32 depth, u32 layer_count,
+                        u32 block_width_log2, u32 block_height_log2,
+                        u32 block_depth_log2, u32 layer_size = 0) {
+        TextureDescriptor d;
+        d.ptr = ptr;
+        d.type = type;
+        d.format = format;
+        d.is_linear = is_linear;
+        d.linear_stride = linear_stride;
+        d.width = width;
+        d.height = height;
+        d.depth = depth;
+        d.layer_count = layer_count;
+        d.block_width_log2 = block_width_log2;
+        d.block_height_log2 = block_height_log2;
+        d.block_depth_log2 = block_depth_log2;
+        d.layer_size = layer_size;
 
+        d.CalculateLevelCount();
         if (layer_size == 0)
-            layer_size = CalculateLayerSize();
+            d.CalculateLayerSize();
+
+        return d;
     }
 
     u32 GetSize() const { return layer_count * layer_size; }
@@ -277,28 +286,36 @@ struct TextureDescriptor {
     u32 GetHash() const;
 
   private:
-    u32 CalculateLayerSize() const {
+    TextureDescriptor() = default;
+
+    void CalculateLayerSize() {
         // HACK
         if (is_linear) {
-            return depth * align(height, 16u) * linear_stride;
+            layer_size = depth * align(height, 16u) * linear_stride;
         } else {
-            return depth * align(height, 16u) *
-                   align(get_texture_format_stride(format, width), 64u);
+            layer_size = depth * align(height, 16u) *
+                         align(get_texture_format_stride(format, width), 64u);
         }
+    }
+
+    void CalculateLevelCount() {
+        // HACK
+        level_count = 1;
     }
 };
 
 struct TextureViewDescriptor {
+    TextureType type;
     TextureFormat format;
-    SwizzleChannels swizzle_channels;
     Range<u32> levels;
     Range<u32> layers;
+    SwizzleChannels swizzle_channels;
 
-    TextureViewDescriptor(TextureFormat format_,
-                          SwizzleChannels swizzle_channels_, Range<u32> levels_,
-                          Range<u32> layers_)
-        : format{format_}, swizzle_channels{swizzle_channels_}, levels{levels_},
-          layers{layers_} {}
+    TextureViewDescriptor(TextureType type_, TextureFormat format_,
+                          Range<u32> levels_, Range<u32> layers_,
+                          SwizzleChannels swizzle_channels_ = SwizzleChannels())
+        : type{type_}, format{format_}, levels{levels_}, layers{layers_},
+          swizzle_channels{swizzle_channels_} {}
 
     u32 GetHash() const;
 };
@@ -368,7 +385,7 @@ enum class BlendFactor {
 };
 
 struct RenderTargetDescriptor {
-    TextureBase* texture;
+    ITextureView* texture;
     bool load_action_clear = false;
     union {
         float color[4];

@@ -5,7 +5,7 @@
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
 class ICommandBuffer;
-class TextureBase;
+class ITexture;
 
 class BufferBase {
   public:
@@ -28,9 +28,10 @@ class BufferBase {
             size_ = std::min(src->GetSize() - src_offset, size - dst_offset);
         CopyFromImpl(command_buffer, src, dst_offset, src_offset, size_);
     }
-    virtual void CopyFrom(ICommandBuffer* command_buffer, TextureBase* src,
+    virtual void CopyFrom(ICommandBuffer* command_buffer, ITextureView* src,
                           const uint3 src_origin, const uint3 src_size,
-                          u64 dst_offset = 0) = 0;
+                          const Range<u32> src_levels,
+                          const Range<u32> src_layers, u64 dst_offset = 0) = 0;
 
   protected:
     u64 size;

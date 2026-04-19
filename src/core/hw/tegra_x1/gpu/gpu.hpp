@@ -94,9 +94,9 @@ class Gpu {
     }
 
     // Texture
-    renderer::TextureBase* GetTexture(renderer::ICommandBuffer* command_buffer,
-                                      cpu::IMmu* mmu,
-                                      const NvGraphicsBuffer& buff);
+    renderer::ITextureView* GetTexture(renderer::ICommandBuffer* command_buffer,
+                                       cpu::IMmu* mmu,
+                                       const NvGraphicsBuffer& buff);
 
     // Getters
     Pfifo& GetPfifo() { return pfifo; }

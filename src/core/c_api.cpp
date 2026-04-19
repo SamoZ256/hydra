@@ -9,8 +9,7 @@
 #include "core/horizon/loader/plugins/manager.hpp"
 #include "core/horizon/ui/handler_base.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
-#include <string>
+#include "core/hw/tegra_x1/gpu/renderer/texture.hpp"
 
 #define HYDRA_EXPORT extern "C" __attribute__((visibility("default")))
 
@@ -1017,43 +1016,43 @@ hydra_texture_cache_get_texture_memory(uint32_t index) {
 
 // Texture memory
 HYDRA_EXPORT uint32_t
-hydra_texture_memory_get_sparse_texture_count(const void* mem) {
+hydra_texture_memory_get_texture_group_count(const void* mem) {
     // HACK
     return static_cast<uint32_t>(
         static_cast<const hydra::hw::tegra_x1::gpu::renderer::TextureMem*>(mem)
-            ->GetSparseTextureCount());
+            ->GetTextureGroupCount());
 }
 
 HYDRA_EXPORT const void*
-hydra_texture_memory_get_sparse_texture(const void* mem, uint32_t index) {
+hydra_texture_memory_get_texture_group(const void* mem, uint32_t index) {
     return &static_cast<const hydra::hw::tegra_x1::gpu::renderer::TextureMem*>(
                 mem)
-                ->GetSparseTexture(index);
-}
-
-// Sparse texture
-HYDRA_EXPORT uint32_t
-hydra_sparse_texture_get_texture_group_count(const void* sparse_tex) {
-    // HACK
-    return static_cast<uint32_t>(
-        static_cast<const hydra::hw::tegra_x1::gpu::renderer::SparseTexture*>(
-            sparse_tex)
-            ->GetGroupCount());
-}
-
-HYDRA_EXPORT const void*
-hydra_sparse_texture_get_texture_group(const void* sparse_tex, uint32_t index) {
-    return &static_cast<
-                const hydra::hw::tegra_x1::gpu::renderer::SparseTexture*>(
-                sparse_tex)
-                ->GetGroup(index);
+                ->GetTextureGroup(index);
 }
 
 // Texture group
+HYDRA_EXPORT uint32_t
+hydra_texture_group_get_texture_storage_count(const void* group) {
+    // HACK
+    return static_cast<uint32_t>(
+        static_cast<const hydra::hw::tegra_x1::gpu::renderer::TextureGroup*>(
+            group)
+            ->GetStorageCount());
+}
+
 HYDRA_EXPORT const void*
-hydra_texture_group_get_texture_descriptor(const void* group) {
+hydra_texture_group_get_texture_storage(const void* group, uint32_t index) {
     return &static_cast<
                 const hydra::hw::tegra_x1::gpu::renderer::TextureGroup*>(group)
+                ->GetStorage(index);
+}
+
+// Texture storage
+HYDRA_EXPORT const void*
+hydra_texture_storage_get_texture_descriptor(const void* storage) {
+    return &static_cast<
+                const hydra::hw::tegra_x1::gpu::renderer::TextureStorage*>(
+                storage)
                 ->base->GetDescriptor();
 }
 

@@ -392,17 +392,17 @@ uint32_t hydra_texture_cache_get_texture_memory_count();
 const void* hydra_texture_cache_get_texture_memory(uint32_t index);
 
 // Texture memory
-uint32_t hydra_texture_memory_get_sparse_texture_count(const void* mem);
-const void* hydra_texture_memory_get_sparse_texture(const void* mem,
-                                                    uint32_t index);
-
-// Sparse texture
-uint32_t hydra_sparse_texture_get_texture_group_count(const void* sparse_tex);
-const void* hydra_sparse_texture_get_texture_group(const void* sparse_tex,
+uint32_t hydra_texture_memory_get_texture_group_count(const void* mem);
+const void* hydra_texture_memory_get_texture_group(const void* mem,
                                                    uint32_t index);
 
 // Texture group
-const void* hydra_texture_group_get_texture_descriptor(const void* group);
+uint32_t hydra_texture_group_get_texture_storage_count(const void* group);
+const void* hydra_texture_group_get_texture_storage(const void* group,
+                                                    uint32_t index);
+
+// Texture storage
+const void* hydra_texture_storage_get_texture_descriptor(const void* storage);
 
 // Texture descriptor
 typedef enum HydraTextureType : uint32_t {

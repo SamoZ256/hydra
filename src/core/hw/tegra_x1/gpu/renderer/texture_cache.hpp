@@ -9,28 +9,29 @@ class IMmu;
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
 class ICommandBuffer;
-class TextureBase;
+class ITexture;
+class ITextureView;
 
 typedef std::chrono::steady_clock TextureCacheClock;
 typedef TextureCacheClock::time_point TextureCacheTimePoint;
 
-struct TextureGroup {
-    TextureBase* base{nullptr};
-    SmallCache<u32, TextureBase*> view_cache;
+struct TextureStorage {
+    ITexture* base{nullptr};
+    SmallCache<u32, ITextureView*> view_cache;
     TextureCacheTimePoint update_timestamp{};
 
     void MarkUpdated() { update_timestamp = TextureCacheClock::now(); }
 };
 
-struct SparseTexture {
-    SmallCache<uptr, TextureGroup> cache;
+struct TextureGroup {
+    SmallCache<uptr, TextureStorage> cache;
 
     // Debug
-    usize GetGroupCount() const { return cache.GetCount(); }
+    usize GetStorageCount() const { return cache.GetCount(); }
 
-    const TextureGroup& GetGroup(u32 index) const {
+    const TextureStorage& GetStorage(u32 index) const {
         // HACK: const cast
-        auto it = const_cast<SmallCache<uptr, TextureGroup>&>(cache).begin();
+        auto it = const_cast<SmallCache<uptr, TextureStorage>&>(cache).begin();
         std::advance(it, index);
         return it->second;
     }
@@ -49,14 +50,14 @@ struct TextureMemInfo {
 struct TextureMem {
     Range<uptr> range;
     TextureMemInfo info;
-    SmallCache<u32, SparseTexture> cache;
+    SmallCache<u32, TextureGroup> cache;
 
     // Debug
-    usize GetSparseTextureCount() const { return cache.GetCount(); }
+    usize GetTextureGroupCount() const { return cache.GetCount(); }
 
-    const SparseTexture& GetSparseTexture(u32 index) const {
+    const TextureGroup& GetTextureGroup(u32 index) const {
         // HACK: const cast
-        auto it = const_cast<SmallCache<u32, SparseTexture>&>(cache).begin();
+        auto it = const_cast<SmallCache<u32, TextureGroup>&>(cache).begin();
         std::advance(it, index);
         return it->second;
     }
@@ -68,8 +69,12 @@ class TextureCache {
   public:
     ~TextureCache();
 
-    TextureBase* Find(ICommandBuffer* command_buffer,
-                      const TextureDescriptor& descriptor, TextureUsage usage);
+    ITextureView* Find(ICommandBuffer* command_buffer,
+                       const TextureDescriptor& descriptor, TextureUsage usage);
+    ITextureView* Find(ICommandBuffer* command_buffer,
+                       const TextureDescriptor& descriptor,
+                       const TextureViewDescriptor& view_descriptor,
+                       TextureUsage usage);
 
     void InvalidateMemory(Range<uptr> range);
 
@@ -88,23 +93,25 @@ class TextureCache {
     std::map<uptr, TextureMem> entries;
 
     void MergeMemories(TextureMem& mem, TextureMem& other);
-    TextureBase* AddToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
+    ITextureView* AddToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
+                              const TextureDescriptor& descriptor,
+                              const TextureViewDescriptor& view_descriptor,
+                              TextureUsage usage);
+    ITextureView* GetTexture(ICommandBuffer* command_buffer,
+                             TextureStorage& storage, TextureMem& mem,
                              const TextureDescriptor& descriptor,
+                             const TextureViewDescriptor& view_descriptor,
                              TextureUsage usage);
-    TextureBase* GetTexture(ICommandBuffer* command_buffer, TextureGroup& group,
-                            TextureMem& mem,
-                            const TextureDescriptor& descriptor,
-                            TextureUsage usage);
-    TextureBase* GetTextureView(TextureGroup& group,
-                                const TextureViewDescriptor& descriptor);
-    void Create(ICommandBuffer* command_buffer,
-                const TextureDescriptor& descriptor, TextureGroup& group);
-    void Update(ICommandBuffer* command_buffer, TextureGroup& group,
+    ITextureView* GetTextureView(ICommandBuffer* command_buffer,
+                                 TextureStorage& storage, TextureMem& mem,
+                                 const TextureViewDescriptor& view_descriptor,
+                                 TextureUsage usage);
+    void Update(ICommandBuffer* command_buffer, TextureStorage& storage,
                 TextureMem& mem, TextureUsage usage);
 
     // Helpers
-    u32 GetDataHash(const TextureBase* texture);
-    void DecodeTexture(ICommandBuffer* command_buffer, TextureGroup& group);
+    u32 GetDataHash(const ITexture* texture);
+    void DecodeTexture(ICommandBuffer* command_buffer, TextureStorage& storage);
     // TODO: encode texture
 
   public:

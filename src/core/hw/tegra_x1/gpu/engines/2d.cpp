@@ -1,7 +1,7 @@
 #include "core/hw/tegra_x1/gpu/engines/2d.hpp"
 
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/texture_view.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::engines {
 
@@ -38,16 +38,15 @@ void TwoD::Copy(const u32 index, const u32 pixels_from_memory_src_y0_int) {
 
 #pragma GCC diagnostic pop
 
-renderer::TextureBase* TwoD::GetTexture(const Texture2DInfo& info,
-                                        renderer::TextureUsage usage) {
+renderer::ITextureView* TwoD::GetTexture(const Texture2DInfo& info,
+                                         renderer::TextureUsage usage) {
     // TODO: layer
-    const renderer::TextureDescriptor descriptor(
+    const auto descriptor = renderer::TextureDescriptor::CreateWithLayerSize(
         tls_crnt_gmmu->UnmapAddr(info.addr), renderer::TextureType::_2D,
         renderer::to_texture_format(info.format),
         info.layout == MemoryLayout::Pitch, info.stride, info.width,
-        info.height, 1, 1, info.depth, 0x0, 0x0, 0x0, // HACK
-        renderer::get_texture_format_default_swizzle_channels(
-            renderer::to_texture_format(info.format)));
+        info.height, 1, 1, info.depth, 0x0, 0x0, 0x0 // HACK
+    );
 
     return RENDERER_INSTANCE.GetTextureCache().Find(tls_crnt_command_buffer,
                                                     descriptor, usage);

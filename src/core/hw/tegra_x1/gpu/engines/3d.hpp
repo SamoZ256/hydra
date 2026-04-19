@@ -10,7 +10,7 @@ class DriverBase;
 }
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
-class TextureBase;
+class ITextureView;
 class SamplerBase;
 class RenderPassBase;
 class PipelineBase;
@@ -610,8 +610,9 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
     void BindGroup(const u32 index, const u32 data);
 
     // Helpers
-    renderer::TextureBase* GetColorTargetTexture(u32 render_target_index) const;
-    renderer::TextureBase* GetDepthStencilTargetTexture() const;
+    renderer::ITextureView*
+    GetColorTargetTexture(u32 render_target_index) const;
+    renderer::ITextureView* GetDepthStencilTargetTexture() const;
     renderer::RenderPassBase* GetRenderPass() const;
     renderer::Viewport GetViewport(u32 index);
     renderer::Scissor GetScissor(u32 index);
@@ -619,7 +620,7 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
     renderer::ShaderBase* GetShader(ShaderStage stage);
     renderer::PipelineBase* GetPipeline();
     renderer::BufferView GetVertexBuffer(u32 vertex_array_index) const;
-    renderer::TextureBase* GetTexture(const TextureImageControl& tic) const;
+    renderer::ITextureView* GetTexture(const TextureImageControl& tic) const;
     renderer::SamplerBase* GetSampler(const TextureSamplerControl& tsc) const;
 
     void ConfigureShaderStage(const ShaderStage stage,

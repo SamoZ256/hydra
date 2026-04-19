@@ -1,7 +1,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/metal/render_pass.hpp"
 
 #include "core/hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/metal/texture.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/metal/texture_view.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
@@ -18,7 +18,7 @@ RenderPass::RenderPass(const RenderPassDescriptor& descriptor)
         auto color_attachment =
             render_pass_descriptor->colorAttachments()->object(i);
         color_attachment->setTexture(
-            static_cast<Texture*>(descriptor.color_targets[i].texture)
+            static_cast<TextureView*>(descriptor.color_targets[i].texture)
                 ->GetTexture());
         if (color_target.load_action_clear) {
             color_attachment->setLoadAction(MTL::LoadActionClear);
@@ -43,7 +43,7 @@ RenderPass::RenderPass(const RenderPassDescriptor& descriptor)
         if (format_info.has_depth) {
             auto depth_attachment = render_pass_descriptor->depthAttachment();
             depth_attachment->setTexture(
-                static_cast<Texture*>(depth_stencil_target.texture)
+                static_cast<TextureView*>(depth_stencil_target.texture)
                     ->GetTexture());
             if (depth_stencil_target.load_action_clear &&
                 depth_stencil_target.clear_data.clear_depth) {
@@ -61,7 +61,7 @@ RenderPass::RenderPass(const RenderPassDescriptor& descriptor)
             auto stencil_attachment =
                 render_pass_descriptor->stencilAttachment();
             stencil_attachment->setTexture(
-                static_cast<Texture*>(depth_stencil_target.texture)
+                static_cast<TextureView*>(depth_stencil_target.texture)
                     ->GetTexture());
             if (depth_stencil_target.load_action_clear &&
                 depth_stencil_target.clear_data.clear_stencil) {

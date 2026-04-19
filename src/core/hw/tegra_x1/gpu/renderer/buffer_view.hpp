@@ -29,9 +29,11 @@ struct BufferView {
             size_ = std::min(src.size - src.offset, size - offset);
         base->CopyFrom(command_buffer, src.base, offset, src.offset, size_);
     }
-    void CopyFrom(ICommandBuffer* command_buffer, TextureBase* src,
-                  const uint3 src_origin, const uint3 src_size) {
-        base->CopyFrom(command_buffer, src, src_origin, src_size, offset);
+    void CopyFrom(ICommandBuffer* command_buffer, ITextureView* src,
+                  const uint3 src_origin, const uint3 src_size,
+                  const Range<u32> src_levels, const Range<u32> src_layers) {
+        base->CopyFrom(command_buffer, src, src_origin, src_size, src_levels,
+                       src_layers, offset);
     }
 
   protected:

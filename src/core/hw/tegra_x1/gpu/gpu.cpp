@@ -79,9 +79,9 @@ void Gpu::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
     GetEngineAtSubchannel(subchannel)->Method(method, arg);
 }
 
-renderer::TextureBase* Gpu::GetTexture(renderer::ICommandBuffer* command_buffer,
-                                       cpu::IMmu* mmu,
-                                       const NvGraphicsBuffer& buff) {
+renderer::ITextureView*
+Gpu::GetTexture(renderer::ICommandBuffer* command_buffer, cpu::IMmu* mmu,
+                const NvGraphicsBuffer& buff) {
     std::lock_guard texture_cache_lock(renderer->GetTextureCache().GetMutex());
 
     const auto& plane = buff.planes[0];
@@ -95,7 +95,7 @@ renderer::TextureBase* Gpu::GetTexture(renderer::ICommandBuffer* command_buffer,
         (plane.kind == NvKind::Pitch || plane.kind == NvKind::PitchNoSwizzle);
 
     // TODO: why are there more planes?
-    renderer::TextureDescriptor descriptor(
+    const auto descriptor = renderer::TextureDescriptor::CreateWithLayerSize(
         mmu->UnmapAddr(GetMap(static_cast<u32>(buff.nvmap_id)).addr +
                        plane.offset),
         renderer::TextureType::_2D,

@@ -3,7 +3,6 @@
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/tegra_x1/gpu/memory_util.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::engines {
 

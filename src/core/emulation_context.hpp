@@ -11,6 +11,13 @@ namespace horizon::loader {
 class LoaderBase;
 }
 
+struct CombinedTextureView {
+    hw::tegra_x1::gpu::renderer::ITexture* base;
+    hw::tegra_x1::gpu::renderer::ITextureView* view;
+
+    ~CombinedTextureView();
+};
+
 class EmulationContext {
     using clock_t = std::chrono::steady_clock;
 
@@ -50,9 +57,8 @@ class EmulationContext {
     horizon::OS* os;
 
     // Loading screen assets
-    hw::tegra_x1::gpu::renderer::TextureBase* nintendo_logo{nullptr};
-    std::vector<hw::tegra_x1::gpu::renderer::TextureBase*>
-        startup_movie; // TODO: texture array?
+    std::optional<CombinedTextureView> nintendo_logo{};
+    std::vector<CombinedTextureView> startup_movie; // TODO: texture array?
     std::vector<std::chrono::milliseconds> startup_movie_delays;
     clock_t::time_point next_startup_movie_frame_time;
     clock_t::time_point startup_movie_fade_in_time;
