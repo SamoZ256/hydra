@@ -45,8 +45,7 @@ class HashCode {
     }
 
     template <typename T>
-    typename std::enable_if<std::is_trivially_copyable<T>::value>::type
-    Add(const T& value) {
+    void Add(const T& value) requires std::is_trivially_copyable_v<T> {
         const u8* bytes = reinterpret_cast<const u8*>(&value);
         for (usize i = 0; i < sizeof(T); ++i)
             Add(static_cast<u32>(bytes[i]));
