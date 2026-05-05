@@ -171,8 +171,8 @@ class LinkedList {
         }
     }
 
-    typename std::enable_if<is_doubly_linked, void>::type
-    Remove(const T& target) {
+    
+    void Remove(const T& target) requires is_doubly_linked {
         ASSERT_THROWING_DEBUG(target, Common, Error::InvalidNode,
                               "Invalid node");
 

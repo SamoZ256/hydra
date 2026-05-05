@@ -67,44 +67,43 @@ template <>
 inline constexpr bool atomic_supported_size<u128> = true;
 
 template <typename T>
-using enable_atomic_t = std::enable_if_t<
-    std::is_trivially_copyable_v<T> && atomic_supported_size<T>, int>;
+concept valid_atomic = std::is_trivially_copyable_v<T> and atomic_supported_size<T>;
 
-template <typename T, enable_atomic_t<T> = 0>
+template <valid_atomic T>
 void atomic_store(T* ptr, T value) {
     __atomic_store_n(ptr, value, __ATOMIC_SEQ_CST);
 }
 
-template <typename T, enable_atomic_t<T> = 0>
+template <valid_atomic T>
 T atomic_load(T* ptr) {
     return __atomic_load_n(ptr, __ATOMIC_SEQ_CST);
 }
 
-template <typename T, enable_atomic_t<T> = 0>
+template <valid_atomic T>
 T atomic_exchange(T* ptr, T value) {
     return __atomic_exchange_n(ptr, value, __ATOMIC_SEQ_CST);
 }
 
-template <typename T, enable_atomic_t<T> = 0>
+template <valid_atomic T>
 bool atomic_compare_exchange_weak(T* ptr, T& expected, T desired) {
     return __atomic_compare_exchange_n(ptr, &expected, desired,
                                        /* weak = */ true, __ATOMIC_SEQ_CST,
                                        __ATOMIC_SEQ_CST);
 }
 
-template <typename T, enable_atomic_t<T> = 0>
+template <valid_atomic T>
 bool atomic_compare_exchange_strong(T* ptr, T& expected, T desired) {
     return __atomic_compare_exchange_n(ptr, &expected, desired,
                                        /* weak = */ false, __ATOMIC_SEQ_CST,
                                        __ATOMIC_SEQ_CST);
 }
 
-template <typename T, enable_atomic_t<T> = 0>
+template <valid_atomic T>
 T atomic_fetch_add(T* ptr, T value) {
     return __atomic_fetch_add(ptr, value, __ATOMIC_SEQ_CST);
 }
 
-template <typename T, enable_atomic_t<T> = 0>
+template <valid_atomic T>
 T atomic_fetch_sub(T* ptr, T value) {
     return __atomic_fetch_sub(ptr, value, __ATOMIC_SEQ_CST);
 }
