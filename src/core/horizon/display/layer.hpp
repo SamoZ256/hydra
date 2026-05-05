@@ -3,7 +3,7 @@
 #include "core/horizon/display/binder.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
-class TextureBase;
+class ITextureView;
 class ICommandBuffer;
 class ISurfaceCompositor;
 } // namespace hydra::hw::tegra_x1::gpu::renderer
@@ -40,7 +40,7 @@ class Layer {
     i64 z{0};
 
     // Present
-    hw::tegra_x1::gpu::renderer::TextureBase* present_texture{nullptr};
+    hw::tegra_x1::gpu::renderer::ITextureView* present_texture{nullptr};
     IntRect2D src_rect;
 
   public:

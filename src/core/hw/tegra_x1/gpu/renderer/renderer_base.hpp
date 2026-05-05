@@ -13,7 +13,8 @@ namespace hydra::hw::tegra_x1::gpu::renderer {
 
 class ICommandBuffer;
 class ISurfaceCompositor;
-class TextureBase;
+class ITexture;
+class ITextureView;
 class SamplerBase;
 class RenderPassBase;
 class PipelineBase;
@@ -52,7 +53,7 @@ class RendererBase {
     virtual void FreeTemporaryBuffer(BufferBase* buffer) = 0;
 
     // Texture
-    virtual TextureBase* CreateTexture(const TextureDescriptor& descriptor) = 0;
+    virtual ITexture* CreateTexture(const TextureDescriptor& descriptor) = 0;
 
     // Sampler
     virtual SamplerBase* CreateSampler(const SamplerDescriptor& descriptor) = 0;
@@ -93,7 +94,7 @@ class RendererBase {
     virtual void BindUniformBuffer(const BufferView& buffer,
                                    ShaderType shader_type, u32 index) = 0;
     // TODO: storage buffers
-    virtual void BindTexture(TextureBase* texture, SamplerBase* sampler,
+    virtual void BindTexture(ITextureView* texture, SamplerBase* sampler,
                              ShaderType shader_type, u32 index) = 0;
     // TODO: images
 

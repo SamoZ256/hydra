@@ -77,6 +77,9 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/debugger/DebuggerView.swift
         swiftui/debugger/DebuggerListView.swift
         swiftui/debugger/DebuggersView.swift
+        swiftui/texture_viewer/TextureViewer.swift
+        swiftui/texture_viewer/TextureListView.swift
+        swiftui/texture_viewer/TextureView.swift
     )
 
     if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")

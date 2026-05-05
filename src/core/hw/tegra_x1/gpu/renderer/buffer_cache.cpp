@@ -48,7 +48,7 @@ void BufferCache::InvalidateMemory(Range<uptr> range) {
                 entry.invalidation_range =
                     entry.invalidation_range.value().Union(invalidation_range);
             } else {
-                // Clamp the range
+                // Set the range directly
                 entry.invalidation_range = invalidation_range;
             }
         }

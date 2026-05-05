@@ -4,7 +4,7 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
-class TextureBase;
+class ITextureView;
 class ShaderBase;
 
 enum class TextureType {
@@ -152,6 +152,15 @@ enum class TextureFormat {
     ETC2_RGBA_sRGB,
 };
 
+struct TextureFormatInfo {
+    u32 bytes_per_block;
+    u32 block_width;
+    u32 block_height;
+    bool is_depth_stencil;
+};
+
+const TextureFormatInfo& GetTextureFormatInfo(TextureFormat format);
+
 TextureFormat to_texture_format(NvColorFormat color_format);
 TextureFormat to_texture_format(const ImageFormatWord image_format_word,
                                 bool is_srgb);
@@ -200,60 +209,113 @@ struct SwizzleChannels {
     }
 };
 
-SwizzleChannels
-get_texture_format_default_swizzle_channels(const TextureFormat format);
-
 struct TextureDescriptor {
     uptr ptr;
     TextureType type;
     TextureFormat format;
-    NvKind kind;
+    bool is_linear;
+    u32 linear_stride;
     u32 width;
     u32 height;
     u32 depth;
+    u32 level_count;
+    u32 layer_count;
+    u32 block_width_log2;
     u32 block_height_log2;
-    u32 stride;
-    SwizzleChannels swizzle_channels;
-    // TODO: more
+    u32 block_depth_log2;
+    u32 layer_size;
 
-    TextureDescriptor(const uptr ptr_, const TextureType type_,
-                      const TextureFormat format_, const NvKind kind_,
-                      const u32 width_, const u32 height_, const u32 depth_,
-                      const u32 block_height_log2_, const u32 stride_,
-                      const SwizzleChannels& swizzle_channels_)
-        : ptr{ptr_}, type{type_}, format{format_}, kind{kind_}, width{width_},
-          height{height_}, depth{depth_}, block_height_log2{block_height_log2_},
-          stride{stride_}, swizzle_channels{swizzle_channels_} {}
+    static TextureDescriptor
+    CreateWithLevelCount(uptr ptr, TextureType type, TextureFormat format,
+                         bool is_linear, u32 linear_stride, u32 width,
+                         u32 height, u32 depth, u32 level_count,
+                         u32 layer_count, u32 block_width_log2,
+                         u32 block_height_log2, u32 block_depth_log2) {
+        TextureDescriptor d;
+        d.ptr = ptr;
+        d.type = type;
+        d.format = format;
+        d.is_linear = is_linear;
+        d.linear_stride = linear_stride;
+        d.width = width;
+        d.height = height;
+        d.depth = depth;
+        d.level_count = level_count;
+        d.layer_count = layer_count;
+        d.block_width_log2 = block_width_log2;
+        d.block_height_log2 = block_height_log2;
+        d.block_depth_log2 = block_depth_log2;
 
-    TextureDescriptor(const uptr ptr_, const TextureType type_,
-                      const TextureFormat format_, const NvKind kind_,
-                      const u32 width_, const u32 height_, const u32 depth_,
-                      const u32 block_height_log2_, const u32 stride_)
-        : TextureDescriptor(
-              ptr_, type_, format_, kind_, width_, height_, depth_,
-              block_height_log2_, stride_,
-              get_texture_format_default_swizzle_channels(format_)) {}
+        d.CalculateLayerSize();
+        return d;
+    }
 
-    u64 GetLayerSizeInBytes() const { return height * stride; }
-    u64 GetSizeInBytes() const { return depth * GetLayerSizeInBytes(); }
+    static TextureDescriptor
+    CreateWithLayerSize(uptr ptr, TextureType type, TextureFormat format,
+                        bool is_linear, u32 linear_stride, u32 width,
+                        u32 height, u32 depth, u32 layer_count,
+                        u32 block_width_log2, u32 block_height_log2,
+                        u32 block_depth_log2, u32 layer_size = 0) {
+        TextureDescriptor d;
+        d.ptr = ptr;
+        d.type = type;
+        d.format = format;
+        d.is_linear = is_linear;
+        d.linear_stride = linear_stride;
+        d.width = width;
+        d.height = height;
+        d.depth = depth;
+        d.layer_count = layer_count;
+        d.block_width_log2 = block_width_log2;
+        d.block_height_log2 = block_height_log2;
+        d.block_depth_log2 = block_depth_log2;
+        d.layer_size = layer_size;
+
+        d.CalculateLevelCount();
+        if (layer_size == 0)
+            d.CalculateLayerSize();
+
+        return d;
+    }
+
+    u32 GetSize() const { return layer_count * layer_size; }
     Range<uptr> GetRange() const {
-        return Range<uptr>::FromSize(ptr, GetSizeInBytes());
+        return Range<uptr>::FromSize(ptr, GetSize());
     }
 
     u32 GetHash() const;
+
+  private:
+    TextureDescriptor() = default;
+
+    void CalculateLayerSize() {
+        // HACK
+        if (is_linear) {
+            layer_size = depth * align(height, 16u) * linear_stride;
+        } else {
+            layer_size = depth * align(height, 16u) *
+                         align(get_texture_format_stride(format, width), 64u);
+        }
+    }
+
+    void CalculateLevelCount() {
+        // HACK
+        level_count = 1;
+    }
 };
 
 struct TextureViewDescriptor {
+    TextureType type;
     TextureFormat format;
-    SwizzleChannels swizzle_channels;
     Range<u32> levels;
     Range<u32> layers;
+    SwizzleChannels swizzle_channels;
 
-    TextureViewDescriptor(TextureFormat format_,
-                          SwizzleChannels swizzle_channels_, Range<u32> levels_,
-                          Range<u32> layers_)
-        : format{format_}, swizzle_channels{swizzle_channels_}, levels{levels_},
-          layers{layers_} {}
+    TextureViewDescriptor(TextureType type_, TextureFormat format_,
+                          Range<u32> levels_, Range<u32> layers_,
+                          SwizzleChannels swizzle_channels_ = SwizzleChannels())
+        : type{type_}, format{format_}, levels{levels_}, layers{layers_},
+          swizzle_channels{swizzle_channels_} {}
 
     u32 GetHash() const;
 };
@@ -323,7 +385,7 @@ enum class BlendFactor {
 };
 
 struct RenderTargetDescriptor {
-    TextureBase* texture;
+    ITextureView* texture;
     bool load_action_clear = false;
     union {
         float color[4];

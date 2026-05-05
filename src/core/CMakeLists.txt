@@ -554,9 +554,9 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/buffer_view.hpp
     hw/tegra_x1/gpu/renderer/buffer_cache.cpp
     hw/tegra_x1/gpu/renderer/buffer_cache.hpp
-    hw/tegra_x1/gpu/renderer/texture_base.hpp
-    hw/tegra_x1/gpu/renderer/texture_decoder.cpp
-    hw/tegra_x1/gpu/renderer/texture_decoder.hpp
+    hw/tegra_x1/gpu/renderer/texture.hpp
+    hw/tegra_x1/gpu/renderer/texture_view.cpp
+    hw/tegra_x1/gpu/renderer/texture_view.hpp
     hw/tegra_x1/gpu/renderer/texture_cache.cpp
     hw/tegra_x1/gpu/renderer/texture_cache.hpp
     hw/tegra_x1/gpu/renderer/sampler_base.hpp
@@ -586,6 +586,8 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/metal/buffer.hpp
     hw/tegra_x1/gpu/renderer/metal/texture.cpp
     hw/tegra_x1/gpu/renderer/metal/texture.hpp
+    hw/tegra_x1/gpu/renderer/metal/texture_view.cpp
+    hw/tegra_x1/gpu/renderer/metal/texture_view.hpp
     hw/tegra_x1/gpu/renderer/metal/sampler.cpp
     hw/tegra_x1/gpu/renderer/metal/sampler.hpp
     hw/tegra_x1/gpu/renderer/metal/render_pass.cpp

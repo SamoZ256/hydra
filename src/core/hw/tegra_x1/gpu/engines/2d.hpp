@@ -4,7 +4,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/const.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
-class TextureBase;
+class ITextureView;
 }
 
 namespace hydra::hw::tegra_x1::gpu::engines {
@@ -78,8 +78,8 @@ class TwoD : public EngineWithRegsBase<Regs2D> {
     void Copy(const u32 index, const u32 pixels_from_memory_src_y0_int);
 
     // Helpers
-    static renderer::TextureBase* GetTexture(const Texture2DInfo& info,
-                                             renderer::TextureUsage usage);
+    static renderer::ITextureView* GetTexture(const Texture2DInfo& info,
+                                              renderer::TextureUsage usage);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::engines

@@ -12,6 +12,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/metal/shader.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/surface_compositor.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/texture.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/metal/texture_view.hpp"
 
 // TODO: define in a separate file
 /*
@@ -126,7 +127,7 @@ void Renderer::FreeTemporaryBuffer(BufferBase* buffer) {
     delete buffer_impl;
 }
 
-TextureBase* Renderer::CreateTexture(const TextureDescriptor& descriptor) {
+ITexture* Renderer::CreateTexture(const TextureDescriptor& descriptor) {
     return new Texture(descriptor);
 }
 
@@ -151,9 +152,10 @@ void Renderer::ClearColor(ICommandBuffer* command_buffer, u32 render_target_id,
                           u32 layer, u8 mask, const uint4 color) {
     const auto command_buffer_impl =
         static_cast<CommandBuffer*>(command_buffer);
-    auto texture = static_cast<Texture*>(state.render_pass->GetDescriptor()
-                                             .color_targets[render_target_id]
-                                             .texture);
+    auto texture =
+        static_cast<TextureView*>(state.render_pass->GetDescriptor()
+                                      .color_targets[render_target_id]
+                                      .texture);
 
     // HACK
     if (!texture) {
@@ -170,7 +172,8 @@ void Renderer::ClearColor(ICommandBuffer* command_buffer, u32 render_target_id,
 
     command_buffer_impl->SetRenderPipelineState(
         clear_color_pipeline_cache->Find(
-            {texture->GetPixelFormat(), render_target_id, mask}));
+            {to_mtl_pixel_format(texture->GetDescriptor().format),
+             render_target_id, mask}));
     // TODO: set viewport and scissor
     encoder->setVertexBytes(&render_target_id, sizeof(render_target_id), 0);
     encoder->setFragmentBytes(&color, sizeof(color), 0);
@@ -182,7 +185,7 @@ void Renderer::ClearDepth(ICommandBuffer* command_buffer, u32 layer,
                           const float value) {
     const auto command_buffer_impl =
         static_cast<CommandBuffer*>(command_buffer);
-    auto texture = static_cast<Texture*>(
+    auto texture = static_cast<TextureView*>(
         state.render_pass->GetDescriptor().depth_stencil_target.texture);
 
     // HACK
@@ -202,7 +205,8 @@ void Renderer::ClearDepth(ICommandBuffer* command_buffer, u32 layer,
     auto encoder = GetRenderCommandEncoder(command_buffer_impl);
 
     command_buffer_impl->SetRenderPipelineState(
-        clear_depth_pipeline_cache->Find(texture->GetPixelFormat()));
+        clear_depth_pipeline_cache->Find(
+            to_mtl_pixel_format(texture->GetDescriptor().format)));
     command_buffer_impl->SetDepthStencilState(
         depth_stencil_state_always_and_write);
     // TODO: set viewport and scissor
@@ -261,14 +265,14 @@ void Renderer::BindUniformBuffer(const BufferView& buffer,
     state.uniform_buffers[u32(shader_type)][index] = buffer;
 }
 
-void Renderer::BindTexture(TextureBase* texture, SamplerBase* sampler,
+void Renderer::BindTexture(ITextureView* texture, SamplerBase* sampler,
                            ShaderType shader_type, u32 index) {
     // HACK
     if (shader_type == ShaderType::Count)
         return;
 
-    state.textures[u32(shader_type)][index] = {static_cast<Texture*>(texture),
-                                               static_cast<Sampler*>(sampler)};
+    state.textures[u32(shader_type)][index] = {
+        static_cast<TextureView*>(texture), static_cast<Sampler*>(sampler)};
 }
 
 void Renderer::UnbindUniformBuffers(ShaderType shader_type) {
@@ -391,9 +395,9 @@ void Renderer::SetUniformBuffer(CommandBuffer* command_buffer,
 void Renderer::SetTexture(CommandBuffer* command_buffer, ShaderType shader_type,
                           u32 index) {
     const auto texture = state.textures[u32(shader_type)][index];
-    if (texture.texture)
-        command_buffer->SetTexture(texture.texture->GetTexture(), shader_type,
-                                   index);
+    if (texture.texture_view)
+        command_buffer->SetTexture(texture.texture_view->GetTexture(),
+                                   shader_type, index);
     if (texture.sampler)
         command_buffer->SetSampler(texture.sampler->GetSampler(), shader_type,
                                    index);

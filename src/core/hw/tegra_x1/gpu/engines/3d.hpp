@@ -10,7 +10,7 @@ class DriverBase;
 }
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
-class TextureBase;
+class ITextureView;
 class SamplerBase;
 class RenderPassBase;
 class PipelineBase;
@@ -154,7 +154,7 @@ struct TextureSamplerControl {
 
 struct RenderTarget {
     Iova addr;
-    u32 width;
+    u32 width_or_stride;
     u32 height;
     ColorSurfaceFormat format;
     struct {
@@ -169,7 +169,7 @@ struct RenderTarget {
         u16 layers;
         bool volume : 1; // TODO: what is this?
     } array_mode;
-    u32 array_pitch;
+    u32 layer_stride;
     u32 base_layer;
     u32 mark; // TODO: what is this?
     u32 padding[6];
@@ -610,8 +610,9 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
     void BindGroup(const u32 index, const u32 data);
 
     // Helpers
-    renderer::TextureBase* GetColorTargetTexture(u32 render_target_index) const;
-    renderer::TextureBase* GetDepthStencilTargetTexture() const;
+    renderer::ITextureView*
+    GetColorTargetTexture(u32 render_target_index) const;
+    renderer::ITextureView* GetDepthStencilTargetTexture() const;
     renderer::RenderPassBase* GetRenderPass() const;
     renderer::Viewport GetViewport(u32 index);
     renderer::Scissor GetScissor(u32 index);
@@ -619,7 +620,7 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
     renderer::ShaderBase* GetShader(ShaderStage stage);
     renderer::PipelineBase* GetPipeline();
     renderer::BufferView GetVertexBuffer(u32 vertex_array_index) const;
-    renderer::TextureBase* GetTexture(const TextureImageControl& tic) const;
+    renderer::ITextureView* GetTexture(const TextureImageControl& tic) const;
     renderer::SamplerBase* GetSampler(const TextureSamplerControl& tsc) const;
 
     void ConfigureShaderStage(const ShaderStage stage,

@@ -4,6 +4,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/metal/command_buffer.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/texture.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/metal/texture_view.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
@@ -22,12 +23,12 @@ SurfaceCompositor::SurfaceCompositor(CA::MetalDrawable* drawable_)
 SurfaceCompositor::~SurfaceCompositor() { render_pass_descriptor->release(); }
 
 void SurfaceCompositor::DrawTexture(ICommandBuffer* command_buffer,
-                                    const TextureBase* texture,
+                                    const ITextureView* texture,
                                     const FloatRect2D src_rect,
                                     const FloatRect2D dst_rect,
                                     bool transparent, f32 opacity) {
     auto command_buffer_impl = static_cast<CommandBuffer*>(command_buffer);
-    auto texture_impl = static_cast<const Texture*>(texture);
+    auto texture_impl = static_cast<const TextureView*>(texture);
 
     auto encoder =
         command_buffer_impl->GetRenderCommandEncoder(render_pass_descriptor);
@@ -44,8 +45,9 @@ void SurfaceCompositor::DrawTexture(ICommandBuffer* command_buffer,
     encoder->setVertexBytes(&zero, sizeof(zero), 0);
 
     // Src rect
-    const auto src_width = texture->GetDescriptor().width;
-    const auto src_height = texture->GetDescriptor().height;
+    const auto& descriptor = texture->GetBase()->GetDescriptor();
+    const auto src_width = descriptor.width;
+    const auto src_height = descriptor.height;
     BlitParams params = {
         .src_offset = {src_rect.origin.x() / src_width,
                        src_rect.origin.y() / src_height},

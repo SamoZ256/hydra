@@ -14,13 +14,13 @@ namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 class CommandBuffer;
 class Buffer;
-class Texture;
+class TextureView;
 class Sampler;
 class RenderPass;
 class Pipeline;
 
 struct CombinedTextureSampler {
-    const Texture* texture{nullptr};
+    const TextureView* texture_view{nullptr};
     const Sampler* sampler{nullptr};
 };
 
@@ -58,7 +58,7 @@ class Renderer : public RendererBase {
     void FreeTemporaryBuffer(BufferBase* buffer) override;
 
     // Texture
-    TextureBase* CreateTexture(const TextureDescriptor& descriptor) override;
+    ITexture* CreateTexture(const TextureDescriptor& descriptor) override;
 
     // Sampler
     SamplerBase* CreateSampler(const SamplerDescriptor& descriptor) override;
@@ -96,7 +96,7 @@ class Renderer : public RendererBase {
                          engines::IndexType index_type) override;
     void BindUniformBuffer(const BufferView& buffer, ShaderType shader_type,
                            u32 index) override;
-    void BindTexture(TextureBase* texture, SamplerBase* sampler,
+    void BindTexture(ITextureView* texture, SamplerBase* sampler,
                      ShaderType shader_type, u32 index) override;
 
     // Resource unbinding

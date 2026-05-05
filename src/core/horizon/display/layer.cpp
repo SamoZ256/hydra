@@ -4,7 +4,8 @@
 #include "core/horizon/os.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/surface_compositor.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/texture.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/texture_view.hpp"
 
 namespace hydra::horizon::display {
 
@@ -34,12 +35,12 @@ bool Layer::AcquirePresentTexture(
     // HACK
     if (src_rect.size.x() == 0) {
         src_rect.size.x() =
-            static_cast<i32>(present_texture->GetDescriptor().width);
+            static_cast<i32>(present_texture->GetBase()->GetDescriptor().width);
         ONCE(LOG_WARN(Other, "Invalid src width"));
     }
     if (src_rect.size.y() == 0) {
-        src_rect.size.y() =
-            static_cast<i32>(present_texture->GetDescriptor().height);
+        src_rect.size.y() = static_cast<i32>(
+            present_texture->GetBase()->GetDescriptor().height);
         ONCE(LOG_WARN(Other, "Invalid src height"));
     }
 

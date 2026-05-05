@@ -1,7 +1,7 @@
 #include "core/hw/tegra_x1/gpu/engines/2d.hpp"
 
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/texture_view.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::engines {
 
@@ -28,28 +28,24 @@ void TwoD::Copy(const u32 index, const u32 pixels_from_memory_src_y0_int) {
     const auto src_height = static_cast<u32>(pixels.dst_height * dvdy);
 
     dst->BlitFrom(tls_crnt_command_buffer, src,
-                  {static_cast<f32>(src_x0), static_cast<f32>(src_y0),
-                   static_cast<f32>(regs.src.layer)},
-                  {src_width, src_height, 1},
+                  {static_cast<f32>(src_x0), static_cast<f32>(src_y0), 0.0f},
+                  {src_width, src_height, 1}, 0, regs.src.layer,
                   {static_cast<f32>(pixels.dst_x0),
-                   static_cast<f32>(pixels.dst_y0),
-                   static_cast<f32>(regs.dst.layer)},
-                  {pixels.dst_width, pixels.dst_height, 1});
+                   static_cast<f32>(pixels.dst_y0), 0.0f},
+                  {pixels.dst_width, pixels.dst_height, 1}, 0, regs.dst.layer,
+                  1, 1);
 }
 
 #pragma GCC diagnostic pop
 
-renderer::TextureBase* TwoD::GetTexture(const Texture2DInfo& info,
-                                        renderer::TextureUsage usage) {
-    const renderer::TextureDescriptor descriptor(
+renderer::ITextureView* TwoD::GetTexture(const Texture2DInfo& info,
+                                         renderer::TextureUsage usage) {
+    // TODO: layer
+    const auto descriptor = renderer::TextureDescriptor::CreateWithLayerSize(
         tls_crnt_gmmu->UnmapAddr(info.addr), renderer::TextureType::_2D,
         renderer::to_texture_format(info.format),
-        NvKind::Pitch, // TODO: correct?
-        u32(info.width), u32(info.height), 1,
-        0, // HACK
-           /*u32(info.stride)*/
-        renderer::get_texture_format_stride(
-            renderer::to_texture_format(info.format), info.width) // HACK
+        info.layout == MemoryLayout::Pitch, info.stride, info.width,
+        info.height, 1, 1, info.depth, 0x0, 0x0, 0x0 // HACK
     );
 
     return RENDERER_INSTANCE.GetTextureCache().Find(tls_crnt_command_buffer,
