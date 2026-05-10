@@ -5,6 +5,7 @@
 #include <dynarmic/interface/exclusive_monitor.h>
 
 #include "core/hw/tegra_x1/cpu/dynarmic/mmu.hpp"
+#include "core/hw/wall_clock.hpp"
 #include "dynarmic/interface/optimization_flags.h"
 
 ENABLE_ENUM_FORMATTING(Dynarmic::A64::Exception, UnallocatedEncoding,
@@ -43,7 +44,7 @@ Thread::Thread(IMmu* mmu, const ThreadCallbacks& callbacks, IMemory* tls_mem,
     config.tpidr_el0 = &tpidr_el0; // TODO: what is this?
     config.dczid_el0 = 4;
     config.ctr_el0 = 0x8444c004;
-    config.cntfrq_el0 = CLOCK_RATE_HZ;
+    config.cntfrq_el0 = GUEST_CNTFRQ;
 
     // Unpredictable instructions
     config.define_unpredictable_behaviour = true;
@@ -166,7 +167,7 @@ void Thread::ExceptionRaised([[maybe_unused]] u64 pc,
     jit->HaltExecution();
 }
 
-u64 Thread::GetCNTPCT() { return get_absolute_time(); }
+u64 Thread::GetCNTPCT() { return WallClock::GetInstance().GetCntpct(); }
 
 void Thread::SerializeState() {
     for (u32 i = 0; i < 29; i++)

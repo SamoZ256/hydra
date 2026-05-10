@@ -219,10 +219,7 @@ void UserManager::Serialize(uuid_t user_id) {
     }
     ofs.close();
 
-    user_pair.second = static_cast<u64>(
-        std::chrono::duration_cast<std::chrono::seconds>(
-            std::chrono::system_clock::now().time_since_epoch())
-            .count());
+    user_pair.second = GetTimestamp();
 }
 
 void UserManager::Deserialize(uuid_t user_id) {

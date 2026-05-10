@@ -2,6 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 #include "core/hw/tegra_x1/cpu/const.hpp"
+#include "core/hw/wall_clock.hpp"
 
 namespace hydra::horizon::services::pcv {
 
@@ -105,8 +106,8 @@ class IPcvService : public IService {
 
   private:
     // TODO: other clock rates
-    u32 clock_rates[(u32)ModuleId::Count] = {hw::tegra_x1::cpu::CLOCK_RATE_HZ,
-                                             0};
+    u32 clock_rates[(u32)ModuleId::Count] = {hw::GUEST_CNTFRQ,
+                                             hw::GPU_TICK_FREQ};
 
     // Commands
     result_t SetClockRate(ModuleId module_id, u32 rate);

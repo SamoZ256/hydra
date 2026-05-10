@@ -1,5 +1,7 @@
 #include "core/horizon/services/nvdrv/ioctl/nvhost_ctrl_gpu.hpp"
 
+#include "core/hw/wall_clock.hpp"
+
 namespace hydra::horizon::services::nvdrv::ioctl {
 
 DEFINE_IOCTL_TABLE(NvHostCtrlGpu,
@@ -159,8 +161,7 @@ NvResult NvHostCtrlGpu::PmuGetGpuLoad(u32* out_load) {
 
 NvResult NvHostCtrlGpu::GetGpuTime(u64* out_timestamp,
                                    [[maybe_unused]] u64* _out_reserved) {
-    // TODO: is it okay to just return Mmu time?
-    *out_timestamp = get_absolute_time();
+    *out_timestamp = hw::WallClock::GetInstance().GetGpuTick();
     return NvResult::Success;
 }
 

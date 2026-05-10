@@ -441,6 +441,8 @@ add_library(hydra-core
     audio/null/stream.hpp
     audio/null/core.cpp
     audio/null/core.hpp
+    hw/wall_clock.cpp
+    hw/wall_clock.hpp
     hw/generic_mmu.hpp
     hw/tegra_x1/cpu/const.hpp
     hw/tegra_x1/cpu/memory.hpp

@@ -6,6 +6,13 @@ namespace hydra::horizon::services::account::internal {
 
 constexpr uuid_t INVALID_USER_ID = 0x0;
 
+inline u64 GetTimestamp() {
+    return static_cast<u64>(
+        std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::system_clock::now().time_since_epoch())
+            .count());
+}
+
 class User {
     friend class UserManager;
 
@@ -66,7 +73,7 @@ class User {
     std::string avatar_path;
 
     // Helpers
-    void NotifyEdit() { base.last_edit_timestamp = get_absolute_time(); }
+    void NotifyEdit() { base.last_edit_timestamp = GetTimestamp(); }
 
   public:
     CONST_REF_GETTER(base, GetBase);

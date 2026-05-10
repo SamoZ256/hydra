@@ -12,6 +12,7 @@
 #include "core/hw/tegra_x1/cpu/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
 #include "core/hw/tegra_x1/cpu/thread.hpp"
+#include "core/hw/wall_clock.hpp"
 
 namespace hydra::horizon::kernel {
 
@@ -855,7 +856,7 @@ result_t Kernel::SignalProcessWideKey(Process* crnt_process, uptr addr,
 void Kernel::GetSystemTick(u64& out_tick) {
     LOG_DEBUG(Kernel, "GetSystemTick called");
 
-    out_tick = get_absolute_time();
+    out_tick = hw::WallClock::GetInstance().GetCntpct(); // TODO: correct?
 }
 
 result_t Kernel::ConnectToNamedPort(const std::string_view name,

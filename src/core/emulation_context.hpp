@@ -4,6 +4,7 @@
 #include "core/horizon/os.hpp"
 #include "core/hw/tegra_x1/cpu/cpu.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
+#include "core/hw/wall_clock.hpp"
 
 namespace hydra {
 
@@ -44,6 +45,7 @@ class EmulationContext {
 
   private:
     // Objects
+    hw::WallClock wall_clock;
     hw::tegra_x1::cpu::ICpu* cpu;
     hw::tegra_x1::gpu::Gpu* gpu;
     audio::ICore* audio_core;
