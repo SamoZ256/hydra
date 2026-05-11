@@ -67,7 +67,7 @@ ClearDepthPipelineCache::Create(MTL::PixelFormat pixel_format) {
 }
 
 u32 ClearDepthPipelineCache::Hash(MTL::PixelFormat pixel_format) {
-    return (u32)pixel_format;
+    return static_cast<u32>(pixel_format);
 }
 
 void ClearDepthPipelineCache::DestroyElement(
