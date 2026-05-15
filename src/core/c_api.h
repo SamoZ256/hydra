@@ -301,29 +301,28 @@ hydra_string hydra_user_get_avatar_path(void* user);
 void hydra_user_set_avatar_path(void* user, hydra_string path);
 
 // Emulation context
-void* hydra_create_emulation_context();
-void hydra_emulation_context_destroy(void* ctx);
+void* hydra_create_system();
+void hydra_system_destroy(void* ctx);
 
-void hydra_emulation_context_set_surface(void* ctx, void* surface);
+void hydra_system_set_surface(void* ctx, void* surface);
 
-void hydra_emulation_context_load_and_start(void* ctx, void* loader);
-void hydra_emulation_context_request_stop(void* ctx);
-void hydra_emulation_context_force_stop(void* ctx);
+void hydra_system_load_and_start(void* ctx, void* loader);
+void hydra_system_request_stop(void* ctx);
+void hydra_system_force_stop(void* ctx);
 
-void hydra_emulation_context_pause(void* ctx);
-void hydra_emulation_context_resume(void* ctx);
+void hydra_system_pause(void* ctx);
+void hydra_system_resume(void* ctx);
 
-void hydra_emulation_context_notify_operation_mode_changed(void* ctx);
+void hydra_system_notify_operation_mode_changed(void* ctx);
 
-void hydra_emulation_context_progress_frame(void* ctx, uint32_t width,
-                                            uint32_t height,
-                                            bool* out_dt_average_updated);
+void hydra_system_progress_frame(void* ctx, uint32_t width, uint32_t height,
+                                 bool* out_dt_average_updated);
 
-bool hydra_emulation_context_is_running(void* ctx);
-float hydra_emulation_context_get_last_delta_time_average(void* ctx);
+bool hydra_system_is_running(void* ctx);
+float hydra_system_get_last_delta_time_average(void* ctx);
 
-void hydra_emulation_context_take_screenshot(void* ctx);
-void hydra_emulation_context_capture_gpu_frame(void* ctx);
+void hydra_system_take_screenshot(void* ctx);
+void hydra_system_capture_gpu_frame(void* ctx);
 
 // Input
 // TODO

@@ -1,7 +1,6 @@
 #include "core/c_api.h"
 
 #include "core/debugger/debugger_manager.hpp"
-#include "core/emulation_context.hpp"
 #include "core/horizon/filesystem/content_archive.hpp"
 #include "core/horizon/filesystem/disk_file.hpp"
 #include "core/horizon/firmware.hpp"
@@ -10,6 +9,7 @@
 #include "core/horizon/ui/handler_base.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture.hpp"
+#include "core/system.hpp"
 
 #define HYDRA_EXPORT extern "C" __attribute__((visibility("default")))
 
@@ -733,70 +733,65 @@ class UiHandler : public hydra::horizon::ui::IHandler {
     }
 };
 
-HYDRA_EXPORT void* hydra_create_emulation_context() {
-    return new hydra::EmulationContext(*(new UiHandler()));
+HYDRA_EXPORT void* hydra_create_system() {
+    return new hydra::System(*(new UiHandler()));
 }
 
-HYDRA_EXPORT void hydra_emulation_context_destroy(void* ctx) {
+HYDRA_EXPORT void hydra_system_destroy(void* ctx) {
     // TODO: also destroy the UI handler
-    delete reinterpret_cast<hydra::EmulationContext*>(ctx);
+    delete reinterpret_cast<hydra::System*>(ctx);
 }
 
-HYDRA_EXPORT void hydra_emulation_context_set_surface(void* ctx,
-                                                      void* surface) {
-    reinterpret_cast<hydra::EmulationContext*>(ctx)->SetSurface(surface);
+HYDRA_EXPORT void hydra_system_set_surface(void* ctx, void* surface) {
+    reinterpret_cast<hydra::System*>(ctx)->SetSurface(surface);
 }
 
-HYDRA_EXPORT void hydra_emulation_context_load_and_start(void* ctx,
-                                                         void* loader) {
-    reinterpret_cast<hydra::EmulationContext*>(ctx)->LoadAndStart(
+HYDRA_EXPORT void hydra_system_load_and_start(void* ctx, void* loader) {
+    reinterpret_cast<hydra::System*>(ctx)->LoadAndStart(
         reinterpret_cast<hydra::horizon::loader::LoaderBase*>(loader));
 }
 
-HYDRA_EXPORT void hydra_emulation_context_request_stop(void* ctx) {
-    reinterpret_cast<hydra::EmulationContext*>(ctx)->RequestStop();
+HYDRA_EXPORT void hydra_system_request_stop(void* ctx) {
+    reinterpret_cast<hydra::System*>(ctx)->RequestStop();
 }
 
-HYDRA_EXPORT void hydra_emulation_context_force_stop(void* ctx) {
-    reinterpret_cast<hydra::EmulationContext*>(ctx)->ForceStop();
+HYDRA_EXPORT void hydra_system_force_stop(void* ctx) {
+    reinterpret_cast<hydra::System*>(ctx)->ForceStop();
 }
 
-HYDRA_EXPORT void hydra_emulation_context_pause(void* ctx) {
-    reinterpret_cast<hydra::EmulationContext*>(ctx)->Pause();
+HYDRA_EXPORT void hydra_system_pause(void* ctx) {
+    reinterpret_cast<hydra::System*>(ctx)->Pause();
 }
 
-HYDRA_EXPORT void hydra_emulation_context_resume(void* ctx) {
-    reinterpret_cast<hydra::EmulationContext*>(ctx)->Resume();
+HYDRA_EXPORT void hydra_system_resume(void* ctx) {
+    reinterpret_cast<hydra::System*>(ctx)->Resume();
 }
 
-HYDRA_EXPORT void
-hydra_emulation_context_notify_operation_mode_changed(void* ctx) {
-    reinterpret_cast<hydra::EmulationContext*>(ctx)
-        ->NotifyOperationModeChanged();
+HYDRA_EXPORT void hydra_system_notify_operation_mode_changed(void* ctx) {
+    reinterpret_cast<hydra::System*>(ctx)->NotifyOperationModeChanged();
 }
 
-HYDRA_EXPORT void hydra_emulation_context_progress_frame(
-    void* ctx, uint32_t width, uint32_t height, bool* out_dt_average_updated) {
-    reinterpret_cast<hydra::EmulationContext*>(ctx)->ProgressFrame(
+HYDRA_EXPORT void hydra_system_progress_frame(void* ctx, uint32_t width,
+                                              uint32_t height,
+                                              bool* out_dt_average_updated) {
+    reinterpret_cast<hydra::System*>(ctx)->ProgressFrame(
         width, height, *out_dt_average_updated);
 }
 
-HYDRA_EXPORT bool hydra_emulation_context_is_running(void* ctx) {
-    return reinterpret_cast<hydra::EmulationContext*>(ctx)->IsRunning();
+HYDRA_EXPORT bool hydra_system_is_running(void* ctx) {
+    return reinterpret_cast<hydra::System*>(ctx)->IsRunning();
 }
 
-HYDRA_EXPORT float
-hydra_emulation_context_get_last_delta_time_average(void* ctx) {
-    return reinterpret_cast<hydra::EmulationContext*>(ctx)
-        ->GetLastDeltaTimeAverage();
+HYDRA_EXPORT float hydra_system_get_last_delta_time_average(void* ctx) {
+    return reinterpret_cast<hydra::System*>(ctx)->GetLastDeltaTimeAverage();
 }
 
-HYDRA_EXPORT void hydra_emulation_context_take_screenshot(void* ctx) {
-    reinterpret_cast<hydra::EmulationContext*>(ctx)->TakeScreenshot();
+HYDRA_EXPORT void hydra_system_take_screenshot(void* ctx) {
+    reinterpret_cast<hydra::System*>(ctx)->TakeScreenshot();
 }
 
-HYDRA_EXPORT void hydra_emulation_context_capture_gpu_frame(void* ctx) {
-    reinterpret_cast<hydra::EmulationContext*>(ctx)->CaptureGpuFrame();
+HYDRA_EXPORT void hydra_system_capture_gpu_frame(void* ctx) {
+    reinterpret_cast<hydra::System*>(ctx)->CaptureGpuFrame();
 }
 
 // Debugger

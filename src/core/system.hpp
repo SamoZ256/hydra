@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/horizon/kernel/process.hpp"
 #include "core/horizon/os.hpp"
 #include "core/hw/tegra_x1/cpu/cpu.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
@@ -19,14 +18,14 @@ struct CombinedTextureView {
     ~CombinedTextureView();
 };
 
-class EmulationContext {
+class System {
     using clock_t = std::chrono::steady_clock;
 
   public:
-    EmulationContext(horizon::ui::IHandler& ui_handler);
-    ~EmulationContext();
+    System(horizon::ui::IHandler& ui_handler);
+    ~System();
 
-    void SetSurface(void* surface) { gpu->GetRenderer().SetSurface(surface); }
+    void SetSurface(void* surface) { gpu.GetRenderer().SetSurface(surface); }
 
     enum class LoadAndStartError {
         ProcessAlreadyExists,
@@ -39,7 +38,7 @@ class EmulationContext {
     void Pause();
     void Resume();
 
-    void NotifyOperationModeChanged() { os->NotifyOperationModeChanged(); }
+    void NotifyOperationModeChanged() { os.NotifyOperationModeChanged(); }
 
     // TODO: rename?
     void ProgressFrame(u32 width, u32 height, bool& out_dt_average_updated);
@@ -51,12 +50,11 @@ class EmulationContext {
     void CaptureGpuFrame();
 
   private:
-    // Objects
     hw::WallClock wall_clock;
-    hw::tegra_x1::cpu::ICpu* cpu;
-    hw::tegra_x1::gpu::Gpu* gpu;
-    audio::ICore* audio_core;
-    horizon::OS* os;
+    std::unique_ptr<hw::tegra_x1::cpu::ICpu> cpu;
+    hw::tegra_x1::gpu::Gpu gpu;
+    std::unique_ptr<audio::ICore> audio_core;
+    horizon::OS os;
 
     // Loading screen assets
     std::optional<CombinedTextureView> nintendo_logo{};
@@ -80,6 +78,13 @@ class EmulationContext {
     void TryApplyPatch(horizon::kernel::Process* process,
                        const std::string_view target_filename,
                        const std::filesystem::path path);
+
+  public:
+    REF_GETTER(wall_clock, GetWallClock);
+    hw::tegra_x1::cpu::ICpu& GetCpu() { return *cpu.get(); }
+    REF_GETTER(gpu, GetGpu);
+    audio::ICore& GetAudioCore() { return *audio_core.get(); }
+    REF_GETTER(os, GetOS);
 };
 
 } // namespace hydra

@@ -7,14 +7,14 @@ class GlobalState: ObservableObject {
 
     // Emulation
     @Published var activeGame: Game? = nil
-    @Published var emulationContext: HydraEmulationContext? = nil
+    @Published var system: HydraSystem? = nil
     @Published var isStopping = false
     @Published var isHandheldMode: Bool {
         didSet {
             hydraConfigGetHandheldMode().pointee = isHandheldMode
             hydraConfigSerialize()
-            guard let emulationContext = emulationContext else { return }
-            emulationContext.notifyOperationModeChanged()
+            guard let system = system else { return }
+            system.notifyOperationModeChanged()
         }
     }
 

@@ -860,13 +860,13 @@ struct HydraUser: MutableHandleStruct {
 }
 
 // Emulation context
-class HydraEmulationContext: MutableHandleClass {
+class HydraSystem: MutableHandleClass {
     init() {
-        super.init(handle: hydra_create_emulation_context())
+        super.init(handle: hydra_create_system())
     }
 
     deinit {
-        hydra_emulation_context_destroy(self.handle)
+        hydra_system_destroy(self.handle)
     }
 
     var surface: UnsafeMutableRawPointer {
@@ -875,52 +875,52 @@ class HydraEmulationContext: MutableHandleClass {
             UnsafeMutableRawPointer(bitPattern: 0)!
         }
         set {
-            hydra_emulation_context_set_surface(self.handle, newValue)
+            hydra_system_set_surface(self.handle, newValue)
         }
     }
 
     func loadAndStart(loader: HydraLoader) {
-        hydra_emulation_context_load_and_start(self.handle, loader.handle)
+        hydra_system_load_and_start(self.handle, loader.handle)
     }
 
     func requestStop() {
-        hydra_emulation_context_request_stop(self.handle)
+        hydra_system_request_stop(self.handle)
     }
 
     func forceStop() {
-        hydra_emulation_context_force_stop(self.handle)
+        hydra_system_force_stop(self.handle)
     }
 
     func pause() {
-        hydra_emulation_context_pause(self.handle)
+        hydra_system_pause(self.handle)
     }
 
     func resume() {
-        hydra_emulation_context_resume(self.handle)
+        hydra_system_resume(self.handle)
     }
 
     func notifyOperationModeChanged() {
-        hydra_emulation_context_notify_operation_mode_changed(self.handle)
+        hydra_system_notify_operation_mode_changed(self.handle)
     }
 
     func progressFrame(width: UInt32, height: UInt32, dtAverageUpdated: inout Bool) {
-        hydra_emulation_context_progress_frame(self.handle, width, height, &dtAverageUpdated)
+        hydra_system_progress_frame(self.handle, width, height, &dtAverageUpdated)
     }
 
     func isRunning() -> Bool {
-        hydra_emulation_context_is_running(self.handle)
+        hydra_system_is_running(self.handle)
     }
 
     func getLastDeltaTimeAverage() -> Float {
-        hydra_emulation_context_get_last_delta_time_average(self.handle)
+        hydra_system_get_last_delta_time_average(self.handle)
     }
 
     func takeScreenshot() {
-        hydra_emulation_context_take_screenshot(self.handle)
+        hydra_system_take_screenshot(self.handle)
     }
 
     func captureGpuFrame() {
-        hydra_emulation_context_capture_gpu_frame(self.handle)
+        hydra_system_capture_gpu_frame(self.handle)
     }
 }
 

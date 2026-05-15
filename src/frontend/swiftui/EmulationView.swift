@@ -9,8 +9,8 @@ struct EmulationView: View {
         ZStack {
             MetalView(fps: $fps)
                 .onAppear {
-                    globalState.emulationContext = HydraEmulationContext()
-                    globalState.emulationContext!.loadAndStart(
+                    globalState.system = HydraSystem()
+                    globalState.system!.loadAndStart(
                         loader: globalState.activeGame!.loader)
                 }
                 .onDisappear {

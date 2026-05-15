@@ -635,8 +635,8 @@ add_library(hydra-core
     debugger/debugger.hpp
     debugger/debugger_manager.cpp
     debugger/debugger_manager.hpp
-    emulation_context.cpp
-    emulation_context.hpp
+    system.cpp
+    system.hpp
     title.hpp
     c_api.cpp
     c_api.h

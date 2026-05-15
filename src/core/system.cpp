@@ -1,4 +1,4 @@
-#include "core/emulation_context.hpp"
+#include "core/system.hpp"
 
 #include <fmt/chrono.h>
 #include <stb_image_write.h>
@@ -47,6 +47,40 @@ namespace {
 constexpr auto STARTUP_MOVIE_FADE_IN_DURATION = 100ms;
 constexpr auto STARTUP_MOVIE_BREAK_AFTER_FADE_IN_DURATION = 200ms;
 
+hw::tegra_x1::cpu::ICpu* CreateCpu() {
+    switch (CONFIG_INSTANCE.GetCpuBackend()) {
+    case CpuBackend::AppleHypervisor:
+#if HYDRA_HYPERVISOR_ENABLED
+        return new hw::tegra_x1::cpu::hypervisor::Cpu();
+#else
+        LOG_FATAL(Other, "Apple Hypervisor not supported");
+#endif
+    case CpuBackend::Dynarmic:
+        return new hw::tegra_x1::cpu::dynarmic::Cpu();
+    default:
+        // TODO: return an error instead
+        LOG_FATAL(Other, "Unknown CPU backend {}",
+                  CONFIG_INSTANCE.GetCpuBackend());
+    }
+}
+
+audio::ICore* CreateAudioCore() {
+    switch (CONFIG_INSTANCE.GetAudioBackend()) {
+    case AudioBackend::Null:
+        return new audio::null::Core();
+    case AudioBackend::Cubeb:
+#if HYDRA_CUBEB_ENABLED
+        return new audio::cubeb::Core();
+#else
+        LOG_FATAL(Other, "cubeb not supported");
+#endif
+    default:
+        // TODO: return an error instead
+        LOG_FATAL(Other, "Unknown audio backend {}",
+                  CONFIG_INSTANCE.GetAudioBackend());
+    }
+}
+
 } // namespace
 
 CombinedTextureView::~CombinedTextureView() {
@@ -55,83 +89,25 @@ CombinedTextureView::~CombinedTextureView() {
     // delete base;
 }
 
-EmulationContext::EmulationContext(horizon::ui::IHandler& ui_handler) {
+System::System(horizon::ui::IHandler& ui_handler)
+    : cpu{CreateCpu()}, audio_core{CreateAudioCore()},
+      os(*audio_core, ui_handler) {
+    // TODO: set this elsewhere
     LOGGER_INSTANCE.SetOutput(CONFIG_INSTANCE.GetLogOutput());
-
-    // Random
-    srand(static_cast<u32>(time(0)));
-
-    // Initialize
-    switch (CONFIG_INSTANCE.GetCpuBackend()) {
-    case CpuBackend::AppleHypervisor:
-#if HYDRA_HYPERVISOR_ENABLED
-        cpu = new hw::tegra_x1::cpu::hypervisor::Cpu();
-#else
-        LOG_FATAL(Other, "Apple Hypervisor not supported");
-#endif
-        break;
-    case CpuBackend::Dynarmic:
-        cpu = new hw::tegra_x1::cpu::dynarmic::Cpu();
-        break;
-    default:
-        // TODO: return an error instead
-        LOG_FATAL(Other, "Unknown CPU backend {}",
-                  CONFIG_INSTANCE.GetCpuBackend());
-        break;
-    }
-
-    gpu = new hw::tegra_x1::gpu::Gpu();
-
-    switch (CONFIG_INSTANCE.GetAudioBackend()) {
-    case AudioBackend::Null:
-        audio_core = new audio::null::Core();
-        break;
-    case AudioBackend::Cubeb:
-#if HYDRA_CUBEB_ENABLED
-        audio_core = new audio::cubeb::Core();
-#else
-        LOG_FATAL(Other, "cubeb not supported");
-#endif
-        break;
-    default:
-        // TODO: return an error instead
-        LOG_FATAL(Other, "Unknown audio backend {}",
-                  CONFIG_INSTANCE.GetAudioBackend());
-        break;
-    }
-
-    os = new horizon::OS(*audio_core, ui_handler);
-
-    // Filesystem
-    /*
-    for (const auto& root_path : CONFIG_INSTANCE.GetRootPaths()) {
-        const auto res =
-            horizon::Filesystem::Filesystem::GetInstance().AddEntry(
-                root_path.guest_path, root_path.host_path, true);
-        ASSERT(res == horizon::Filesystem::FsResult::Success, Services,
-               "Failed to get root path: {}", res);
-        LOG_INFO(Other, "Mapped {} to {}", root_path.guest_path,
-                 root_path.host_path);
-    }
-    */
 }
 
-EmulationContext::~EmulationContext() {
-    delete os;
-    delete audio_core;
-    delete gpu;
-    delete cpu;
-
+System::~System() {
+    // TODO: set this elsewhere
     LOGGER_INSTANCE.SetOutput(LogOutput::StdOut);
 }
 
-void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
+void System::LoadAndStart(horizon::loader::LoaderBase* loader) {
     // Process
     ASSERT_THROWING(main_process == nullptr, Other,
                     LoadAndStartError::ProcessAlreadyExists,
                     "Process already exists");
     main_process =
-        os->GetKernel().GetProcessManager().CreateProcess("Guest process");
+        os.GetKernel().GetProcessManager().CreateProcess("Guest process");
     loader->LoadProcess(main_process);
 
     // Check for firmware applets
@@ -139,7 +115,7 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
         horizon::LibraryAppletMode::AllForeground);
     // TODO: correct?
     u64 system_tick;
-    os->GetKernel().GetSystemTick(system_tick);
+    os.GetKernel().GetSystemTick(system_tick);
     switch (loader->GetTitleID()) {
     case 0x0100000000001003: { // controller
         // Common args
@@ -279,7 +255,7 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
         break;
     }
 
-    os->SetLibraryAppletSelfController(controller);
+    os.SetLibraryAppletSelfController(controller);
 
     // Loading screen assets
     hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer = nullptr;
@@ -295,7 +271,7 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
                     0x0, hw::tegra_x1::gpu::renderer::TextureType::_2D,
                     hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
                     true, stride, width, height, 1, 1, 1, 0x0, 0x0, 0x0);
-            const auto texture = gpu->GetRenderer().CreateTexture(descriptor);
+            const auto texture = gpu.GetRenderer().CreateTexture(descriptor);
 
             const auto view_descriptor =
                 hw::tegra_x1::gpu::renderer::TextureViewDescriptor(
@@ -305,15 +281,15 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
             nintendo_logo = {texture, texture_view};
 
             // Command buffer
-            command_buffer = gpu->GetRenderer().CreateCommandBuffer();
+            command_buffer = gpu.GetRenderer().CreateCommandBuffer();
 
             // Copy data
-            auto tmp_buffer = gpu->GetRenderer().AllocateTemporaryBuffer(size);
+            auto tmp_buffer = gpu.GetRenderer().AllocateTemporaryBuffer(size);
             std::memcpy(reinterpret_cast<void*>(tmp_buffer->GetPtr()), data,
                         size);
             free(data);
             texture->CopyFrom(command_buffer, tmp_buffer);
-            gpu->GetRenderer().FreeTemporaryBuffer(tmp_buffer);
+            gpu.GetRenderer().FreeTemporaryBuffer(tmp_buffer);
         }
     }
     {
@@ -336,21 +312,21 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
 
             // Command buffer
             if (!command_buffer)
-                command_buffer = gpu->GetRenderer().CreateCommandBuffer();
+                command_buffer = gpu.GetRenderer().CreateCommandBuffer();
 
             for (u32 i = 0; i < frame_count; i++) {
                 // Create texture
                 const auto texture =
-                    gpu->GetRenderer().CreateTexture(descriptor);
+                    gpu.GetRenderer().CreateTexture(descriptor);
                 const auto texture_view = texture->CreateView(view_descriptor);
 
                 // Copy data
                 auto tmp_buffer =
-                    gpu->GetRenderer().AllocateTemporaryBuffer(size);
+                    gpu.GetRenderer().AllocateTemporaryBuffer(size);
                 std::memcpy(reinterpret_cast<void*>(tmp_buffer->GetPtr()),
                             data + i * height * width, size);
                 texture->CopyFrom(command_buffer, tmp_buffer);
-                gpu->GetRenderer().FreeTemporaryBuffer(tmp_buffer);
+                gpu.GetRenderer().FreeTemporaryBuffer(tmp_buffer);
                 startup_movie.push_back({texture, texture_view});
             }
             free(data);
@@ -442,19 +418,19 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
     startup_movie_fade_in_time = crnt_time + STARTUP_MOVIE_FADE_IN_DURATION;
 }
 
-void EmulationContext::RequestStop() {
+void System::RequestStop() {
     // We don't request the processes to stop yet, instead we send a message to
     // all of them and give them some time to react
-    for (auto it = os->GetKernel().GetProcessManager().Begin();
-         it != os->GetKernel().GetProcessManager().End(); ++it)
+    for (auto it = os.GetKernel().GetProcessManager().Begin();
+         it != os.GetKernel().GetProcessManager().End(); ++it)
         (*it)->GetAppletState().SendMessage(
             horizon::kernel::AppletMessage::Exit);
 }
 
-void EmulationContext::ForceStop() {
+void System::ForceStop() {
     // Request all processes to stop immediately
-    for (auto it = os->GetKernel().GetProcessManager().Begin();
-         it != os->GetKernel().GetProcessManager().End(); ++it)
+    for (auto it = os.GetKernel().GetProcessManager().Begin();
+         it != os.GetKernel().GetProcessManager().End(); ++it)
         (*it)->Stop();
 
     // Wait a small amount of time for all threads to catch up
@@ -467,50 +443,50 @@ void EmulationContext::ForceStop() {
     }
 }
 
-void EmulationContext::Pause() {
-    for (auto it = os->GetKernel().GetProcessManager().Begin();
-         it != os->GetKernel().GetProcessManager().End(); ++it)
+void System::Pause() {
+    for (auto it = os.GetKernel().GetProcessManager().Begin();
+         it != os.GetKernel().GetProcessManager().End(); ++it)
         (*it)->SupervisorPause();
 }
 
-void EmulationContext::Resume() {
-    for (auto it = os->GetKernel().GetProcessManager().Begin();
-         it != os->GetKernel().GetProcessManager().End(); ++it)
+void System::Resume() {
+    for (auto it = os.GetKernel().GetProcessManager().Begin();
+         it != os.GetKernel().GetProcessManager().End(); ++it)
         (*it)->SupervisorResume();
 }
 
-void EmulationContext::ProgressFrame(u32 width, u32 height,
-                                     bool& out_dt_average_updated) {
+void System::ProgressFrame(u32 width, u32 height,
+                           bool& out_dt_average_updated) {
     // Set the resolution for OS
-    os->SetSurfaceResolution({width, height});
+    os.SetSurfaceResolution({width, height});
 
     // Input
-    os->GetHidResourceManager().Update();
+    os.GetHidResourceManager().Update();
 
     // Present
 
     // Acquire surface
-    auto compositor = gpu->GetRenderer().AcquireNextSurface();
+    auto compositor = gpu.GetRenderer().AcquireNextSurface();
     if (!compositor)
         return;
 
     // Delta time
     {
         auto layer =
-            os->GetDisplayDriver().GetFirstLayerForProcess(main_process);
+            os.GetDisplayDriver().GetFirstLayerForProcess(main_process);
         if (layer)
             accumulated_dt += layer->GetAccumulatedDT();
     }
 
     // Command buffer
-    auto command_buffer = gpu->GetRenderer().CreateCommandBuffer();
+    auto command_buffer = gpu.GetRenderer().CreateCommandBuffer();
 
     // Acquire present textures
     bool acquired =
-        os->GetDisplayDriver().AcquirePresentTextures(command_buffer);
+        os.GetDisplayDriver().AcquirePresentTextures(command_buffer);
 
     // Render pass
-    os->GetDisplayDriver().Present(command_buffer, compositor, width, height);
+    os.GetDisplayDriver().Present(command_buffer, compositor, width, height);
 
     if (loading) {
         if (acquired) {
@@ -599,10 +575,10 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
     delete compositor;
 
     // Signal V-Sync
-    os->GetDisplayDriver().SignalVSync();
+    os.GetDisplayDriver().SignalVSync();
 }
 
-bool EmulationContext::IsRunning() const {
+bool System::IsRunning() const {
     if (!main_process)
         return false;
 
@@ -615,8 +591,8 @@ bool EmulationContext::IsRunning() const {
     };
 }
 
-void EmulationContext::TakeScreenshot() {
-    auto layer = os->GetDisplayDriver().GetFirstLayerForProcess(main_process);
+void System::TakeScreenshot() {
+    auto layer = os.GetDisplayDriver().GetFirstLayerForProcess(main_process);
     if (!layer)
         return;
 
@@ -666,14 +642,14 @@ void EmulationContext::TakeScreenshot() {
     thread.detach();
 }
 
-void EmulationContext::CaptureGpuFrame() {
+void System::CaptureGpuFrame() {
     // TODO: allow multiple frames
-    gpu->GetRenderer().CaptureFrames(1);
+    gpu.GetRenderer().CaptureFrames(1);
 }
 
-void EmulationContext::TryApplyPatch(horizon::kernel::Process* process,
-                                     const std::string_view target_filename,
-                                     const std::filesystem::path path) {
+void System::TryApplyPatch(horizon::kernel::Process* process,
+                           const std::string_view target_filename,
+                           const std::filesystem::path path) {
     if (to_lower(path.filename().string()) != target_filename)
         return;
 
