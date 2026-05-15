@@ -87,7 +87,7 @@ class HomebrewThread : public kernel::GuestThread {
         auto state_ptr = process->CreateMemory(
             kernel::EXECUTABLE_REGION, ARGV_SIZE * 2 + NEXT_LOAD_PATH_SIZE,
             static_cast<kernel::MemoryType>(4),
-            kernel::MemoryPermission::ReadWrite, state_base);
+            kernel::MemoryPermission::ReadWriteExecute, state_base);
 
         // Notice text
         {

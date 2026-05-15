@@ -302,7 +302,7 @@ void Thread::SerializeState() {
     state.lr = GetReg(HV_REG_LR);
     state.sp = GetSysReg(HV_SYS_REG_SP_EL0);
     if (exception)
-        state.pc = GetSysReg(HV_SYS_REG_ELR_EL1) - 4;
+        state.pc = GetSysReg(HV_SYS_REG_ELR_EL1);
     else
         state.pc = GetReg(HV_REG_PC);
     state.pstate = static_cast<u32>(GetReg(HV_REG_CPSR));
@@ -319,7 +319,7 @@ void Thread::DeserializeState() {
     SetReg(HV_REG_LR, state.lr);
     SetSysReg(HV_SYS_REG_SP_EL0, state.sp);
     if (exception)
-        SetSysReg(HV_SYS_REG_ELR_EL1, state.pc + 4);
+        SetSysReg(HV_SYS_REG_ELR_EL1, state.pc);
     else
         SetReg(HV_REG_PC, state.pc);
     SetReg(HV_REG_CPSR, state.pstate);
