@@ -200,23 +200,6 @@ bool* hydra_config_get_gdb_enabled();
 uint16_t* hydra_config_get_gdb_port();
 bool* hydra_config_get_gdb_wait_for_client();
 
-// Loader plugins
-
-// Manager
-void hydra_loader_plugin_manager_refresh();
-
-// Plugin
-void* hydra_create_loader_plugin(hydra_string path);
-void hydra_loader_plugin_destroy(void* plugin);
-hydra_string hydra_loader_plugin_get_name(const void* plugin);
-hydra_string hydra_loader_plugin_get_display_version(const void* plugin);
-uint32_t hydra_loader_plugin_get_supported_format_count(const void* plugin);
-hydra_string hydra_loader_plugin_get_supported_format(const void* plugin,
-                                                      uint32_t index);
-uint32_t hydra_loader_plugin_get_option_config_count(const void* plugin);
-const void* hydra_loader_plugin_get_option_config(const void* plugin,
-                                                  uint32_t index);
-
 // Option config
 typedef enum HydraLoaderPluginOptionType : uint32_t {
     HYDRA_LOADER_PLUGIN_OPTION_TYPE_BOOLEAN = 0,
@@ -253,7 +236,7 @@ HydraContentArchiveContentType
 hydra_content_archive_get_content_type(void* content_archive);
 
 // Loader
-void* hydra_create_loader_from_path(hydra_string path);
+void* hydra_create_loader_from_path(hydra_string path, void* plugin_manager);
 void hydra_loader_destroy(void* loader);
 uint64_t hydra_loader_get_title_id(void* loader);
 void* hydra_loader_load_nacp(void* loader);
@@ -267,6 +250,25 @@ void hydra_loader_extract_romfs(const void* loader, hydra_string path);
 
 void* hydra_create_nca_loader_from_content_archive(void* content_archive);
 hydra_string hydra_nca_loader_get_name(void* nca_loader);
+
+// Plugins
+
+// Manager
+void* hydra_create_loader_plugin_manager();
+void hydra_loader_plugin_manager_destroy(void* manager);
+void hydra_loader_plugin_manager_refresh(void* manager);
+
+// Plugin
+void* hydra_create_loader_plugin(hydra_string path);
+void hydra_loader_plugin_destroy(void* plugin);
+hydra_string hydra_loader_plugin_get_name(const void* plugin);
+hydra_string hydra_loader_plugin_get_display_version(const void* plugin);
+uint32_t hydra_loader_plugin_get_supported_format_count(const void* plugin);
+hydra_string hydra_loader_plugin_get_supported_format(const void* plugin,
+                                                      uint32_t index);
+uint32_t hydra_loader_plugin_get_option_config_count(const void* plugin);
+const void* hydra_loader_plugin_get_option_config(const void* plugin,
+                                                  uint32_t index);
 
 // NACP
 void hydra_nacp_destroy(void* nacp);

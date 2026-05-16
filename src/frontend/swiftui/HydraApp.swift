@@ -3,7 +3,8 @@ import SwiftUI
 class GlobalState: ObservableObject {
     // Game library
     @Published var gamePaths: [String] = []
-    @Published var loaderPluginChangeID = 0  // HACK
+    let loaderPluginManager = HydraLoaderPluginManager()
+    @Published var loaderPluginRefreshID = 0
 
     // Emulation
     @Published var activeGame: Game? = nil
@@ -19,7 +20,6 @@ class GlobalState: ObservableObject {
     }
 
     init() {
-        hydraLoaderPluginManagerRefresh()
         isHandheldMode = hydraConfigGetHandheldMode().pointee
 
         let gamePathsOption = hydraConfigGetGamePaths()
@@ -30,8 +30,8 @@ class GlobalState: ObservableObject {
     }
 
     func refreshLoaderPluginManager() {
-        hydraLoaderPluginManagerRefresh()
-        loaderPluginChangeID += 1
+        loaderPluginManager.refresh()
+        loaderPluginRefreshID += 1
     }
 }
 

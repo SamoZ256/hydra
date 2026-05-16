@@ -15,8 +15,8 @@ struct Game: Hashable {
         self.version = version
     }
 
-    init(url: URL) throws {
-        let loader = try HydraLoader(path: url.path(percentEncoded: false))
+    init(url: URL, loaderPluginManager: HydraLoaderPluginManager?) throws {
+        let loader = try HydraLoader(path: url.path(percentEncoded: false), pluginManager: loaderPluginManager)
 
         // Get name and author
         var name = ""

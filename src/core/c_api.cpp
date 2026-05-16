@@ -311,71 +311,6 @@ HYDRA_EXPORT bool* hydra_config_get_gdb_wait_for_client() {
     return &hydra::CONFIG_INSTANCE.GetGdbWaitForClient();
 }
 
-// Loader plugins
-
-// Manager
-HYDRA_EXPORT void hydra_loader_plugin_manager_refresh() {
-    hydra::horizon::loader::plugins::Manager::GetInstance().Refresh();
-}
-
-// Plugin
-HYDRA_EXPORT void* hydra_create_loader_plugin(hydra_string path) {
-    try {
-        return new hydra::horizon::loader::plugins::Plugin(
-            std::string(string_view_from_hydra_string(path)));
-    } catch (...) {
-        // TODO: return an error
-        return nullptr;
-    }
-}
-
-HYDRA_EXPORT void hydra_loader_plugin_destroy(void* plugin) {
-    delete reinterpret_cast<hydra::horizon::loader::plugins::Plugin*>(plugin);
-}
-
-HYDRA_EXPORT hydra_string hydra_loader_plugin_get_name(const void* plugin) {
-    return hydra_string_from_string_view(
-        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
-            ->GetName());
-}
-
-HYDRA_EXPORT hydra_string
-hydra_loader_plugin_get_display_version(const void* plugin) {
-    return hydra_string_from_string_view(
-        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
-            ->GetDisplayVersion());
-}
-
-HYDRA_EXPORT uint32_t
-hydra_loader_plugin_get_supported_format_count(const void* plugin) {
-    return static_cast<uint32_t>(
-        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
-            ->GetSupportedFormats()
-            .size());
-}
-
-HYDRA_EXPORT hydra_string
-hydra_loader_plugin_get_supported_format(const void* plugin, uint32_t index) {
-    return hydra_string_from_string_view(
-        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
-            ->GetSupportedFormats()[index]);
-}
-
-HYDRA_EXPORT uint32_t
-hydra_loader_plugin_get_option_config_count(const void* plugin) {
-    return static_cast<uint32_t>(
-        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
-            ->GetOptionConfigs()
-            .size());
-}
-
-HYDRA_EXPORT const void*
-hydra_loader_plugin_get_option_config(const void* plugin, uint32_t index) {
-    return &reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(
-                plugin)
-                ->GetOptionConfigs()[index];
-}
-
 // Option config
 HYDRA_EXPORT void* hydra_loader_plugin_option_config_copy(const void* config) {
     return new hydra::horizon::loader::plugins::OptionConfig(
@@ -475,10 +410,13 @@ hydra_content_archive_get_content_type(void* content_archive) {
 }
 
 // Loader
-HYDRA_EXPORT void* hydra_create_loader_from_path(hydra_string path) {
+HYDRA_EXPORT void* hydra_create_loader_from_path(hydra_string path,
+                                                 void* plugin_manager) {
     try {
         return hydra::horizon::loader::LoaderBase::CreateFromPath(
-            string_view_from_hydra_string(path));
+            string_view_from_hydra_string(path),
+            reinterpret_cast<hydra::horizon::loader::plugins::Manager*>(
+                plugin_manager));
     } catch (...) {
         // TODO: return an error
         return nullptr;
@@ -549,6 +487,80 @@ HYDRA_EXPORT hydra_string hydra_nca_loader_get_name(void* nca_loader) {
     return hydra_string_from_string_view(
         reinterpret_cast<hydra::horizon::loader::NcaLoader*>(nca_loader)
             ->GetName());
+}
+
+// Plugins
+
+// Manager
+HYDRA_EXPORT void* hydra_create_loader_plugin_manager() {
+    return new hydra::horizon::loader::plugins::Manager();
+}
+
+HYDRA_EXPORT void hydra_loader_plugin_manager_destroy(void* manager) {
+    delete reinterpret_cast<hydra::horizon::loader::plugins::Manager*>(manager);
+}
+
+HYDRA_EXPORT void hydra_loader_plugin_manager_refresh(void* manager) {
+    reinterpret_cast<hydra::horizon::loader::plugins::Manager*>(manager)
+        ->Refresh();
+}
+
+// Plugin
+HYDRA_EXPORT void* hydra_create_loader_plugin(hydra_string path) {
+    try {
+        return new hydra::horizon::loader::plugins::Plugin(
+            std::string(string_view_from_hydra_string(path)));
+    } catch (...) {
+        // TODO: return an error
+        return nullptr;
+    }
+}
+
+HYDRA_EXPORT void hydra_loader_plugin_destroy(void* plugin) {
+    delete reinterpret_cast<hydra::horizon::loader::plugins::Plugin*>(plugin);
+}
+
+HYDRA_EXPORT hydra_string hydra_loader_plugin_get_name(const void* plugin) {
+    return hydra_string_from_string_view(
+        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
+            ->GetName());
+}
+
+HYDRA_EXPORT hydra_string
+hydra_loader_plugin_get_display_version(const void* plugin) {
+    return hydra_string_from_string_view(
+        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
+            ->GetDisplayVersion());
+}
+
+HYDRA_EXPORT uint32_t
+hydra_loader_plugin_get_supported_format_count(const void* plugin) {
+    return static_cast<uint32_t>(
+        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
+            ->GetSupportedFormats()
+            .size());
+}
+
+HYDRA_EXPORT hydra_string
+hydra_loader_plugin_get_supported_format(const void* plugin, uint32_t index) {
+    return hydra_string_from_string_view(
+        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
+            ->GetSupportedFormats()[index]);
+}
+
+HYDRA_EXPORT uint32_t
+hydra_loader_plugin_get_option_config_count(const void* plugin) {
+    return static_cast<uint32_t>(
+        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
+            ->GetOptionConfigs()
+            .size());
+}
+
+HYDRA_EXPORT const void*
+hydra_loader_plugin_get_option_config(const void* plugin, uint32_t index) {
+    return &reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(
+                plugin)
+                ->GetOptionConfigs()[index];
 }
 
 // NACP

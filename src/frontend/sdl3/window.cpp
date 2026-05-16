@@ -145,7 +145,7 @@ void Window::UpdateWindowTitle() {
     // TODO: title name
     const auto title =
         fmt::format("Hydra | TODO(TITLE_NAME) - 0x{:016x} | {} | {} FPS",
-                    title_id, Config::GetInstance().GetGpuRenderer(), fps_str);
+                    title_id, CONFIG_INSTANCE.GetGpuRenderer(), fps_str);
     SetWindowTitle(title);
 }
 

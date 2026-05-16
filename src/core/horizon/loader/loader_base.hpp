@@ -14,13 +14,19 @@ class Filesystem;
 
 namespace hydra::horizon::loader {
 
+namespace plugins {
+class Manager;
+}
+
 class LoaderBase {
   public:
     enum class CreateFromPathError {
         DoesNotExist,
         UnsupportedExtension,
     };
-    static LoaderBase* CreateFromPath(std::string_view path);
+    static LoaderBase*
+    CreateFromPath(std::string_view path,
+                   plugins::Manager* plugin_manager = nullptr);
 
     virtual ~LoaderBase() = default;
 

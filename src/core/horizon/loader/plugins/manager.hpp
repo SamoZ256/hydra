@@ -6,11 +6,6 @@ namespace hydra::horizon::loader::plugins {
 
 class Manager {
   public:
-    static Manager& GetInstance() {
-        static Manager instance;
-        return instance;
-    }
-
     void Refresh();
 
     Plugin* FindPluginForFormat(std::string_view format);
