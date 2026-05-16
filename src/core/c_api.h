@@ -300,7 +300,7 @@ void hydra_user_set_avatar_bg_color(void* user, hydra_uchar3 color);
 hydra_string hydra_user_get_avatar_path(void* user);
 void hydra_user_set_avatar_path(void* user, hydra_string path);
 
-// Emulation context
+// System
 void* hydra_create_system();
 void hydra_system_destroy(void* system);
 
@@ -323,6 +323,12 @@ float hydra_system_get_last_delta_time_average(void* system);
 
 void hydra_system_take_screenshot(void* system);
 void hydra_system_capture_gpu_frame(void* system);
+
+void hydra_system_texture_cache_lock(void* system);
+void hydra_system_texture_cache_unlock(void* system);
+uint32_t hydra_system_texture_cache_get_texture_memory_count(void* system);
+const void* hydra_system_texture_cache_get_texture_memory(void* system,
+                                                          uint32_t index);
 
 // Input
 // TODO
@@ -383,13 +389,6 @@ uint64_t hydra_debugger_resolved_stack_frame_get_address(
     const void* resolved_stack_frame);
 
 // Texture cache
-
-// Texture cache
-void hydra_texture_cache_lock(void* system);
-void hydra_texture_cache_unlock(void* system);
-uint32_t hydra_texture_cache_get_texture_memory_count(void* system);
-const void* hydra_texture_cache_get_texture_memory(void* system,
-                                                   uint32_t index);
 
 // Texture memory
 uint32_t hydra_texture_memory_get_texture_group_count(const void* mem);

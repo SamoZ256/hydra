@@ -62,6 +62,7 @@ struct HydraApp: App {
 
             Window("Texture Viewer", id: "texture-viewer") {
                 TextureViewer()
+                    .environmentObject(globalState)
             }
             .defaultLaunchBehavior(.suppressed)
 

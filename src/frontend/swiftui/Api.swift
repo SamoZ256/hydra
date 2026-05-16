@@ -922,6 +922,22 @@ class HydraSystem: MutableHandleClass {
     func captureGpuFrame() {
         hydra_system_capture_gpu_frame(self.handle)
     }
+
+    func textureCacheLock() {
+        hydra_system_texture_cache_lock(self.handle)
+    }
+
+    func textureCacheUnlock() {
+        hydra_system_texture_cache_unlock(self.handle)
+    }
+
+    func textureCacheGetTextureMemoryCount() -> Int {
+        Int(hydra_system_texture_cache_get_texture_memory_count(self.handle))
+    }
+
+    func textureCacheGetTextureMemory(at index: Int) -> HydraTextureMemory {
+        HydraTextureMemory(handle: hydra_system_texture_cache_get_texture_memory(self.handle, UInt32(index)))
+    }
 }
 
 // Debugger
@@ -1096,23 +1112,6 @@ class HydraDebuggerResolvedStackFrame: MutableHandleClass {
 }
 
 // Texture cache
-
-// Texture cache
-func hydraTextureCacheLock() {
-    hydra_texture_cache_lock()
-}
-
-func hydraTextureCacheUnlock() {
-    hydra_texture_cache_unlock()
-}
-
-func hydraTextureCacheGetTextureMemoryCount() -> Int {
-    Int(hydra_texture_cache_get_texture_memory_count())
-}
-
-func hydraTextureCacheGetTextureMemory(at index: Int) -> HydraTextureMemory {
-    HydraTextureMemory(handle: hydra_texture_cache_get_texture_memory(UInt32(index)))
-}
 
 // Texture memory
 struct HydraTextureMemory: HandleStruct {
