@@ -32,20 +32,25 @@ class IFileSystem : public IService {
     std::string mount;
 
     // Commands
-    result_t CreateFile(CreateOption flags, u64 size,
+    result_t CreateFile(System* system, CreateOption flags, u64 size,
                         InBuffer<BufferAttr::HipcPointer> in_path_buffer);
-    result_t DeleteFile(InBuffer<BufferAttr::HipcPointer> in_path_buffer);
-    result_t CreateDirectory(InBuffer<BufferAttr::HipcPointer> in_path_buffer);
-    result_t DeleteDirectory(InBuffer<BufferAttr::HipcPointer> in_path_buffer);
+    result_t DeleteFile(System* system,
+                        InBuffer<BufferAttr::HipcPointer> in_path_buffer);
+    result_t CreateDirectory(System* system,
+                             InBuffer<BufferAttr::HipcPointer> in_path_buffer);
+    result_t DeleteDirectory(System* system,
+                             InBuffer<BufferAttr::HipcPointer> in_path_buffer);
     result_t DeleteDirectoryRecursively(
-        InBuffer<BufferAttr::HipcPointer> in_path_buffer);
+        System* system, InBuffer<BufferAttr::HipcPointer> in_path_buffer);
     result_t RenameFile(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
                         InBuffer<BufferAttr::HipcPointer> in_new_path_buffer);
-    result_t GetEntryType(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
+    result_t GetEntryType(System* system,
+                          InBuffer<BufferAttr::HipcPointer> in_path_buffer,
                           EntryType* out_entry_type);
-    result_t OpenFile(RequestContext* ctx, filesystem::FileOpenFlags flags,
+    result_t OpenFile(RequestContext* ctx, System* system,
+                      filesystem::FileOpenFlags flags,
                       InBuffer<BufferAttr::HipcPointer> in_path_buffer);
-    result_t OpenDirectory(RequestContext* ctx,
+    result_t OpenDirectory(RequestContext* ctx, System* system,
                            DirectoryFilterFlags filter_flags,
                            InBuffer<BufferAttr::HipcPointer> in_path_buffer);
     STUB_REQUEST_COMMAND(Commit);
@@ -54,7 +59,8 @@ class IFileSystem : public IService {
     result_t GetTotalSpaceSize(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
                                u64* out_size);
     result_t
-    GetFileTimeStampRaw(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
+    GetFileTimeStampRaw(System* system,
+                        InBuffer<BufferAttr::HipcPointer> in_path_buffer,
                         TimeStampRaw* out_timestamp); // 3.0.0+
 };
 

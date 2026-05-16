@@ -1,6 +1,6 @@
 #include "core/horizon/services/nvdrv/ioctl/nvhost_ctrl_gpu.hpp"
 
-#include "core/hw/wall_clock.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::services::nvdrv::ioctl {
 
@@ -159,9 +159,9 @@ NvResult NvHostCtrlGpu::PmuGetGpuLoad(u32* out_load) {
     return NvResult::Success;
 }
 
-NvResult NvHostCtrlGpu::GetGpuTime(u64* out_timestamp,
+NvResult NvHostCtrlGpu::GetGpuTime(System* system, u64* out_timestamp,
                                    [[maybe_unused]] u64* _out_reserved) {
-    *out_timestamp = hw::WallClock::GetInstance().GetGpuTick();
+    *out_timestamp = system->GetWallClock().GetGpuTick();
     return NvResult::Success;
 }
 

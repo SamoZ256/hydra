@@ -46,8 +46,8 @@ result_t ILibraryAppletAccessor::GetAppletStateChangedEvent(
     return RESULT_SUCCESS;
 }
 
-result_t ILibraryAppletAccessor::Start() {
-    applet->Start();
+result_t ILibraryAppletAccessor::Start(System* system) {
+    applet->Start(*system);
     return RESULT_SUCCESS;
 }
 

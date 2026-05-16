@@ -10,7 +10,7 @@ class Applet : public AppletBase {
     using AppletBase::AppletBase;
 
   protected:
-    result_t Run() override;
+    result_t Run(System& system) override;
 };
 
 } // namespace hydra::horizon::applets::software_keyboard

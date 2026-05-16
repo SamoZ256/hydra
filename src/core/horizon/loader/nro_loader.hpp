@@ -17,7 +17,7 @@ class NroLoader : public LoaderBase {
 
     NroLoader(filesystem::IFile* file_, const bool is_entry_point_);
 
-    void LoadProcess(kernel::Process* process) override;
+    void LoadProcess(System& system, kernel::Process* process) override;
 
     vaddr_t GetEntryPoint() const;
 

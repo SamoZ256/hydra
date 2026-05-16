@@ -1,12 +1,12 @@
 #include "core/horizon/applets/error/applet.hpp"
 
 #include "core/horizon/applets/error/const.hpp"
-#include "core/horizon/os.hpp"
 #include "core/horizon/ui/handler_base.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::applets::error {
 
-result_t Applet::Run() {
+result_t Applet::Run(System& system) {
     // TODO: PopInData
     auto param_reader = PopInDataRaw();
     const auto param_common = param_reader.Read<ParamCommon>();
@@ -19,7 +19,7 @@ result_t Applet::Run() {
         const auto param = param_reader.Read<ParamForApplicationError>();
 
         // TODO: handle empty messages
-        OS_INSTANCE.GetUIHandler().ShowMessageDialog(
+        system.GetUIHandler().ShowMessageDialog(
             ui::MessageDialogType::Error,
             fmt::format("Error (0x{:x})", param.error_code_number),
             fmt::format("{}\n{}", param.dialog_message,

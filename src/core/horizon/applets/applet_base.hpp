@@ -1,13 +1,13 @@
 #pragma once
 
 #include "core/horizon/kernel/kernel.hpp"
-#include "core/horizon/services/am/library_applet_controller.hpp"
+#include "core/horizon/services/am/internal/library_applet_controller.hpp"
 
 namespace hydra::horizon::applets {
 
 class AppletBase {
   public:
-    AppletBase(services::am::LibraryAppletController& controller_)
+    AppletBase(services::am::internal::LibraryAppletController& controller_)
         : controller{controller_} {}
     virtual ~AppletBase() {
         if (thread) {
@@ -17,12 +17,12 @@ class AppletBase {
         }
     }
 
-    void Start();
+    void Start(System& system);
 
     result_t GetResult() const { return result; }
 
   protected:
-    virtual result_t Run() = 0;
+    virtual result_t Run(System& system) = 0;
 
     // Helpers
 
@@ -81,7 +81,7 @@ class AppletBase {
     }
 
   private:
-    services::am::LibraryAppletController& controller;
+    services::am::internal::LibraryAppletController& controller;
 
     std::thread* thread{nullptr};
     result_t result{RESULT_SUCCESS};

@@ -64,8 +64,10 @@ class NvHostCtrlGpu : public FdBase {
           unknown_event{
               new kernel::Event(false, "NvHostCtrlGpu unknown event")} {}
 
-    NvResult Ioctl([[maybe_unused]] IoctlContext& context, u32 type, u32 nr) override;
-    NvResult Ioctl3([[maybe_unused]] IoctlContext& context, u32 type, u32 nr) override;
+    NvResult Ioctl([[maybe_unused]] IoctlContext& context, u32 type,
+                   u32 nr) override;
+    NvResult Ioctl3([[maybe_unused]] IoctlContext& context, u32 type,
+                    u32 nr) override;
     NvResult QueryEvent(u32 event_id_u32, kernel::Event*& out_event) override;
 
   private:
@@ -87,7 +89,7 @@ class NvHostCtrlGpu : public FdBase {
                          u64* out_mask_buffer);
     NvResult ZbcGetActiveSlotMask(u32* out_slot, u32* out_mask);
     NvResult PmuGetGpuLoad(u32* out_load);
-    NvResult GetGpuTime(u64* out_timestamp,
+    NvResult GetGpuTime(System* system, u64* out_timestamp,
                         [[maybe_unused]] u64* _out_reserved);
 
     NvResult GetCharacteristics3(IoctlContext* ctx,

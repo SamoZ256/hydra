@@ -7,7 +7,7 @@ namespace hydra::horizon::display {
 
 class Driver {
   public:
-    Driver();
+    Driver(System& system_);
 
     // Displays
     Display& GetDisplay(handle_id_t id) {
@@ -29,7 +29,7 @@ class Driver {
     // Layers
     u32 CreateLayer(kernel::Process* process, u32 binder_id) {
         std::lock_guard lock(layer_mutex);
-        return layer_pool.Add(new Layer(process, binder_id));
+        return layer_pool.Add(new Layer(system, process, binder_id));
     }
 
     void DestroyLayer(u32 id) {
@@ -71,6 +71,8 @@ class Driver {
     Layer* GetFirstLayerForProcess(kernel::Process* process);
 
   private:
+    System& system;
+
     std::mutex display_mutex;
     StaticPool<Display*, 8> display_pool;
     std::mutex layer_mutex;

@@ -2,6 +2,10 @@
 
 #include "core/debugger/const.hpp"
 
+namespace hydra {
+class System;
+}
+
 namespace hydra::horizon::kernel {
 class GuestThread;
 class Process;
@@ -156,7 +160,7 @@ class Debugger {
     SymbolTable& GetFunctionTable() { return function_table; }
 
     // GDB
-    void ActivateGdbServer();
+    void ActivateGdbServer(System& system);
     void NotifySupervisorPaused(horizon::kernel::GuestThread* thread,
                                 Signal signal);
     void BreakpointHit(horizon::kernel::GuestThread* thread);

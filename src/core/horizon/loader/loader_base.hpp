@@ -4,6 +4,14 @@
 #include "core/horizon/kernel/process.hpp"
 #include "core/horizon/services/ns/const.hpp"
 
+namespace hydra {
+class System;
+}
+
+namespace hydra::horizon::filesystem {
+class Filesystem;
+}
+
 namespace hydra::horizon::loader {
 
 class LoaderBase {
@@ -18,7 +26,7 @@ class LoaderBase {
 
     virtual u64 GetTitleID() const { return invalid<u64>(); }
 
-    virtual void LoadProcess(kernel::Process* process) = 0;
+    virtual void LoadProcess(System& system, kernel::Process* process) = 0;
     enum class LoadNacpError {
         InvalidSize,
     };

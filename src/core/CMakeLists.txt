@@ -200,7 +200,6 @@ add_library(hydra-core
     horizon/services/am/global_state_controller.hpp
     horizon/services/am/application_creator.cpp
     horizon/services/am/application_creator.hpp
-    horizon/services/am/library_applet_controller.hpp
     horizon/services/am/library_applet_creator.cpp
     horizon/services/am/library_applet_creator.hpp
     horizon/services/am/library_applet_accessor.cpp
@@ -233,6 +232,7 @@ add_library(hydra-core
     horizon/services/am/storage_accessor.hpp
     horizon/services/am/session.cpp
     horizon/services/am/session.hpp
+    horizon/services/am/internal/library_applet_controller.hpp
     horizon/services/visrv/display_service_base.cpp
     horizon/services/visrv/display_service_base.hpp
     horizon/services/visrv/system_display_service.cpp
@@ -414,6 +414,8 @@ add_library(hydra-core
     horizon/services/ins/receiver_manager.hpp
     horizon/services/irsensor/ir_sensor_server.cpp
     horizon/services/irsensor/ir_sensor_server.hpp
+    horizon/services/irsensor/internal/ir_sensor_manager.cpp
+    horizon/services/irsensor/internal/ir_sensor_manager.hpp
     horizon/services/ro/detail/ro_interface.cpp
     horizon/services/ro/detail/ro_interface.hpp
     horizon/applets/const.hpp
@@ -450,7 +452,6 @@ add_library(hydra-core
     hw/tegra_x1/cpu/mmu.hpp
     hw/tegra_x1/cpu/thread.cpp
     hw/tegra_x1/cpu/thread.hpp
-    hw/tegra_x1/cpu/cpu.cpp
     hw/tegra_x1/cpu/cpu.hpp
     hw/tegra_x1/cpu/dynarmic/const.hpp
     hw/tegra_x1/cpu/dynarmic/memory.hpp

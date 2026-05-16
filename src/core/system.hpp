@@ -1,15 +1,14 @@
 #pragma once
 
 #include "core/horizon/os.hpp"
-#include "core/hw/tegra_x1/cpu/cpu.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/wall_clock.hpp"
 
-namespace hydra {
-
-namespace horizon::loader {
+namespace hydra::horizon::loader {
 class LoaderBase;
 }
+
+namespace hydra {
 
 struct CombinedTextureView {
     hw::tegra_x1::gpu::renderer::ITexture* base;
@@ -22,7 +21,7 @@ class System {
     using clock_t = std::chrono::steady_clock;
 
   public:
-    System(horizon::ui::IHandler& ui_handler);
+    System(horizon::ui::IHandler& ui_handler_);
     ~System();
 
     void SetSurface(void* surface) { gpu.GetRenderer().SetSurface(surface); }
@@ -50,6 +49,8 @@ class System {
     void CaptureGpuFrame();
 
   private:
+    horizon::ui::IHandler& ui_handler;
+
     hw::WallClock wall_clock;
     std::unique_ptr<hw::tegra_x1::cpu::ICpu> cpu;
     hw::tegra_x1::gpu::Gpu gpu;
@@ -80,6 +81,7 @@ class System {
                        const std::filesystem::path path);
 
   public:
+    GETTER(ui_handler, GetUIHandler);
     REF_GETTER(wall_clock, GetWallClock);
     hw::tegra_x1::cpu::ICpu& GetCpu() { return *cpu.get(); }
     REF_GETTER(gpu, GetGpu);

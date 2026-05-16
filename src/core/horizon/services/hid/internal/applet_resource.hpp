@@ -4,6 +4,10 @@
 #include "core/horizon/services/hid/internal/npad.hpp"
 #include "core/horizon/services/hid/internal/npad_index.hpp"
 
+namespace hydra {
+class System;
+}
+
 namespace hydra::horizon::kernel {
 class SharedMemory;
 }
@@ -12,7 +16,7 @@ namespace hydra::horizon::services::hid::internal {
 
 class AppletResource {
   public:
-    AppletResource();
+    AppletResource(System& system);
     ~AppletResource();
 
     // Npad setup

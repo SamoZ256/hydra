@@ -737,61 +737,61 @@ HYDRA_EXPORT void* hydra_create_system() {
     return new hydra::System(*(new UiHandler()));
 }
 
-HYDRA_EXPORT void hydra_system_destroy(void* ctx) {
+HYDRA_EXPORT void hydra_system_destroy(void* system) {
     // TODO: also destroy the UI handler
-    delete reinterpret_cast<hydra::System*>(ctx);
+    delete reinterpret_cast<hydra::System*>(system);
 }
 
-HYDRA_EXPORT void hydra_system_set_surface(void* ctx, void* surface) {
-    reinterpret_cast<hydra::System*>(ctx)->SetSurface(surface);
+HYDRA_EXPORT void hydra_system_set_surface(void* system, void* surface) {
+    reinterpret_cast<hydra::System*>(system)->SetSurface(surface);
 }
 
-HYDRA_EXPORT void hydra_system_load_and_start(void* ctx, void* loader) {
-    reinterpret_cast<hydra::System*>(ctx)->LoadAndStart(
+HYDRA_EXPORT void hydra_system_load_and_start(void* system, void* loader) {
+    reinterpret_cast<hydra::System*>(system)->LoadAndStart(
         reinterpret_cast<hydra::horizon::loader::LoaderBase*>(loader));
 }
 
-HYDRA_EXPORT void hydra_system_request_stop(void* ctx) {
-    reinterpret_cast<hydra::System*>(ctx)->RequestStop();
+HYDRA_EXPORT void hydra_system_request_stop(void* system) {
+    reinterpret_cast<hydra::System*>(system)->RequestStop();
 }
 
-HYDRA_EXPORT void hydra_system_force_stop(void* ctx) {
-    reinterpret_cast<hydra::System*>(ctx)->ForceStop();
+HYDRA_EXPORT void hydra_system_force_stop(void* system) {
+    reinterpret_cast<hydra::System*>(system)->ForceStop();
 }
 
-HYDRA_EXPORT void hydra_system_pause(void* ctx) {
-    reinterpret_cast<hydra::System*>(ctx)->Pause();
+HYDRA_EXPORT void hydra_system_pause(void* system) {
+    reinterpret_cast<hydra::System*>(system)->Pause();
 }
 
-HYDRA_EXPORT void hydra_system_resume(void* ctx) {
-    reinterpret_cast<hydra::System*>(ctx)->Resume();
+HYDRA_EXPORT void hydra_system_resume(void* system) {
+    reinterpret_cast<hydra::System*>(system)->Resume();
 }
 
-HYDRA_EXPORT void hydra_system_notify_operation_mode_changed(void* ctx) {
-    reinterpret_cast<hydra::System*>(ctx)->NotifyOperationModeChanged();
+HYDRA_EXPORT void hydra_system_notify_operation_mode_changed(void* system) {
+    reinterpret_cast<hydra::System*>(system)->NotifyOperationModeChanged();
 }
 
-HYDRA_EXPORT void hydra_system_progress_frame(void* ctx, uint32_t width,
+HYDRA_EXPORT void hydra_system_progress_frame(void* system, uint32_t width,
                                               uint32_t height,
                                               bool* out_dt_average_updated) {
-    reinterpret_cast<hydra::System*>(ctx)->ProgressFrame(
+    reinterpret_cast<hydra::System*>(system)->ProgressFrame(
         width, height, *out_dt_average_updated);
 }
 
-HYDRA_EXPORT bool hydra_system_is_running(void* ctx) {
-    return reinterpret_cast<hydra::System*>(ctx)->IsRunning();
+HYDRA_EXPORT bool hydra_system_is_running(void* system) {
+    return reinterpret_cast<hydra::System*>(system)->IsRunning();
 }
 
-HYDRA_EXPORT float hydra_system_get_last_delta_time_average(void* ctx) {
-    return reinterpret_cast<hydra::System*>(ctx)->GetLastDeltaTimeAverage();
+HYDRA_EXPORT float hydra_system_get_last_delta_time_average(void* system) {
+    return reinterpret_cast<hydra::System*>(system)->GetLastDeltaTimeAverage();
 }
 
-HYDRA_EXPORT void hydra_system_take_screenshot(void* ctx) {
-    reinterpret_cast<hydra::System*>(ctx)->TakeScreenshot();
+HYDRA_EXPORT void hydra_system_take_screenshot(void* system) {
+    reinterpret_cast<hydra::System*>(system)->TakeScreenshot();
 }
 
-HYDRA_EXPORT void hydra_system_capture_gpu_frame(void* ctx) {
-    reinterpret_cast<hydra::System*>(ctx)->CaptureGpuFrame();
+HYDRA_EXPORT void hydra_system_capture_gpu_frame(void* system) {
+    reinterpret_cast<hydra::System*>(system)->CaptureGpuFrame();
 }
 
 // Debugger

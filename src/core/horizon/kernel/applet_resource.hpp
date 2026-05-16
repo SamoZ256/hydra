@@ -1,5 +1,9 @@
 #pragma once
 
+namespace hydra {
+class System;
+}
+
 namespace hydra::horizon::kernel {
 
 using AppletResourceUserId = u64;
@@ -37,6 +41,8 @@ class AppletResourcePool {
         AruidAlreadyTaken,
     };
 
+    AppletResourcePool(System& system_) : system{system_} {}
+
     typename ResourceArray::iterator begin() { return resources.begin(); }
 
     typename ResourceArray::const_iterator begin() const {
@@ -58,7 +64,7 @@ class AppletResourcePool {
         ASSERT_THROWING_DEBUG(!resource.has_value(), Kernel,
                               Error::AruidAlreadyTaken,
                               "Aruid {:#x} already taken", aruid);
-        resource.emplace();
+        resource.emplace(system);
         return *resource;
     }
 
@@ -84,6 +90,7 @@ class AppletResourcePool {
     }
 
   private:
+    System& system;
     ResourceArray resources{};
 
     // Helpers

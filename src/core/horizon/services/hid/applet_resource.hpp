@@ -11,7 +11,7 @@ class AppletResource;
 
 class IAppletResource : public IService {
   public:
-    IAppletResource(kernel::AppletResourceUserId aruid_);
+    IAppletResource(System& system_, kernel::AppletResourceUserId aruid_);
     ~IAppletResource();
 
   protected:
@@ -19,6 +19,7 @@ class IAppletResource : public IService {
                          u32 id) override;
 
   private:
+    System& system;
     kernel::AppletResourceUserId aruid;
     internal::AppletResource& resource;
 

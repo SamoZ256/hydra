@@ -21,7 +21,7 @@
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/nro_loader.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
-#include "core/horizon/services/am/library_applet_controller.hpp"
+#include "core/horizon/services/am/internal/library_applet_controller.hpp"
 #include "core/hw/tegra_x1/cpu/dynarmic/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
 #include "core/hw/tegra_x1/cpu/thread.hpp"
@@ -89,9 +89,9 @@ CombinedTextureView::~CombinedTextureView() {
     // delete base;
 }
 
-System::System(horizon::ui::IHandler& ui_handler)
-    : cpu{CreateCpu()}, audio_core{CreateAudioCore()},
-      os(*audio_core, ui_handler) {
+System::System(horizon::ui::IHandler& ui_handler_)
+    : ui_handler{ui_handler_}, cpu{CreateCpu()}, audio_core{CreateAudioCore()},
+      os(*this) {
     // TODO: set this elsewhere
     LOGGER_INSTANCE.SetOutput(CONFIG_INSTANCE.GetLogOutput());
 }
@@ -108,11 +108,12 @@ void System::LoadAndStart(horizon::loader::LoaderBase* loader) {
                     "Process already exists");
     main_process =
         os.GetKernel().GetProcessManager().CreateProcess("Guest process");
-    loader->LoadProcess(main_process);
+    loader->LoadProcess(*this, main_process);
 
     // Check for firmware applets
-    auto controller = new horizon::services::am::LibraryAppletController(
-        horizon::LibraryAppletMode::AllForeground);
+    auto controller =
+        new horizon::services::am::internal::LibraryAppletController(
+            horizon::LibraryAppletMode::AllForeground);
     // TODO: correct?
     u64 system_tick;
     os.GetKernel().GetSystemTick(system_tick);
@@ -382,8 +383,8 @@ void System::LoadAndStart(horizon::loader::LoaderBase* loader) {
     auto user_id = CONFIG_INSTANCE.GetUserId();
     if (user_id == horizon::services::account::internal::INVALID_USER_ID) {
         // If there is just a single user, use that
-        if (USER_MANAGER_INSTANCE.GetUserCount() == 1) {
-            user_id = USER_MANAGER_INSTANCE.GetUserIDs()[0];
+        if (os.GetUserManager().GetUserCount() == 1) {
+            user_id = os.GetUserManager().GetUserIDs()[0];
         } else {
             // TODO: launch a select user applet in case the game requires it
             LOG_FATAL(Other, "Multiple user accounts");
@@ -406,7 +407,8 @@ void System::LoadAndStart(horizon::loader::LoaderBase* loader) {
         while (!main_process->IsRunning())
             std::this_thread::yield();
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        DEBUGGER_MANAGER_INSTANCE.GetDebugger(main_process).ActivateGdbServer();
+        DEBUGGER_MANAGER_INSTANCE.GetDebugger(main_process)
+            .ActivateGdbServer(*this);
     }
 
     // Loading screen

@@ -63,12 +63,12 @@ result_t INvDrvServices::Open(InBuffer<BufferAttr::MapAlias> path_buffer,
     return RESULT_SUCCESS;
 }
 
-result_t INvDrvServices::Ioctl(kernel::Process* process, handle_id_t fd_id,
-                               u32 code,
+result_t INvDrvServices::Ioctl(System* system, kernel::Process* process,
+                               handle_id_t fd_id, u32 code,
                                InBuffer<BufferAttr::AutoSelect> in_buffer,
                                NvResult* out_result,
                                OutBuffer<BufferAttr::AutoSelect> out_buffer) {
-    return IoctlImpl(&ioctl::FdBase::Ioctl, process, fd_id, code,
+    return IoctlImpl(&ioctl::FdBase::Ioctl, *system, process, fd_id, code,
                      in_buffer.stream, nullptr, out_buffer.stream, nullptr,
                      out_result);
 }
@@ -115,24 +115,24 @@ result_t INvDrvServices::QueryEvent(kernel::Process* process, handle_id_t fd_id,
     }
 }
 
-result_t INvDrvServices::Ioctl2(kernel::Process* process, handle_id_t fd_id,
-                                u32 code,
+result_t INvDrvServices::Ioctl2(System* system, kernel::Process* process,
+                                handle_id_t fd_id, u32 code,
                                 InBuffer<BufferAttr::AutoSelect> in_buffer1,
                                 InBuffer<BufferAttr::AutoSelect> in_buffer2,
                                 NvResult* out_result,
                                 OutBuffer<BufferAttr::AutoSelect> out_buffer) {
-    return IoctlImpl(&ioctl::FdBase::Ioctl2, process, fd_id, code,
+    return IoctlImpl(&ioctl::FdBase::Ioctl2, *system, process, fd_id, code,
                      in_buffer1.stream, in_buffer2.stream, out_buffer.stream,
                      nullptr, out_result);
 }
 
-result_t INvDrvServices::Ioctl3(kernel::Process* process, handle_id_t fd_id,
-                                u32 code,
+result_t INvDrvServices::Ioctl3(System* system, kernel::Process* process,
+                                handle_id_t fd_id, u32 code,
                                 InBuffer<BufferAttr::AutoSelect> in_buffer,
                                 NvResult* out_result,
                                 OutBuffer<BufferAttr::AutoSelect> out_buffer1,
                                 OutBuffer<BufferAttr::AutoSelect> out_buffer2) {
-    return IoctlImpl(&ioctl::FdBase::Ioctl3, process, fd_id, code,
+    return IoctlImpl(&ioctl::FdBase::Ioctl3, *system, process, fd_id, code,
                      in_buffer.stream, nullptr, out_buffer1.stream,
                      out_buffer2.stream, out_result);
 }
@@ -140,7 +140,7 @@ result_t INvDrvServices::Ioctl3(kernel::Process* process, handle_id_t fd_id,
 result_t INvDrvServices::IoctlImpl(
     NvResult (ioctl::FdBase::*func)(ioctl::IoctlContext& context, u32 type,
                                     u32 nr),
-    kernel::Process* process, handle_id_t fd_id, u32 code,
+    System& system, kernel::Process* process, handle_id_t fd_id, u32 code,
     io::MemoryStream* in_stream, io::MemoryStream* in_buffer_stream,
     io::MemoryStream* out_stream, io::MemoryStream* out_buffer_stream,
     NvResult* out_result) {
@@ -151,7 +151,8 @@ result_t INvDrvServices::IoctlImpl(
     u32 nr = code & 0xff;
 
     ioctl::IoctlContext context{
-        process, in_stream, in_buffer_stream, out_stream, out_buffer_stream,
+        system,           process,    in_stream,
+        in_buffer_stream, out_stream, out_buffer_stream,
     };
     NvResult result = (fd->*func)(context, type, nr);
 

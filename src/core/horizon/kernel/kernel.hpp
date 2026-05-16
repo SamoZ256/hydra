@@ -1,14 +1,11 @@
 #pragma once
 
-#include "core/horizon/filesystem/filesystem.hpp"
 #include "core/horizon/kernel/applet_resource.hpp"
 #include "core/horizon/kernel/event.hpp"
 #include "core/horizon/kernel/hipc/service_manager.hpp"
 #include "core/horizon/kernel/process_manager.hpp"
 #include "core/horizon/kernel/shared_memory.hpp"
 #include "core/horizon/kernel/transfer_memory.hpp"
-
-#define KERNEL_INSTANCE hydra::horizon::kernel::Kernel::GetInstance()
 
 namespace hydra::hw::tegra_x1::cpu {
 class IMmu;
@@ -35,10 +32,7 @@ class CodeMemory;
 
 class Kernel {
   public:
-    static Kernel& GetInstance();
-
-    Kernel();
-    ~Kernel();
+    Kernel(System& system_);
 
     void SupervisorCall(Process* crnt_process, IThread* crnt_thread,
                         hw::tegra_x1::cpu::IThread* guest_thread, u64 id);
@@ -162,7 +156,8 @@ class Kernel {
                                     vaddr_t src_addr, u64 size);
 
   private:
-    filesystem::Filesystem filesystem;
+    System& system;
+
     ProcessManager process_manager;
     hipc::ServiceManager<std::string> service_manager;
 
@@ -182,7 +177,6 @@ class Kernel {
     void UnlockMutex(IThread* thread, uptr mutex_addr);
 
   public:
-    REF_GETTER(filesystem, GetFilesystem);
     REF_GETTER(process_manager, GetProcessManager);
     REF_GETTER(service_manager, GetServiceManager);
     REF_GETTER(critical_section_mutex, GetCriticalSectionMutex);
@@ -190,11 +184,14 @@ class Kernel {
 
 class CriticalSectionLock {
   public:
-    CriticalSectionLock() { KERNEL_INSTANCE.GetCriticalSectionMutex().lock(); }
-
-    ~CriticalSectionLock() {
-        KERNEL_INSTANCE.GetCriticalSectionMutex().unlock();
+    CriticalSectionLock(Kernel& kernel_) : kernel{kernel_} {
+        kernel.GetCriticalSectionMutex().lock();
     }
+
+    ~CriticalSectionLock() { kernel.GetCriticalSectionMutex().unlock(); }
+
+  private:
+    Kernel& kernel;
 };
 
 } // namespace hydra::horizon::kernel

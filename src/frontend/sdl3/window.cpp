@@ -128,7 +128,8 @@ void Window::BeginEmulation(const std::string& path) {
 
     system.SetSurface(SDL_GetRenderMetalLayer(renderer));
     // TODO: support loading applets from firmware
-    auto loader = horizon::loader::LoaderBase::CreateFromPath(path);
+    auto loader = horizon::loader::LoaderBase::CreateFromPath(
+        system.GetOS().GetFilesystem(), path);
     system.LoadAndStart(loader);
     title_id = loader->GetTitleID();
     delete loader;

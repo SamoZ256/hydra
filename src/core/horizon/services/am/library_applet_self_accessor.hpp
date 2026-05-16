@@ -17,19 +17,16 @@ struct AppletIdentityInfo {
 };
 
 class ILibraryAppletSelfAccessor : public IService {
-  public:
-    ILibraryAppletSelfAccessor();
-
   protected:
     result_t RequestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t PopInData(RequestContext* ctx);
-    result_t PushOutData(IService* storage_);
-    result_t PopInteractiveInData(RequestContext* ctx);
-    result_t PushInteractiveOutData(IService* storage_);
+    result_t PopInData(RequestContext* ctx, System* system);
+    result_t PushOutData(System* system, IService* storage_);
+    result_t PopInteractiveInData(RequestContext* ctx, System* system);
+    result_t PushInteractiveOutData(System* system, IService* storage_);
     result_t ExitProcessAndReturn(kernel::Process* process);
     result_t GetLibraryAppletInfo(LibraryAppletInfo* out_info);
     result_t GetCallerAppletIdentityInfo(AppletIdentityInfo* out_info);

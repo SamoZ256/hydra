@@ -17,8 +17,8 @@ class NspLoader : public LoaderBase {
         return invalid<u64>(); // program_nca_loader->GetTitleID();
     }
 
-    void LoadProcess(kernel::Process* process) override {
-        /*program_nca_loader*/ nso_loader->LoadProcess(process);
+    void LoadProcess(System& system, kernel::Process* process) override {
+        /*program_nca_loader*/ nso_loader->LoadProcess(system, process);
     }
 
   private:

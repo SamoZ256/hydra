@@ -20,7 +20,8 @@ struct Buffer {
 
 class IAudioOut : public IService {
   public:
-    IAudioOut(PcmFormat format, u32 sample_rate, u16 channel_count);
+    IAudioOut(System& system, PcmFormat format, u32 sample_rate,
+              u16 channel_count);
 
   protected:
     result_t RequestImpl([[maybe_unused]] RequestContext& context,

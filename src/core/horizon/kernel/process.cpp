@@ -6,12 +6,14 @@
 #include "core/hw/tegra_x1/cpu/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
 #include "core/hw/tegra_x1/gpu/gmmu.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::kernel {
 
-Process::Process(const std::string_view debug_name)
-    : SynchronizationObject(false, debug_name), mmu{CPU_INSTANCE.CreateMmu()},
-      gmmu{new hw::tegra_x1::gpu::GMmu(mmu)} {
+Process::Process(System& system_, const std::string_view debug_name)
+    : SynchronizationObject(false, debug_name), system{system_},
+      mmu{system.GetCpu().CreateMmu()}, gmmu{new hw::tegra_x1::gpu::GMmu(mmu)},
+      applet_state(system.GetOS().GetKernel()) {
     // TODO: use title ID and name as debugger name?
     DEBUGGER_MANAGER_INSTANCE.AttachDebugger(
         this,
@@ -34,7 +36,7 @@ uptr Process::CreateMemory(Range<vaddr_t> region, usize size, MemoryType type,
     out_base = mmu->FindFreeMemory(region, size);
     ASSERT(out_base != 0x0, Kernel, "Failed to find free memory");
 
-    auto mem = CPU_INSTANCE.AllocateMemory(size);
+    auto mem = system.GetCpu().AllocateMemory(size);
     mmu->Map(out_base, mem, {type, MemoryAttribute::None, perm});
     executable_mems.push_back(mem);
 
@@ -74,7 +76,7 @@ uptr Process::CreateExecutableMemory(const std::string_view module_name,
 }
 
 hw::tegra_x1::cpu::IMemory* Process::CreateTlsMemory(vaddr_t& base) {
-    auto mem = CPU_INSTANCE.AllocateMemory(TLS_SIZE);
+    auto mem = system.GetCpu().AllocateMemory(TLS_SIZE);
     base = tls_mem_base;
     mmu->Map(base, mem,
              {MemoryType::ThreadLocal, MemoryAttribute::None,
@@ -88,7 +90,7 @@ void Process::CreateStackMemory(usize stack_size) {
     // main_thread = new GuestThread(this, STACK_REGION.begin + stack_size -
     // 0x10, priority); auto handle_id = AddHandle(main_thread);
 
-    main_thread_stack_mem = CPU_INSTANCE.AllocateMemory(stack_size);
+    main_thread_stack_mem = system.GetCpu().AllocateMemory(stack_size);
     mmu->Map(STACK_REGION.GetBegin(), main_thread_stack_mem,
              {MemoryType::Stack, MemoryAttribute::None,
               MemoryPermission::ReadWrite});

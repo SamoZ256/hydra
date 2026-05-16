@@ -6,8 +6,7 @@
 #include "core/horizon/const.hpp"
 #include "core/horizon/filesystem/disk_file.hpp"
 #include "core/horizon/filesystem/file_view.hpp"
-#include "core/horizon/filesystem/filesystem.hpp"
-#include "core/horizon/kernel/kernel.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::loader {
 
@@ -48,12 +47,13 @@ struct ConfigEntry {
 class HomebrewThread : public kernel::GuestThread {
   public:
     // TODO: don't hardcode priority
-    HomebrewThread(kernel::Process* process, std::string_view path_)
-        : kernel::GuestThread(process,
+    HomebrewThread(System& system_, kernel::Process* process,
+                   std::string_view path_)
+        : kernel::GuestThread(system_, process,
                               kernel::STACK_REGION.GetBegin() +
                                   STACK_MEMORY_SIZE - 0x10,
                               0x2c, "Homebrew thread"),
-          path{path_} {}
+          system{system_}, path{path_} {}
 
   protected:
     void Run() override {
@@ -124,15 +124,14 @@ class HomebrewThread : public kernel::GuestThread {
 
             // File
             filesystem::IFile* file;
-            const auto res =
-                KERNEL_INSTANCE.GetFilesystem().GetFile(path, file);
+            const auto res = system.GetOS().GetFilesystem().GetFile(path, file);
             ASSERT(res == filesystem::FsResult::Success, Loader,
                    "Failed to get Homebrew file: {}", res);
 
             // NRO loader
             {
                 NroLoader nro_loader(file, false);
-                nro_loader.LoadProcess(process);
+                nro_loader.LoadProcess(system, process);
                 const auto executable_ptr = nro_loader.GetExecutablePtr();
 
                 // Random
@@ -220,7 +219,9 @@ class HomebrewThread : public kernel::GuestThread {
     }
 
   private:
+    System& system;
     std::string path;
+
     handle_id_t self_handle{INVALID_HANDLE_ID};
 
   public:
@@ -236,7 +237,7 @@ HomebrewLoader::HomebrewLoader(filesystem::IFile* file_)
     TryLoadAssetSection(new filesystem::FileView(file, asset_begin));
 }
 
-void HomebrewLoader::LoadProcess(kernel::Process* process) {
+void HomebrewLoader::LoadProcess(System& system, kernel::Process* process) {
     // Get name
     auto stream = nacp_file->Open(filesystem::FileOpenFlags::Read);
 
@@ -250,7 +251,7 @@ void HomebrewLoader::LoadProcess(kernel::Process* process) {
     std::string mapped_path =
         fmt::format(FS_SD_MOUNT "/switch/{}/{}.nro", title_name, title_name);
     const auto res =
-        KERNEL_INSTANCE.GetFilesystem().AddEntry(mapped_path, file, true);
+        system.GetOS().GetFilesystem().AddEntry(mapped_path, file, true);
     ASSERT(res == filesystem::FsResult::Success, Loader,
            "Failed to map Homebrew file: {}", res);
 
@@ -258,7 +259,7 @@ void HomebrewLoader::LoadProcess(kernel::Process* process) {
     process->CreateStackMemory(STACK_MEMORY_SIZE);
 
     // Main thread
-    auto main_thread = new HomebrewThread(process, mapped_path);
+    auto main_thread = new HomebrewThread(system, process, mapped_path);
     const auto main_thread_handle_id = process->SetMainThread(main_thread);
     main_thread->SetSelfHandle(main_thread_handle_id);
 }

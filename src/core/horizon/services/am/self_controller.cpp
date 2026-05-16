@@ -1,7 +1,7 @@
 #include "core/horizon/services/am/self_controller.hpp"
 
 #include "core/horizon/kernel/process.hpp"
-#include "core/horizon/os.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::services::am {
 
@@ -44,23 +44,24 @@ result_t ISelfController::GetLibraryAppletLaunchableEvent(
     return RESULT_SUCCESS;
 }
 
-result_t ISelfController::CreateManagedDisplayLayer(kernel::Process* process,
+result_t ISelfController::CreateManagedDisplayLayer(System* system,
+                                                    kernel::Process* process,
                                                     u64* out_layer_id) {
-    u32 binder_id = OS_INSTANCE.GetDisplayDriver().CreateBinder();
+    u32 binder_id = system->GetOS().GetDisplayDriver().CreateBinder();
     *out_layer_id =
-        OS_INSTANCE.GetDisplayDriver().CreateLayer(process, binder_id);
+        system->GetOS().GetDisplayDriver().CreateLayer(process, binder_id);
     return RESULT_SUCCESS;
 }
 
 result_t ISelfController::CreateManagedDisplaySeparableLayer(
-    kernel::Process* process, u64* out_display_layer_id,
+    System* system, kernel::Process* process, u64* out_display_layer_id,
     u64* out_recording_layer_id) {
-    u32 binder_id = OS_INSTANCE.GetDisplayDriver().CreateBinder();
+    u32 binder_id = system->GetOS().GetDisplayDriver().CreateBinder();
     *out_display_layer_id =
-        OS_INSTANCE.GetDisplayDriver().CreateLayer(process, binder_id);
+        system->GetOS().GetDisplayDriver().CreateLayer(process, binder_id);
     // TODO: what is a recording layer?
     *out_recording_layer_id =
-        OS_INSTANCE.GetDisplayDriver().CreateLayer(process, binder_id);
+        system->GetOS().GetDisplayDriver().CreateLayer(process, binder_id);
     return RESULT_SUCCESS;
 }
 

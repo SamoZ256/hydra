@@ -11,6 +11,8 @@ class ResourceManager {
         AruidAlreadyTaken,
     };
 
+    ResourceManager(System& system) : resource_pool(system) {}
+
     void SetupNpads();
     void Update();
 
