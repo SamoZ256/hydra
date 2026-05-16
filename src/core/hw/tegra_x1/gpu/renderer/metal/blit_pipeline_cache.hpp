@@ -19,7 +19,7 @@ class BlitPipelineCache
     : public CacheBase<BlitPipelineCache, MTL::RenderPipelineState*,
                        BlitPipelineDescriptor> {
   public:
-    BlitPipelineCache();
+    BlitPipelineCache(MTL::Device* device_);
 
     void Destroy();
 
@@ -30,6 +30,8 @@ class BlitPipelineCache
     void DestroyElement(MTL::RenderPipelineState* pipeline);
 
   private:
+    MTL::Device* device;
+
     MTL::RenderPipelineDescriptor* pipeline_descriptor;
 };
 

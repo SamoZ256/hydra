@@ -7,7 +7,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 class Sampler final : public SamplerBase {
   public:
-    Sampler(const SamplerDescriptor& descriptor);
+    Sampler(MTL::Device* device, const SamplerDescriptor& descriptor);
     ~Sampler() override;
 
     // Getters

@@ -6,7 +6,7 @@ namespace hydra::hw::tegra_x1::gpu::macro::interpreter {
 
 class Driver : public DriverBase {
   public:
-    Driver(engines::ThreeD* engine_3d) : DriverBase(engine_3d) {}
+    Driver(engines::ThreeD& engine_3d) : DriverBase(engine_3d) {}
 
   protected:
     void ExecuteImpl(u32 pc_, u32 param1) override;

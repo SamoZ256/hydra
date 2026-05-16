@@ -602,7 +602,7 @@ void System::TakeScreenshot() {
     if (!texture)
         return;
 
-    std::thread thread([=]() {
+    std::thread thread([=, this]() {
         // Get the image data
         auto rect = layer->GetSrcRect();
 
@@ -616,8 +616,8 @@ void System::TakeScreenshot() {
         }
 
         // Copy to a buffer
-        auto command_buffer = RENDERER_INSTANCE.CreateCommandBuffer();
-        auto buffer = RENDERER_INSTANCE.AllocateTemporaryBuffer(
+        auto command_buffer = gpu.GetRenderer().CreateCommandBuffer();
+        auto buffer = gpu.GetRenderer().AllocateTemporaryBuffer(
             static_cast<u32>(rect.size.y() * rect.size.x() * 4));
         buffer->CopyFrom(command_buffer, texture, rect.origin, rect.size,
                          Range<u32>(0, 1), Range<u32>(0, 1));
@@ -639,7 +639,7 @@ void System::TakeScreenshot() {
         stbi_flip_vertically_on_write(false);
 
         // Free the buffer
-        RENDERER_INSTANCE.FreeTemporaryBuffer(buffer);
+        gpu.GetRenderer().FreeTemporaryBuffer(buffer);
     });
     thread.detach();
 }

@@ -88,7 +88,7 @@ Cpu::Cpu()
 
 Cpu::~Cpu() {}
 
-IMmu* Cpu::CreateMmu() { return new Mmu(); }
+IMmu* Cpu::CreateMmu(System& system) { return new Mmu(system); }
 
 IThread* Cpu::CreateThread(WallClock& wall_clock, IMmu* mmu,
                            const ThreadCallbacks& callbacks, IMemory* tls_mem,

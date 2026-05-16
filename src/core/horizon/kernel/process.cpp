@@ -12,7 +12,8 @@ namespace hydra::horizon::kernel {
 
 Process::Process(System& system_, const std::string_view debug_name)
     : SynchronizationObject(false, debug_name), system{system_},
-      mmu{system.GetCpu().CreateMmu()}, gmmu{new hw::tegra_x1::gpu::GMmu(mmu)},
+      mmu{system.GetCpu().CreateMmu(system)}, gmmu{new hw::tegra_x1::gpu::GMmu(
+                                                  mmu)},
       applet_state(system.GetOS().GetKernel()) {
     // TODO: use title ID and name as debugger name?
     DEBUGGER_MANAGER_INSTANCE.AttachDebugger(

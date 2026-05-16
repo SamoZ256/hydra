@@ -7,7 +7,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 class Texture final : public ITexture {
   public:
-    Texture(const TextureDescriptor& descriptor);
+    Texture(MTL::Device* device, const TextureDescriptor& descriptor);
     ~Texture() override;
 
     ITextureView*
@@ -22,14 +22,6 @@ class Texture final : public ITexture {
                   const uint3 src_origin, const u32 src_level,
                   const u32 src_layer, const uint3 dst_origin,
                   const u32 dst_level, const u32 dst_layer, const usize3 size,
-                  const u32 level_count, const u32 layer_count) override;
-
-    // Blitting
-    void BlitFrom(ICommandBuffer* command_buffer, const ITexture* src,
-                  const float3 src_origin, const usize3 src_size,
-                  const u32 src_level, const u32 src_layer,
-                  const float3 dst_origin, const usize3 dst_size,
-                  const u32 dst_level, const u32 dst_layer,
                   const u32 level_count, const u32 layer_count) override;
 
   private:

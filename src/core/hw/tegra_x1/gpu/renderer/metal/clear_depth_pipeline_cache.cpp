@@ -4,7 +4,8 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
-ClearDepthPipelineCache::ClearDepthPipelineCache() {
+ClearDepthPipelineCache::ClearDepthPipelineCache(MTL::Device* device_)
+    : device{device_} {
     // Source
     auto shader_source = R"(
         #include <metal_stdlib>
@@ -37,8 +38,7 @@ ClearDepthPipelineCache::ClearDepthPipelineCache() {
 
     // Function
     auto vertex_clear_depth =
-        CreateFunctionFromSource(METAL_RENDERER_INSTANCE.GetDevice(),
-                                 shader_source, "vertex_clear_depth");
+        CreateFunctionFromSource(device, shader_source, "vertex_clear_depth");
 
     // Pipeline descriptor
     pipeline_descriptor = MTL::RenderPipelineDescriptor::alloc()->init();
@@ -55,8 +55,7 @@ ClearDepthPipelineCache::Create(MTL::PixelFormat pixel_format) {
     pipeline_descriptor->setDepthAttachmentPixelFormat(pixel_format);
 
     NS::Error* error;
-    auto pipeline = METAL_RENDERER_INSTANCE.GetDevice()->newRenderPipelineState(
-        pipeline_descriptor, &error);
+    auto pipeline = device->newRenderPipelineState(pipeline_descriptor, &error);
     if (error) {
         LOG_ERROR(MetalRenderer, "Failed to create clear depth pipeline: {}",
                   error->localizedDescription()->utf8String());

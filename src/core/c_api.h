@@ -385,10 +385,11 @@ uint64_t hydra_debugger_resolved_stack_frame_get_address(
 // Texture cache
 
 // Texture cache
-void hydra_texture_cache_lock();
-void hydra_texture_cache_unlock();
-uint32_t hydra_texture_cache_get_texture_memory_count();
-const void* hydra_texture_cache_get_texture_memory(uint32_t index);
+void hydra_texture_cache_lock(void* system);
+void hydra_texture_cache_unlock(void* system);
+uint32_t hydra_texture_cache_get_texture_memory_count(void* system);
+const void* hydra_texture_cache_get_texture_memory(void* system,
+                                                   uint32_t index);
 
 // Texture memory
 uint32_t hydra_texture_memory_get_texture_group_count(const void* mem);

@@ -116,7 +116,7 @@ struct Binder {
     // Buffers
     void AddBuffer(i32 slot, const GraphicBuffer& buff);
     i32 GetAvailableSlot();
-    void QueueBuffer(i32 slot, const BqBufferInput& input);
+    void QueueBuffer(System& system, i32 slot, const BqBufferInput& input);
     i32 ConsumeBuffer(BqBufferInput& out_input);
     void UnqueueAllBuffers();
 

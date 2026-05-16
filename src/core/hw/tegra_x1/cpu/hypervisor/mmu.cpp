@@ -13,8 +13,6 @@
 #define KERNEL_RANGE_MEM_SIZE 0x1000000
 */
 
-#define CPU (*static_cast<Cpu*>(&CPU_INSTANCE))
-
 namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 namespace {
@@ -77,7 +75,8 @@ void ReleasePageTableRegion(paddr_t addr) {
 
 } // namespace
 
-Mmu::Mmu() : user_page_table(FindFreePageTableRegion()) {
+Mmu::Mmu(System& system)
+    : IMmu(system), user_page_table(FindFreePageTableRegion()) {
     // Loader return address
     // TODO: this should be done in a backend agnostic way (perhaps in the
     // kernel?)

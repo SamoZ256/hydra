@@ -9,10 +9,13 @@ class IMmu;
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
 class SamplerBase;
+class IRenderer;
 
 class SamplerCache
     : public CacheBase<SamplerCache, SamplerBase*, SamplerDescriptor> {
   public:
+    SamplerCache(IRenderer& renderer_) : renderer{renderer_} {}
+
     void Destroy() {}
 
     SamplerBase* Create(const SamplerDescriptor& descriptor);
@@ -22,6 +25,7 @@ class SamplerCache
     void DestroyElement(SamplerBase* sampler);
 
   private:
+    IRenderer& renderer;
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

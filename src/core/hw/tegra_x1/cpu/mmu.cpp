@@ -1,6 +1,6 @@
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
 
-#include "core/hw/tegra_x1/gpu/gpu.hpp"
+#include "core/system.hpp"
 
 namespace hydra::hw::tegra_x1::cpu {
 
@@ -75,7 +75,7 @@ bool IMmu::TrackWrite(Range<vaddr_t> range) {
     // Notify the GPU
     // TODO: what about non-contiguous regions?
     const auto ptr = UnmapAddr(aligned_range.GetBegin());
-    RENDERER_INSTANCE.InvalidateMemory(
+    system.GetGpu().GetRenderer().InvalidateMemory(
         Range<uptr>::FromSize(ptr, aligned_range.GetSize()));
 
     {

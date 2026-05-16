@@ -6,6 +6,7 @@
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
 class ShaderBase;
+class IRenderer;
 
 struct GuestShaderState {
     engines::VertexAttribState vertex_attrib_states[VERTEX_ATTRIB_COUNT];
@@ -22,6 +23,8 @@ struct GuestShaderDescriptor {
 class ShaderCache
     : public CacheBase<ShaderCache, ShaderBase*, GuestShaderDescriptor> {
   public:
+    ShaderCache(IRenderer& renderer_) : renderer{renderer_} {}
+
     void Destroy() {}
 
     ShaderBase* Create(const GuestShaderDescriptor& descriptor);
@@ -29,6 +32,9 @@ class ShaderCache
     u32 Hash(const GuestShaderDescriptor& descriptor);
 
     void DestroyElement(ShaderBase* shader);
+
+  private:
+    IRenderer& renderer;
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

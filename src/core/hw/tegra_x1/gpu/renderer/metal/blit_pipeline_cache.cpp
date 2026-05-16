@@ -4,7 +4,7 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
-BlitPipelineCache::BlitPipelineCache() {
+BlitPipelineCache::BlitPipelineCache(MTL::Device* device_) : device{device_} {
     // Source
     auto shader_source = R"(
         #include <metal_stdlib>
@@ -34,8 +34,8 @@ BlitPipelineCache::BlitPipelineCache() {
     )";
 
     // Function
-    auto vertex_blit = CreateFunctionFromSource(
-        METAL_RENDERER_INSTANCE.GetDevice(), shader_source, "vertex_blit");
+    auto vertex_blit =
+        CreateFunctionFromSource(device, shader_source, "vertex_blit");
 
     // Pipeline descriptor
     pipeline_descriptor = MTL::RenderPipelineDescriptor::alloc()->init();
@@ -75,8 +75,8 @@ BlitPipelineCache::Create(const BlitPipelineDescriptor& descriptor) {
     )";
 
     // Function
-    auto fragment_blit = CreateFunctionFromSource(
-        METAL_RENDERER_INSTANCE.GetDevice(), shader_source, "fragment_blit");
+    auto fragment_blit =
+        CreateFunctionFromSource(device, shader_source, "fragment_blit");
 
     // Pipeline
     pipeline_descriptor->setFragmentFunction(fragment_blit);
@@ -98,8 +98,7 @@ BlitPipelineCache::Create(const BlitPipelineDescriptor& descriptor) {
     fragment_blit->release();
 
     NS::Error* error;
-    auto pipeline = METAL_RENDERER_INSTANCE.GetDevice()->newRenderPipelineState(
-        pipeline_descriptor, &error);
+    auto pipeline = device->newRenderPipelineState(pipeline_descriptor, &error);
     if (error) {
         LOG_ERROR(MetalRenderer, "Failed to create blit pipeline: {}",
                   error->localizedDescription()->utf8String());

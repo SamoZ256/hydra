@@ -6,7 +6,7 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
-Pipeline::Pipeline(const PipelineDescriptor& descriptor)
+Pipeline::Pipeline(MTL::Device* device, const PipelineDescriptor& descriptor)
     : PipelineBase(descriptor) {
     MTL::RenderPipelineDescriptor* pipeline_descriptor =
         MTL::RenderPipelineDescriptor::alloc()->init();
@@ -137,8 +137,7 @@ Pipeline::Pipeline(const PipelineDescriptor& descriptor)
 
     // Pipeline
     NS::Error* error;
-    pipeline = METAL_RENDERER_INSTANCE.GetDevice()->newRenderPipelineState(
-        pipeline_descriptor, &error);
+    pipeline = device->newRenderPipelineState(pipeline_descriptor, &error);
     pipeline_descriptor->release();
     if (error) {
         LOG_ERROR(MetalRenderer, "Failed to create pipeline: {}",

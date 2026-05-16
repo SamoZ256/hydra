@@ -578,7 +578,7 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/pipeline_cache.hpp
     hw/tegra_x1/gpu/renderer/index_cache.cpp
     hw/tegra_x1/gpu/renderer/index_cache.hpp
-    hw/tegra_x1/gpu/renderer/renderer_base.hpp
+    hw/tegra_x1/gpu/renderer/renderer.hpp
     hw/tegra_x1/gpu/renderer/metal/const.hpp
     hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.cpp
     hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.hpp

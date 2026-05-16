@@ -990,23 +990,41 @@ HYDRA_EXPORT uint64_t hydra_debugger_resolved_stack_frame_get_address(
 // Texture cache
 
 // Texture cache
-HYDRA_EXPORT void hydra_texture_cache_lock() {
-    hydra::RENDERER_INSTANCE.GetTextureCache().GetMutex().lock();
+HYDRA_EXPORT void hydra_texture_cache_lock(void* system) {
+    reinterpret_cast<hydra::System*>(system)
+        ->GetGpu()
+        .GetRenderer()
+        .GetTextureCache()
+        .GetMutex()
+        .lock();
 }
 
-HYDRA_EXPORT void hydra_texture_cache_unlock() {
-    hydra::RENDERER_INSTANCE.GetTextureCache().GetMutex().unlock();
+HYDRA_EXPORT void hydra_texture_cache_unlock(void* system) {
+    reinterpret_cast<hydra::System*>(system)
+        ->GetGpu()
+        .GetRenderer()
+        .GetTextureCache()
+        .GetMutex()
+        .unlock();
 }
 
-HYDRA_EXPORT uint32_t hydra_texture_cache_get_texture_memory_count() {
+HYDRA_EXPORT uint32_t
+hydra_texture_cache_get_texture_memory_count(void* system) {
     // HACK
-    return static_cast<uint32_t>(
-        hydra::RENDERER_INSTANCE.GetTextureCache().GetMemoryCount());
+    return static_cast<uint32_t>(reinterpret_cast<hydra::System*>(system)
+                                     ->GetGpu()
+                                     .GetRenderer()
+                                     .GetTextureCache()
+                                     .GetMemoryCount());
 }
 
 HYDRA_EXPORT const void*
-hydra_texture_cache_get_texture_memory(uint32_t index) {
-    return &hydra::RENDERER_INSTANCE.GetTextureCache().GetMemory(index);
+hydra_texture_cache_get_texture_memory(void* system, uint32_t index) {
+    return &reinterpret_cast<hydra::System*>(system)
+                ->GetGpu()
+                .GetRenderer()
+                .GetTextureCache()
+                .GetMemory(index);
 }
 
 // Texture memory

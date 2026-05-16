@@ -4,7 +4,8 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
-Shader::Shader(const ShaderDescriptor& descriptor) : ShaderBase(descriptor) {
+Shader::Shader(MTL::Device* device, const ShaderDescriptor& descriptor)
+    : ShaderBase(descriptor) {
     // Options
     NS_STACK_SCOPED MTL::CompileOptions* options =
         MTL::CompileOptions::alloc()->init();
@@ -22,8 +23,7 @@ Shader::Shader(const ShaderDescriptor& descriptor) : ShaderBase(descriptor) {
         source.assign(descriptor.code.begin(), descriptor.code.end());
 
         NS::Error* error;
-        library = METAL_RENDERER_INSTANCE.GetDevice()->newLibrary(
-            ToNSString(source), options, &error);
+        library = device->newLibrary(ToNSString(source), options, &error);
         if (error) {
             LOG_ERROR(MetalRenderer, "Failed to create Metal library: {}",
                       error->localizedDescription()->utf8String());
@@ -41,8 +41,7 @@ Shader::Shader(const ShaderDescriptor& descriptor) : ShaderBase(descriptor) {
 
         NS::Error* error;
         // TODO: options
-        library = METAL_RENDERER_INSTANCE.GetDevice()->newLibrary(dispatch_data,
-                                                                  &error);
+        library = device->newLibrary(dispatch_data, &error);
         if (error) {
             LOG_ERROR(MetalRenderer, "Failed to create Metal library: {}",
                       error->localizedDescription()->utf8String());

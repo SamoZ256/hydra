@@ -2,6 +2,10 @@
 
 #include "core/hw/tegra_x1/cpu/thread.hpp"
 
+namespace hydra {
+class System;
+}
+
 namespace hydra::hw::tegra_x1::cpu {
 
 class IMemory;
@@ -17,7 +21,7 @@ class ICpu {
   public:
     virtual ~ICpu() = default;
 
-    virtual IMmu* CreateMmu() = 0;
+    virtual IMmu* CreateMmu(System& system) = 0;
     virtual IThread* CreateThread(WallClock& wall_clock, IMmu* mmu,
                                   const ThreadCallbacks& callbacks,
                                   IMemory* tls_mem, vaddr_t tls_mem_base) = 0;

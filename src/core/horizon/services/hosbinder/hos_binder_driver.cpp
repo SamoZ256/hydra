@@ -181,7 +181,7 @@ void IHOSBinderDriver::TransactParcelImpl(System& system, i32 binder_id,
         const auto& input =
             *parcel_reader.ReadFlattenedObject<display::BqBufferInput>();
 
-        binder.QueueBuffer(slot, input);
+        binder.QueueBuffer(system, slot, input);
 
         // Buffer output
         const auto res = system.GetOS().GetDisplayResolution();

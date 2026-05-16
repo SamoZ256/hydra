@@ -19,7 +19,7 @@ struct result_t {
 
 class DriverBase {
   public:
-    DriverBase(engines::ThreeD* engine_3d_) : engine_3d{engine_3d_} {}
+    DriverBase(engines::ThreeD& engine_3d_) : engine_3d{engine_3d_} {}
     virtual ~DriverBase() = default;
 
     void Execute();
@@ -62,7 +62,7 @@ class DriverBase {
     void Send(u32 arg);
 
   private:
-    engines::ThreeD* engine_3d;
+    engines::ThreeD& engine_3d;
 
     // Memory
     u32 instruction_ram[0x1000] = {0}; // TODO: what should be the size?

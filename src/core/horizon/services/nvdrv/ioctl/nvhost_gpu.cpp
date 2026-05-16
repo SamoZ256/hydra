@@ -2,7 +2,7 @@
 
 #include "core/horizon/kernel/process.hpp"
 #include "core/hw/tegra_x1/gpu/const.hpp"
-#include "core/hw/tegra_x1/gpu/gpu.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::services::nvdrv::ioctl {
 
@@ -40,13 +40,13 @@ NvResult NvHostGpu::QueryEvent(u32 event_id_u32, kernel::Event*& out_event) {
 
 // TODO: gpfifo
 NvResult NvHostGpu::SubmitGpfifo(
-    kernel::Process* process, u64 gpfifo, u32 num_entries,
+    System* system, kernel::Process* process, u64 gpfifo, u32 num_entries,
     InOut<hw::tegra_x1::gpu::GpfifoFlags, u32> inout_flags_and_detailed_error,
     InOutSingle<hw::tegra_x1::gpu::Fence> inout_fence,
     const hw::tegra_x1::gpu::GpfifoEntry* entries) {
     (void)gpfifo;
 
-    GPU_INSTANCE.GetPfifo().SubmitEntries(
+    system->GetGpu().GetPfifo().SubmitEntries(
         *process->GetGMmu(),
         std::span<const hw::tegra_x1::gpu::GpfifoEntry>(entries, num_entries),
         inout_flags_and_detailed_error);

@@ -20,7 +20,7 @@ class Cpu : public ICpu {
   public:
     Cpu();
 
-    IMmu* CreateMmu() override;
+    IMmu* CreateMmu(System& system) override;
     IThread* CreateThread(WallClock& wall_clock, IMmu* mmu,
                           const ThreadCallbacks& callbacks, IMemory* tls_mem,
                           vaddr_t tls_mem_base) override;

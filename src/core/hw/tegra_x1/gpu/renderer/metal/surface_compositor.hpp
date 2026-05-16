@@ -6,10 +6,11 @@
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 class CommandBuffer;
+class Renderer;
 
 class SurfaceCompositor final : public ISurfaceCompositor {
   public:
-    SurfaceCompositor(CA::MetalDrawable* drawable_);
+    SurfaceCompositor(Renderer& renderer_, CA::MetalDrawable* drawable_);
     ~SurfaceCompositor() override;
 
     void DrawTexture(ICommandBuffer* command_buffer,
@@ -19,6 +20,7 @@ class SurfaceCompositor final : public ISurfaceCompositor {
     void Present(ICommandBuffer* command_buffer) override;
 
   private:
+    Renderer& renderer;
     CA::MetalDrawable* drawable;
     MTL::RenderPassDescriptor* render_pass_descriptor;
 };

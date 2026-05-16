@@ -6,7 +6,7 @@
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
 SamplerBase* SamplerCache::Create(const SamplerDescriptor& descriptor) {
-    auto sampler = RENDERER_INSTANCE.CreateSampler(descriptor);
+    auto sampler = renderer.CreateSampler(descriptor);
     return sampler;
 }
 
