@@ -11,7 +11,7 @@ class ResourceManager {
         AruidAlreadyTaken,
     };
 
-    ResourceManager(System& system) : resource_pool(system) {}
+    ResourceManager(System& system_) : system{system_}, resource_pool(system) {}
 
     void SetupNpads();
     void Update();
@@ -29,6 +29,8 @@ class ResourceManager {
     }
 
   private:
+    System& system;
+
     kernel::AppletResourcePool<AppletResource> resource_pool;
 };
 

@@ -3,6 +3,7 @@
 #include "core/horizon/os.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/wall_clock.hpp"
+#include "core/input/device_manager.hpp"
 
 namespace hydra::horizon::loader {
 class LoaderBase;
@@ -54,6 +55,7 @@ class System {
     hw::WallClock wall_clock;
     std::unique_ptr<hw::tegra_x1::cpu::ICpu> cpu;
     hw::tegra_x1::gpu::Gpu gpu;
+    input::DeviceManager input_device_manager;
     std::unique_ptr<audio::ICore> audio_core;
     horizon::OS os;
 
@@ -85,6 +87,7 @@ class System {
     REF_GETTER(wall_clock, GetWallClock);
     hw::tegra_x1::cpu::ICpu& GetCpu() { return *cpu.get(); }
     REF_GETTER(gpu, GetGpu);
+    REF_GETTER(input_device_manager, GetInputDeviceManager);
     audio::ICore& GetAudioCore() { return *audio_core.get(); }
     REF_GETTER(os, GetOS);
 };

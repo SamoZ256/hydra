@@ -32,7 +32,7 @@ Window::Window(int argc, const char* argv[]) : system(*this) {
 }
 
 Window::~Window() {
-    INPUT_DEVICE_MANAGER_INSTANCE.DisconnectTouchScreenDevice("cursor");
+    system.GetInputDeviceManager().DisconnectTouchScreenDevice("cursor");
 
     SDL_DestroyWindow(window);
     SDL_Quit();
@@ -124,7 +124,7 @@ Window::ShowSoftwareKeyboard(const std::string& header_text,
 
 void Window::BeginEmulation(const std::string& path) {
     // Connect cursor as a touch screen device
-    INPUT_DEVICE_MANAGER_INSTANCE.ConnectTouchScreenDevice("cursor", &cursor);
+    system.GetInputDeviceManager().ConnectTouchScreenDevice("cursor", &cursor);
 
     system.SetSurface(SDL_GetRenderMetalLayer(renderer));
     // TODO: support loading applets from firmware
