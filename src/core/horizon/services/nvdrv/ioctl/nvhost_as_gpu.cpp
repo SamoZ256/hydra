@@ -2,7 +2,7 @@
 
 #include "core/horizon/kernel/process.hpp"
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
-#include "core/hw/tegra_x1/gpu/gpu.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::services::nvdrv::ioctl {
 
@@ -47,7 +47,7 @@ NvResult NvHostAsGpu::UnmapBuffer(gpu_vaddr_t addr) {
 }
 
 // TODO: kind
-NvResult NvHostAsGpu::MapBufferEX(kernel::Process* process,
+NvResult NvHostAsGpu::MapBufferEX(System* system, kernel::Process* process,
                                   MapBufferFlags flags,
                                   hw::tegra_x1::gpu::NvKind kind,
                                   handle_id_t nvmap_handle_id,
@@ -63,7 +63,7 @@ NvResult NvHostAsGpu::MapBufferEX(kernel::Process* process,
         return NvResult::Success;
     }
 
-    const auto& map = GPU_INSTANCE.GetMap(nvmap_handle_id);
+    const auto& map = system->GetGpu().GetMap(nvmap_handle_id);
 
     usize size = mapping_size;
     if (size == 0x0)

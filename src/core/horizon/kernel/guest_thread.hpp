@@ -2,6 +2,10 @@
 
 #include "core/horizon/kernel/thread.hpp"
 
+namespace hydra {
+class System;
+}
+
 namespace hydra::hw::tegra_x1::cpu {
 class IMemory;
 class IThread;
@@ -11,7 +15,8 @@ namespace hydra::horizon::kernel {
 
 class GuestThread : public IThread {
   public:
-    GuestThread(Process* process, vaddr_t stack_top_addr_, i32 priority,
+    GuestThread(System& system_, Process* process, vaddr_t stack_top_addr_,
+                i32 priority,
                 const std::string_view debug_name = "Guest thread");
     ~GuestThread() override;
 
@@ -35,6 +40,8 @@ class GuestThread : public IThread {
     void Run() override;
 
   private:
+    System& system;
+
     hw::tegra_x1::cpu::IMemory* tls_mem;
     vaddr_t tls_addr;
     vaddr_t stack_top_addr;

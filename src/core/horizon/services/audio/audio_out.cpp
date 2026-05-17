@@ -1,8 +1,8 @@
 #include "core/horizon/services/audio/audio_out.hpp"
 
 #include "core/horizon/kernel/process.hpp"
-#include "core/horizon/os.hpp"
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::services::audio {
 
@@ -12,9 +12,10 @@ DEFINE_SERVICE_COMMAND_TABLE(IAudioOut, 0, GetAudioOutState, 1, Start, 2, Stop,
                              AppendAudioOutBufferAuto, 8,
                              GetReleasedAudioOutBuffersAuto)
 
-IAudioOut::IAudioOut(PcmFormat format, u32 sample_rate, u16 channel_count)
+IAudioOut::IAudioOut(System& system, PcmFormat format, u32 sample_rate,
+                     u16 channel_count)
     : buffer_event{new kernel::Event(false, "IAudioOut buffer event")} {
-    stream = OS_INSTANCE.GetAudioCore().CreateStream(
+    stream = system.GetAudioCore().CreateStream(
         format, sample_rate, channel_count, [&](buffer_id_t buffer_id) {
             {
                 std::unique_lock lock(buffer_mutex);

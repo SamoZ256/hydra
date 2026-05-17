@@ -2,6 +2,10 @@
 
 #include "core/horizon/kernel/hipc/const.hpp"
 
+namespace hydra {
+class System;
+}
+
 namespace hydra::horizon::kernel {
 class Process;
 }
@@ -14,13 +18,15 @@ class Server;
 class IService;
 
 struct RequestContext {
+    System& system;
     kernel::Process* process;
     kernel::hipc::Streams& streams;
 };
 
 class IService {
   public:
-    void HandleRequest(kernel::Process* caller_process, uptr ptr);
+    void HandleRequest(System& system, kernel::Process* caller_process,
+                       uptr ptr);
 
     void AddService(RequestContext& context, IService* service);
     IService* GetService(RequestContext& context, handle_id_t handle_id);

@@ -93,7 +93,7 @@ get_primitive_type_triangle_fan_to_triangle_strip() {
 
 IndexCache::~IndexCache() {
     for (auto& [key, index_buffer] : cache)
-        RENDERER_INSTANCE.FreeTemporaryBuffer(index_buffer);
+        renderer.FreeTemporaryBuffer(index_buffer);
 }
 
 BufferView IndexCache::Decode(ICommandBuffer* command_buffer,
@@ -118,8 +118,8 @@ BufferView IndexCache::Decode(ICommandBuffer* command_buffer,
             break;                                                             \
         } else {                                                               \
             if (descriptor.mem_range)                                          \
-                return RENDERER_INSTANCE.GetBufferCache().Get(                 \
-                    command_buffer, *descriptor.mem_range);                    \
+                return renderer.GetBufferCache().Get(command_buffer,           \
+                                                     *descriptor.mem_range);   \
             else                                                               \
                 return BufferView();                                           \
         }                                                                      \
@@ -157,8 +157,7 @@ BufferView IndexCache::Decode(ICommandBuffer* command_buffer,
         return index_buffer;
 
     const auto index_size = get_index_type_size(out_type);
-    index_buffer =
-        RENDERER_INSTANCE.AllocateTemporaryBuffer(out_count * index_size);
+    index_buffer = renderer.AllocateTemporaryBuffer(out_count * index_size);
     uptr in_ptr = 0x0;
     if (descriptor.mem_range)
         in_ptr = descriptor.mem_range->GetBegin();

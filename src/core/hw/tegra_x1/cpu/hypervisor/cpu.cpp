@@ -88,11 +88,12 @@ Cpu::Cpu()
 
 Cpu::~Cpu() {}
 
-IMmu* Cpu::CreateMmu() { return new Mmu(); }
+IMmu* Cpu::CreateMmu(System& system) { return new Mmu(system); }
 
-IThread* Cpu::CreateThread(IMmu* mmu, const ThreadCallbacks& callbacks,
-                           IMemory* tls_mem, vaddr_t tls_mem_base) {
-    return new Thread(mmu, callbacks, tls_mem, tls_mem_base);
+IThread* Cpu::CreateThread(WallClock& wall_clock, IMmu* mmu,
+                           const ThreadCallbacks& callbacks, IMemory* tls_mem,
+                           vaddr_t tls_mem_base) {
+    return new Thread(wall_clock, *this, mmu, callbacks, tls_mem, tls_mem_base);
 }
 
 IMemory* Cpu::AllocateMemory(usize size) { return new Memory(size); }

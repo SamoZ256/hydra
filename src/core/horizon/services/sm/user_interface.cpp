@@ -4,7 +4,7 @@
 #include "core/horizon/kernel/hipc/port.hpp"
 #include "core/horizon/kernel/hipc/server_port.hpp"
 #include "core/horizon/kernel/process.hpp"
-#include "core/horizon/os.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::services::sm {
 
@@ -13,11 +13,12 @@ DEFINE_SERVICE_COMMAND_TABLE(IUserInterface, 0, RegisterClient, 1,
                              AtmosphereHasService, 65101, AtmosphereWaitService)
 
 result_t
-IUserInterface::GetServiceHandle(kernel::Process* process, u64 name,
+IUserInterface::GetServiceHandle(System* system, kernel::Process* process,
+                                 u64 name,
                                  OutHandle<HandleAttr::Move> out_handle) {
     LOG_DEBUG(Services, "Service name: \"{}\"", u64_to_str(name));
 
-    auto client_port = OS_INSTANCE.GetServiceManager().GetPort(name);
+    auto client_port = system->GetOS().GetServiceManager().GetPort(name);
     if (!client_port) {
         LOG_WARN(Services, "Unknown service name \"{}\"", u64_to_str(name));
         return MAKE_RESULT(Svc, kernel::Error::NotFound); // TODO: module
@@ -33,8 +34,8 @@ IUserInterface::GetServiceHandle(kernel::Process* process, u64 name,
 }
 
 result_t
-IUserInterface::RegisterService(kernel::Process* process, u64 name,
-                                bool is_light, i32 max_sessions,
+IUserInterface::RegisterService(System* system, kernel::Process* process,
+                                u64 name, bool is_light, i32 max_sessions,
                                 OutHandle<HandleAttr::Move> out_port_handle) {
     (void)is_light;
     (void)max_sessions;
@@ -56,15 +57,16 @@ IUserInterface::RegisterService(kernel::Process* process, u64 name,
     out_port_handle = process->AddHandle(server_port);
 
     // Register client side
-    OS_INSTANCE.GetServiceManager().RegisterPort(name, client_port);
+    system->GetOS().GetServiceManager().RegisterPort(name, client_port);
 
     return RESULT_SUCCESS;
 }
 
-result_t IUserInterface::AtmosphereHasService(u64 name, bool* out_has_service) {
+result_t IUserInterface::AtmosphereHasService(System* system, u64 name,
+                                              bool* out_has_service) {
     LOG_DEBUG(Services, "Service name: \"{}\"", u64_to_str(name));
 
-    auto client_port = OS_INSTANCE.GetServiceManager().GetPort(name);
+    auto client_port = system->GetOS().GetServiceManager().GetPort(name);
     *out_has_service = (client_port != nullptr);
     return RESULT_SUCCESS;
 }

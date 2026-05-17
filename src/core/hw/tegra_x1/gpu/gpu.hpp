@@ -7,10 +7,7 @@
 #include "core/hw/tegra_x1/gpu/engines/copy.hpp"
 #include "core/hw/tegra_x1/gpu/engines/inline.hpp"
 #include "core/hw/tegra_x1/gpu/pfifo.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/renderer_base.hpp"
-
-#define GPU_INSTANCE hw::tegra_x1::gpu::Gpu::GetInstance()
-#define RENDERER_INSTANCE GPU_INSTANCE.GetRenderer()
+#include "core/hw/tegra_x1/gpu/renderer/renderer.hpp"
 
 namespace hydra::hw::tegra_x1::cpu {
 class IMmu;
@@ -37,10 +34,7 @@ inline thread_local renderer::ICommandBuffer* tls_crnt_command_buffer = nullptr;
 
 class Gpu {
   public:
-    static Gpu& GetInstance();
-
     Gpu();
-    ~Gpu();
 
     // Memory map
     u32 CreateMap(usize size) {
@@ -100,7 +94,7 @@ class Gpu {
 
     // Getters
     Pfifo& GetPfifo() { return pfifo; }
-    renderer::RendererBase& GetRenderer() const { return *renderer; }
+    renderer::IRenderer& GetRenderer() const { return *renderer.get(); }
 
   private:
     // Pfifo
@@ -115,7 +109,7 @@ class Gpu {
     engines::EngineBase* subchannels[SUBCHANNEL_COUNT] = {nullptr};
 
     // Renderer
-    renderer::RendererBase* renderer;
+    std::unique_ptr<renderer::IRenderer> renderer;
 
     // Memory
     DynamicPool<MemoryMap> memory_maps;

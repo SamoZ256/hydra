@@ -26,8 +26,8 @@
     DEFINE_IOCTL_TABLE_ENTRY_IMPL(fd, 3, type, __VA_ARGS__)
 
 #define DEFINE_IOCTL_TABLE_IMPL(fd, ioctl_suffix, ...)                         \
-    NvResult fd::Ioctl##ioctl_suffix([[maybe_unused]] IoctlContext& context, u32 type,          \
-                                     u32 nr) {                                 \
+    NvResult fd::Ioctl##ioctl_suffix([[maybe_unused]] IoctlContext& context,   \
+                                     u32 type, u32 nr) {                       \
         switch (type) {                                                        \
             __VA_ARGS__                                                        \
         default:                                                               \
@@ -41,6 +41,10 @@
 #define DEFINE_IOCTL2_TABLE(fd, ...) DEFINE_IOCTL_TABLE_IMPL(fd, 2, __VA_ARGS__)
 #define DEFINE_IOCTL3_TABLE(fd, ...) DEFINE_IOCTL_TABLE_IMPL(fd, 3, __VA_ARGS__)
 
+namespace hydra {
+class System;
+}
+
 namespace hydra::horizon::kernel {
 class Process;
 }
@@ -48,6 +52,7 @@ class Process;
 namespace hydra::horizon::services::nvdrv::ioctl {
 
 struct IoctlContext {
+    System& system;
     kernel::Process* process;
     io::MemoryStream* in_stream;
     io::MemoryStream* in_buffer_stream;
@@ -79,6 +84,7 @@ struct InOutSingle {
 
 enum class ArgumentType {
     Context,
+    System,
     Process,
     In,
     Out,
@@ -93,6 +99,11 @@ struct arg_traits;
 template <>
 struct arg_traits<IoctlContext*> {
     static constexpr ArgumentType type = ArgumentType::Context;
+};
+
+template <>
+struct arg_traits<System*> {
+    static constexpr ArgumentType type = ArgumentType::System;
 };
 
 template <>
@@ -142,6 +153,12 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
 
         if constexpr (traits::type == ArgumentType::Context) {
             arg = &context;
+
+            // Next
+            read_arg<CommandArguments, arg_index + 1>(context, args);
+            return;
+        } else if constexpr (traits::type == ArgumentType::System) {
+            arg = &context.system;
 
             // Next
             read_arg<CommandArguments, arg_index + 1>(context, args);

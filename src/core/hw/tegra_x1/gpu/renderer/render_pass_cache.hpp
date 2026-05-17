@@ -5,10 +5,13 @@
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
 class RenderPassBase;
+class IRenderer;
 
 class RenderPassCache
     : public CacheBase<RenderPassCache, RenderPassBase*, RenderPassDescriptor> {
   public:
+    RenderPassCache(IRenderer& renderer_) : renderer{renderer_} {}
+
     void Destroy() {}
 
     RenderPassBase* Create(const RenderPassDescriptor& descriptor);
@@ -16,6 +19,9 @@ class RenderPassCache
     u32 Hash(const RenderPassDescriptor& descriptor);
 
     void DestroyElement(RenderPassBase* render_pass);
+
+  private:
+    IRenderer& renderer;
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

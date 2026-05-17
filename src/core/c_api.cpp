@@ -1,7 +1,6 @@
 #include "core/c_api.h"
 
 #include "core/debugger/debugger_manager.hpp"
-#include "core/emulation_context.hpp"
 #include "core/horizon/filesystem/content_archive.hpp"
 #include "core/horizon/filesystem/disk_file.hpp"
 #include "core/horizon/firmware.hpp"
@@ -10,6 +9,7 @@
 #include "core/horizon/ui/handler_base.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture.hpp"
+#include "core/system.hpp"
 
 #define HYDRA_EXPORT extern "C" __attribute__((visibility("default")))
 
@@ -311,71 +311,6 @@ HYDRA_EXPORT bool* hydra_config_get_gdb_wait_for_client() {
     return &hydra::CONFIG_INSTANCE.GetGdbWaitForClient();
 }
 
-// Loader plugins
-
-// Manager
-HYDRA_EXPORT void hydra_loader_plugin_manager_refresh() {
-    hydra::horizon::loader::plugins::Manager::GetInstance().Refresh();
-}
-
-// Plugin
-HYDRA_EXPORT void* hydra_create_loader_plugin(hydra_string path) {
-    try {
-        return new hydra::horizon::loader::plugins::Plugin(
-            std::string(string_view_from_hydra_string(path)));
-    } catch (...) {
-        // TODO: return an error
-        return nullptr;
-    }
-}
-
-HYDRA_EXPORT void hydra_loader_plugin_destroy(void* plugin) {
-    delete reinterpret_cast<hydra::horizon::loader::plugins::Plugin*>(plugin);
-}
-
-HYDRA_EXPORT hydra_string hydra_loader_plugin_get_name(const void* plugin) {
-    return hydra_string_from_string_view(
-        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
-            ->GetName());
-}
-
-HYDRA_EXPORT hydra_string
-hydra_loader_plugin_get_display_version(const void* plugin) {
-    return hydra_string_from_string_view(
-        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
-            ->GetDisplayVersion());
-}
-
-HYDRA_EXPORT uint32_t
-hydra_loader_plugin_get_supported_format_count(const void* plugin) {
-    return static_cast<uint32_t>(
-        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
-            ->GetSupportedFormats()
-            .size());
-}
-
-HYDRA_EXPORT hydra_string
-hydra_loader_plugin_get_supported_format(const void* plugin, uint32_t index) {
-    return hydra_string_from_string_view(
-        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
-            ->GetSupportedFormats()[index]);
-}
-
-HYDRA_EXPORT uint32_t
-hydra_loader_plugin_get_option_config_count(const void* plugin) {
-    return static_cast<uint32_t>(
-        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
-            ->GetOptionConfigs()
-            .size());
-}
-
-HYDRA_EXPORT const void*
-hydra_loader_plugin_get_option_config(const void* plugin, uint32_t index) {
-    return &reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(
-                plugin)
-                ->GetOptionConfigs()[index];
-}
-
 // Option config
 HYDRA_EXPORT void* hydra_loader_plugin_option_config_copy(const void* config) {
     return new hydra::horizon::loader::plugins::OptionConfig(
@@ -475,10 +410,13 @@ hydra_content_archive_get_content_type(void* content_archive) {
 }
 
 // Loader
-HYDRA_EXPORT void* hydra_create_loader_from_path(hydra_string path) {
+HYDRA_EXPORT void* hydra_create_loader_from_path(hydra_string path,
+                                                 void* plugin_manager) {
     try {
         return hydra::horizon::loader::LoaderBase::CreateFromPath(
-            string_view_from_hydra_string(path));
+            string_view_from_hydra_string(path),
+            reinterpret_cast<hydra::horizon::loader::plugins::Manager*>(
+                plugin_manager));
     } catch (...) {
         // TODO: return an error
         return nullptr;
@@ -549,6 +487,80 @@ HYDRA_EXPORT hydra_string hydra_nca_loader_get_name(void* nca_loader) {
     return hydra_string_from_string_view(
         reinterpret_cast<hydra::horizon::loader::NcaLoader*>(nca_loader)
             ->GetName());
+}
+
+// Plugins
+
+// Manager
+HYDRA_EXPORT void* hydra_create_loader_plugin_manager() {
+    return new hydra::horizon::loader::plugins::Manager();
+}
+
+HYDRA_EXPORT void hydra_loader_plugin_manager_destroy(void* manager) {
+    delete reinterpret_cast<hydra::horizon::loader::plugins::Manager*>(manager);
+}
+
+HYDRA_EXPORT void hydra_loader_plugin_manager_refresh(void* manager) {
+    reinterpret_cast<hydra::horizon::loader::plugins::Manager*>(manager)
+        ->Refresh();
+}
+
+// Plugin
+HYDRA_EXPORT void* hydra_create_loader_plugin(hydra_string path) {
+    try {
+        return new hydra::horizon::loader::plugins::Plugin(
+            std::string(string_view_from_hydra_string(path)));
+    } catch (...) {
+        // TODO: return an error
+        return nullptr;
+    }
+}
+
+HYDRA_EXPORT void hydra_loader_plugin_destroy(void* plugin) {
+    delete reinterpret_cast<hydra::horizon::loader::plugins::Plugin*>(plugin);
+}
+
+HYDRA_EXPORT hydra_string hydra_loader_plugin_get_name(const void* plugin) {
+    return hydra_string_from_string_view(
+        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
+            ->GetName());
+}
+
+HYDRA_EXPORT hydra_string
+hydra_loader_plugin_get_display_version(const void* plugin) {
+    return hydra_string_from_string_view(
+        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
+            ->GetDisplayVersion());
+}
+
+HYDRA_EXPORT uint32_t
+hydra_loader_plugin_get_supported_format_count(const void* plugin) {
+    return static_cast<uint32_t>(
+        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
+            ->GetSupportedFormats()
+            .size());
+}
+
+HYDRA_EXPORT hydra_string
+hydra_loader_plugin_get_supported_format(const void* plugin, uint32_t index) {
+    return hydra_string_from_string_view(
+        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
+            ->GetSupportedFormats()[index]);
+}
+
+HYDRA_EXPORT uint32_t
+hydra_loader_plugin_get_option_config_count(const void* plugin) {
+    return static_cast<uint32_t>(
+        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
+            ->GetOptionConfigs()
+            .size());
+}
+
+HYDRA_EXPORT const void*
+hydra_loader_plugin_get_option_config(const void* plugin, uint32_t index) {
+    return &reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(
+                plugin)
+                ->GetOptionConfigs()[index];
 }
 
 // NACP
@@ -733,70 +745,102 @@ class UiHandler : public hydra::horizon::ui::IHandler {
     }
 };
 
-HYDRA_EXPORT void* hydra_create_emulation_context() {
-    return new hydra::EmulationContext(*(new UiHandler()));
+HYDRA_EXPORT void* hydra_create_system() {
+    return new hydra::System(*(new UiHandler()));
 }
 
-HYDRA_EXPORT void hydra_emulation_context_destroy(void* ctx) {
+HYDRA_EXPORT void hydra_system_destroy(void* system) {
     // TODO: also destroy the UI handler
-    delete reinterpret_cast<hydra::EmulationContext*>(ctx);
+    delete reinterpret_cast<hydra::System*>(system);
 }
 
-HYDRA_EXPORT void hydra_emulation_context_set_surface(void* ctx,
-                                                      void* surface) {
-    reinterpret_cast<hydra::EmulationContext*>(ctx)->SetSurface(surface);
+HYDRA_EXPORT void hydra_system_set_surface(void* system, void* surface) {
+    reinterpret_cast<hydra::System*>(system)->SetSurface(surface);
 }
 
-HYDRA_EXPORT void hydra_emulation_context_load_and_start(void* ctx,
-                                                         void* loader) {
-    reinterpret_cast<hydra::EmulationContext*>(ctx)->LoadAndStart(
+HYDRA_EXPORT void hydra_system_load_and_start(void* system, void* loader) {
+    reinterpret_cast<hydra::System*>(system)->LoadAndStart(
         reinterpret_cast<hydra::horizon::loader::LoaderBase*>(loader));
 }
 
-HYDRA_EXPORT void hydra_emulation_context_request_stop(void* ctx) {
-    reinterpret_cast<hydra::EmulationContext*>(ctx)->RequestStop();
+HYDRA_EXPORT void hydra_system_request_stop(void* system) {
+    reinterpret_cast<hydra::System*>(system)->RequestStop();
 }
 
-HYDRA_EXPORT void hydra_emulation_context_force_stop(void* ctx) {
-    reinterpret_cast<hydra::EmulationContext*>(ctx)->ForceStop();
+HYDRA_EXPORT void hydra_system_force_stop(void* system) {
+    reinterpret_cast<hydra::System*>(system)->ForceStop();
 }
 
-HYDRA_EXPORT void hydra_emulation_context_pause(void* ctx) {
-    reinterpret_cast<hydra::EmulationContext*>(ctx)->Pause();
+HYDRA_EXPORT void hydra_system_pause(void* system) {
+    reinterpret_cast<hydra::System*>(system)->Pause();
 }
 
-HYDRA_EXPORT void hydra_emulation_context_resume(void* ctx) {
-    reinterpret_cast<hydra::EmulationContext*>(ctx)->Resume();
+HYDRA_EXPORT void hydra_system_resume(void* system) {
+    reinterpret_cast<hydra::System*>(system)->Resume();
 }
 
-HYDRA_EXPORT void
-hydra_emulation_context_notify_operation_mode_changed(void* ctx) {
-    reinterpret_cast<hydra::EmulationContext*>(ctx)
-        ->NotifyOperationModeChanged();
+HYDRA_EXPORT void hydra_system_notify_operation_mode_changed(void* system) {
+    reinterpret_cast<hydra::System*>(system)->NotifyOperationModeChanged();
 }
 
-HYDRA_EXPORT void hydra_emulation_context_progress_frame(
-    void* ctx, uint32_t width, uint32_t height, bool* out_dt_average_updated) {
-    reinterpret_cast<hydra::EmulationContext*>(ctx)->ProgressFrame(
+HYDRA_EXPORT void hydra_system_progress_frame(void* system, uint32_t width,
+                                              uint32_t height,
+                                              bool* out_dt_average_updated) {
+    reinterpret_cast<hydra::System*>(system)->ProgressFrame(
         width, height, *out_dt_average_updated);
 }
 
-HYDRA_EXPORT bool hydra_emulation_context_is_running(void* ctx) {
-    return reinterpret_cast<hydra::EmulationContext*>(ctx)->IsRunning();
+HYDRA_EXPORT bool hydra_system_is_running(void* system) {
+    return reinterpret_cast<hydra::System*>(system)->IsRunning();
 }
 
-HYDRA_EXPORT float
-hydra_emulation_context_get_last_delta_time_average(void* ctx) {
-    return reinterpret_cast<hydra::EmulationContext*>(ctx)
-        ->GetLastDeltaTimeAverage();
+HYDRA_EXPORT float hydra_system_get_last_delta_time_average(void* system) {
+    return reinterpret_cast<hydra::System*>(system)->GetLastDeltaTimeAverage();
 }
 
-HYDRA_EXPORT void hydra_emulation_context_take_screenshot(void* ctx) {
-    reinterpret_cast<hydra::EmulationContext*>(ctx)->TakeScreenshot();
+HYDRA_EXPORT void hydra_system_take_screenshot(void* system) {
+    reinterpret_cast<hydra::System*>(system)->TakeScreenshot();
 }
 
-HYDRA_EXPORT void hydra_emulation_context_capture_gpu_frame(void* ctx) {
-    reinterpret_cast<hydra::EmulationContext*>(ctx)->CaptureGpuFrame();
+HYDRA_EXPORT void hydra_system_capture_gpu_frame(void* system) {
+    reinterpret_cast<hydra::System*>(system)->CaptureGpuFrame();
+}
+
+HYDRA_EXPORT void hydra_system_texture_cache_lock(void* system) {
+    reinterpret_cast<hydra::System*>(system)
+        ->GetGpu()
+        .GetRenderer()
+        .GetTextureCache()
+        .GetMutex()
+        .lock();
+}
+
+HYDRA_EXPORT void hydra_system_texture_cache_unlock(void* system) {
+    reinterpret_cast<hydra::System*>(system)
+        ->GetGpu()
+        .GetRenderer()
+        .GetTextureCache()
+        .GetMutex()
+        .unlock();
+}
+
+HYDRA_EXPORT uint32_t
+hydra_system_texture_cache_get_texture_memory_count(void* system) {
+    // HACK
+    return static_cast<uint32_t>(reinterpret_cast<hydra::System*>(system)
+                                     ->GetGpu()
+                                     .GetRenderer()
+                                     .GetTextureCache()
+                                     .GetMemoryCount());
+}
+
+HYDRA_EXPORT const void*
+hydra_system_texture_cache_get_texture_memory(void* system, uint32_t index) {
+    return &reinterpret_cast<hydra::System*>(system)
+                ->GetGpu()
+                .GetRenderer()
+                .GetTextureCache()
+                .GetMemory(index);
 }
 
 // Debugger
@@ -993,26 +1037,6 @@ HYDRA_EXPORT uint64_t hydra_debugger_resolved_stack_frame_get_address(
 }
 
 // Texture cache
-
-// Texture cache
-HYDRA_EXPORT void hydra_texture_cache_lock() {
-    hydra::RENDERER_INSTANCE.GetTextureCache().GetMutex().lock();
-}
-
-HYDRA_EXPORT void hydra_texture_cache_unlock() {
-    hydra::RENDERER_INSTANCE.GetTextureCache().GetMutex().unlock();
-}
-
-HYDRA_EXPORT uint32_t hydra_texture_cache_get_texture_memory_count() {
-    // HACK
-    return static_cast<uint32_t>(
-        hydra::RENDERER_INSTANCE.GetTextureCache().GetMemoryCount());
-}
-
-HYDRA_EXPORT const void*
-hydra_texture_cache_get_texture_memory(uint32_t index) {
-    return &hydra::RENDERER_INSTANCE.GetTextureCache().GetMemory(index);
-}
 
 // Texture memory
 HYDRA_EXPORT uint32_t

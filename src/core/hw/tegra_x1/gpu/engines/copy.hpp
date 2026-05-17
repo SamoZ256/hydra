@@ -2,6 +2,10 @@
 
 #include "core/hw/tegra_x1/gpu/engines/engine_base.hpp"
 
+namespace hydra::hw::tegra_x1::gpu {
+class Gpu;
+} // namespace hydra::hw::tegra_x1::gpu
+
 namespace hydra::hw::tegra_x1::gpu::renderer {
 class BufferBase;
 } // namespace hydra::hw::tegra_x1::gpu::renderer
@@ -117,9 +121,13 @@ struct RegsCopy {
 
 class Copy : public EngineWithRegsBase<RegsCopy> {
   public:
+    Copy(Gpu& gpu_) : gpu{gpu_} {}
+
     void Method(u32 method, u32 arg) override;
 
   private:
+    Gpu& gpu;
+
     // Commands
     struct LaunchDMAData {
         TransferType type : 2;

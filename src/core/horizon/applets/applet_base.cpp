@@ -5,7 +5,7 @@
 
 namespace hydra::horizon::applets {
 
-void AppletBase::Start() {
+void AppletBase::Start(System& system) {
     // TODO: not every applet uses common args (for instance
     // LibraryAppletMiiEdit)
     const auto common_args = PopInData<CommonArguments>();
@@ -18,7 +18,7 @@ void AppletBase::Start() {
 
     thread = new std::thread([&]() {
         GET_CURRENT_PROCESS_DEBUGGER().RegisterThisThread("Applet");
-        result = Run();
+        result = Run(system);
         controller.GetStateChangedEvent()->Signal();
         GET_CURRENT_PROCESS_DEBUGGER().UnregisterThisThread();
     });

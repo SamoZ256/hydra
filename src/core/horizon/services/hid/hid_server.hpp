@@ -37,28 +37,33 @@ class IHidServer : public IService {
     STUB_REQUEST_COMMAND(EnableSixAxisSensorFusion);
     STUB_REQUEST_COMMAND(SetGyroscopeZeroDriftMode);
     STUB_REQUEST_COMMAND(ActivateGesture);
-    result_t SetSupportedNpadStyleSet(aligned<NpadStyleSet, 8> style_set,
+    result_t SetSupportedNpadStyleSet(System* system,
+                                      aligned<NpadStyleSet, 8> style_set,
                                       kernel::AppletResourceUserId aruid);
-    result_t GetSupportedNpadStyleSet(kernel::AppletResourceUserId aruid,
+    result_t GetSupportedNpadStyleSet(System* system,
+                                      kernel::AppletResourceUserId aruid,
                                       NpadStyleSet* out_style_set);
     result_t
-    SetSupportedNpadIdType(kernel::AppletResourceUserId aruid,
+    SetSupportedNpadIdType(System* system, kernel::AppletResourceUserId aruid,
                            InBuffer<BufferAttr::HipcPointer> in_types_buffer);
-    result_t ActivateNpad(kernel::AppletResourceUserId aruid);
+    result_t ActivateNpad(System* system, kernel::AppletResourceUserId aruid);
     result_t AcquireNpadStyleSetUpdateEventHandle(
-        kernel::Process* process, aligned<NpadIdType, 8> type,
+        System* system, kernel::Process* process, aligned<NpadIdType, 8> type,
         kernel::AppletResourceUserId aruid, u64 event_ptr,
         OutHandle<HandleAttr::Copy> out_handle);
-    result_t DisconnectNpad(aligned<NpadIdType, 8> type,
+    result_t DisconnectNpad(System* system, aligned<NpadIdType, 8> type,
                             kernel::AppletResourceUserId aruid);
     result_t GetPlayerLedPattern(NpadIdType npad_id_type, u64* out_pattern);
-    result_t ActivateNpadWithRevision(aligned<NpadRevision, 8> revision,
+    result_t ActivateNpadWithRevision(System* system,
+                                      aligned<NpadRevision, 8> revision,
                                       kernel::AppletResourceUserId aruid);
     // TODO: PID descriptor
-    result_t SetNpadJoyHoldType(kernel::AppletResourceUserId aruid,
+    result_t SetNpadJoyHoldType(System* system,
+                                kernel::AppletResourceUserId aruid,
                                 NpadJoyHoldType type);
     // TODO: PID descriptor
-    result_t GetNpadJoyHoldType(kernel::AppletResourceUserId aruid,
+    result_t GetNpadJoyHoldType(System* system,
+                                kernel::AppletResourceUserId aruid,
                                 aligned<NpadJoyHoldType, 8>* out_type);
     STUB_REQUEST_COMMAND(SetNpadJoyAssignmentModeSingleByDefault);
     STUB_REQUEST_COMMAND(SetNpadJoyAssignmentModeDual);

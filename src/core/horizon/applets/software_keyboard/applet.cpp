@@ -1,7 +1,7 @@
 #include "core/horizon/applets/software_keyboard/applet.hpp"
 
-#include "core/horizon/os.hpp"
 #include "core/horizon/ui/handler_base.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::applets::software_keyboard {
 
@@ -15,7 +15,7 @@ enum class TextCheckResult : u32 {
 
 } // namespace
 
-result_t Applet::Run() {
+result_t Applet::Run(System& system) {
     const auto config = PopInData<KeyboardConfigCommon>();
     // TODO: work buffer
 
@@ -26,7 +26,7 @@ result_t Applet::Run() {
     while (true) {
         // Text input
         std::string output_text_utf8;
-        result = OS_INSTANCE.GetUIHandler().ShowSoftwareKeyboard(
+        result = system.GetUIHandler().ShowSoftwareKeyboard(
             utf16_to_utf8(std::u16string(config.header_text)),
             utf16_to_utf8(std::u16string(config.sub_text)),
             utf16_to_utf8(std::u16string(config.guide_text)), output_text_utf8);
@@ -50,7 +50,7 @@ result_t Applet::Run() {
 
         // Dialog
         std::u16string msg = reader.ReadPtr<char16_t>();
-        OS_INSTANCE.GetUIHandler().ShowMessageDialog(
+        system.GetUIHandler().ShowMessageDialog(
             (res == TextCheckResult::ShowFailureDialog
                  ? ui::MessageDialogType::Error
                  : ui::MessageDialogType::Info),

@@ -4,6 +4,7 @@
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/loader/npdm.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
+#include "core/system.hpp"
 
 #define NINTENDO_LOGO_PATH "logo/NintendoLogo.png"
 #define STARTUP_MOVIE_PATH "logo/StartupMovie.gif"
@@ -80,21 +81,22 @@ NcaLoader::NcaLoader(const filesystem::ContentArchive& content_archive_)
     romfs_entry = romfs_file;
 }
 
-void NcaLoader::LoadProcess(kernel::Process* process) {
+void NcaLoader::LoadProcess(System& system, kernel::Process* process) {
     // Title ID
     process->SetTitleID(content_archive.GetTitleID());
 
     // ExeFS
-    LoadCode(process, exefs_dir);
+    LoadCode(system, process, exefs_dir);
 
     // RomFS
-    const auto res = KERNEL_INSTANCE.GetFilesystem().AddEntry(
+    const auto res = system.GetOS().GetFilesystem().AddEntry(
         FS_SD_MOUNT "/rom/romFS", romfs_entry, true);
     ASSERT(res == filesystem::FsResult::Success, Loader,
            "Failed to add romFS file: {}", res);
 }
 
-void NcaLoader::LoadCode(kernel::Process* process, filesystem::Directory* dir) {
+void NcaLoader::LoadCode(System& system, kernel::Process* process,
+                         filesystem::Directory* dir) {
     // HACK: if rtld is not present, use main as the entry point
     std::string entry_point = "rtld";
     filesystem::IEntry* e;
@@ -112,7 +114,7 @@ void NcaLoader::LoadCode(kernel::Process* process, filesystem::Directory* dir) {
             loader.SetMainThreadParams(main_thread_priority,
                                        main_thread_core_number,
                                        main_thread_stack_size);
-            loader.LoadProcess(process);
+            loader.LoadProcess(system, process);
         }
     }
 

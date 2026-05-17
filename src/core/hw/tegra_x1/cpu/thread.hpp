@@ -2,6 +2,10 @@
 
 #include "core/hw/tegra_x1/cpu/const.hpp"
 
+namespace hydra::hw {
+class WallClock;
+}
+
 namespace hydra::hw::tegra_x1::cpu {
 
 class IMemory;
@@ -31,8 +35,10 @@ struct ThreadState {
 
 class IThread {
   public:
-    IThread(IMmu* mmu_, const ThreadCallbacks& callbacks_, IMemory* tls_mem_)
-        : mmu{mmu_}, callbacks{callbacks_}, tls_mem{tls_mem_} {}
+    IThread(WallClock& wall_clock_, IMmu* mmu_,
+            const ThreadCallbacks& callbacks_, IMemory* tls_mem_)
+        : wall_clock{wall_clock_}, mmu{mmu_}, callbacks{callbacks_},
+          tls_mem{tls_mem_} {}
     virtual ~IThread() {}
 
     virtual void Run() = 0;
@@ -51,6 +57,7 @@ class IThread {
     IMemory* GetTlsMemory() const { return tls_mem; }
 
   protected:
+    WallClock& wall_clock;
     IMmu* mmu;
     ThreadCallbacks callbacks;
     IMemory* tls_mem;

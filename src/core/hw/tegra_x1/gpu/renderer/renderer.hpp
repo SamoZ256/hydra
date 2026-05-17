@@ -32,9 +32,13 @@ struct Info {
     }
 };
 
-class RendererBase {
+class IRenderer {
   public:
-    virtual ~RendererBase() {}
+    IRenderer()
+        : buffer_cache(*this), texture_cache(*this), sampler_cache(*this),
+          render_pass_cache(*this), shader_cache(*this), pipeline_cache(*this),
+          index_cache(*this) {}
+    virtual ~IRenderer() {}
 
     // TODO: make this thread safe
     void InvalidateMemory(Range<uptr> range) {
@@ -54,6 +58,12 @@ class RendererBase {
 
     // Texture
     virtual ITexture* CreateTexture(const TextureDescriptor& descriptor) = 0;
+    virtual void BlitTexture(ICommandBuffer* command_buffer, ITextureView* src,
+                             float3 src_origin, usize3 src_size, u32 src_level,
+                             u32 src_layer, ITextureView* dst,
+                             float3 dst_origin, usize3 dst_size, u32 dst_level,
+                             u32 dst_layer, u32 level_count,
+                             u32 layer_count) = 0;
 
     // Sampler
     virtual SamplerBase* CreateSampler(const SamplerDescriptor& descriptor) = 0;
@@ -75,10 +85,6 @@ class RendererBase {
     virtual void ClearStencil(ICommandBuffer* command_buffer, u32 layer,
                               const u32 value) = 0;
 
-    // Viewport and scissor
-    virtual void SetViewport(u32 index, const Viewport& viewport) = 0;
-    virtual void SetScissor(u32 index, const Scissor& scissor) = 0;
-
     // Shader
     virtual ShaderBase* CreateShader(const ShaderDescriptor& descriptor) = 0;
 
@@ -86,6 +92,15 @@ class RendererBase {
     virtual PipelineBase*
     CreatePipeline(const PipelineDescriptor& descriptor) = 0;
     virtual void BindPipeline(const PipelineBase* pipeline) = 0;
+
+    // Depth stencil
+    virtual void SetDepthTestEnabled(bool enabled) = 0;
+    virtual void SetDepthWriteEnabled(bool enabled) = 0;
+    virtual void SetDepthCompareOp(engines::CompareOp op) = 0;
+
+    // Viewport and scissor
+    virtual void SetViewport(u32 index, const Viewport& viewport) = 0;
+    virtual void SetScissor(u32 index, const Scissor& scissor) = 0;
 
     // Resource binding
     virtual void BindVertexBuffer(const BufferView& buffer, u32 index) = 0;

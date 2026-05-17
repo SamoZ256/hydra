@@ -121,7 +121,7 @@ bool DriverBase::ParseInstruction(u32 pc) {
     return pc == exit_after;
 }
 
-u32 DriverBase::Get3DReg(u32 reg_3d) { return engine_3d->GetReg(reg_3d); }
+u32 DriverBase::Get3DReg(u32 reg_3d) { return engine_3d.GetReg(reg_3d); }
 
 void DriverBase::SetMethod(u32 value) {
     method = value & 0xfff;
@@ -129,7 +129,7 @@ void DriverBase::SetMethod(u32 value) {
 }
 
 void DriverBase::Send(u32 arg) {
-    engine_3d->Method(method, arg);
+    engine_3d.Method(method, arg);
     method += increment;
 }
 

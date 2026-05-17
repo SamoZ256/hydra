@@ -1,12 +1,12 @@
 #include "core/horizon/services/hid/hid_server.hpp"
 
 #include "core/horizon/kernel/process.hpp"
-#include "core/horizon/os.hpp"
 #include "core/horizon/services/hid/active_vibration_device_list.hpp"
 #include "core/horizon/services/hid/applet_resource.hpp"
+#include "core/system.hpp"
 
 #define APPLET_RESOURCE(aruid)                                                 \
-    OS_INSTANCE.GetHidResourceManager().GetResource(aruid)
+    system->GetOS().GetHidResourceManager().GetResource(aruid)
 
 namespace hydra::horizon::services::hid {
 
@@ -28,26 +28,28 @@ DEFINE_SERVICE_COMMAND_TABLE(
 
 result_t IHidServer::CreateAppletResource(RequestContext* ctx,
                                           kernel::AppletResourceUserId aruid) {
-    AddService(*ctx, new IAppletResource(aruid));
+    AddService(*ctx, new IAppletResource(ctx->system, aruid));
     return RESULT_SUCCESS;
 }
 
 result_t
-IHidServer::SetSupportedNpadStyleSet(aligned<NpadStyleSet, 8> style_set,
+IHidServer::SetSupportedNpadStyleSet(System* system,
+                                     aligned<NpadStyleSet, 8> style_set,
                                      kernel::AppletResourceUserId aruid) {
     APPLET_RESOURCE(aruid).SetSupportedStyleSet(style_set);
     return RESULT_SUCCESS;
 }
 
 result_t
-IHidServer::GetSupportedNpadStyleSet(kernel::AppletResourceUserId aruid,
+IHidServer::GetSupportedNpadStyleSet(System* system,
+                                     kernel::AppletResourceUserId aruid,
                                      NpadStyleSet* out_style_set) {
     *out_style_set = APPLET_RESOURCE(aruid).GetSupportedStyleSet();
     return RESULT_SUCCESS;
 }
 
 result_t IHidServer::SetSupportedNpadIdType(
-    kernel::AppletResourceUserId aruid,
+    System* system, kernel::AppletResourceUserId aruid,
     InBuffer<BufferAttr::HipcPointer> in_types_buffer) {
     while (in_types_buffer.stream->GetSeek() <
            in_types_buffer.stream->GetSize()) {
@@ -58,13 +60,14 @@ result_t IHidServer::SetSupportedNpadIdType(
     return RESULT_SUCCESS;
 }
 
-result_t IHidServer::ActivateNpad(kernel::AppletResourceUserId aruid) {
+result_t IHidServer::ActivateNpad(System* system,
+                                  kernel::AppletResourceUserId aruid) {
     APPLET_RESOURCE(aruid).ActivateNpads(NpadRevision::Revision0);
     return RESULT_SUCCESS;
 }
 
 result_t IHidServer::AcquireNpadStyleSetUpdateEventHandle(
-    kernel::Process* process, aligned<NpadIdType, 8> type,
+    System* system, kernel::Process* process, aligned<NpadIdType, 8> type,
     kernel::AppletResourceUserId aruid, u64 event_ptr,
     OutHandle<HandleAttr::Copy> out_handle) {
     (void)event_ptr;
@@ -82,7 +85,7 @@ result_t IHidServer::AcquireNpadStyleSetUpdateEventHandle(
     return RESULT_SUCCESS;
 }
 
-result_t IHidServer::DisconnectNpad(aligned<NpadIdType, 8> type,
+result_t IHidServer::DisconnectNpad(System* system, aligned<NpadIdType, 8> type,
                                     kernel::AppletResourceUserId aruid) {
     APPLET_RESOURCE(aruid).DisconnectNpad(internal::ToNpadIndex(type));
     return RESULT_SUCCESS;
@@ -131,20 +134,23 @@ result_t IHidServer::GetPlayerLedPattern(NpadIdType npad_id_type,
 }
 
 result_t
-IHidServer::ActivateNpadWithRevision(aligned<NpadRevision, 8> revision,
+IHidServer::ActivateNpadWithRevision(System* system,
+                                     aligned<NpadRevision, 8> revision,
                                      kernel::AppletResourceUserId aruid) {
     LOG_DEBUG(Services, "Revision: {}", revision);
     APPLET_RESOURCE(aruid).ActivateNpads(revision);
     return RESULT_SUCCESS;
 }
 
-result_t IHidServer::SetNpadJoyHoldType(kernel::AppletResourceUserId aruid,
+result_t IHidServer::SetNpadJoyHoldType(System* system,
+                                        kernel::AppletResourceUserId aruid,
                                         NpadJoyHoldType type) {
     APPLET_RESOURCE(aruid).SetJoyHoldType(type);
     return RESULT_SUCCESS;
 }
 
-result_t IHidServer::GetNpadJoyHoldType(kernel::AppletResourceUserId aruid,
+result_t IHidServer::GetNpadJoyHoldType(System* system,
+                                        kernel::AppletResourceUserId aruid,
                                         aligned<NpadJoyHoldType, 8>* out_type) {
     out_type->ZeroOutPadding();
     *out_type = APPLET_RESOURCE(aruid).GetJoyHoldType();

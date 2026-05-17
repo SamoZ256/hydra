@@ -3,6 +3,10 @@
 #include "core/horizon/filesystem/directory.hpp"
 #include "core/horizon/loader/loader_base.hpp"
 
+namespace hydra {
+class System;
+}
+
 namespace hydra::horizon::loader {
 
 class NxLoader : public LoaderBase {
@@ -17,7 +21,7 @@ class NxLoader : public LoaderBase {
 
     const std::string& GetName() const { return title_name; }
 
-    void LoadProcess(kernel::Process* process) override;
+    void LoadProcess(System& system, kernel::Process* process) override;
 
   private:
     const filesystem::Directory& dir;
@@ -33,7 +37,8 @@ class NxLoader : public LoaderBase {
     // Helpers
     void ParseInfo();
     void ParseNpdm();
-    void LoadCode(kernel::Process* process, filesystem::Directory* exefs_dir);
+    void LoadCode(System& system, kernel::Process* process,
+                  filesystem::Directory* exefs_dir);
 };
 
 } // namespace hydra::horizon::loader

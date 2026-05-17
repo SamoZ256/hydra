@@ -26,8 +26,8 @@ struct GameStopView: View {
                         Button("Force Quit", role: .destructive) {
                             timer!.invalidate()
 
-                            globalState.emulationContext!.forceStop()
-                            globalState.emulationContext = nil
+                            globalState.system!.forceStop()
+                            globalState.system = nil
                             globalState.activeGame = nil
                             globalState.isStopping = false
 
@@ -39,14 +39,14 @@ struct GameStopView: View {
         .onAppear {
             let startTime = Date()
 
-            guard let emulationContext = globalState.emulationContext else { return }
-            emulationContext.requestStop()
+            guard let system = globalState.system else { return }
+            system.requestStop()
 
             timer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { _ in
-                if !emulationContext.isRunning() {
+                if !system.isRunning() {
                     timer!.invalidate()
 
-                    globalState.emulationContext = nil
+                    globalState.system = nil
                     globalState.activeGame = nil
                     globalState.isStopping = false
                 } else if Date().timeIntervalSince(startTime) > 3 {

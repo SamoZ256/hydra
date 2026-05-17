@@ -246,7 +246,7 @@ ITextureView* TextureCache::GetTexture(
     const TextureDescriptor& descriptor,
     const TextureViewDescriptor& view_descriptor, TextureUsage usage) {
     if (!storage.base) {
-        storage.base = RENDERER_INSTANCE.CreateTexture(descriptor);
+        storage.base = renderer.CreateTexture(descriptor);
         DecodeTexture(command_buffer, storage);
     }
 
@@ -422,8 +422,7 @@ void TextureCache::DecodeTexture(ICommandBuffer* command_buffer,
     const auto& descriptor = storage.base->GetDescriptor();
 
     // Align the height to 16 bytes (TODO: why 16?)
-    auto tmp_buffer =
-        RENDERER_INSTANCE.AllocateTemporaryBuffer(descriptor.GetSize());
+    auto tmp_buffer = renderer.AllocateTemporaryBuffer(descriptor.GetSize());
 
     u8* in_data = reinterpret_cast<u8*>(descriptor.ptr);
     u8* out_data = reinterpret_cast<u8*>(tmp_buffer->GetPtr());
@@ -440,7 +439,7 @@ void TextureCache::DecodeTexture(ICommandBuffer* command_buffer,
     }
 
     storage.base->CopyFrom(command_buffer, tmp_buffer);
-    RENDERER_INSTANCE.FreeTemporaryBuffer(tmp_buffer);
+    renderer.FreeTemporaryBuffer(tmp_buffer);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

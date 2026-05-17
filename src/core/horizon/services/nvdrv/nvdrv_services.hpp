@@ -24,8 +24,8 @@ class INvDrvServices : public IService {
     // Commands
     result_t Open(InBuffer<BufferAttr::MapAlias> path_buffer, u32* out_fd_id,
                   u32* out_error);
-    result_t Ioctl(kernel::Process* process, handle_id_t fd_id, u32 code,
-                   InBuffer<BufferAttr::AutoSelect> in_buffer,
+    result_t Ioctl(System* system, kernel::Process* process, handle_id_t fd_id,
+                   u32 code, InBuffer<BufferAttr::AutoSelect> in_buffer,
                    NvResult* out_result,
                    OutBuffer<BufferAttr::AutoSelect> out_buffer);
     result_t Close(u32 fd_id, u32* out_err);
@@ -34,13 +34,13 @@ class INvDrvServices : public IService {
                         u32 event_id, NvResult* out_result,
                         OutHandle<HandleAttr::Copy> out_handle);
     STUB_REQUEST_COMMAND(SetAruid);
-    result_t Ioctl2(kernel::Process* process, handle_id_t fd_id, u32 code,
-                    InBuffer<BufferAttr::AutoSelect> in_buffer1,
+    result_t Ioctl2(System* system, kernel::Process* process, handle_id_t fd_id,
+                    u32 code, InBuffer<BufferAttr::AutoSelect> in_buffer1,
                     InBuffer<BufferAttr::AutoSelect> in_buffer2,
                     NvResult* out_result,
                     OutBuffer<BufferAttr::AutoSelect> out_buffer);
-    result_t Ioctl3(kernel::Process* process, handle_id_t fd_id, u32 code,
-                    InBuffer<BufferAttr::AutoSelect> in_buffer,
+    result_t Ioctl3(System* system, kernel::Process* process, handle_id_t fd_id,
+                    u32 code, InBuffer<BufferAttr::AutoSelect> in_buffer,
                     NvResult* out_result,
                     OutBuffer<BufferAttr::AutoSelect> out_buffer1,
                     OutBuffer<BufferAttr::AutoSelect> out_buffer2);
@@ -49,10 +49,10 @@ class INvDrvServices : public IService {
     result_t
     IoctlImpl(NvResult (ioctl::FdBase::*func)(ioctl::IoctlContext& context,
                                               u32 type, u32 nr),
-              kernel::Process* process, handle_id_t fd_id, u32 code,
-              io::MemoryStream* in_stream, io::MemoryStream* in_buffer_stream,
-              io::MemoryStream* out_stream, io::MemoryStream* out_buffer_stream,
-              NvResult* out_result);
+              System& system, kernel::Process* process, handle_id_t fd_id,
+              u32 code, io::MemoryStream* in_stream,
+              io::MemoryStream* in_buffer_stream, io::MemoryStream* out_stream,
+              io::MemoryStream* out_buffer_stream, NvResult* out_result);
 };
 
 } // namespace hydra::horizon::services::nvdrv

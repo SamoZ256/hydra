@@ -31,6 +31,7 @@ std::string GetDeviceName(id device) {
     if (self = [super init]) {
         self.parent = parent;
 
+        // Notifications
         [[NSNotificationCenter defaultCenter]
             addObserver:self
                selector:@selector(controllerConnected:)
@@ -51,6 +52,19 @@ std::string GetDeviceName(id device) {
                selector:@selector(keyboardDisconnected:)
                    name:GCKeyboardDidDisconnectNotification
                  object:nil];
+
+        // Connected keyboards
+        if (@available(macOS 11.0, iOS 14.0, tvOS 14.0, *)) {
+            GCKeyboard* keyboard = [GCKeyboard coalescedKeyboard];
+            if (keyboard) {
+                self.parent->_AddKeyboard(keyboard);
+            }
+        }
+
+        // Connected controllers
+        for (GCController* controller in [GCController controllers]) {
+            self.parent->_AddController(controller);
+        }
     }
 
     return self;

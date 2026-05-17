@@ -34,7 +34,7 @@ enum BisPartitionId : u32 {
     CalibrationFile = 28,
     SafeMode = 29,
     User = 30,
-    System = 31,
+    System_ = 31,
     SystemProperEncryption = 32,
     SystemProperPartition = 33,
     SignedSystemPartitionOnSafeMode = 34,
@@ -117,34 +117,37 @@ class IFileSystemProxy : public IService {
     OpenBisFileSystem(BisPartitionId partition_id,
                       InBuffer<BufferAttr::HipcPointer> unknown_buffer);
     result_t OpenSdCardFileSystem(RequestContext* ctx);
-    result_t CreateSaveDataFileSystem(kernel::Process* process,
+    result_t CreateSaveDataFileSystem(System* system, kernel::Process* process,
                                       SaveDataAttribute attr,
                                       SaveDataCreationInfo creation_info,
                                       SaveDataMetaInfo meta_info);
     result_t ReadSaveDataFileSystemExtraDataBySaveDataSpaceId(
         aligned<SaveDataSpaceId, 8> space_id, u64 save_id,
         OutBuffer<BufferAttr::MapAlias> out_buffer);
-    result_t OpenSaveDataFileSystem(RequestContext* ctx,
+    result_t OpenSaveDataFileSystem(RequestContext* ctx, System* system,
                                     kernel::Process* process,
                                     aligned<SaveDataSpaceId, 8> space_id,
                                     SaveDataAttribute attr);
     result_t OpenReadOnlySaveDataFileSystem(
-        RequestContext* ctx, kernel::Process* process,
+        RequestContext* ctx, System* system, kernel::Process* process,
         aligned<SaveDataSpaceId, 8> space_id, SaveDataAttribute attr);
     result_t OpenSaveDataInfoReaderBySaveDataSpaceId(RequestContext* ctx,
                                                      SaveDataSpaceId space_id);
     result_t OpenDataStorageByCurrentProcess(RequestContext* ctx,
+                                             System* system,
                                              kernel::Process* process);
-    result_t OpenDataStorageByProgramId(RequestContext* ctx, u64 program_id);
-    result_t OpenDataStorageByDataId(RequestContext* ctx,
+    result_t OpenDataStorageByProgramId(RequestContext* ctx, System* system,
+                                        u64 program_id);
+    result_t OpenDataStorageByDataId(RequestContext* ctx, System* system,
                                      aligned<ncm::StorageID, 8> storage_id,
                                      u64 data_id);
-    result_t OpenPatchDataStorageByCurrentProcess(RequestContext* ctx);
+    result_t OpenPatchDataStorageByCurrentProcess(RequestContext* ctx,
+                                                  System* system);
     result_t DisableAutoSaveDataCreation();
     result_t GetGlobalAccessLogMode(u32* out_log_mode);
 
     // Impl
-    result_t OpenSaveDataFileSystemImpl(RequestContext* ctx,
+    result_t OpenSaveDataFileSystemImpl(RequestContext* ctx, System* system,
                                         kernel::Process* process,
                                         SaveDataSpaceId space_id,
                                         SaveDataAttribute attr, bool read_only);
@@ -169,7 +172,7 @@ ENABLE_ENUM_FORMATTING(
     "boot config and package 2 part 5", BootConfigAndPackage2Part6,
     "boot config and package 2 part 6", CalibrationBinary, "calibration binary",
     CalibrationFile, "calibration file", SafeMode, "safe mode", User, "user",
-    System, "system", SystemProperEncryption, "system proper encryption",
+    System_, "system", SystemProperEncryption, "system proper encryption",
     SystemProperPartition, "system proper partition",
     SignedSystemPartitionOnSafeMode, "signed system partition on safe mode",
     DeviceTreeBlob, "device tree blob", System0, "system 0")

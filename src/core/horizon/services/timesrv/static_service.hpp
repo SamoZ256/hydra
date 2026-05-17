@@ -19,7 +19,7 @@ class IStaticService : public IService {
     result_t GetStandardLocalSystemClock(RequestContext* ctx);
     result_t GetEphemeralNetworkSystemClock(RequestContext* ctx);
     result_t
-    GetSharedMemoryNativeHandle(kernel::Process* process,
+    GetSharedMemoryNativeHandle(System* system, kernel::Process* process,
                                 OutHandle<HandleAttr::Copy> out_handle);
     STUB_REQUEST_COMMAND(CalculateMonotonicSystemClockBaseTimePoint);
 };

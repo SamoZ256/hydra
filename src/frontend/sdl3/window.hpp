@@ -1,7 +1,7 @@
 #pragma once
 
-#include "core/emulation_context.hpp"
 #include "core/horizon/ui/handler_base.hpp"
+#include "core/system.hpp"
 #include "frontend/sdl3/cursor.hpp"
 
 // TODO: if macOS
@@ -34,7 +34,7 @@ class Window : public horizon::ui::IHandler {
     Native native;
     Cursor cursor;
 
-    EmulationContext emulation_context;
+    System system;
     u64 title_id;
 
     void BeginEmulation(const std::string& path);

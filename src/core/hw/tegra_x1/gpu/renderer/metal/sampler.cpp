@@ -5,7 +5,7 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
-Sampler::Sampler(const SamplerDescriptor& descriptor)
+Sampler::Sampler(MTL::Device* device, const SamplerDescriptor& descriptor)
     : SamplerBase(descriptor) {
     MTL::SamplerDescriptor* desc = MTL::SamplerDescriptor::alloc()->init();
     desc->setMinFilter(to_mtl_sampler_min_mag_filter(descriptor.min_filter));
@@ -51,7 +51,7 @@ Sampler::Sampler(const SamplerDescriptor& descriptor)
     }
     desc->setBorderColor(mtl_border_color);
 
-    mtl_sampler = METAL_RENDERER_INSTANCE.GetDevice()->newSamplerState(desc);
+    mtl_sampler = device->newSamplerState(desc);
 }
 
 Sampler::~Sampler() { mtl_sampler->release(); }

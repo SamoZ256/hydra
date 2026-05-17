@@ -18,7 +18,7 @@ DepthStencilStateCache::Create(const DepthStencilStateDescriptor& descriptor) {
         descriptor.depth_compare_op != engines::CompareOp::Always)
         desc->setDepthWriteEnabled(true);
 
-    return METAL_RENDERER_INSTANCE.GetDevice()->newDepthStencilState(desc);
+    return device->newDepthStencilState(desc);
 }
 
 u32 DepthStencilStateCache::Hash(

@@ -41,7 +41,8 @@ struct ThreadMessage {
 
 class Thread : public IThread {
   public:
-    Thread(IMmu* mmu, const ThreadCallbacks& callbacks, IMemory* tls_mem,
+    Thread(WallClock& wall_clock, Cpu& cpu_, IMmu* mmu,
+           const ThreadCallbacks& callbacks, IMemory* tls_mem,
            vaddr_t tls_mem_base);
     ~Thread() override;
 
@@ -63,6 +64,8 @@ class Thread : public IThread {
     void SingleStep() override { SendMessage({ThreadMessageType::SingleStep}); }
 
   private:
+    Cpu& cpu;
+
     hv_vcpu_t vcpu;
     hv_vcpu_exit_t* exit;
     bool exception{false};

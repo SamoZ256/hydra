@@ -2,7 +2,9 @@
 
 #include "core/hw/tegra_x1/cpu/thread.hpp"
 
-#define CPU_INSTANCE hw::tegra_x1::cpu::ICpu::GetInstance()
+namespace hydra {
+class System;
+}
 
 namespace hydra::hw::tegra_x1::cpu {
 
@@ -17,13 +19,11 @@ struct CpuFeatures {
 
 class ICpu {
   public:
-    static ICpu& GetInstance();
+    virtual ~ICpu() = default;
 
-    ICpu();
-    virtual ~ICpu();
-
-    virtual IMmu* CreateMmu() = 0;
-    virtual IThread* CreateThread(IMmu* mmu, const ThreadCallbacks& callbacks,
+    virtual IMmu* CreateMmu(System& system) = 0;
+    virtual IThread* CreateThread(WallClock& wall_clock, IMmu* mmu,
+                                  const ThreadCallbacks& callbacks,
                                   IMemory* tls_mem, vaddr_t tls_mem_base) = 0;
     virtual IMemory* AllocateMemory(usize size) = 0;
 

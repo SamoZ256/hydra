@@ -10,13 +10,15 @@ class ISurfaceCompositor;
 
 namespace hydra::horizon::display {
 
+class Driver;
+
 #define LAYER_SIZE_AUTO                                                        \
     uint2 { 0, 0 }
 
 class Layer {
   public:
-    Layer(kernel::Process* process_, u32 binder_id_)
-        : process{process_}, binder_id{binder_id_} {}
+    Layer(System& system_, kernel::Process* process_, u32 binder_id_)
+        : system{system_}, process{process_}, binder_id{binder_id_} {}
 
     // TODO
     void Open() {}
@@ -32,6 +34,7 @@ class Layer {
     AccumulatedTime GetAccumulatedDT();
 
   private:
+    System& system;
     kernel::Process* process;
     u32 binder_id;
 

@@ -1,10 +1,10 @@
 #include "core/horizon/services/timesrv/static_service.hpp"
 
 #include "core/horizon/kernel/process.hpp"
-#include "core/horizon/os.hpp"
 #include "core/horizon/services/timesrv/steady_clock.hpp"
 #include "core/horizon/services/timesrv/system_clock.hpp"
 #include "core/horizon/services/timesrv/time_zone_service.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::services::timesrv {
 
@@ -47,8 +47,10 @@ result_t IStaticService::GetEphemeralNetworkSystemClock(RequestContext* ctx) {
 }
 
 result_t IStaticService::GetSharedMemoryNativeHandle(
-    kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = process->AddHandle(TIME_MANAGER_INSTANCE.GetSharedMemory());
+    System* system, kernel::Process* process,
+    OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle =
+        process->AddHandle(system->GetOS().GetTimeManager().GetSharedMemory());
     return RESULT_SUCCESS;
 }
 

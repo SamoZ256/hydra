@@ -14,7 +14,8 @@ IService::~IService() {
         delete subservice_pool;
 }
 
-void IService::HandleRequest(kernel::Process* caller_process, uptr ptr) {
+void IService::HandleRequest(System& system, kernel::Process* caller_process,
+                             uptr ptr) {
     // HIPC header
     auto hipc_in = kernel::hipc::parse_request(reinterpret_cast<void*>(ptr));
     auto command_type =
@@ -37,6 +38,7 @@ void IService::HandleRequest(kernel::Process* caller_process, uptr ptr) {
                                   scratch_buffer_copy_handles,
                                   scratch_buffer_move_handles);
     RequestContext context{
+        system,
         caller_process,
         streams,
     };

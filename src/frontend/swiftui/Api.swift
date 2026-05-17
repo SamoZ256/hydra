@@ -490,102 +490,6 @@ func hydraConfigGetGdbWaitForClient() -> UnsafeMutablePointer<Bool> {
     hydra_config_get_gdb_wait_for_client()
 }
 
-// Loader plugins
-func hydraLoaderPluginManagerRefresh() {
-    hydra_loader_plugin_manager_refresh()
-}
-
-enum HydraPluginError: Error {
-    case unknown
-}
-
-class HydraLoaderPlugin {
-    internal let handle: UnsafeMutableRawPointer
-
-    init(path: String) throws {
-        guard
-            let handle =
-                (path.withHydraString { hydraPath in
-                    hydra_create_loader_plugin(hydraPath)
-                })
-        else {
-            throw HydraPluginError.unknown
-        }
-        self.handle = handle
-    }
-
-    deinit {
-        hydra_loader_plugin_destroy(self.handle)
-    }
-
-    var name: String {
-        String(withHydraString: hydra_loader_plugin_get_name(self.handle))
-    }
-
-    var displayVersion: String {
-        String(withHydraString: hydra_loader_plugin_get_display_version(self.handle))
-    }
-
-    func getSupportedFormatCount() -> Int {
-        Int(hydra_loader_plugin_get_supported_format_count(self.handle))
-    }
-
-    func getSupportedFormat(at index: Int) -> String {
-        String(
-            withHydraString: hydra_loader_plugin_get_supported_format(self.handle, UInt32(index)))
-    }
-
-    func getOptionConfigCount() -> Int {
-        Int(hydra_loader_plugin_get_option_config_count(self.handle))
-    }
-
-    // HACK: cast immutable to mutable
-    func getOptionConfig(at index: Int) -> HydraLoaderPluginOptionConfig {
-        HydraLoaderPluginOptionConfig(
-            handle: UnsafeMutableRawPointer(
-                mutating: hydra_loader_plugin_get_option_config(self.handle, UInt32(index))))
-    }
-}
-
-class HydraLoaderPluginOptionConfig: MutableHandleClass {
-    fileprivate override init(handle: UnsafeMutableRawPointer) {
-        super.init(handle: hydra_loader_plugin_option_config_copy(handle))
-    }
-
-    deinit {
-        hydra_loader_plugin_option_config_destroy(self.handle)
-    }
-
-    var name: String {
-        String(withHydraString: hydra_loader_plugin_option_config_get_name(self.handle))
-    }
-
-    var description: String {
-        String(withHydraString: hydra_loader_plugin_option_config_get_description(self.handle))
-    }
-
-    var type: HydraLoaderPluginOptionType {
-        hydra_loader_plugin_option_config_get_type(self.handle)
-    }
-
-    var isRequired: Bool {
-        hydra_loader_plugin_option_config_get_is_required(self.handle)
-    }
-
-    // HACK: cast immutable to mutable
-    var enumValueNames: HydraStringViewList {
-        HydraStringViewList(
-            handle: UnsafeMutableRawPointer(
-                mutating: hydra_loader_plugin_option_config_get_enum_value_names(self.handle)))
-    }
-
-    var pathContentTypes: HydraStringViewList {
-        HydraStringViewList(
-            handle: UnsafeMutableRawPointer(
-                mutating: hydra_loader_plugin_option_config_get_path_content_types(self.handle)))
-    }
-}
-
 // Filesystem
 class HydraFilesystem: MutableHandleClass {
     init() {
@@ -642,10 +546,10 @@ enum HydraLoaderContent {
 }
 
 class HydraLoader: MutableHandleClass {
-    convenience init(path: String) throws {
+    convenience init(path: String, pluginManager: HydraLoaderPluginManager?) throws {
         guard
             let handle = path.withHydraString({ hydraPath in
-                hydra_create_loader_from_path(hydraPath)
+                hydra_create_loader_from_path(hydraPath, pluginManager?.handle)
             })
         else {
             throw HydraLoaderError.unsupported
@@ -735,6 +639,110 @@ class HydraNcaLoader: HydraLoader {
 
     var name: String {
         String(withHydraString: hydra_nca_loader_get_name(self.handle))
+    }
+}
+
+// Plugins
+class HydraLoaderPluginManager: MutableHandleClass {
+    init() {
+        super.init(handle: hydra_create_loader_plugin_manager())
+    }
+
+    deinit {
+        hydra_loader_plugin_manager_destroy(self.handle)
+    }
+
+    func refresh() {
+        hydra_loader_plugin_manager_refresh(self.handle)
+    }
+}
+
+enum HydraPluginError: Error {
+    case unknown
+}
+
+class HydraLoaderPlugin: MutableHandleClass {
+    init(path: String) throws {
+        guard
+            let handle =
+                (path.withHydraString { hydraPath in
+                    hydra_create_loader_plugin(hydraPath)
+                })
+        else {
+            throw HydraPluginError.unknown
+        }
+        super.init(handle: handle)
+    }
+
+    deinit {
+        hydra_loader_plugin_destroy(self.handle)
+    }
+
+    var name: String {
+        String(withHydraString: hydra_loader_plugin_get_name(self.handle))
+    }
+
+    var displayVersion: String {
+        String(withHydraString: hydra_loader_plugin_get_display_version(self.handle))
+    }
+
+    func getSupportedFormatCount() -> Int {
+        Int(hydra_loader_plugin_get_supported_format_count(self.handle))
+    }
+
+    func getSupportedFormat(at index: Int) -> String {
+        String(
+            withHydraString: hydra_loader_plugin_get_supported_format(self.handle, UInt32(index)))
+    }
+
+    func getOptionConfigCount() -> Int {
+        Int(hydra_loader_plugin_get_option_config_count(self.handle))
+    }
+
+    // HACK: cast immutable to mutable
+    func getOptionConfig(at index: Int) -> HydraLoaderPluginOptionConfig {
+        HydraLoaderPluginOptionConfig(
+            handle: UnsafeMutableRawPointer(
+                mutating: hydra_loader_plugin_get_option_config(self.handle, UInt32(index))))
+    }
+}
+
+class HydraLoaderPluginOptionConfig: MutableHandleClass {
+    fileprivate override init(handle: UnsafeMutableRawPointer) {
+        super.init(handle: hydra_loader_plugin_option_config_copy(handle))
+    }
+
+    deinit {
+        hydra_loader_plugin_option_config_destroy(self.handle)
+    }
+
+    var name: String {
+        String(withHydraString: hydra_loader_plugin_option_config_get_name(self.handle))
+    }
+
+    var description: String {
+        String(withHydraString: hydra_loader_plugin_option_config_get_description(self.handle))
+    }
+
+    var type: HydraLoaderPluginOptionType {
+        hydra_loader_plugin_option_config_get_type(self.handle)
+    }
+
+    var isRequired: Bool {
+        hydra_loader_plugin_option_config_get_is_required(self.handle)
+    }
+
+    // HACK: cast immutable to mutable
+    var enumValueNames: HydraStringViewList {
+        HydraStringViewList(
+            handle: UnsafeMutableRawPointer(
+                mutating: hydra_loader_plugin_option_config_get_enum_value_names(self.handle)))
+    }
+
+    var pathContentTypes: HydraStringViewList {
+        HydraStringViewList(
+            handle: UnsafeMutableRawPointer(
+                mutating: hydra_loader_plugin_option_config_get_path_content_types(self.handle)))
     }
 }
 
@@ -860,13 +868,13 @@ struct HydraUser: MutableHandleStruct {
 }
 
 // Emulation context
-class HydraEmulationContext: MutableHandleClass {
+class HydraSystem: MutableHandleClass {
     init() {
-        super.init(handle: hydra_create_emulation_context())
+        super.init(handle: hydra_create_system())
     }
 
     deinit {
-        hydra_emulation_context_destroy(self.handle)
+        hydra_system_destroy(self.handle)
     }
 
     var surface: UnsafeMutableRawPointer {
@@ -875,52 +883,68 @@ class HydraEmulationContext: MutableHandleClass {
             UnsafeMutableRawPointer(bitPattern: 0)!
         }
         set {
-            hydra_emulation_context_set_surface(self.handle, newValue)
+            hydra_system_set_surface(self.handle, newValue)
         }
     }
 
     func loadAndStart(loader: HydraLoader) {
-        hydra_emulation_context_load_and_start(self.handle, loader.handle)
+        hydra_system_load_and_start(self.handle, loader.handle)
     }
 
     func requestStop() {
-        hydra_emulation_context_request_stop(self.handle)
+        hydra_system_request_stop(self.handle)
     }
 
     func forceStop() {
-        hydra_emulation_context_force_stop(self.handle)
+        hydra_system_force_stop(self.handle)
     }
 
     func pause() {
-        hydra_emulation_context_pause(self.handle)
+        hydra_system_pause(self.handle)
     }
 
     func resume() {
-        hydra_emulation_context_resume(self.handle)
+        hydra_system_resume(self.handle)
     }
 
     func notifyOperationModeChanged() {
-        hydra_emulation_context_notify_operation_mode_changed(self.handle)
+        hydra_system_notify_operation_mode_changed(self.handle)
     }
 
     func progressFrame(width: UInt32, height: UInt32, dtAverageUpdated: inout Bool) {
-        hydra_emulation_context_progress_frame(self.handle, width, height, &dtAverageUpdated)
+        hydra_system_progress_frame(self.handle, width, height, &dtAverageUpdated)
     }
 
     func isRunning() -> Bool {
-        hydra_emulation_context_is_running(self.handle)
+        hydra_system_is_running(self.handle)
     }
 
     func getLastDeltaTimeAverage() -> Float {
-        hydra_emulation_context_get_last_delta_time_average(self.handle)
+        hydra_system_get_last_delta_time_average(self.handle)
     }
 
     func takeScreenshot() {
-        hydra_emulation_context_take_screenshot(self.handle)
+        hydra_system_take_screenshot(self.handle)
     }
 
     func captureGpuFrame() {
-        hydra_emulation_context_capture_gpu_frame(self.handle)
+        hydra_system_capture_gpu_frame(self.handle)
+    }
+
+    func textureCacheLock() {
+        hydra_system_texture_cache_lock(self.handle)
+    }
+
+    func textureCacheUnlock() {
+        hydra_system_texture_cache_unlock(self.handle)
+    }
+
+    func textureCacheGetTextureMemoryCount() -> Int {
+        Int(hydra_system_texture_cache_get_texture_memory_count(self.handle))
+    }
+
+    func textureCacheGetTextureMemory(at index: Int) -> HydraTextureMemory {
+        HydraTextureMemory(handle: hydra_system_texture_cache_get_texture_memory(self.handle, UInt32(index)))
     }
 }
 
@@ -1096,23 +1120,6 @@ class HydraDebuggerResolvedStackFrame: MutableHandleClass {
 }
 
 // Texture cache
-
-// Texture cache
-func hydraTextureCacheLock() {
-    hydra_texture_cache_lock()
-}
-
-func hydraTextureCacheUnlock() {
-    hydra_texture_cache_unlock()
-}
-
-func hydraTextureCacheGetTextureMemoryCount() -> Int {
-    Int(hydra_texture_cache_get_texture_memory_count())
-}
-
-func hydraTextureCacheGetTextureMemory(at index: Int) -> HydraTextureMemory {
-    HydraTextureMemory(handle: hydra_texture_cache_get_texture_memory(UInt32(index)))
-}
 
 // Texture memory
 struct HydraTextureMemory: HandleStruct {

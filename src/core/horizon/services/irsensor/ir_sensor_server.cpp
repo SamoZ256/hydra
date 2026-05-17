@@ -2,6 +2,7 @@
 
 #include "core/horizon/kernel/process.hpp"
 #include "core/horizon/kernel/shared_memory.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::services::irsensor {
 
@@ -10,14 +11,12 @@ DEFINE_SERVICE_COMMAND_TABLE(IIrSensorServer, 303, DeactivateIrsensor, 304,
                              GetNpadIrCameraHandle, 319,
                              ActivateIrsensorWithFunctionLevel)
 
-IIrSensorServer::IIrSensorServer()
-    : shared_mem{new kernel::SharedMemory(0x8000)} {}
-
 result_t IIrSensorServer::GetIrsensorSharedMemoryHandle(
-    kernel::Process* process, u64 aruid,
+    System* system, kernel::Process* process, u64 aruid,
     OutHandle<HandleAttr::Copy> out_handle) {
     (void)aruid;
-    out_handle = process->AddHandle(shared_mem);
+    out_handle = process->AddHandle(
+        system->GetOS().GetIrSensorManager().GetSharedMemory());
     return RESULT_SUCCESS;
 }
 

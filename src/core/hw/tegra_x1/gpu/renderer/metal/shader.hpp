@@ -7,7 +7,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 class Shader final : public ShaderBase {
   public:
-    Shader(const ShaderDescriptor& descriptor);
+    Shader(MTL::Device* device, const ShaderDescriptor& descriptor);
     ~Shader() override;
 
   private:

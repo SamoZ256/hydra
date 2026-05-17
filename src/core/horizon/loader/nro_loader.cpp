@@ -64,7 +64,7 @@ NroLoader::NroLoader(filesystem::IFile* file_, const bool is_entry_point_)
     delete stream;
 }
 
-void NroLoader::LoadProcess(kernel::Process* process) {
+void NroLoader::LoadProcess(System& system, kernel::Process* process) {
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
 
     // Create executable memory
@@ -87,6 +87,7 @@ void NroLoader::LoadProcess(kernel::Process* process) {
 
     // Main thread
     if (is_entry_point) {
+        (void)system;
         // TODO: implement?
         LOG_FATAL(Loader, "NRO loading not implemented");
         /*

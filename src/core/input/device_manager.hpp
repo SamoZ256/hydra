@@ -4,19 +4,12 @@
 #include "core/input/profile.hpp"
 #include "core/input/state.hpp"
 
-#define INPUT_DEVICE_MANAGER_INSTANCE input::DeviceManager::GetInstance()
-
 namespace hydra::input {
 
 constexpr usize MAX_FINGER_COUNT = 16;
 
 class DeviceManager {
   public:
-    static DeviceManager& GetInstance() {
-        static DeviceManager s_instance;
-        return s_instance;
-    }
-
     DeviceManager();
     ~DeviceManager();
 

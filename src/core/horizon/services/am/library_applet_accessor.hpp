@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/horizon/const.hpp"
-#include "core/horizon/services/am/library_applet_controller.hpp"
+#include "core/horizon/services/am/internal/library_applet_controller.hpp"
 #include "core/horizon/services/const.hpp"
 
 namespace hydra::horizon::applets {
@@ -22,13 +22,13 @@ class ILibraryAppletAccessor : public IService {
                          u32 id) override;
 
   private:
-    LibraryAppletController controller;
+    internal::LibraryAppletController controller;
     applets::AppletBase* applet;
 
     // Commands
     result_t GetAppletStateChangedEvent(kernel::Process* process,
                                         OutHandle<HandleAttr::Copy> out_handle);
-    result_t Start();
+    result_t Start(System* system);
     result_t GetResult();
     result_t PushInData(IService* storage_);
     result_t PopOutData(RequestContext* ctx);

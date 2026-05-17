@@ -18,7 +18,7 @@ ProcessManager::~ProcessManager() {
 
 Process* ProcessManager::CreateProcess(const std::string_view name) {
     std::lock_guard lock(mutex);
-    Process* process = new Process(name);
+    Process* process = new Process(system, name);
     processes.push_back(process);
     return process;
 }

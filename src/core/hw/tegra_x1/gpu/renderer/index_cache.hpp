@@ -5,6 +5,7 @@
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
 class BufferBase;
+class IRenderer;
 
 struct IndexDescriptor {
     engines::IndexType type;
@@ -16,6 +17,7 @@ struct IndexDescriptor {
 // TODO: memory invalidation
 class IndexCache {
   public:
+    IndexCache(IRenderer& renderer_) : renderer{renderer_} {}
     ~IndexCache();
 
     BufferView Decode(ICommandBuffer* command_buffer,
@@ -26,6 +28,8 @@ class IndexCache {
     u32 Hash(const IndexDescriptor& descriptor);
 
   private:
+    IRenderer& renderer;
+
     std::map<u32, BufferBase*> cache;
 };
 

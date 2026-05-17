@@ -1,11 +1,11 @@
 #include "core/horizon/applets/player_select/applet.hpp"
 
 #include "core/horizon/applets/player_select/const.hpp"
-#include "core/horizon/os.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::applets::player_select {
 
-result_t Applet::Run() {
+result_t Applet::Run(System& system) {
     auto settings_reader = PopInDataRaw();
     const auto settings = settings_reader.Read<UiSettings>();
     (void)settings;
@@ -15,7 +15,8 @@ result_t Applet::Run() {
     // return that
     UiReturnArg ret{
         .result = RESULT_SUCCESS,
-        .selected_user = USER_MANAGER_INSTANCE
+        .selected_user = system.GetOS()
+                             .GetUserManager()
                              .GetUserIDs()[0], // TODO: use the active user ID
     };
 
