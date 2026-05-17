@@ -8,12 +8,12 @@ namespace hydra::hw::tegra_x1::gpu::engines {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-void InlineBase::LaunchDMAImpl(RegsInline& regs, const u32 index,
+void InlineBase::LaunchDMAImpl(Gpu& gpu, RegsInline& regs, const u32 index,
                                const u32 data) {
     LOG_FUNC_WITH_ARGS_STUBBED(Engines, "index: {}, data: {:#x}", index, data);
 }
 
-void InlineBase::LoadInlineDataImpl(RegsInline& regs, const u32 index,
+void InlineBase::LoadInlineDataImpl(Gpu& gpu, RegsInline& regs, const u32 index,
                                     const u32 data) {
     inline_data.push_back(data);
     // TODO: correct?
@@ -36,7 +36,7 @@ void InlineBase::LoadInlineDataImpl(RegsInline& regs, const u32 index,
         inline_data.clear();
 
         // Invalidate
-        RENDERER_INSTANCE.InvalidateMemory(
+        gpu.GetRenderer().InvalidateMemory(
             Range<uptr>::FromSize(dst_ptr, inline_data.size() * sizeof(u32)));
     }
 }

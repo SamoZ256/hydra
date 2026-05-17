@@ -126,7 +126,7 @@ NsoLoader::NsoLoader(filesystem::IFile* file_, const std::string_view name_,
     delete stream;
 }
 
-void NsoLoader::LoadProcess(kernel::Process* process) {
+void NsoLoader::LoadProcess(System& system, kernel::Process* process) {
     // Register executable
     DEBUGGER_MANAGER_INSTANCE.GetDebugger(process).RegisterExecutable(name,
                                                                       file);
@@ -222,7 +222,7 @@ void NsoLoader::LoadProcess(kernel::Process* process) {
 
         // Main thread
         auto main_thread = new kernel::GuestThread(
-            process,
+            system, process,
             kernel::STACK_REGION.GetBegin() + main_thread_stack_size - 0x10,
             main_thread_priority);
         const auto main_thread_handle_id = process->SetMainThread(main_thread);

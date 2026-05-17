@@ -14,6 +14,11 @@ namespace hydra::hw::tegra_x1::gpu::engines {
 
 namespace {
 
+macro::DriverBase* CreateMacroDriver(ThreeD& three_d) {
+    // TODO: choose based on Macro backend
+    return new macro::interpreter::Driver(three_d);
+}
+
 u32 get_image_handle(u32 handle) { return extract_bits(handle, 0, 20); }
 u32 get_sampler_handle(u32 handle) { return extract_bits(handle, 20, 12); }
 
@@ -216,14 +221,7 @@ DEFINE_METHOD_TABLE(ThreeD, INLINE_ENGINE_TABLE, 0x45, 1,
                     1, FirmwareCall4, u32, 0x8e4, 16, LoadConstBuffer, u32,
                     0x900, 5 * 8, BindGroup, u32)
 
-SINGLETON_DEFINE_GET_INSTANCE(ThreeD, Engines)
-
-ThreeD::ThreeD() {
-    SINGLETON_SET_INSTANCE(ThreeD, Engines);
-
-    // TODO: choose based on Macro backend
-    { macro_driver = new macro::interpreter::Driver(this); }
-
+ThreeD::ThreeD(Gpu& gpu_) : gpu{gpu_}, macro_driver{CreateMacroDriver(*this)} {
     // Initialize default state
 
     // Viewports
@@ -245,12 +243,6 @@ ThreeD::ThreeD() {
     // HACK
     regs.shader_programs[static_cast<u32>(ShaderStage::VertexB)].config.enable =
         true;
-}
-
-ThreeD::~ThreeD() {
-    delete macro_driver;
-
-    SINGLETON_UNSET_INSTANCE();
 }
 
 void ThreeD::FlushMacro() { macro_driver->Execute(); }
@@ -293,27 +285,27 @@ void ThreeD::DrawVertexArray(const u32 index, u32 count) {
 
     auto index_type = IndexType::None;
     auto primitive_type = regs.begin.primitive_type;
-    const auto index_buffer = RENDERER_INSTANCE.GetIndexCache().Decode(
+    const auto index_buffer = gpu.GetRenderer().GetIndexCache().Decode(
         tls_crnt_command_buffer,
         {.type = index_type, .primitive_type = primitive_type, .count = count},
         index_type, primitive_type, count);
 
     if (index_buffer.GetBase()) {
         // Bind index buffer
-        RENDERER_INSTANCE.BindIndexBuffer(index_buffer, index_type);
+        gpu.GetRenderer().BindIndexBuffer(index_buffer, index_type);
 
         // Draw
 
         // Vertex start is set as vertex base instead, as start is now index
         // start
         // TODO: instance count
-        RENDERER_INSTANCE.DrawIndexed(tls_crnt_command_buffer, primitive_type,
+        gpu.GetRenderer().DrawIndexed(tls_crnt_command_buffer, primitive_type,
                                       0, count, regs.vertex_array_start,
                                       regs.base_instance, 1);
     } else {
         // Draw
         // TODO: instance count
-        RENDERER_INSTANCE.Draw(tls_crnt_command_buffer, primitive_type,
+        gpu.GetRenderer().Draw(tls_crnt_command_buffer, primitive_type,
                                regs.vertex_array_start, count,
                                regs.base_instance, 1);
     }
@@ -336,7 +328,7 @@ void ThreeD::DrawVertexElements(const u32 index, u32 count) {
 
     auto index_type = regs.index_type;
     auto primitive_type = regs.begin.primitive_type;
-    const auto index_buffer = RENDERER_INSTANCE.GetIndexCache().Decode(
+    const auto index_buffer = gpu.GetRenderer().GetIndexCache().Decode(
         tls_crnt_command_buffer,
         {.type = index_type,
          .primitive_type = primitive_type,
@@ -346,11 +338,11 @@ void ThreeD::DrawVertexElements(const u32 index, u32 count) {
 
     // Bind index buffer
     ASSERT_DEBUG(index_buffer.GetBase(), Gpu, "Index buffer not found");
-    RENDERER_INSTANCE.BindIndexBuffer(index_buffer, index_type);
+    gpu.GetRenderer().BindIndexBuffer(index_buffer, index_type);
 
     // Draw
     // TODO: instance count
-    RENDERER_INSTANCE.DrawIndexed(tls_crnt_command_buffer, primitive_type,
+    gpu.GetRenderer().DrawIndexed(tls_crnt_command_buffer, primitive_type,
                                   regs.vertex_elements_start, count,
                                   regs.base_vertex, regs.base_instance, 1);
 }
@@ -368,21 +360,21 @@ void ThreeD::ClearBuffer(const u32 index, const ClearBufferData data) {
     // Regular clear
     {
         std::lock_guard texture_cache_lock(
-            RENDERER_INSTANCE.GetTextureCache().GetMutex());
-        RENDERER_INSTANCE.BindRenderPass(GetRenderPass());
+            gpu.GetRenderer().GetTextureCache().GetMutex());
+        gpu.GetRenderer().BindRenderPass(GetRenderPass());
     }
 
     if (data.color_mask != 0x0)
-        RENDERER_INSTANCE.ClearColor(tls_crnt_command_buffer, data.target_id,
+        gpu.GetRenderer().ClearColor(tls_crnt_command_buffer, data.target_id,
                                      data.layer_id, data.color_mask,
                                      regs.clear_color);
 
     if (data.depth)
-        RENDERER_INSTANCE.ClearDepth(tls_crnt_command_buffer, data.layer_id,
+        gpu.GetRenderer().ClearDepth(tls_crnt_command_buffer, data.layer_id,
                                      regs.clear_depth);
 
     if (data.stencil)
-        RENDERER_INSTANCE.ClearStencil(tls_crnt_command_buffer, data.layer_id,
+        gpu.GetRenderer().ClearStencil(tls_crnt_command_buffer, data.layer_id,
                                        regs.clear_stencil);
 }
 
@@ -412,7 +404,7 @@ void ThreeD::LoadConstBuffer(const u32 index, const u32 data) {
 
     // Invalidate
     // TODO: invalidate as a whole
-    RENDERER_INSTANCE.InvalidateMemory(Range<uptr>::FromSize(ptr, sizeof(u32)));
+    gpu.GetRenderer().InvalidateMemory(Range<uptr>::FromSize(ptr, sizeof(u32)));
 }
 
 void ThreeD::BindGroup(const u32 index, const u32 data) {
@@ -496,7 +488,7 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
         render_target.tile_mode.depth,
         !is_linear ? render_target.layer_stride * 4 : 0);
 
-    return RENDERER_INSTANCE.GetTextureCache().Find(
+    return gpu.GetRenderer().GetTextureCache().Find(
         tls_crnt_command_buffer, descriptor, renderer::TextureUsage::Write);
 }
 
@@ -520,7 +512,7 @@ renderer::ITextureView* ThreeD::GetDepthStencilTargetTexture() const {
         regs.depth_target_tile_mode.height, regs.depth_target_tile_mode.depth,
         regs.depth_target_layer_stride * 4);
 
-    return RENDERER_INSTANCE.GetTextureCache().Find(
+    return gpu.GetRenderer().GetTextureCache().Find(
         tls_crnt_command_buffer, descriptor, renderer::TextureUsage::Write);
 }
 
@@ -541,18 +533,18 @@ renderer::RenderPassBase* ThreeD::GetRenderPass() const {
                                               : nullptr),
     };
 
-    return RENDERER_INSTANCE.GetRenderPassCache().Find(descriptor);
+    return gpu.GetRenderer().GetRenderPassCache().Find(descriptor);
 }
 
 renderer::Viewport ThreeD::GetViewport(u32 index) {
     renderer::Viewport res;
 
-    const auto& extent = REGS_3D.viewports[index];
-    const auto& transform = REGS_3D.viewport_transforms[index];
-    if (/*REGS_3D.viewport_transform_enabled*/ true) { // HACK
+    const auto& extent = regs.viewports[index];
+    const auto& transform = regs.viewport_transforms[index];
+    if (/*regs.viewport_transform_enabled*/ true) { // HACK
         auto scale_x = transform.scale_x;
         auto scale_y = transform.scale_y;
-        if (any(REGS_3D.window_origin_flags &
+        if (any(regs.window_origin_flags &
                 engines::WindowOriginFlags::LowerLeft))
             scale_y = -scale_y;
 
@@ -587,7 +579,7 @@ renderer::Viewport ThreeD::GetViewport(u32 index) {
         res.depth_near = extent.near;
         res.depth_far = extent.far;
     } else {
-        const auto& screen_scissor = REGS_3D.screen_scissor;
+        const auto& screen_scissor = regs.screen_scissor;
         res.rect.origin.x() = screen_scissor.horizontal.x;
         res.rect.origin.y() = screen_scissor.vertical.y;
         res.rect.size.x() = screen_scissor.horizontal.width;
@@ -612,7 +604,7 @@ renderer::Viewport ThreeD::GetViewport(u32 index) {
 }
 
 renderer::Scissor ThreeD::GetScissor(u32 index) {
-    const auto& scissor = REGS_3D.scissors[index];
+    const auto& scissor = regs.scissors[index];
     if (scissor.enabled) {
         return renderer::Scissor(
             uint2({scissor.horizontal.min, scissor.vertical.min}),
@@ -659,7 +651,7 @@ renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) {
     }
 
     auto& active_shader = active_shaders[u32(to_renderer_shader_type(stage))];
-    active_shader = RENDERER_INSTANCE.GetShaderCache().Find(descriptor);
+    active_shader = gpu.GetRenderer().GetShaderCache().Find(descriptor);
 
     return active_shader;
 }
@@ -750,7 +742,7 @@ renderer::PipelineBase* ThreeD::GetPipeline() {
         }
     }
 
-    return RENDERER_INSTANCE.GetPipelineCache().Find(descriptor);
+    return gpu.GetRenderer().GetPipelineCache().Find(descriptor);
 }
 
 renderer::BufferView ThreeD::GetVertexBuffer(u32 vertex_array_index) const {
@@ -765,7 +757,7 @@ renderer::BufferView ThreeD::GetVertexBuffer(u32 vertex_array_index) const {
     const auto ptr = tls_crnt_gmmu->UnmapAddr(vertex_array.addr);
     const auto size = u64(regs.vertex_array_limits[vertex_array_index]) + 1 -
                       u64(vertex_array.addr);
-    return RENDERER_INSTANCE.GetBufferCache().Get(
+    return gpu.GetRenderer().GetBufferCache().Get(
         tls_crnt_command_buffer, Range<uptr>::FromSize(ptr, size));
 }
 
@@ -824,7 +816,7 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
             format, tic.format_word.swizzle_x, tic.format_word.swizzle_y,
             tic.format_word.swizzle_z, tic.format_word.swizzle_w));
 
-    return RENDERER_INSTANCE.GetTextureCache().Find(
+    return gpu.GetRenderer().GetTextureCache().Find(
         tls_crnt_command_buffer, descriptor, view_descriptor,
         renderer::TextureUsage::Read);
 }
@@ -848,7 +840,7 @@ ThreeD::GetSampler(const TextureSamplerControl& tsc) const {
                                  tsc.border_color_b, tsc.border_color_a}),
     };
 
-    return RENDERER_INSTANCE.GetSamplerCache().Find(descriptor);
+    return gpu.GetRenderer().GetSamplerCache().Find(descriptor);
 }
 
 void ThreeD::ConfigureShaderStage(
@@ -862,7 +854,7 @@ void ThreeD::ConfigureShaderStage(
     const auto& resource_mapping = shader->GetDescriptor().resource_mapping;
 
     // Uniform buffers
-    RENDERER_INSTANCE.UnbindUniformBuffers(shader_type);
+    gpu.GetRenderer().UnbindUniformBuffers(shader_type);
     for (u32 i = 0; i < CONST_BUFFER_BINDING_COUNT; i++) {
         const auto index = resource_mapping.uniform_buffers[i];
         if (index == invalid<u32>())
@@ -875,16 +867,16 @@ void ThreeD::ConfigureShaderStage(
             continue;
         }
 
-        const auto buffer = RENDERER_INSTANCE.GetBufferCache().Get(
+        const auto buffer = gpu.GetRenderer().GetBufferCache().Get(
             tls_crnt_command_buffer, range);
-        RENDERER_INSTANCE.BindUniformBuffer(buffer, shader_type, index);
+        gpu.GetRenderer().BindUniformBuffer(buffer, shader_type, index);
     }
 
     // TODO: storage buffers
 
     // Textures
     if (tex_header_pool && tex_sampler_pool) {
-        RENDERER_INSTANCE.UnbindTextures(shader_type);
+        gpu.GetRenderer().UnbindTextures(shader_type);
         auto tex_const_buffer = reinterpret_cast<const u32*>(
             bound_const_buffers[stage_index]
                                [regs.bindless_texture_const_buffer_slot]
@@ -904,7 +896,7 @@ void ThreeD::ConfigureShaderStage(
             const auto sampler = GetSampler(tsc);
 
             if (texture && sampler)
-                RENDERER_INSTANCE.BindTexture(texture, sampler, shader_type,
+                gpu.GetRenderer().BindTexture(texture, sampler, shader_type,
                                               renderer_index);
         }
     }
@@ -912,7 +904,7 @@ void ThreeD::ConfigureShaderStage(
 
 bool ThreeD::DrawInternal() {
     std::lock_guard texture_cache_lock(
-        RENDERER_INSTANCE.GetTextureCache().GetMutex());
+        gpu.GetRenderer().GetTextureCache().GetMutex());
 
     // Flush tracked pages
     tls_crnt_gmmu->GetMmu()->FlushTrackedPages();
@@ -924,26 +916,29 @@ bool ThreeD::DrawInternal() {
         return false;
     }
 
-    RENDERER_INSTANCE.BindRenderPass(GetRenderPass());
+    gpu.GetRenderer().BindRenderPass(GetRenderPass());
+    gpu.GetRenderer().BindPipeline(GetPipeline());
+
+    gpu.GetRenderer().SetDepthTestEnabled(regs.depth_test_enabled);
+    gpu.GetRenderer().SetDepthWriteEnabled(regs.depth_write_enabled);
+    gpu.GetRenderer().SetDepthCompareOp(regs.depth_compare_op);
 
     for (u32 i = 0; i < VIEWPORT_COUNT; i++) {
-        RENDERER_INSTANCE.SetViewport(i, GetViewport(i));
-        RENDERER_INSTANCE.SetScissor(i, GetScissor(i));
+        gpu.GetRenderer().SetViewport(i, GetViewport(i));
+        gpu.GetRenderer().SetScissor(i, GetScissor(i));
     }
-
-    RENDERER_INSTANCE.BindPipeline(GetPipeline());
 
     for (u32 i = 0; i < VERTEX_ARRAY_COUNT; i++) {
         const auto& vertex_array = regs.vertex_arrays[i];
         // HACK: Super Meat Boy contains invalid vertex arrays with address 4096
         if (!vertex_array.config.enable ||
             (vertex_array.addr.hi == 0 && vertex_array.addr.lo == 4096)) {
-            RENDERER_INSTANCE.BindVertexBuffer(renderer::BufferView(), i);
+            gpu.GetRenderer().BindVertexBuffer(renderer::BufferView(), i);
             continue;
         }
 
         const auto buffer = GetVertexBuffer(i);
-        RENDERER_INSTANCE.BindVertexBuffer(buffer, i);
+        gpu.GetRenderer().BindVertexBuffer(buffer, i);
     }
 
     // Configure stages

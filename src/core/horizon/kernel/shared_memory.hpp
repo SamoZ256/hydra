@@ -5,6 +5,7 @@
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
 
 namespace hydra::hw::tegra_x1::cpu {
+class ICpu;
 class IMmu;
 } // namespace hydra::hw::tegra_x1::cpu
 
@@ -12,7 +13,7 @@ namespace hydra::horizon::kernel {
 
 class SharedMemory : public AutoObject {
   public:
-    SharedMemory(usize size,
+    SharedMemory(hw::tegra_x1::cpu::ICpu& cpu, usize size,
                  const std::string_view debug_name = "SharedMemory");
     ~SharedMemory() override;
 

@@ -74,7 +74,8 @@ uchar4* LoadGIF(filesystem::IFile* file,
 
 } // namespace
 
-LoaderBase* LoaderBase::CreateFromPath(std::string_view path) {
+LoaderBase* LoaderBase::CreateFromPath(std::string_view path,
+                                       plugins::Manager* plugin_manager) {
     while (path.back() == '/') {
         path.remove_suffix(1);
     }
@@ -100,14 +101,21 @@ LoaderBase* LoaderBase::CreateFromPath(std::string_view path) {
         } else if (ext == ".nca") {
             loader = new horizon::loader::NcaLoader(file);
         } else {
+            // Check if we need to create a temporary plugin manager
+            bool has_plugin_manager = (plugin_manager != nullptr);
+            if (!has_plugin_manager)
+                plugin_manager = new plugins::Manager();
+
             // First, check if any of the loader plugins supports this format
-            auto plugin = plugins::Manager::GetInstance().FindPluginForFormat(
-                ext.substr(1));
+            auto plugin = plugin_manager->FindPluginForFormat(ext.substr(1));
             ASSERT_THROWING(
                 plugin, Loader, CreateFromPathError::UnsupportedExtension,
                 "Unsupported extension \"{}\" (path: \"{}\")", ext, path);
 
             loader = plugin->Load(path);
+
+            if (!has_plugin_manager)
+                delete plugin_manager;
         }
     }
 

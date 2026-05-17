@@ -1,10 +1,10 @@
 #include "core/horizon/services/am/library_applet_self_accessor.hpp"
 
 #include "core/horizon/kernel/process.hpp"
-#include "core/horizon/os.hpp"
-#include "core/horizon/services/am/library_applet_controller.hpp"
+#include "core/horizon/services/am/internal/library_applet_controller.hpp"
+#include "core/system.hpp"
 
-#define CONTROLLER OS_INSTANCE.GetLibraryAppletSelfController()
+#define CONTROLLER system->GetOS().GetLibraryAppletSelfController()
 
 namespace hydra::horizon::services::am {
 
@@ -14,17 +14,14 @@ DEFINE_SERVICE_COMMAND_TABLE(ILibraryAppletSelfAccessor, 0, PopInData, 1,
                              11, GetLibraryAppletInfo, 14,
                              GetCallerAppletIdentityInfo)
 
-ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor() {
-    // Verify that we have a library applet self controller available
-    ASSERT(CONTROLLER, Services, "No library applet self controller");
-}
-
-result_t ILibraryAppletSelfAccessor::PopInData(RequestContext* ctx) {
+result_t ILibraryAppletSelfAccessor::PopInData(RequestContext* ctx,
+                                               System* system) {
     AddService(*ctx, CONTROLLER->PopInData()->Retain());
     return RESULT_SUCCESS;
 }
 
-result_t ILibraryAppletSelfAccessor::PushOutData(IService* storage_) {
+result_t ILibraryAppletSelfAccessor::PushOutData(System* system,
+                                                 IService* storage_) {
     auto storage = dynamic_cast<IStorage*>(storage_);
     ASSERT_DEBUG(storage, Services, "Storage is not of type IStorage");
 
@@ -32,13 +29,15 @@ result_t ILibraryAppletSelfAccessor::PushOutData(IService* storage_) {
     return RESULT_SUCCESS;
 }
 
-result_t ILibraryAppletSelfAccessor::PopInteractiveInData(RequestContext* ctx) {
+result_t ILibraryAppletSelfAccessor::PopInteractiveInData(RequestContext* ctx,
+                                                          System* system) {
     AddService(*ctx, CONTROLLER->PopInteractiveInData()->Retain());
     return RESULT_SUCCESS;
 }
 
 result_t
-ILibraryAppletSelfAccessor::PushInteractiveOutData(IService* storage_) {
+ILibraryAppletSelfAccessor::PushInteractiveOutData(System* system,
+                                                   IService* storage_) {
     auto storage = dynamic_cast<IStorage*>(storage_);
     ASSERT_DEBUG(storage, Services, "Storage is not of type IStorage");
 

@@ -10,6 +10,8 @@ constexpr usize PAGE_COUNT =
 
 class Mmu : public IMmu {
   public:
+    using IMmu::IMmu;
+
     void Map(vaddr_t dst_va, Range<uptr> range,
              const horizon::kernel::MemoryState state) override;
     void Map(vaddr_t dst_va, Range<vaddr_t> range) override;

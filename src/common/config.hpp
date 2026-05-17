@@ -3,11 +3,19 @@
 #include <fmt/ranges.h>
 
 #include "common/log.hpp"
+#include "common/platform.hpp"
 #include "common/types.hpp"
 
 #define CONFIG_INSTANCE Config::GetInstance()
 
 namespace hydra {
+
+enum class InputBackend : u32 {
+    Invalid = 0,
+
+    Sdl,
+    AppleGameController,
+};
 
 enum class CpuBackend : u32 {
     Invalid = 0,
@@ -43,13 +51,6 @@ enum class Resolution : u32 {
 };
 
 STRONG_TYPEDEF(CustomResolution, uint2);
-
-enum class InputBackend : u32 {
-    Invalid = 0,
-
-    Sdl,
-    GameController,
-};
 
 enum class AudioBackend : u32 {
     Invalid = 0,
@@ -97,13 +98,13 @@ class Config {
     std::vector<std::string> game_paths;
     std::vector<LoaderPlugin> loader_plugins;
     std::vector<std::string> patch_paths;
+    InputBackend input_backend;
     std::vector<std::string> input_profiles;
     CpuBackend cpu_backend;
     GpuRenderer gpu_renderer;
     ShaderBackend shader_backend;
     Resolution display_resolution;
     uint2 custom_display_resolution;
-    InputBackend input_backend;
     AudioBackend audio_backend;
     uuid_t user_id;
     std::string firmware_path;
@@ -124,6 +125,13 @@ class Config {
     std::vector<std::string> GetDefaultGamePaths() const { return {}; }
     std::vector<LoaderPlugin> GetDefaultLoaderPlugins() const { return {}; }
     std::vector<std::string> GetDefaultPatchPaths() const { return {}; }
+    InputBackend GetDefaultInputBackend() const {
+#ifdef PLATFORM_APPLE
+        return InputBackend::AppleGameController;
+#else
+        return InputBackend::Sdl;
+#endif
+    }
     std::vector<std::string> GetDefaultInputProfiles() const {
         return {"Default", "", "", "", "", "", "", "", "", ""};
     }
@@ -138,13 +146,6 @@ class Config {
     ShaderBackend GetDefaultShaderBackend() const { return ShaderBackend::Msl; }
     Resolution GetDefaultDisplayResolution() const { return Resolution::Auto; }
     uint2 GetDefaultCustomDisplayResolution() const { return {1920, 1080}; }
-    InputBackend GetDefaultInputBackend() const {
-#ifdef PLATFORM_APPLE
-        return InputBackend::GameController;
-#else
-        return InputBackend::Sdl;
-#endif
-    }
     AudioBackend GetDefaultAudioBackend() const {
 #if HYDRA_CUBEB_ENABLED
         return AudioBackend::Cubeb;
@@ -179,13 +180,13 @@ class Config {
     REF_GETTER(game_paths, GetGamePaths);
     REF_GETTER(loader_plugins, GetLoaderPlugins);
     REF_GETTER(patch_paths, GetPatchPaths);
+    REF_GETTER(input_backend, GetInputBackend);
     REF_GETTER(input_profiles, GetInputProfiles);
     REF_GETTER(cpu_backend, GetCpuBackend);
     REF_GETTER(gpu_renderer, GetGpuRenderer);
     REF_GETTER(shader_backend, GetShaderBackend);
     REF_GETTER(display_resolution, GetDisplayResolution);
     REF_GETTER(custom_display_resolution, GetCustomDisplayResolution);
-    REF_GETTER(input_backend, GetInputBackend)
     REF_GETTER(audio_backend, GetAudioBackend);
     REF_GETTER(user_id, GetUserId);
     REF_GETTER(firmware_path, GetFirmwarePath);
@@ -205,6 +206,9 @@ class Config {
 
 } // namespace hydra
 
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, InputBackend, input_backend, Sdl,
+                                   "SDL", AppleGameController,
+                                   "Apple GameController")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, CpuBackend, cpu_backend,
                                    AppleHypervisor, "Apple Hypervisor",
                                    Dynarmic, "dynarmic")
@@ -216,8 +220,6 @@ ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, Resolution, resolution, Auto, "auto",
                                    _720p, "720p", _1080p, "1080p", _1440p,
                                    "1440p", _2160p, "2160p", _4320p, "4320p",
                                    AutoExact, "Auto exact", Custom, "custom")
-ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, InputBackend, input_backend, Sdl,
-                                   "Sdl", GameController, "GameController")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, AudioBackend, audio_backend, Null,
                                    "Null", Cubeb, "Cubeb")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, LogOutput, output, None, "none",

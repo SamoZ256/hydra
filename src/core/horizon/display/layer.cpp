@@ -6,13 +6,14 @@
 #include "core/hw/tegra_x1/gpu/renderer/surface_compositor.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_view.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::display {
 
 bool Layer::AcquirePresentTexture(
     hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer) {
     // Get the buffer to present
-    auto& binder = OS_INSTANCE.GetDisplayDriver().GetBinder(binder_id);
+    auto& binder = system.GetOS().GetDisplayDriver().GetBinder(binder_id);
 
     BqBufferInput input;
     i32 slot = binder.ConsumeBuffer(input);
@@ -21,8 +22,8 @@ bool Layer::AcquirePresentTexture(
     const auto& buffer = binder.GetBuffer(slot);
 
     // Texture
-    present_texture = GPU_INSTANCE.GetTexture(command_buffer, process->GetMmu(),
-                                              buffer.nv_buffer);
+    present_texture = system.GetGpu().GetTexture(
+        command_buffer, process->GetMmu(), buffer.nv_buffer);
 
     // Rect
     src_rect = {};
@@ -76,7 +77,8 @@ void Layer::Present(hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer,
 }
 
 AccumulatedTime Layer::GetAccumulatedDT() {
-    return OS_INSTANCE.GetDisplayDriver()
+    return system.GetOS()
+        .GetDisplayDriver()
         .GetBinder(binder_id)
         .GetAccumulatedDT();
 }

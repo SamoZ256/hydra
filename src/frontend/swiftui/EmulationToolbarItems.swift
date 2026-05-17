@@ -11,14 +11,14 @@ struct EmulationToolbarItems: ToolbarContent {
             ToolbarItemGroup(placement: .principal) {
                 if isRunning {
                     Button("Pause", systemImage: "pause") {
-                        guard let emulationContext = globalState.emulationContext else { return }
-                        emulationContext.pause()
+                        guard let system = globalState.system else { return }
+                        system.pause()
                         isRunning = false
                     }
                 } else {
                     Button("Resume", systemImage: "play") {
-                        guard let emulationContext = globalState.emulationContext else { return }
-                        emulationContext.resume()
+                        guard let system = globalState.system else { return }
+                        system.resume()
                         isRunning = true
                     }
                 }
@@ -26,10 +26,10 @@ struct EmulationToolbarItems: ToolbarContent {
                     globalState.isStopping = true
                 }
                 .onAppear {
-                    isRunning = globalState.emulationContext!.isRunning()
+                    isRunning = globalState.system!.isRunning()
                 }
             }
-            
+
             ToolbarItemGroup(placement: .confirmationAction) {
                 if isFramerateUnlocked {
                     Button{
@@ -59,14 +59,14 @@ struct EmulationToolbarItems: ToolbarContent {
                     .help("Unlock Framerate")
                 }
             }
-            
+
             // This compiler check is only needed when compiling on a macOS version earlier than 26
             #if compiler(>=6.2.3)
                 if #available(macOS 26.0, *) {
                     ToolbarSpacer(.fixed)
                 }
             #endif
-            
+
             if #available(macOS 26.0, *) {
                 ToolbarItemGroup(placement: .confirmationAction) {
                     Button("Console Mode", systemImage: "inset.filled.tv") {
@@ -74,7 +74,7 @@ struct EmulationToolbarItems: ToolbarContent {
                     }
                     .disabled(!globalState.isHandheldMode)
                     .help("Change to Console mode")
-                    
+
                     Button("Handheld Mode", systemImage: "formfitting.gamecontroller.fill") {
                         globalState.isHandheldMode.toggle()
                     }

@@ -25,9 +25,10 @@ namespace hydra::hw::tegra_x1::cpu::dynarmic {
 static Dynarmic::ExclusiveMonitor
     g_exclusive_monitor(4); // TODO: don't hardcode core count
 
-Thread::Thread(IMmu* mmu, const ThreadCallbacks& callbacks, IMemory* tls_mem,
+Thread::Thread(WallClock& wall_clock, IMmu* mmu,
+               const ThreadCallbacks& callbacks, IMemory* tls_mem,
                vaddr_t tls_mem_base)
-    : IThread(mmu, callbacks, tls_mem) {
+    : IThread(wall_clock, mmu, callbacks, tls_mem) {
     tpidrro_el0 = tls_mem_base;
     // TODO: tpidr_el0?
 
@@ -167,7 +168,7 @@ void Thread::ExceptionRaised([[maybe_unused]] u64 pc,
     jit->HaltExecution();
 }
 
-u64 Thread::GetCNTPCT() { return WallClock::GetInstance().GetCntpct(); }
+u64 Thread::GetCNTPCT() { return wall_clock.GetCntpct(); }
 
 void Thread::SerializeState() {
     for (u32 i = 0; i < 29; i++)

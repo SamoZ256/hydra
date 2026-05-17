@@ -33,7 +33,8 @@ class ICommonStateGetter : public IService {
     STUB_REQUEST_COMMAND(DisallowToEnterSleep);
     result_t GetOperationMode(OperationMode* out_mode);
     STUB_REQUEST_COMMAND(GetPerformanceMode);
-    result_t GetDefaultDisplayResolution(i32* out_width, i32* out_height);
+    result_t GetDefaultDisplayResolution(System* system, i32* out_width,
+                                         i32* out_height);
     result_t GetDefaultDisplayResolutionChangeEvent(
         kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle);
     result_t GetCurrentFocusState(kernel::Process* process,

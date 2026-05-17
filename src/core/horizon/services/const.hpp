@@ -24,7 +24,11 @@
         return RESULT_SUCCESS;                                                 \
     }
 
-// TODO: remove
+namespace hydra {
+class System;
+}
+
+// TODO: remove?
 namespace hydra::horizon::kernel {
 class Event;
 class SharedMemory;
@@ -103,6 +107,7 @@ class OutHandle {
 
 enum class ArgumentType {
     Context,
+    System,
     Process,
     InData,
     OutData,
@@ -120,6 +125,11 @@ struct arg_traits;
 template <>
 struct arg_traits<RequestContext*> {
     static constexpr ArgumentType type = ArgumentType::Context;
+};
+
+template <>
+struct arg_traits<System*> {
+    static constexpr ArgumentType type = ArgumentType::System;
 };
 
 template <>
@@ -182,6 +192,13 @@ void read_arg(RequestContext& context, Class& instance,
 
         if constexpr (traits::type == ArgumentType::Context) {
             arg = &context;
+
+            // Next
+            read_arg<Class, CommandArguments, in_buffer_index, out_buffer_index,
+                     arg_index + 1>(context, instance, args);
+            return;
+        } else if constexpr (traits::type == ArgumentType::System) {
+            arg = &context.system;
 
             // Next
             read_arg<Class, CommandArguments, in_buffer_index, out_buffer_index,

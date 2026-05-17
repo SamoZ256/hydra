@@ -40,19 +40,4 @@ void ITextureView::CopyFrom(ICommandBuffer* command_buffer,
                    layer_count);
 }
 
-void ITextureView::BlitFrom(ICommandBuffer* command_buffer,
-                            const ITextureView* src, const float3 src_origin,
-                            const usize3 src_size, const u32 src_level,
-                            const u32 src_layer, const float3 dst_origin,
-                            const usize3 dst_size, const u32 dst_level,
-                            const u32 dst_layer, const u32 level_count,
-                            const u32 layer_count) {
-    base->BlitFrom(
-        command_buffer, src->GetBase(), src_origin, src_size,
-        src->GetDescriptor().levels.GetBegin() + src_level,
-        src->GetDescriptor().layers.GetBegin() + src_layer, dst_origin,
-        dst_size, descriptor.levels.GetBegin() + dst_level,
-        descriptor.layers.GetBegin() + dst_layer, level_count, layer_count);
-}
-
 } // namespace hydra::hw::tegra_x1::gpu::renderer

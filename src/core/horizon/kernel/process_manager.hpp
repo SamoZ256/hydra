@@ -1,11 +1,16 @@
 #pragma once
 
+namespace hydra {
+class System;
+}
+
 namespace hydra::horizon::kernel {
 
 class Process;
 
 class ProcessManager {
   public:
+    ProcessManager(System& system_) : system{system_} {}
     ~ProcessManager();
 
     Process* CreateProcess(const std::string_view name);
@@ -17,6 +22,8 @@ class ProcessManager {
     std::vector<Process*>::iterator End() { return processes.end(); }
 
   private:
+    System& system;
+
     std::mutex mutex;
     std::vector<Process*> processes;
 };

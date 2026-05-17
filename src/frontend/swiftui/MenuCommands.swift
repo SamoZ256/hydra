@@ -43,8 +43,8 @@ struct MenuCommands: Commands {
 
         CommandGroup(after: .sidebar) {
             Button("Take Screenshot", systemImage: "camera") {
-                guard let emulationContext = globalState.emulationContext else { return }
-                emulationContext.takeScreenshot()
+                guard let system = globalState.system else { return }
+                system.takeScreenshot()
             }
             .keyboardShortcut(KeyEquivalent("t"), modifiers: .command)
         }
@@ -61,8 +61,8 @@ struct MenuCommands: Commands {
 
         CommandMenu("Debug") {
             Button("Capture GPU Frame") {
-                guard let emulationContext = globalState.emulationContext else { return }
-                emulationContext.captureGpuFrame()
+                guard let system = globalState.system else { return }
+                system.captureGpuFrame()
             }
             .keyboardShortcut(KeyEquivalent("p"), modifiers: .command)
         }

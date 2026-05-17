@@ -27,13 +27,13 @@ void TwoD::Copy(const u32 index, const u32 pixels_from_memory_src_y0_int) {
     const auto src_width = static_cast<u32>(pixels.dst_width * dudx);
     const auto src_height = static_cast<u32>(pixels.dst_height * dvdy);
 
-    dst->BlitFrom(tls_crnt_command_buffer, src,
-                  {static_cast<f32>(src_x0), static_cast<f32>(src_y0), 0.0f},
-                  {src_width, src_height, 1}, 0, regs.src.layer,
-                  {static_cast<f32>(pixels.dst_x0),
-                   static_cast<f32>(pixels.dst_y0), 0.0f},
-                  {pixels.dst_width, pixels.dst_height, 1}, 0, regs.dst.layer,
-                  1, 1);
+    gpu.GetRenderer().BlitTexture(
+        tls_crnt_command_buffer, src,
+        {static_cast<f32>(src_x0), static_cast<f32>(src_y0), 0.0f},
+        {src_width, src_height, 1}, 0, regs.src.layer, dst,
+        {static_cast<f32>(pixels.dst_x0), static_cast<f32>(pixels.dst_y0),
+         0.0f},
+        {pixels.dst_width, pixels.dst_height, 1}, 0, regs.dst.layer, 1, 1);
 }
 
 #pragma GCC diagnostic pop
@@ -48,7 +48,7 @@ renderer::ITextureView* TwoD::GetTexture(const Texture2DInfo& info,
         info.height, 1, 1, info.depth, 0x0, 0x0, 0x0 // HACK
     );
 
-    return RENDERER_INSTANCE.GetTextureCache().Find(tls_crnt_command_buffer,
+    return gpu.GetRenderer().GetTextureCache().Find(tls_crnt_command_buffer,
                                                     descriptor, usage);
 }
 

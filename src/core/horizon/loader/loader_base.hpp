@@ -4,7 +4,19 @@
 #include "core/horizon/kernel/process.hpp"
 #include "core/horizon/services/ns/const.hpp"
 
+namespace hydra {
+class System;
+}
+
+namespace hydra::horizon::filesystem {
+class Filesystem;
+}
+
 namespace hydra::horizon::loader {
+
+namespace plugins {
+class Manager;
+}
 
 class LoaderBase {
   public:
@@ -12,13 +24,15 @@ class LoaderBase {
         DoesNotExist,
         UnsupportedExtension,
     };
-    static LoaderBase* CreateFromPath(std::string_view path);
+    static LoaderBase*
+    CreateFromPath(std::string_view path,
+                   plugins::Manager* plugin_manager = nullptr);
 
     virtual ~LoaderBase() = default;
 
     virtual u64 GetTitleID() const { return invalid<u64>(); }
 
-    virtual void LoadProcess(kernel::Process* process) = 0;
+    virtual void LoadProcess(System& system, kernel::Process* process) = 0;
     enum class LoadNacpError {
         InvalidSize,
     };

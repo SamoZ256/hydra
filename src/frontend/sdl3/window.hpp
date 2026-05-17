@@ -1,7 +1,7 @@
 #pragma once
 
-#include "core/emulation_context.hpp"
 #include "core/horizon/ui/handler_base.hpp"
+#include "core/system.hpp"
 #include "frontend/sdl3/cursor.hpp"
 
 // TODO: if macOS
@@ -9,6 +9,12 @@
 using Native = hydra::frontend::native::cocoa::Native;
 
 namespace hydra::frontend::sdl3 {
+
+class Context {
+  public:
+    Context();
+    ~Context();
+};
 
 class Window : public horizon::ui::IHandler {
   public:
@@ -28,13 +34,15 @@ class Window : public horizon::ui::IHandler {
                          std::string& out_text) override;
 
   private:
+    Context context;
+
     SDL_Window* window;
     SDL_Renderer* renderer;
 
     Native native;
     Cursor cursor;
 
-    EmulationContext emulation_context;
+    System system;
     u64 title_id;
 
     void BeginEmulation(const std::string& path);

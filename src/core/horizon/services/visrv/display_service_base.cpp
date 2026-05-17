@@ -1,22 +1,23 @@
 #include "core/horizon/services/visrv/display_service_base.hpp"
 
-#include "core/horizon/os.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::services::visrv {
 
 // TODO: flags, display ID
 result_t DisplayServiceBase::CreateStrayLayerImpl(
-    kernel::Process* process, u32 flags, u64 display_id, u64* out_layer_id,
-    u64* out_native_window_size, io::MemoryStream* out_parcel_stream) {
+    System& system, kernel::Process* process, u32 flags, u64 display_id,
+    u64* out_layer_id, u64* out_native_window_size,
+    io::MemoryStream* out_parcel_stream) {
     (void)flags;
     (void)display_id;
 
-    u32 binder_id = OS_INSTANCE.GetDisplayDriver().CreateBinder();
+    u32 binder_id = system.GetOS().GetDisplayDriver().CreateBinder();
     // TODO: what's the display for?
-    // auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
+    // auto& display = system.GetOS().GetDisplayDriver().GetDisplay(display_id);
 
     *out_layer_id =
-        OS_INSTANCE.GetDisplayDriver().CreateLayer(process, binder_id);
+        system.GetOS().GetDisplayDriver().CreateLayer(process, binder_id);
 
     // Parcel
     hosbinder::ParcelWriter parcel_writer(out_parcel_stream);

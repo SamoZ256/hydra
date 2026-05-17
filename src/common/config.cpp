@@ -1,9 +1,9 @@
 #include "common/config.hpp"
 
-#include "common/log.hpp"
-#include "common/platform.hpp"
 #include "common/toml_helper.hpp"
 
+TOML11_DEFINE_CONVERSION_ENUM(hydra::InputBackend, Sdl, "SDL",
+                              AppleGameController, "Apple GameController")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::CpuBackend, AppleHypervisor,
                               "Apple Hypervisor", Dynarmic, "dynarmic")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::GpuRenderer, Metal, "Metal")
@@ -12,9 +12,7 @@ TOML11_DEFINE_CONVERSION_ENUM(hydra::Resolution, Auto, "auto", _720p, "720p",
                               _1080p, "1080p", _1440p, "1440p", _2160p, "2160p",
                               _4320p, "4320p", AutoExact, "Auto exact", Custom,
                               "custom")
-TOML11_DEFINE_CONVERSION_ENUM(hydra::InputBackend, Sdl, "Sdl", GameController,
-                              "GameController")
-TOML11_DEFINE_CONVERSION_ENUM(hydra::AudioBackend, Null, "Null", Cubeb, "Cubeb")
+TOML11_DEFINE_CONVERSION_ENUM(hydra::AudioBackend, Null, "null", Cubeb, "Cubeb")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::LogOutput, None, "none", StdOut, "stdout",
                               File, "file")
 
@@ -122,13 +120,13 @@ void Config::LoadDefaults() {
     game_paths = GetDefaultGamePaths();
     loader_plugins = GetDefaultLoaderPlugins();
     patch_paths = GetDefaultPatchPaths();
+    input_backend = GetDefaultInputBackend();
     input_profiles = GetDefaultInputProfiles();
     cpu_backend = GetDefaultCpuBackend();
     gpu_renderer = GetDefaultGpuRenderer();
     shader_backend = GetDefaultShaderBackend();
     display_resolution = GetDefaultDisplayResolution();
     custom_display_resolution = GetDefaultCustomDisplayResolution();
-    input_backend = GetDefaultInputBackend();
     audio_backend = GetDefaultAudioBackend();
     user_id = GetDefaultUserID();
     firmware_path = GetDefaultFirmwarePath();
@@ -321,6 +319,12 @@ void Config::Deserialize() {
     }
 
     // Validate
+    if (input_backend == InputBackend::Invalid) {
+        input_backend = GetDefaultInputBackend();
+        LOG_WARN(Other, "Invalid input backend, falling back to {}",
+                 input_backend);
+    }
+
     if (cpu_backend == CpuBackend::Invalid) {
         cpu_backend = GetDefaultCpuBackend();
         LOG_WARN(Other, "Invalid CPU backend, falling back to {}", cpu_backend);
@@ -346,12 +350,6 @@ void Config::Deserialize() {
                  display_resolution);
     }
 
-    if (input_backend == InputBackend::Invalid) {
-        input_backend = GetDefaultInputBackend();
-        LOG_WARN(Other, "Invalid input backend, falling back to {}",
-                 input_backend);
-    }
-
     if (audio_backend == AudioBackend::Invalid) {
         audio_backend = GetDefaultAudioBackend();
         LOG_WARN(Other, "Invalid audio backend, falling back to {}",
@@ -363,6 +361,7 @@ void Config::Log() {
     LOG_INFO(Other, "Game paths: [{}]", fmt::join(game_paths, ", "));
     LOG_INFO(Other, "Loader plugins: [{}]", fmt::join(loader_plugins, ", "));
     LOG_INFO(Other, "Patch paths: [{}]", fmt::join(patch_paths, ", "));
+    LOG_INFO(Other, "Input backend: {}", input_backend);
     LOG_INFO(Other, "Input profiles: [{}]", fmt::join(input_profiles, ", "));
     LOG_INFO(Other, "CPU backend: {}", cpu_backend);
     LOG_INFO(Other, "Gpu renderer: {}", gpu_renderer);
@@ -370,7 +369,6 @@ void Config::Log() {
     LOG_INFO(Other, "Display resolution: {}", display_resolution);
     LOG_INFO(Other, "Custom display resolution: {}x{}",
              custom_display_resolution.x(), custom_display_resolution.y());
-    LOG_INFO(Other, "Input backend: {}", input_backend);
     LOG_INFO(Other, "Audio backend: {}", audio_backend);
     LOG_INFO(Other, "User ID: {:032x}", user_id);
     LOG_INFO(Other, "Firmware path: {}", firmware_path);

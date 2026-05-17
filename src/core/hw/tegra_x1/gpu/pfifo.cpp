@@ -69,7 +69,7 @@ T Read(uptr& gpu_addr) {
 
 } // namespace
 
-Pfifo::Pfifo() : thread(&Pfifo::ThreadFunc, this) {}
+Pfifo::Pfifo(Gpu& gpu_) : gpu{gpu_}, thread(&Pfifo::ThreadFunc, this) {}
 
 Pfifo::~Pfifo() {
     stop = true;
@@ -111,7 +111,7 @@ void Pfifo::ThreadFunc() {
             // Entries
             // TODO: flags
             tls_crnt_gmmu = &entry_list.gmmu;
-            tls_crnt_command_buffer = RENDERER_INSTANCE.CreateCommandBuffer();
+            tls_crnt_command_buffer = gpu.GetRenderer().CreateCommandBuffer();
             for (const auto& entry : entry_list.entries)
                 SubmitEntry(entry);
             delete tls_crnt_command_buffer;
@@ -192,8 +192,7 @@ bool Pfifo::SubmitCommand(uptr& gpu_addr) {
             ProcessMethodArg(header.subchannel, gpu_addr, offset, false);
         break;
     case SecondaryOpcode::ImmDataMethod:
-        Gpu::GetInstance().SubchannelMethod(header.subchannel, offset,
-                                            header.arg);
+        gpu.SubchannelMethod(header.subchannel, offset, header.arg);
         break;
     case SecondaryOpcode::OneInc:
         for (u32 i = 0; i < header.arg; i++)
@@ -208,7 +207,7 @@ bool Pfifo::SubmitCommand(uptr& gpu_addr) {
     // TODO: is it okay to prefetch the parameters and then execute the
     // macro?
     if (header.method >= MACRO_METHODS_REGION)
-        Gpu::GetInstance().SubchannelFlushMacro(header.subchannel);
+        gpu.SubchannelFlushMacro(header.subchannel);
 
     return true;
 }
@@ -216,7 +215,7 @@ bool Pfifo::SubmitCommand(uptr& gpu_addr) {
 void Pfifo::ProcessMethodArg(u32 subchannel, uptr& gpu_addr, u32& method,
                              bool increment) {
     u32 arg = Read<u32>(gpu_addr);
-    Gpu::GetInstance().SubchannelMethod(subchannel, method, arg);
+    gpu.SubchannelMethod(subchannel, method, arg);
     if (increment)
         method++;
 }

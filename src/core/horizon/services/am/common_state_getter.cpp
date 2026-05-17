@@ -1,7 +1,7 @@
 #include "core/horizon/services/am/common_state_getter.hpp"
 
 #include "core/horizon/kernel/process.hpp"
-#include "core/horizon/os.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::services::am {
 
@@ -37,9 +37,10 @@ result_t ICommonStateGetter::GetOperationMode(OperationMode* out_mode) {
     return RESULT_SUCCESS;
 }
 
-result_t ICommonStateGetter::GetDefaultDisplayResolution(i32* out_width,
+result_t ICommonStateGetter::GetDefaultDisplayResolution(System* system,
+                                                         i32* out_width,
                                                          i32* out_height) {
-    const auto res = OS_INSTANCE.GetDisplayResolution();
+    const auto res = system->GetOS().GetDisplayResolution();
     *out_width = static_cast<i32>(res.x());
     *out_height = static_cast<i32>(res.y());
     return RESULT_SUCCESS;

@@ -42,6 +42,8 @@ struct TextureSizeView: View {
 }
 
 struct TextureListView: View {
+    @EnvironmentObject var globalState: GlobalState
+
     @State private var refreshID = 0
 
     @AppStorage("sizeFormat") private var sizeFormat: SizeFormat = .decimal
@@ -106,11 +108,11 @@ struct TextureListView: View {
     }
 
     func load() {
-        hydraTextureCacheLock()
+        globalState.system!.textureCacheLock()
 
         self.textures.removeAll()
-        for i in 0..<hydraTextureCacheGetTextureMemoryCount() {
-            let mem = hydraTextureCacheGetTextureMemory(at: i)
+        for i in 0..<globalState.system!.textureCacheGetTextureMemoryCount() {
+            let mem = globalState.system!.textureCacheGetTextureMemory(at: i)
             for j in 0..<mem.textureGroupCount {
                 let group = mem.getTextureGroup(at: j)
                 for k in 0..<group.textureStorageCount {
@@ -120,6 +122,6 @@ struct TextureListView: View {
             }
         }
 
-        hydraTextureCacheUnlock()
+        globalState.system!.textureCacheUnlock()
     }
 }

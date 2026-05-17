@@ -7,10 +7,7 @@ constexpr u64 GPU_TICK_FREQ = 614'400'000;
 
 class WallClock {
   public:
-    static WallClock& GetInstance();
-
     WallClock();
-    ~WallClock();
 
     u64 GetCntpct() const;
     u64 GetGpuTick() const;

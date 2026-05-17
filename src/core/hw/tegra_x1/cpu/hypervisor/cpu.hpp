@@ -28,9 +28,10 @@ class Cpu : public ICpu {
     Cpu();
     ~Cpu();
 
-    IMmu* CreateMmu() override;
-    IThread* CreateThread(IMmu* mmu, const ThreadCallbacks& callbacks,
-                          IMemory* tls_mem, vaddr_t tls_mem_base) override;
+    IMmu* CreateMmu(System& system) override;
+    IThread* CreateThread(WallClock& wall_clock, IMmu* mmu,
+                          const ThreadCallbacks& callbacks, IMemory* tls_mem,
+                          vaddr_t tls_mem_base) override;
     IMemory* AllocateMemory(usize size) override;
 
   private:

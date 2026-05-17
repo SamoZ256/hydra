@@ -46,7 +46,7 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
                        regs.stride_in);
 
             // Invalidate
-            RENDERER_INSTANCE.GetBufferCache().InvalidateMemory(
+            gpu.GetRenderer().GetBufferCache().InvalidateMemory(
                 Range<uptr>::FromSize(dst_ptr,
                                       regs.line_count * regs.stride_out));
         } else {
@@ -71,7 +71,7 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
     }
 
     // Invalidate
-    RENDERER_INSTANCE.GetTextureCache().InvalidateMemory(
+    gpu.GetRenderer().GetTextureCache().InvalidateMemory(
         Range<uptr>(dst_ptr, regs.stride_in * regs.line_count));
 }
 

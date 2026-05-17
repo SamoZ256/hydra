@@ -7,13 +7,12 @@ namespace hydra::input::apple_gc {
 class DeviceList : public IDeviceList {
   public:
     DeviceList();
-    ~DeviceList();
+    ~DeviceList() override;
 
-    // For the implementation
-    void _AddController(id controller);
-    void _RemoveController(id controller);
-    void _AddKeyboard(id keyboard);
-    void _RemoveKeyboard(id keyboard);
+    void AddController(id controller);
+    void RemoveController(id controller);
+    void AddKeyboard(id keyboard);
+    void RemoveKeyboard(id keyboard);
 
   private:
     id impl;

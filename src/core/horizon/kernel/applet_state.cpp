@@ -5,13 +5,13 @@
 
 namespace hydra::horizon::kernel {
 
-AppletState::AppletState()
-    : aruid{KERNEL_INSTANCE.AllocateAppletResourceUserId()},
+AppletState::AppletState(Kernel& kernel_)
+    : kernel{kernel_}, aruid{kernel.AllocateAppletResourceUserId()},
       msg_event{new Event(false, "Message event")} {}
 
 AppletState::~AppletState() {
     msg_event->Release();
-    KERNEL_INSTANCE.ReleaseAppletResourceUserId(aruid);
+    kernel.ReleaseAppletResourceUserId(aruid);
 }
 
 void AppletState::SendMessage(AppletMessage msg) {

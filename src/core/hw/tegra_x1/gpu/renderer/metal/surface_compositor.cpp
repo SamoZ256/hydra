@@ -8,8 +8,9 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
-SurfaceCompositor::SurfaceCompositor(CA::MetalDrawable* drawable_)
-    : drawable{drawable_} {
+SurfaceCompositor::SurfaceCompositor(Renderer& renderer_,
+                                     CA::MetalDrawable* drawable_)
+    : renderer{renderer_}, drawable{drawable_} {
     // Render pass
     render_pass_descriptor = MTL::RenderPassDescriptor::alloc()->init();
     auto color_attachment =
@@ -34,9 +35,8 @@ void SurfaceCompositor::DrawTexture(ICommandBuffer* command_buffer,
         command_buffer_impl->GetRenderCommandEncoder(render_pass_descriptor);
 
     // Draw
-    encoder->setRenderPipelineState(
-        METAL_RENDERER_INSTANCE.GetBlitPipelineCache()->Find(
-            {drawable->texture()->pixelFormat(), transparent}));
+    encoder->setRenderPipelineState(renderer.GetBlitPipelineCache().Find(
+        {drawable->texture()->pixelFormat(), transparent}));
     encoder->setViewport(MTL::Viewport{static_cast<f64>(dst_rect.origin.x()),
                                        static_cast<f64>(dst_rect.origin.y()),
                                        static_cast<f64>(dst_rect.size.x()),
@@ -60,7 +60,7 @@ void SurfaceCompositor::DrawTexture(ICommandBuffer* command_buffer,
 
     encoder->setFragmentBytes(&params, sizeof(params), 0);
     encoder->setFragmentTexture(texture_impl->GetTexture(), NS::UInteger(0));
-    encoder->setFragmentSamplerState(METAL_RENDERER_INSTANCE.GetLinearSampler(),
+    encoder->setFragmentSamplerState(renderer.GetLinearSampler(),
                                      NS::UInteger(0));
     encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0),
                             NS::UInteger(3));

@@ -1,5 +1,7 @@
 #include "core/horizon/services/timesrv/internal/time_manager.hpp"
 
+#include "core/system.hpp"
+
 namespace hydra::horizon::services::timesrv::internal {
 
 namespace {
@@ -14,8 +16,9 @@ constexpr u32 CONTINUOUS_ADJUSTMENT_TIME_POINT_OFFSET = 0xd0;
 
 } // namespace
 
-TimeManager::TimeManager()
-    : shared_memory{new kernel::SharedMemory(SHARED_MEMORY_SIZE)} {
+TimeManager::TimeManager(System& system)
+    : shared_memory{
+          new kernel::SharedMemory(system.GetCpu(), SHARED_MEMORY_SIZE)} {
     std::memset(reinterpret_cast<void*>(shared_memory->GetPtr()), 0,
                 SHARED_MEMORY_SIZE);
 

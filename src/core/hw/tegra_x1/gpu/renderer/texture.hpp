@@ -35,14 +35,6 @@ class ITexture {
                           const usize3 size, const u32 level_count,
                           const u32 layer_count) = 0;
 
-    // Blitting
-    virtual void BlitFrom(ICommandBuffer* command_buffer, const ITexture* src,
-                          const float3 src_origin, const usize3 src_size,
-                          const u32 src_level, const u32 src_layer,
-                          const float3 dst_origin, const usize3 dst_size,
-                          const u32 dst_level, const u32 dst_layer,
-                          const u32 level_count, const u32 layer_count) = 0;
-
   protected:
     const TextureDescriptor descriptor;
 

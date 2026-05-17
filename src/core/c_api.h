@@ -200,23 +200,6 @@ bool* hydra_config_get_gdb_enabled();
 uint16_t* hydra_config_get_gdb_port();
 bool* hydra_config_get_gdb_wait_for_client();
 
-// Loader plugins
-
-// Manager
-void hydra_loader_plugin_manager_refresh();
-
-// Plugin
-void* hydra_create_loader_plugin(hydra_string path);
-void hydra_loader_plugin_destroy(void* plugin);
-hydra_string hydra_loader_plugin_get_name(const void* plugin);
-hydra_string hydra_loader_plugin_get_display_version(const void* plugin);
-uint32_t hydra_loader_plugin_get_supported_format_count(const void* plugin);
-hydra_string hydra_loader_plugin_get_supported_format(const void* plugin,
-                                                      uint32_t index);
-uint32_t hydra_loader_plugin_get_option_config_count(const void* plugin);
-const void* hydra_loader_plugin_get_option_config(const void* plugin,
-                                                  uint32_t index);
-
 // Option config
 typedef enum HydraLoaderPluginOptionType : uint32_t {
     HYDRA_LOADER_PLUGIN_OPTION_TYPE_BOOLEAN = 0,
@@ -253,7 +236,7 @@ HydraContentArchiveContentType
 hydra_content_archive_get_content_type(void* content_archive);
 
 // Loader
-void* hydra_create_loader_from_path(hydra_string path);
+void* hydra_create_loader_from_path(hydra_string path, void* plugin_manager);
 void hydra_loader_destroy(void* loader);
 uint64_t hydra_loader_get_title_id(void* loader);
 void* hydra_loader_load_nacp(void* loader);
@@ -267,6 +250,25 @@ void hydra_loader_extract_romfs(const void* loader, hydra_string path);
 
 void* hydra_create_nca_loader_from_content_archive(void* content_archive);
 hydra_string hydra_nca_loader_get_name(void* nca_loader);
+
+// Plugins
+
+// Manager
+void* hydra_create_loader_plugin_manager();
+void hydra_loader_plugin_manager_destroy(void* manager);
+void hydra_loader_plugin_manager_refresh(void* manager);
+
+// Plugin
+void* hydra_create_loader_plugin(hydra_string path);
+void hydra_loader_plugin_destroy(void* plugin);
+hydra_string hydra_loader_plugin_get_name(const void* plugin);
+hydra_string hydra_loader_plugin_get_display_version(const void* plugin);
+uint32_t hydra_loader_plugin_get_supported_format_count(const void* plugin);
+hydra_string hydra_loader_plugin_get_supported_format(const void* plugin,
+                                                      uint32_t index);
+uint32_t hydra_loader_plugin_get_option_config_count(const void* plugin);
+const void* hydra_loader_plugin_get_option_config(const void* plugin,
+                                                  uint32_t index);
 
 // NACP
 void hydra_nacp_destroy(void* nacp);
@@ -300,30 +302,35 @@ void hydra_user_set_avatar_bg_color(void* user, hydra_uchar3 color);
 hydra_string hydra_user_get_avatar_path(void* user);
 void hydra_user_set_avatar_path(void* user, hydra_string path);
 
-// Emulation context
-void* hydra_create_emulation_context();
-void hydra_emulation_context_destroy(void* ctx);
+// System
+void* hydra_create_system();
+void hydra_system_destroy(void* system);
 
-void hydra_emulation_context_set_surface(void* ctx, void* surface);
+void hydra_system_set_surface(void* system, void* surface);
 
-void hydra_emulation_context_load_and_start(void* ctx, void* loader);
-void hydra_emulation_context_request_stop(void* ctx);
-void hydra_emulation_context_force_stop(void* ctx);
+void hydra_system_load_and_start(void* system, void* loader);
+void hydra_system_request_stop(void* system);
+void hydra_system_force_stop(void* system);
 
-void hydra_emulation_context_pause(void* ctx);
-void hydra_emulation_context_resume(void* ctx);
+void hydra_system_pause(void* system);
+void hydra_system_resume(void* system);
 
-void hydra_emulation_context_notify_operation_mode_changed(void* ctx);
+void hydra_system_notify_operation_mode_changed(void* system);
 
-void hydra_emulation_context_progress_frame(void* ctx, uint32_t width,
-                                            uint32_t height,
-                                            bool* out_dt_average_updated);
+void hydra_system_progress_frame(void* system, uint32_t width, uint32_t height,
+                                 bool* out_dt_average_updated);
 
-bool hydra_emulation_context_is_running(void* ctx);
-float hydra_emulation_context_get_last_delta_time_average(void* ctx);
+bool hydra_system_is_running(void* system);
+float hydra_system_get_last_delta_time_average(void* system);
 
-void hydra_emulation_context_take_screenshot(void* ctx);
-void hydra_emulation_context_capture_gpu_frame(void* ctx);
+void hydra_system_take_screenshot(void* system);
+void hydra_system_capture_gpu_frame(void* system);
+
+void hydra_system_texture_cache_lock(void* system);
+void hydra_system_texture_cache_unlock(void* system);
+uint32_t hydra_system_texture_cache_get_texture_memory_count(void* system);
+const void* hydra_system_texture_cache_get_texture_memory(void* system,
+                                                          uint32_t index);
 
 // Input
 // TODO
@@ -384,12 +391,6 @@ uint64_t hydra_debugger_resolved_stack_frame_get_address(
     const void* resolved_stack_frame);
 
 // Texture cache
-
-// Texture cache
-void hydra_texture_cache_lock();
-void hydra_texture_cache_unlock();
-uint32_t hydra_texture_cache_get_texture_memory_count();
-const void* hydra_texture_cache_get_texture_memory(uint32_t index);
 
 // Texture memory
 uint32_t hydra_texture_memory_get_texture_group_count(const void* mem);

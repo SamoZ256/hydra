@@ -9,7 +9,7 @@ class IMmu;
 
 namespace hydra::hw::tegra_x1::gpu {
 
-class GMmu;
+class Gpu;
 
 struct GpfifoEntryList {
     GMmu& gmmu;
@@ -19,13 +19,15 @@ struct GpfifoEntryList {
 
 class Pfifo {
   public:
-    Pfifo();
+    Pfifo(Gpu& gpu_);
     ~Pfifo();
 
     void SubmitEntries(GMmu& gmmu, std::span<const GpfifoEntry> entries,
                        GpfifoFlags flags);
 
   private:
+    Gpu& gpu;
+
     std::mutex mutex;
     std::condition_variable cond_var;
 

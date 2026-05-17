@@ -4,6 +4,10 @@
 
 #include "core/horizon/loader/plugins/api.hpp"
 
+namespace hydra {
+class System;
+}
+
 namespace hydra::horizon::filesystem {
 class Directory;
 }

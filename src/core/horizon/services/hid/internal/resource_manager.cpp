@@ -1,6 +1,6 @@
 #include "core/horizon/services/hid/internal/resource_manager.hpp"
 
-#include "core/input/device_manager.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::services::hid::internal {
 
@@ -19,7 +19,7 @@ void ResourceManager::Update() {
         const auto index = static_cast<NpadIndex>(i);
 
         // Poll
-        const auto state = INPUT_DEVICE_MANAGER_INSTANCE.PollNpad(index);
+        const auto state = system.GetInputDeviceManager().PollNpad(index);
 
         // Update
         for (auto& resource : resource_pool) {
@@ -31,7 +31,7 @@ void ResourceManager::Update() {
     }
 
     // Touch
-    const auto touch_state = INPUT_DEVICE_MANAGER_INSTANCE.PollTouch();
+    const auto touch_state = system.GetInputDeviceManager().PollTouch();
     for (auto& resource : resource_pool) {
         if (!resource.has_value())
             continue;

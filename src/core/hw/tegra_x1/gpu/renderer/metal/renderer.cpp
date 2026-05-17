@@ -24,23 +24,11 @@ using namespace metal;
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
-SINGLETON_DEFINE_GET_INSTANCE(Renderer, MetalRenderer)
-
-Renderer::Renderer() {
-    SINGLETON_SET_INSTANCE(Renderer, MetalRenderer);
-
-    // Device
-    device = MTL::CreateSystemDefaultDevice();
-    command_queue = device->newCommandQueue();
-
-    /*
-    // Library
-    MTL::Library* library =
-        CreateLibraryFromSource(device, utility_shader_source);
-
-    // Functions
-    */
-
+Renderer::Renderer()
+    : device{MTL::CreateSystemDefaultDevice()},
+      command_queue{device->newCommandQueue()},
+      depth_stencil_state_cache(device), blit_pipeline_cache(device),
+      clear_color_pipeline_cache(device), clear_depth_pipeline_cache(device) {
     // Resources
 
     // Depth stencil states
@@ -65,12 +53,6 @@ Renderer::Renderer() {
     linear_sampler = device->newSamplerState(sampler_state_descriptor);
     sampler_state_descriptor->release();
 
-    // Caches
-    depth_stencil_state_cache = new DepthStencilStateCache();
-    blit_pipeline_cache = new BlitPipelineCache();
-    clear_color_pipeline_cache = new ClearColorPipelineCache();
-    clear_depth_pipeline_cache = new ClearDepthPipelineCache();
-
     // Info
     info = {
         .supports_quads_primitive = false,
@@ -78,20 +60,15 @@ Renderer::Renderer() {
 }
 
 Renderer::~Renderer() {
-    delete depth_stencil_state_cache;
-    delete blit_pipeline_cache;
-    delete clear_color_pipeline_cache;
-    delete clear_depth_pipeline_cache;
-
     linear_sampler->release();
     nearest_sampler->release();
 
     depth_stencil_state_always_and_write->release();
 
+    // TODO: destroy caches here?
+
     command_queue->release();
     device->release();
-
-    SINGLETON_UNSET_INSTANCE();
 }
 
 void Renderer::SetSurface(void* surface) {
@@ -109,10 +86,12 @@ ISurfaceCompositor* Renderer::AcquireNextSurface() {
     if (!ca_drawable)
         return nullptr;
 
-    return new SurfaceCompositor(ca_drawable);
+    return new SurfaceCompositor(*this, ca_drawable);
 }
 
-BufferBase* Renderer::CreateBuffer(u64 size) { return new Buffer(size); }
+BufferBase* Renderer::CreateBuffer(u64 size) {
+    return new Buffer(device, size);
+}
 
 BufferBase* Renderer::AllocateTemporaryBuffer(const u64 size) {
     // TODO: use a buffer allocator instead
@@ -128,11 +107,68 @@ void Renderer::FreeTemporaryBuffer(BufferBase* buffer) {
 }
 
 ITexture* Renderer::CreateTexture(const TextureDescriptor& descriptor) {
-    return new Texture(descriptor);
+    return new Texture(device, descriptor);
+}
+
+void Renderer::BlitTexture(ICommandBuffer* command_buffer, ITextureView* src,
+                           float3 src_origin, usize3 src_size, u32 src_level,
+                           u32 src_layer, ITextureView* dst, float3 dst_origin,
+                           usize3 dst_size, u32 dst_level, u32 dst_layer,
+                           u32 level_count, u32 layer_count) {
+    // TODO: what about 3D textures?
+    (void)src_level;
+    (void)src_layer;
+    (void)dst_level;
+    (void)level_count;
+    (void)layer_count;
+
+    const auto command_buffer_impl =
+        static_cast<CommandBuffer*>(command_buffer);
+    const auto src_impl = static_cast<TextureView*>(src);
+    const auto dst_impl = static_cast<TextureView*>(dst);
+
+    // Render pass
+    NS_STACK_SCOPED auto render_pass_descriptor =
+        MTL::RenderPassDescriptor::alloc()->init();
+    auto color_attachment =
+        render_pass_descriptor->colorAttachments()->object(0);
+    color_attachment->setTexture(dst_impl->GetTexture());
+    color_attachment->setLoadAction(
+        MTL::LoadActionLoad); // TODO: use don't care if blitting to the whole
+                              // texture
+    color_attachment->setStoreAction(MTL::StoreActionStore);
+
+    auto encoder =
+        command_buffer_impl->CreateRenderCommandEncoder(render_pass_descriptor);
+
+    // Draw
+    encoder->setRenderPipelineState(blit_pipeline_cache.Find(
+        {src_impl->GetTexture()->pixelFormat(), false}));
+    encoder->setViewport(MTL::Viewport(f64(dst_origin.x()), f64(dst_origin.y()),
+                                       f64(dst_size.x()), f64(dst_size.y()),
+                                       0.0, 1.0));
+    encoder->setVertexBytes(&dst_layer, sizeof(dst_layer), 0);
+    BlitParams params = {
+        .src_offset = {static_cast<f32>(src_origin.x()) /
+                           static_cast<f32>(src_size.x()),
+                       static_cast<f32>(src_origin.y()) /
+                           static_cast<f32>(src_size.y())},
+        .src_scale =
+            float2(src_size) /
+            float2({static_cast<f32>(src_impl->GetTexture()->width()),
+                    static_cast<f32>(src_impl->GetTexture()->height())}),
+    };
+    encoder->setFragmentBytes(&params, sizeof(params), 0);
+    encoder->setFragmentTexture(src_impl->GetTexture(), NS::UInteger(0));
+    encoder->setFragmentSamplerState(
+        linear_sampler, NS::UInteger(0)); // TODO: use the correct sampler
+
+    encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0),
+                            NS::UInteger(3));
 }
 
 SamplerBase* Renderer::CreateSampler(const SamplerDescriptor& descriptor) {
-    return new Sampler(descriptor);
+    return new Sampler(device, descriptor);
 }
 
 ICommandBuffer* Renderer::CreateCommandBuffer() {
@@ -170,10 +206,9 @@ void Renderer::ClearColor(ICommandBuffer* command_buffer, u32 render_target_id,
 
     auto encoder = GetRenderCommandEncoder(command_buffer_impl);
 
-    command_buffer_impl->SetRenderPipelineState(
-        clear_color_pipeline_cache->Find(
-            {to_mtl_pixel_format(texture->GetDescriptor().format),
-             render_target_id, mask}));
+    command_buffer_impl->SetRenderPipelineState(clear_color_pipeline_cache.Find(
+        {to_mtl_pixel_format(texture->GetDescriptor().format), render_target_id,
+         mask}));
     // TODO: set viewport and scissor
     encoder->setVertexBytes(&render_target_id, sizeof(render_target_id), 0);
     encoder->setFragmentBytes(&color, sizeof(color), 0);
@@ -204,9 +239,8 @@ void Renderer::ClearDepth(ICommandBuffer* command_buffer, u32 layer,
 
     auto encoder = GetRenderCommandEncoder(command_buffer_impl);
 
-    command_buffer_impl->SetRenderPipelineState(
-        clear_depth_pipeline_cache->Find(
-            to_mtl_pixel_format(texture->GetDescriptor().format)));
+    command_buffer_impl->SetRenderPipelineState(clear_depth_pipeline_cache.Find(
+        to_mtl_pixel_format(texture->GetDescriptor().format)));
     command_buffer_impl->SetDepthStencilState(
         depth_stencil_state_always_and_write);
     // TODO: set viewport and scissor
@@ -226,24 +260,36 @@ void Renderer::ClearStencil(ICommandBuffer* command_buffer, u32 layer,
         MetalRenderer, "layer: {}, value: {:#x}", layer, value));
 }
 
+ShaderBase* Renderer::CreateShader(const ShaderDescriptor& descriptor) {
+    return new Shader(device, descriptor);
+}
+
+PipelineBase* Renderer::CreatePipeline(const PipelineDescriptor& descriptor) {
+    return new Pipeline(device, descriptor);
+}
+
+void Renderer::BindPipeline(const PipelineBase* pipeline) {
+    state.pipeline = static_cast<const Pipeline*>(pipeline);
+}
+
+void Renderer::SetDepthTestEnabled(bool enabled) {
+    state.depth_test_enabled = enabled;
+}
+
+void Renderer::SetDepthWriteEnabled(bool enabled) {
+    state.depth_write_enabled = enabled;
+}
+
+void Renderer::SetDepthCompareOp(engines::CompareOp op) {
+    state.depth_compare_op = op;
+}
+
 void Renderer::SetViewport(u32 index, const Viewport& viewport) {
     state.viewports[index] = viewport;
 }
 
 void Renderer::SetScissor(u32 index, const Scissor& scissor) {
     state.scissors[index] = scissor;
-}
-
-ShaderBase* Renderer::CreateShader(const ShaderDescriptor& descriptor) {
-    return new Shader(descriptor);
-}
-
-PipelineBase* Renderer::CreatePipeline(const PipelineDescriptor& descriptor) {
-    return new Pipeline(descriptor);
-}
-
-void Renderer::BindPipeline(const PipelineBase* pipeline) {
-    state.pipeline = static_cast<const Pipeline*>(pipeline);
 }
 
 void Renderer::BindVertexBuffer(const BufferView& buffer, u32 index) {
@@ -353,13 +399,13 @@ void Renderer::SetRenderPipelineState(CommandBuffer* command_buffer) {
 
 void Renderer::SetDepthStencilState(CommandBuffer* command_buffer) {
     DepthStencilStateDescriptor descriptor{
-        .depth_test_enabled = static_cast<bool>(REGS_3D.depth_test_enabled),
-        .depth_write_enabled = static_cast<bool>(REGS_3D.depth_write_enabled),
-        .depth_compare_op = REGS_3D.depth_compare_op,
+        .depth_test_enabled = state.depth_test_enabled,
+        .depth_write_enabled = state.depth_write_enabled,
+        .depth_compare_op = state.depth_compare_op,
     };
 
     command_buffer->SetDepthStencilState(
-        depth_stencil_state_cache->Find(descriptor));
+        depth_stencil_state_cache.Find(descriptor));
 }
 
 void Renderer::SetVertexBuffer(CommandBuffer* command_buffer, u32 index) {
@@ -401,50 +447,6 @@ void Renderer::SetTexture(CommandBuffer* command_buffer, ShaderType shader_type,
     if (texture.sampler)
         command_buffer->SetSampler(texture.sampler->GetSampler(), shader_type,
                                    index);
-}
-
-// TODO: what about 3D textures?
-void Renderer::BlitTexture(CommandBuffer* command_buffer, MTL::Texture* src,
-                           const float3 src_origin, const usize3 src_size,
-                           MTL::Texture* dst, const u32 dst_layer,
-                           const float3 dst_origin, const usize3 dst_size) {
-    // Render pass
-    auto render_pass_descriptor = MTL::RenderPassDescriptor::alloc()->init();
-    auto color_attachment =
-        render_pass_descriptor->colorAttachments()->object(0);
-    color_attachment->setTexture(dst);
-    color_attachment->setLoadAction(
-        MTL::LoadActionLoad); // TODO: use don't care if blitting to the whole
-                              // texture
-    color_attachment->setStoreAction(MTL::StoreActionStore);
-
-    auto encoder =
-        command_buffer->CreateRenderCommandEncoder(render_pass_descriptor);
-    render_pass_descriptor->release();
-
-    // Draw
-    encoder->setRenderPipelineState(
-        blit_pipeline_cache->Find({src->pixelFormat(), false}));
-    encoder->setViewport(MTL::Viewport(f64(dst_origin.x()), f64(dst_origin.y()),
-                                       f64(dst_size.x()), f64(dst_size.y()),
-                                       0.0, 1.0));
-    encoder->setVertexBytes(&dst_layer, sizeof(dst_layer), 0);
-    // TODO: correct?
-    float2 scale =
-        (float2(src_size) / float2({static_cast<f32>(src->width()),
-                                    static_cast<f32>(src->height())}));
-    BlitParams params = {
-        .src_offset = {f32(src_origin.x()) / f32(src_size.x()),
-                       f32(src_origin.y()) / f32(src_size.y())},
-        .src_scale = scale,
-    };
-    encoder->setFragmentBytes(&params, sizeof(params), 0);
-    encoder->setFragmentTexture(src, NS::UInteger(0));
-    encoder->setFragmentSamplerState(
-        linear_sampler, NS::UInteger(0)); // TODO: use the correct sampler
-
-    encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0),
-                            NS::UInteger(3));
 }
 
 void Renderer::BeginCapture() {
@@ -517,6 +519,7 @@ void Renderer::BindDrawState(CommandBuffer* command_buffer) {
     SetRenderPipelineState(command_buffer);
     SetDepthStencilState(command_buffer);
 
+    // TODO
     /*
     if (REGS_3D.cull_face_enabled) {
         SetCullMode(ToMtlCullMode(REGS_3D.cull_face_mode));

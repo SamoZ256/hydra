@@ -7,8 +7,6 @@
 #include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/mmu.hpp"
 #include "core/hw/wall_clock.hpp"
-
-#define CPU (*static_cast<Cpu*>(&CPU_INSTANCE))
 #define MMU (*static_cast<Mmu*>(mmu))
 
 namespace hydra::hw::tegra_x1::cpu::hypervisor {
@@ -98,9 +96,10 @@ ENABLE_ENUM_FORMATTING(
 
 namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
-Thread::Thread(IMmu* mmu, const ThreadCallbacks& callbacks, IMemory* tls_mem,
+Thread::Thread(WallClock& wall_clock, Cpu& cpu_, IMmu* mmu,
+               const ThreadCallbacks& callbacks, IMemory* tls_mem,
                vaddr_t tls_mem_base)
-    : IThread(mmu, callbacks, tls_mem) {
+    : IThread(wall_clock, mmu, callbacks, tls_mem), cpu{cpu_} {
     // Create
     HV_ASSERT_SUCCESS(hv_vcpu_create(&vcpu, &exit, NULL));
 
@@ -118,7 +117,7 @@ Thread::Thread(IMmu* mmu, const ThreadCallbacks& callbacks, IMemory* tls_mem,
     SetSysReg(HV_SYS_REG_VBAR_EL1, KERNEL_REGION_BASE);
 
     SetSysReg(HV_SYS_REG_TTBR0_EL1, MMU.GetUserPageTable().GetBase());
-    SetSysReg(HV_SYS_REG_TTBR1_EL1, CPU.GetKernelPageTable().GetBase());
+    SetSysReg(HV_SYS_REG_TTBR1_EL1, cpu.GetKernelPageTable().GetBase());
 
     // Setup TLS pointer
     SetSysReg(HV_SYS_REG_TPIDRRO_EL0, tls_mem_base);
@@ -150,7 +149,7 @@ void Thread::Run() {
         // Run
         DeserializeState();
         HV_ASSERT_SUCCESS(hv_vcpu_run(vcpu));
-        exception = (GetReg(HV_REG_PC) >= CPU.GetKernelPageTable().GetBase());
+        exception = (GetReg(HV_REG_PC) >= cpu.GetKernelPageTable().GetBase());
         SerializeState();
 
         // Handle exit
@@ -302,7 +301,7 @@ void Thread::SerializeState() {
     state.lr = GetReg(HV_REG_LR);
     state.sp = GetSysReg(HV_SYS_REG_SP_EL0);
     if (exception)
-        state.pc = GetSysReg(HV_SYS_REG_ELR_EL1) - 4;
+        state.pc = GetSysReg(HV_SYS_REG_ELR_EL1);
     else
         state.pc = GetReg(HV_REG_PC);
     state.pstate = static_cast<u32>(GetReg(HV_REG_CPSR));
@@ -319,7 +318,7 @@ void Thread::DeserializeState() {
     SetReg(HV_REG_LR, state.lr);
     SetSysReg(HV_SYS_REG_SP_EL0, state.sp);
     if (exception)
-        SetSysReg(HV_SYS_REG_ELR_EL1, state.pc + 4);
+        SetSysReg(HV_SYS_REG_ELR_EL1, state.pc);
     else
         SetReg(HV_REG_PC, state.pc);
     SetReg(HV_REG_CPSR, state.pstate);
@@ -340,7 +339,7 @@ void Thread::InstructionTrap(u32 esr) {
             state.r[rt] = GUEST_CNTFRQ;
             break;
         case 0b11'001'011'1110'00000'0000: // CNTPCT_EL0
-            state.r[rt] = WallClock::GetInstance().GetCntpct();
+            state.r[rt] = wall_clock.GetCntpct();
             break;
         default:
             LOG_FATAL(Hypervisor,

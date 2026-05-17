@@ -107,7 +107,7 @@ void RegisterServiceToPort(services::Server* server,
     service_manager.RegisterPort(port_name, client_port);
 }
 
-uint2 round_up_to_nearest_standard_resolution(uint2 surface_resolution) {
+uint2 RoundUpToNearestStandardResolution(uint2 surface_resolution) {
     // TODO: constexpr
     static uint2 standard_resolutions[] = {
         {1280, 720}, {1920, 1080}, {2560, 1440}, {3840, 2160}, {7680, 4320}};
@@ -123,26 +123,25 @@ uint2 round_up_to_nearest_standard_resolution(uint2 surface_resolution) {
 
 } // namespace
 
-SINGLETON_DEFINE_GET_INSTANCE(OS, Horizon)
-
-OS::OS(audio::ICore& audio_core_, ui::IHandler& ui_handler_)
-    : audio_core{audio_core_}, ui_handler{ui_handler_} {
-    SINGLETON_SET_INSTANCE(OS, Horizon);
-
+OS::OS(System& system_)
+    : system{system_}, kernel(system), nvservices_server(system),
+      others_server(system), display_driver(system),
+      hid_resource_manager(system), shared_font_manager(system),
+      time_manager(system), ir_sensor_manager(system) {
     // Firmware
-    try_install_firmware_to_filesystem(kernel.GetFilesystem());
+    try_install_firmware_to_filesystem(filesystem);
 
     // Sysmodules
     const auto& sysmodules_path = CONFIG_INSTANCE.GetSysmodulesPath();
     if (std::filesystem::exists(sysmodules_path)) {
-        auto res = KERNEL_INSTANCE.GetFilesystem().AddEntry(
-            FS_SYSMODULES_PATH, sysmodules_path, true);
+        auto res =
+            filesystem.AddEntry(FS_SYSMODULES_PATH, sysmodules_path, true);
         ASSERT(res == horizon::filesystem::FsResult::Success, Other,
                "Failed to add sysmodules", res);
     }
 
     // System avatars
-    user_manager.LoadSystemAvatars(kernel.GetFilesystem());
+    user_manager.LoadSystemAvatars(filesystem);
 
     // Shared font
     shared_font_manager.LoadFonts();
@@ -334,13 +333,11 @@ OS::OS(audio::ICore& audio_core_, ui::IHandler& ui_handler_)
             // TODO: get title ID from toolbox.json
             auto process =
                 kernel.GetProcessManager().CreateProcess("Sysmodule");
-            loader.LoadProcess(process);
+            loader.LoadProcess(system, process);
             process->Start();
         }
     }
 }
-
-OS::~OS() { SINGLETON_UNSET_INSTANCE(); }
 
 void OS::NotifyOperationModeChanged() {
     // Disconnect and connect npads
@@ -366,7 +363,7 @@ uint2 OS::GetDisplayResolution() const {
     } else {
         switch (CONFIG_INSTANCE.GetDisplayResolution()) {
         case Resolution::Auto:
-            return round_up_to_nearest_standard_resolution(surface_resolution);
+            return RoundUpToNearestStandardResolution(surface_resolution);
         case Resolution::_720p:
             return {1280, 720};
         case Resolution::_1080p:

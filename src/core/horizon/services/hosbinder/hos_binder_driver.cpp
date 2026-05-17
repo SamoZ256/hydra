@@ -1,9 +1,9 @@
 #include "core/horizon/services/hosbinder/hos_binder_driver.hpp"
 
 #include "core/horizon/kernel/process.hpp"
-#include "core/horizon/os.hpp"
 #include "core/horizon/services/hosbinder/parcel.hpp"
 #include "core/hw/tegra_x1/gpu/const.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::services::hosbinder {
 
@@ -73,19 +73,19 @@ DEFINE_SERVICE_COMMAND_TABLE(IHOSBinderDriver, 0, TransactParcel, 1,
                              TransactParcelAuto)
 
 result_t IHOSBinderDriver::TransactParcel(
-    i32 binder_id, TransactCode code, u32 flags,
+    System* system, i32 binder_id, TransactCode code, u32 flags,
     InBuffer<BufferAttr::MapAlias> in_parcel_buffer,
     OutBuffer<BufferAttr::MapAlias> out_parcel_buffer) {
     LOG_DEBUG(Services, "Code: {}", code);
 
-    TransactParcelImpl(binder_id, code, flags, in_parcel_buffer.stream,
+    TransactParcelImpl(*system, binder_id, code, flags, in_parcel_buffer.stream,
                        out_parcel_buffer.stream);
     return RESULT_SUCCESS;
 }
 
-result_t IHOSBinderDriver::AdjustRefcount(i32 binder_id, i32 add_value,
-                                          BinderType type) {
-    auto& binder = OS::GetInstance().GetDisplayDriver().GetBinder(
+result_t IHOSBinderDriver::AdjustRefcount(System* system, i32 binder_id,
+                                          i32 add_value, BinderType type) {
+    auto& binder = system->GetOS().GetDisplayDriver().GetBinder(
         static_cast<u32>(binder_id));
     switch (type) {
     case BinderType::Weak:
@@ -103,12 +103,12 @@ result_t IHOSBinderDriver::AdjustRefcount(i32 binder_id, i32 add_value,
 
 // TODO: code
 result_t
-IHOSBinderDriver::GetNativeHandle(kernel::Process* process, i32 binder_id,
-                                  u32 code,
+IHOSBinderDriver::GetNativeHandle(System* system, kernel::Process* process,
+                                  i32 binder_id, u32 code,
                                   OutHandle<HandleAttr::Copy> out_handle) {
     (void)code;
 
-    out_handle = process->AddHandle(OS::GetInstance()
+    out_handle = process->AddHandle(system->GetOS()
                                         .GetDisplayDriver()
                                         .GetBinder(static_cast<u32>(binder_id))
                                         .GetEvent());
@@ -116,19 +116,19 @@ IHOSBinderDriver::GetNativeHandle(kernel::Process* process, i32 binder_id,
 }
 
 result_t IHOSBinderDriver::TransactParcelAuto(
-    i32 binder_id, TransactCode code, u32 flags,
+    System* system, i32 binder_id, TransactCode code, u32 flags,
     InBuffer<BufferAttr::AutoSelect> in_parcel_buffer,
     OutBuffer<BufferAttr::AutoSelect> out_parcel_buffer) {
     LOG_DEBUG(Services, "Code: {}", code);
 
-    TransactParcelImpl(binder_id, code, flags, in_parcel_buffer.stream,
+    TransactParcelImpl(*system, binder_id, code, flags, in_parcel_buffer.stream,
                        out_parcel_buffer.stream);
     return RESULT_SUCCESS;
 }
 
 // TODO: flags
-void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
-                                          u32 flags,
+void IHOSBinderDriver::TransactParcelImpl(System& system, i32 binder_id,
+                                          TransactCode code, u32 flags,
                                           io::MemoryStream* in_stream,
                                           io::MemoryStream* out_stream) {
     (void)flags;
@@ -137,7 +137,7 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
     ParcelWriter parcel_writer(out_stream);
 
     // Binder
-    auto& binder = OS::GetInstance().GetDisplayDriver().GetBinder(
+    auto& binder = system.GetOS().GetDisplayDriver().GetBinder(
         static_cast<u32>(binder_id));
 
     // Interface token
@@ -181,10 +181,10 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
         const auto& input =
             *parcel_reader.ReadFlattenedObject<display::BqBufferInput>();
 
-        binder.QueueBuffer(slot, input);
+        binder.QueueBuffer(system, slot, input);
 
         // Buffer output
-        const auto res = OS_INSTANCE.GetDisplayResolution();
+        const auto res = system.GetOS().GetDisplayResolution();
         parcel_writer.Write<display::BqBufferOutput>({
             .width = res.x(),
             .height = res.y(),
@@ -201,10 +201,10 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
         u32 value = 0;
         switch (what) {
         case NativeWindowAttribute::Width:
-            value = OS_INSTANCE.GetDisplayResolution().x();
+            value = system.GetOS().GetDisplayResolution().x();
             break;
         case NativeWindowAttribute::Height:
-            value = OS_INSTANCE.GetDisplayResolution().y();
+            value = system.GetOS().GetDisplayResolution().y();
             break;
         case NativeWindowAttribute::Format:
             value = static_cast<u32>(PixelFormat::RGBA8888); // RGBA8888
@@ -219,7 +219,7 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
         break;
     }
     case TransactCode::Connect: {
-        const auto res = OS_INSTANCE.GetDisplayResolution();
+        const auto res = system.GetOS().GetDisplayResolution();
         parcel_writer.Write<display::BqBufferOutput>({
             .width = res.x(),
             .height = res.y(),
