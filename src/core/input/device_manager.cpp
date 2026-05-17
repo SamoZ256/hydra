@@ -14,7 +14,7 @@ IDeviceList* CreateDeviceList() {
     const auto input_backend = CONFIG_INSTANCE.GetInputBackend();
     switch (input_backend) {
     case InputBackend::Sdl:
-#if HYDRA_SDL_ENABLED
+#ifdef HYDRA_SDL_ENABLED
         return new sdl::DeviceList();
 #else
         LOG_FATAL(Input, "SDL not supported");

@@ -382,6 +382,10 @@ func hydraConfigGetPatchPaths() -> HydraStringList {
     HydraStringList(handle: hydra_config_get_patch_paths())
 }
 
+func hydraConfigGetInputBackend() -> UnsafeMutablePointer<UInt32> {
+    hydra_config_get_input_backend()
+}
+
 func hydraConfigGetInputProfiles() -> HydraStringList {
     HydraStringList(handle: hydra_config_get_input_profiles())
 }

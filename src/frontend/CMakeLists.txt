@@ -58,6 +58,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/settings/LoaderPluginView.swift
         swiftui/settings/LoaderPluginListView.swift
         swiftui/settings/GeneralSettingsView.swift
+        swiftui/settings/InputSettingsView.swift
         swiftui/settings/CpuSettingsView.swift
         swiftui/settings/GraphicsSettingsView.swift
         swiftui/settings/AudioSettingsView.swift

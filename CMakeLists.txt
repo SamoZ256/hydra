@@ -163,9 +163,7 @@ if (CUBEB_ENABLED)
 endif ()
 
 if (SDL_ENABLED)
-    add_compile_definitions(HYDRA_SDL_ENABLED=1)
-else ()
-    add_compile_definitions(HYDRA_SDL_ENABLED=0)
+    add_compile_definitions(HYDRA_SDL_ENABLED)
 endif ()
 
 if (APPLE)

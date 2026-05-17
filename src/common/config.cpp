@@ -2,8 +2,8 @@
 
 #include "common/toml_helper.hpp"
 
-TOML11_DEFINE_CONVERSION_ENUM(hydra::InputBackend, Sdl, "SDL",
-                              AppleGameController, "Apple GameController")
+TOML11_DEFINE_CONVERSION_ENUM(hydra::InputBackend, AppleGameController,
+                              "Apple GameController", Sdl, "SDL")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::CpuBackend, AppleHypervisor,
                               "Apple Hypervisor", Dynarmic, "dynarmic")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::GpuRenderer, Metal, "Metal")

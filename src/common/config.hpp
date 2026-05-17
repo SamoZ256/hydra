@@ -13,8 +13,8 @@ namespace hydra {
 enum class InputBackend : u32 {
     Invalid = 0,
 
-    Sdl,
     AppleGameController,
+    Sdl,
 };
 
 enum class CpuBackend : u32 {
@@ -206,9 +206,9 @@ class Config {
 
 } // namespace hydra
 
-ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, InputBackend, input_backend, Sdl,
-                                   "SDL", AppleGameController,
-                                   "Apple GameController")
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, InputBackend, input_backend,
+                                   AppleGameController, "Apple GameController",
+                                   Sdl, "SDL")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, CpuBackend, cpu_backend,
                                    AppleHypervisor, "Apple Hypervisor",
                                    Dynarmic, "dynarmic")

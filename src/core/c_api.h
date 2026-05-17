@@ -32,6 +32,13 @@ typedef struct {
 
 // Enums
 typedef enum : uint32_t {
+    HYDRA_INPUT_BACKEND_INVALID = 0,
+
+    HYDRA_INPUT_BACKEND_APPLE_GAME_CONTROLLER,
+    HYDRA_INPUT_BACKEND_SDL,
+} HydraInputBackend;
+
+typedef enum : uint32_t {
     HYDRA_CPU_BACKEND_INVALID = 0,
 
     HYDRA_CPU_BACKEND_APPLE_HYPERVISOR,
@@ -174,6 +181,7 @@ hydra_string hydra_config_get_logs_path();
 void* hydra_config_get_game_paths();
 void* hydra_config_get_loader_plugins();
 void* hydra_config_get_patch_paths();
+uint32_t* hydra_config_get_input_backend();
 void* hydra_config_get_input_profiles();
 uint32_t* hydra_config_get_cpu_backend();
 uint32_t* hydra_config_get_gpu_renderer();

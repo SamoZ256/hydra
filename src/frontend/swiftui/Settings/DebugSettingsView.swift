@@ -1,9 +1,9 @@
 import SwiftUI
 
 #if HYDRA_DEBUG
-let debugLoggingEnabled = true
+    let debugLoggingEnabled = true
 #else
-let debugLoggingEnabled = false
+    let debugLoggingEnabled = false
 #endif
 
 struct DebugSettingsView: View {

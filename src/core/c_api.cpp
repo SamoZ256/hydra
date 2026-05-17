@@ -200,6 +200,11 @@ HYDRA_EXPORT void* hydra_config_get_patch_paths() {
     return &hydra::CONFIG_INSTANCE.GetPatchPaths();
 }
 
+HYDRA_EXPORT uint32_t* hydra_config_get_input_backend() {
+    return reinterpret_cast<uint32_t*>(
+        &hydra::CONFIG_INSTANCE.GetInputBackend());
+}
+
 HYDRA_EXPORT void* hydra_config_get_input_profiles() {
     return &hydra::CONFIG_INSTANCE.GetInputProfiles();
 }
