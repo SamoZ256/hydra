@@ -158,7 +158,7 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
                 crnt_process->GetHandle<SynchronizationObject>(handle_ids[i]);
 
         state.r[0] = WaitSynchronization(
-            crnt_thread, std::span(sync_objs, static_cast<size_t>(num_handles)),
+            crnt_thread, std::span(sync_objs, static_cast<usize>(num_handles)),
             std::bit_cast<i64>(state.r[3]), tmp_u32);
         state.r[1] = tmp_u32;
         break;
@@ -297,7 +297,7 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
                 crnt_process->GetHandle<SynchronizationObject>(handle_ids[i]);
 
         state.r[0] = ReplyAndReceive(
-            crnt_thread, std::span(sync_objs, static_cast<size_t>(num_handles)),
+            crnt_thread, std::span(sync_objs, static_cast<usize>(num_handles)),
             crnt_process->GetHandle<hipc::ServerSession>(
                 static_cast<handle_id_t>(state.r[3])),
             std::bit_cast<i64>(state.r[4]), tmp_u32);
@@ -1266,7 +1266,7 @@ result_t Kernel::ReplyAndReceive(IThread* crnt_thread,
     if (res != RESULT_SUCCESS)
         return res;
 
-    auto sync_obj = sync_objs[static_cast<size_t>(out_signalled_index)];
+    auto sync_obj = sync_objs[static_cast<usize>(out_signalled_index)];
     if (auto server_session = dynamic_cast<hipc::ServerSession*>(sync_obj)) {
         if (server_session->IsClientOpen()) {
             // Receive

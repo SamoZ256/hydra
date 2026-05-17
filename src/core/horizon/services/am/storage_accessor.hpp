@@ -6,14 +6,14 @@ namespace hydra::horizon::services::am {
 
 class IStorageAccessor : public IService {
   public:
-    IStorageAccessor(const sized_ptr data_) : data{data_} {}
+    IStorageAccessor(std::span<u8> data_) : data{data_} {}
 
   protected:
     result_t RequestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
-    const sized_ptr data;
+    std::span<u8> data;
 
     // Commands
     result_t GetSize(i64* out_size);

@@ -81,10 +81,10 @@ IAudioOut::AppendAudioOutBufferImpl(kernel::Process* process,
                                     io::MemoryStream* in_buffer_stream) {
     const auto buffer = in_buffer_stream->Read<Buffer>();
     // TODO: correct?
-    stream->EnqueueBuffer(
-        buffer_client_ptr,
-        sized_ptr(process->GetMmu()->UnmapAddr(buffer.sample_buffer_ptr),
-                  buffer.sample_buffer_data_size));
+    const auto ptr = reinterpret_cast<u8*>(
+        process->GetMmu()->UnmapAddr(buffer.sample_buffer_ptr));
+    stream->EnqueueBuffer(buffer_client_ptr,
+                          std::span{ptr, buffer.sample_buffer_data_size});
 
     return RESULT_SUCCESS;
 }

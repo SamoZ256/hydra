@@ -10,26 +10,6 @@
 
 namespace hydra {
 
-struct sized_ptr {
-  public:
-    sized_ptr() : ptr{0x0}, size{0} {}
-    sized_ptr(uptr ptr_, usize size_) : ptr{ptr_}, size{size_} {}
-    sized_ptr(void* ptr_, usize size_)
-        : sized_ptr(reinterpret_cast<uptr>(ptr_), size_) {}
-    template <typename T>
-    sized_ptr(T* ptr_) : sized_ptr(reinterpret_cast<uptr>(ptr_), sizeof(T)) {}
-
-    u8* GetPtrU8() const { return reinterpret_cast<u8*>(ptr); }
-
-  private:
-    uptr ptr;
-    usize size;
-
-  public:
-    GETTER(ptr, GetPtr);
-    GETTER(size, GetSize);
-};
-
 template <typename Underlying, typename T, u64 b, u64 count>
 class BitField {
   public:

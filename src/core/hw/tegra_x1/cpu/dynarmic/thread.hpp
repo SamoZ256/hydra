@@ -69,9 +69,8 @@ class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
     bool MemoryWriteExclusive128(u64 addr, Dynarmic::A64::Vector value,
                                  Dynarmic::A64::Vector expected) override;
 
-    void
-    InterpreterFallback([[maybe_unused]] u64 pc,
-                        [[maybe_unused]] size_t num_instructions) override {
+    void InterpreterFallback([[maybe_unused]] u64 pc,
+                             [[maybe_unused]] usize num_instructions) override {
         LOG_FATAL(Dynarmic, "Interpreter");
     }
 

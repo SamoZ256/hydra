@@ -109,7 +109,7 @@ inline std::string to_upper(const std::string_view str) {
 }
 
 /*
-inline constexpr u64 str_to_u64(const char* str, size_t idx = 0,
+inline constexpr u64 str_to_u64(const char* str, usize idx = 0,
                                 u64 result = 0) {
     return (str[idx] == '\0' || idx >= 8)
                ? result
@@ -120,7 +120,7 @@ inline constexpr u64 str_to_u64(const char* str, size_t idx = 0,
 
 inline std::string u64_to_str(u64 value) {
     char* str = reinterpret_cast<char*>(&value);
-    return std::string(str, std::min(strlen(str), size_t(8)));
+    return std::string(str, std::min(strlen(str), static_cast<usize>(8)));
 }
 
 inline std::string demangle(const char* mangled_name) {

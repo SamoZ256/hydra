@@ -5,7 +5,7 @@ namespace hydra::horizon::services::am {
 DEFINE_SERVICE_COMMAND_TABLE(IStorageAccessor, 0, GetSize, 10, Write, 11, Read)
 
 result_t IStorageAccessor::GetSize(i64* out_size) {
-    *out_size = static_cast<i64>(data.GetSize());
+    *out_size = static_cast<i64>(data.size());
     return RESULT_SUCCESS;
 }
 
@@ -14,10 +14,10 @@ result_t IStorageAccessor::Write(i64 offset,
     ASSERT_DEBUG(offset >= 0, Services, "Offset must be >= 0");
 
     // TODO: correct?
-    const u64 size = data.GetSize() - static_cast<u64>(offset);
+    const u64 size = data.size() - static_cast<u64>(offset);
 
     const auto span = buffer.stream->ReadSpan<u8>(size);
-    std::copy(span.begin(), span.end(), data.GetPtrU8() + offset);
+    std::copy(span.begin(), span.end(), data.data() + offset);
     return RESULT_SUCCESS;
 }
 
@@ -26,10 +26,10 @@ result_t IStorageAccessor::Read(i64 offset,
     ASSERT_DEBUG(offset >= 0, Services, "Offset must be >= 0");
 
     // TODO: correct?
-    const u64 size = data.GetSize() - static_cast<u64>(offset);
+    const u64 size = data.size() - static_cast<u64>(offset);
 
     out_buffer.stream->WriteSpan(
-        std::span<const u8>(data.GetPtrU8() + offset, size));
+        std::span<const u8>(data.data() + offset, size));
     return RESULT_SUCCESS;
 }
 

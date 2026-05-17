@@ -20,8 +20,11 @@ IApplicationFunctions::PopLaunchParameter(kernel::Process* process,
                                           kernel::LaunchParameterKind kind) {
     LOG_DEBUG(Services, "Kind: {}", kind);
 
-    AddService(
-        *ctx, new IStorage(process->GetAppletState().PopLaunchParameter(kind)));
+    const auto data = process->GetAppletState().PopLaunchParameter(kind);
+    if (data.empty())
+        return MAKE_RESULT(Am, 1); // TODO: result code
+
+    AddService(*ctx, new IStorage(data));
     return RESULT_SUCCESS;
 }
 

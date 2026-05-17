@@ -64,7 +64,7 @@ std::string number_to_hex(T value) {
     const auto ptr = reinterpret_cast<const u8*>(&value);
     std::string hex;
     hex.reserve(sizeof(T) * 2);
-    for (size_t i = 0; i < sizeof(T); ++i)
+    for (usize i = 0; i < sizeof(T); ++i)
         hex += fmt::format("{:02x}", ptr[i]);
 
     return hex;
@@ -73,7 +73,7 @@ std::string number_to_hex(T value) {
 template <typename T>
 T hex_to_number(std::string_view hex) {
     T value = 0;
-    for (size_t i = 0; i < sizeof(T); ++i)
+    for (usize i = 0; i < sizeof(T); ++i)
         value |=
             static_cast<T>(std::stoi(hex.substr(i * 2, 2).data(), nullptr, 16))
             << (i * 8);
@@ -348,7 +348,7 @@ void GdbServer::Poll() {
         const auto bytes_read = recv(client_socket, buffer, sizeof(buffer), 0);
         if (bytes_read > 0) {
             receive_buffer +=
-                std::string_view(buffer, static_cast<size_t>(bytes_read));
+                std::string_view(buffer, static_cast<usize>(bytes_read));
             ProcessPackets();
         } else if (bytes_read == 0) {
             CloseClientSocket();
@@ -358,7 +358,7 @@ void GdbServer::Poll() {
 }
 
 void GdbServer::ProcessPackets() {
-    size_t str_start = 0;
+    usize str_start = 0;
     while (true) {
         const auto start = receive_buffer.find(GDB_START, str_start);
         if (start == std::string::npos)
@@ -442,7 +442,7 @@ void GdbServer::HandleVCont(std::string_view command) {
     horizon::kernel::GuestThread* thread = nullptr;
     bool lock_execution = true; // TODO: what is this?
 
-    size_t pos = 1;
+    usize pos = 1;
     do {
         const auto next_pos = command.find(';', pos);
         const auto entry = command.substr(pos, (next_pos != std::string::npos

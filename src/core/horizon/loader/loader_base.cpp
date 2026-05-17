@@ -64,7 +64,7 @@ uchar4* LoadGIF(filesystem::IFile* file,
     out_height = static_cast<u32>(h);
     out_frame_count = static_cast<u32>(f);
 
-    out_delays.reserve(static_cast<size_t>(out_frame_count));
+    out_delays.reserve(static_cast<usize>(out_frame_count));
     for (u32 i = 0; i < out_frame_count; i++)
         out_delays.push_back(std::chrono::milliseconds(delays_ms[i]));
     free(delays_ms);

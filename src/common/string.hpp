@@ -4,21 +4,21 @@
 
 namespace hydra {
 
-constexpr size_t size_of_string(char value) {
+constexpr usize size_of_string(char value) {
     (void)value;
     return 1;
 }
 
-constexpr size_t size_of_string(std::string_view value) { return value.size(); }
+constexpr usize size_of_string(std::string_view value) { return value.size(); }
 
-constexpr size_t size_of_string(const std::string& value) {
+constexpr usize size_of_string(const std::string& value) {
     return value.size();
 }
 
 template <typename T, typename Delimiter>
 std::vector<T> split(std::string_view s, Delimiter delimiter) {
     std::vector<T> tokens;
-    size_t pos = 0;
+    usize pos = 0;
     while ((pos = s.find(delimiter)) != std::string::npos) {
         std::string_view token = s.substr(0, pos);
         tokens.push_back(T(token));
@@ -34,7 +34,7 @@ inline std::string utf16_to_utf8(const std::u16string& utf16_str) {
     utf8_str.reserve(utf16_str.size() *
                      3); // Reserve space to avoid reallocations
 
-    for (size_t i = 0; i < utf16_str.size(); ++i) {
+    for (usize i = 0; i < utf16_str.size(); ++i) {
         char32_t codepoint;
         char16_t unit = utf16_str[i];
 
@@ -88,7 +88,7 @@ inline std::u16string utf8_to_utf16(const std::string& utf8_str) {
     std::u16string utf16_str;
     utf16_str.reserve(utf8_str.size()); // Reserve space to avoid reallocations
 
-    for (size_t i = 0; i < utf8_str.size();) {
+    for (usize i = 0; i < utf8_str.size();) {
         char32_t codepoint = 0;
         unsigned char byte = static_cast<unsigned char>(utf8_str[i]);
 

@@ -15,7 +15,7 @@ class Stream final : public IStream {
     void Stop() override { state = StreamState::Stopped; }
 
     void EnqueueBuffer(buffer_id_t id,
-                       [[maybe_unused]] sized_ptr buffer) override {
+                       [[maybe_unused]] std::span<const u8> buffer) override {
         buffer_finished_callback(id);
     }
 };

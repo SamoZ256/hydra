@@ -18,7 +18,7 @@ class Stream final : public IStream {
     void Start() override;
     void Stop() override;
 
-    void EnqueueBuffer(buffer_id_t id, sized_ptr buffer) override;
+    void EnqueueBuffer(buffer_id_t id, std::span<const u8> buffer) override;
 
   private:
     Core& core;
@@ -26,7 +26,7 @@ class Stream final : public IStream {
     cubeb_stream* stream;
 
     std::mutex buffer_mutex;
-    std::queue<std::pair<buffer_id_t, sized_ptr>> buffer_queue;
+    std::queue<std::pair<buffer_id_t, std::span<const u8>>> buffer_queue;
     u32 pos_in_buffer;
 
     static long DataCallback(cubeb_stream* stream, void* user_data,

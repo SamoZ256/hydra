@@ -50,7 +50,7 @@ AppletMessage AppletState::ReceiveMessage() {
     return msg;
 }
 
-sized_ptr AppletState::PopLaunchParameter(const LaunchParameterKind kind) {
+std::span<u8> AppletState::PopLaunchParameter(const LaunchParameterKind kind) {
     std::lock_guard lock(mutex);
     switch (kind) {
     case LaunchParameterKind::PreselectedUser: {
@@ -62,11 +62,12 @@ sized_ptr AppletState::PopLaunchParameter(const LaunchParameterKind kind) {
         const uuid_t user_id = user_ids.top();
         user_ids.pop();
 
-        return {new AccountHeader{
-            .magic = 0xc79497ca,
-            .unk_x4 = 1,
-            .user_id = user_id,
-        }};
+        return {reinterpret_cast<u8*>(new AccountHeader{
+                    .magic = 0xc79497ca,
+                    .unk_x4 = 1,
+                    .user_id = user_id,
+                }),
+                sizeof(AccountHeader)};
     }
     default:
         LOG_NOT_IMPLEMENTED(Horizon, "Launch parameter {}", kind);

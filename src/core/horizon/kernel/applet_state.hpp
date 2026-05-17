@@ -35,7 +35,7 @@ class AppletState {
     AppletMessage ReceiveMessage();
     AppletFocusState GetFocusState() { return focus_state; }
     bool IsExitLocked() { return exit_locked; }
-    sized_ptr PopLaunchParameter(const LaunchParameterKind kind);
+    std::span<u8> PopLaunchParameter(const LaunchParameterKind kind);
 
   private:
     Kernel& kernel;

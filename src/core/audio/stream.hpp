@@ -24,7 +24,7 @@ class IStream {
     virtual void Start() = 0;
     virtual void Stop() = 0;
 
-    virtual void EnqueueBuffer(buffer_id_t id, sized_ptr buffer) = 0;
+    virtual void EnqueueBuffer(buffer_id_t id, std::span<const u8> buffer) = 0;
 
     StreamState GetState() const { return state; }
 

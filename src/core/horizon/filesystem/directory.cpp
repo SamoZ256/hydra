@@ -237,7 +237,7 @@ void Directory::BreakPath(std::string_view path,
                           std::vector<std::string_view>& out_path) const {
     // Reserve the maximum possible count
     out_path.reserve(
-        static_cast<size_t>(std::count(path.begin(), path.end(), '/')));
+        static_cast<usize>(std::count(path.begin(), path.end(), '/')));
 
     while (!path.empty()) {
         const auto slash_pos = path.find('/');

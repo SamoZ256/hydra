@@ -220,7 +220,7 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
     }
 }
 
-template <typename Class, typename... Args, size_t... Is>
+template <typename Class, typename... Args, usize... Is>
 NvResult invoke_command_with_args(IoctlContext& context, Class& instance,
                                   NvResult (Class::*func)(Args...),
                                   std::index_sequence<Is...>) {

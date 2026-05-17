@@ -61,7 +61,7 @@ void Stream::Stop() {
     cubeb_stream_stop(stream);
 }
 
-void Stream::EnqueueBuffer(buffer_id_t id, sized_ptr buffer) {
+void Stream::EnqueueBuffer(buffer_id_t id, std::span<const u8> buffer) {
     std::unique_lock lock(buffer_mutex);
     buffer_queue.push({id, buffer});
 }
@@ -77,7 +77,7 @@ long Stream::DataCallback(cubeb_stream* stream, void* user_data,
     std::unique_lock lock(self->buffer_mutex);
 
     // TODO: support different formats as well
-    i16* output = reinterpret_cast<i16*>(output_buffer);
+    auto output = reinterpret_cast<i16*>(output_buffer);
     for (u32 i = 0; i < num_frames * self->channel_count; i++) {
         if (self->buffer_queue.empty()) {
             // Fill the rest with silence
@@ -90,8 +90,8 @@ long Stream::DataCallback(cubeb_stream* stream, void* user_data,
 
         const auto [buffer_id, buffer] = self->buffer_queue.front();
         const auto sample =
-            reinterpret_cast<i16*>(buffer.GetPtr())[self->pos_in_buffer++];
-        if (self->pos_in_buffer * sizeof(i16) >= buffer.GetSize()) {
+            reinterpret_cast<const i16*>(buffer.data())[self->pos_in_buffer++];
+        if (self->pos_in_buffer * sizeof(i16) >= buffer.size()) {
             self->buffer_queue.pop();
             self->pos_in_buffer = 0;
             self->buffer_finished_callback(buffer_id);

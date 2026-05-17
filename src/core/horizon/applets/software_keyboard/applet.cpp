@@ -41,7 +41,7 @@ result_t Applet::Run(System& system) {
         stream.Write<u64>(size);
         stream.WriteSpan(std::span<const char16_t>(output_text));
         stream.Write(u'\0');
-        PushInteractiveOutDataRaw(sized_ptr(ptr, size));
+        PushInteractiveOutDataRaw({ptr, size});
 
         auto reader = PopInteractiveInDataRaw();
         auto res = reader.Read<TextCheckResult>();
@@ -67,7 +67,7 @@ result_t Applet::Run(System& system) {
         stream.Write(result);
         stream.WriteSpan(std::span<const char16_t>(output_text));
         stream.Write(u'\0');
-        PushOutDataRaw(sized_ptr(ptr, size));
+        PushOutDataRaw({ptr, size});
     }
 
     return RESULT_SUCCESS;

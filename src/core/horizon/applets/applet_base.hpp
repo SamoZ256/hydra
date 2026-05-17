@@ -29,7 +29,7 @@ class AppletBase {
     // Data
     io::MemoryStream PopInDataRaw() {
         auto data = controller.PopInData()->GetData();
-        return io::MemoryStream(std::span(data.GetPtrU8(), data.GetSize()));
+        return io::MemoryStream(data);
     }
 
     template <typename T>
@@ -41,15 +41,15 @@ class AppletBase {
         return stream.Read<T>();
     }
 
-    void PushOutDataRaw(const sized_ptr data) {
+    void PushOutDataRaw(std::span<u8> data) {
         controller.PushOutData(new services::am::IStorage(data));
     }
 
     template <typename T>
     void PushOutData(const T& data) {
-        auto ptr = malloc(sizeof(T));
+        auto ptr = reinterpret_cast<u8*>(malloc(sizeof(T)));
         memcpy(ptr, &data, sizeof(T));
-        PushOutDataRaw(sized_ptr(ptr, sizeof(T)));
+        PushOutDataRaw(std::span{ptr, sizeof(T)});
     }
 
     // Interactive data
@@ -57,7 +57,7 @@ class AppletBase {
         // TODO: wait
         // controller.GetInteractiveInDataEvent()->Wait();
         auto data = controller.PopInteractiveInData()->GetData();
-        return io::MemoryStream(std::span(data.GetPtrU8(), data.GetSize()));
+        return io::MemoryStream(data);
     }
 
     template <typename T>
@@ -69,15 +69,15 @@ class AppletBase {
         return stream.Read<T>();
     }
 
-    void PushInteractiveOutDataRaw(const sized_ptr data) {
+    void PushInteractiveOutDataRaw(std::span<u8> data) {
         controller.PushInteractiveOutData(new services::am::IStorage(data));
     }
 
     template <typename T>
     void PushInteractiveOutData(const T& data) {
-        auto ptr = malloc(sizeof(T));
+        auto ptr = reinterpret_cast<u8*>(malloc(sizeof(T)));
         memcpy(ptr, &data, sizeof(T));
-        PushInteractiveOutDataRaw(sized_ptr(ptr, sizeof(T)));
+        PushInteractiveOutDataRaw(std::span{ptr, sizeof(T)});
     }
 
   private:

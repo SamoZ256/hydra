@@ -21,8 +21,8 @@ result_t ILibraryAppletCreator::CreateLibraryApplet(RequestContext* ctx,
 result_t ILibraryAppletCreator::CreateStorage(RequestContext* ctx, i64 size) {
     LOG_DEBUG(Services, "Size: {}", size);
 
-    AddService(*ctx, new IStorage(sized_ptr(malloc(static_cast<size_t>(size)),
-                                            static_cast<usize>(size))));
+    const auto ptr = reinterpret_cast<u8*>(malloc(static_cast<usize>(size)));
+    AddService(*ctx, new IStorage(std::span{ptr, static_cast<usize>(size)}));
     return RESULT_SUCCESS;
 }
 
@@ -32,9 +32,9 @@ result_t ILibraryAppletCreator::CreateTransferMemoryStorage(
     (void)writable;
 
     auto tmem = process->GetHandle<kernel::TransferMemory>(tmem_handle);
-    AddService(*ctx, new IStorage(sized_ptr(
-                         process->GetMmu()->UnmapAddr(tmem->GetAddress()),
-                         static_cast<usize>(size))));
+    const auto ptr =
+        reinterpret_cast<u8*>(process->GetMmu()->UnmapAddr(tmem->GetAddress()));
+    AddService(*ctx, new IStorage(std::span{ptr, static_cast<usize>(size)}));
     return RESULT_SUCCESS;
 }
 

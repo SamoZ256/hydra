@@ -344,7 +344,7 @@ void read_arg(RequestContext& context, Class& instance,
     }
 }
 
-template <typename Class, typename MethodClass, typename... Args, size_t... Is>
+template <typename Class, typename MethodClass, typename... Args, usize... Is>
 result_t invoke_command_with_args(RequestContext& context, Class& instance,
                                   result_t (MethodClass::*func)(Args...),
                                   std::index_sequence<Is...>) {
