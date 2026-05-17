@@ -670,6 +670,17 @@ if (CUBEB_ENABLED)
     )
 endif ()
 
+if (SDL_ENABLED)
+    target_sources(hydra-core PRIVATE
+        input/sdl/keyboard.cpp
+        input/sdl/keyboard.hpp
+        input/sdl/controller.cpp
+        input/sdl/controller.hpp
+        input/sdl/device_list.cpp
+        input/sdl/device_list.hpp
+    )
+endif ()
+
 target_include_directories(hydra-core PRIVATE ${CMAKE_SOURCE_DIR}/externals/libyaz0/include)
 # TODO: only link Apple frameworks if Apple
 target_link_libraries(hydra-core PRIVATE hydra_warnings "-framework Foundation" "-framework Metal" "-framework QuartzCore" "-framework GameController" dynarmic hatch libyaz0 nx2elf hydra-common)
@@ -680,6 +691,12 @@ endif ()
 
 if (CUBEB_ENABLED)
     target_link_libraries(hydra-core PRIVATE cubeb)
+endif ()
+
+if (SDL_ENABLED)
+    find_package(SDL3 CONFIG REQUIRED)
+
+    target_link_libraries(hydra-core PRIVATE SDL3::SDL3)
 endif ()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "iOS")

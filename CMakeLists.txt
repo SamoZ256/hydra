@@ -14,6 +14,7 @@ else ()
 endif ()
 
 option(CUBEB_ENABLED "Enable the cubeb audio backend" ON)
+option(SDL_ENABLED "Enable building SDL files" ON)
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     if (TARGET_ARCHS MATCHES "arm64")
         option(HYPERVISOR_ENABLED "Enable the Hypervisor CPU backend" ON)
@@ -27,6 +28,10 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "iOS")
 else ()
     set(HYPERVISOR_ENABLED OFF)
     set(FRONTEND "SDL3")
+endif ()
+
+if (FRONTEND STREQUAL "SDL3")
+    set(SDL_ENABLED ON)
 endif ()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
@@ -155,6 +160,12 @@ endif ()
 
 if (CUBEB_ENABLED)
     add_compile_definitions(HYDRA_CUBEB_ENABLED)
+endif ()
+
+if (SDL_ENABLED)
+    add_compile_definitions(HYDRA_SDL_ENABLED=1)
+else ()
+    add_compile_definitions(HYDRA_SDL_ENABLED=0)
 endif ()
 
 if (APPLE)

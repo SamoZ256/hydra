@@ -5,6 +5,8 @@
 namespace hydra::input::apple_gc {
 
 bool Controller::IsPressedImpl(ControllerInput input) {
+    const auto controller = reinterpret_cast<GCController*>(handle);
+
 #define BUTTON_CASE(input, gc_button)                                          \
     case ControllerInput::input:                                               \
         gc_button_name = GCInput##gc_button;                                   \
@@ -18,22 +20,26 @@ bool Controller::IsPressedImpl(ControllerInput input) {
         BUTTON_CASE(Y, ButtonX)
         BUTTON_CASE(StickL, LeftThumbstickButton)
         BUTTON_CASE(StickR, RightThumbstickButton)
-        BUTTON_CASE(L, LeftBumper)
-        BUTTON_CASE(R, RightBumper)
+        BUTTON_CASE(L, LeftShoulder)
+        BUTTON_CASE(R, RightShoulder)
         BUTTON_CASE(ZL, LeftTrigger)
         BUTTON_CASE(ZR, RightTrigger)
-    // TODO: implement
-    case ControllerInput::Plus:
-    case ControllerInput::Minus:
+        BUTTON_CASE(Plus, ButtonMenu)
+        BUTTON_CASE(Minus, ButtonOptions)
     case ControllerInput::Left:
+        return controller.extendedGamepad.dpad.left.isPressed;
     case ControllerInput::Up:
+        return controller.extendedGamepad.dpad.up.isPressed;
     case ControllerInput::Right:
+        return controller.extendedGamepad.dpad.right.isPressed;
     case ControllerInput::Down:
+        return controller.extendedGamepad.dpad.down.isPressed;
+    // TODO: implement
     case ControllerInput::LeftSL:
     case ControllerInput::LeftSR:
     case ControllerInput::RightSL:
     case ControllerInput::RightSR:
-        break;
+        return false;
     default:
         LOG_NOT_IMPLEMENTED(Input, "Controller button {}", input);
         return false;
@@ -41,9 +47,7 @@ bool Controller::IsPressedImpl(ControllerInput input) {
 
 #undef BUTTON_CASE
 
-    return reinterpret_cast<GCController*>(handle)
-        .physicalInputProfile.buttons[gc_button_name]
-        .isPressed;
+    return controller.physicalInputProfile.buttons[gc_button_name].isPressed;
 }
 
 f32 Controller::GetAxisValueImpl(ControllerInput input) {

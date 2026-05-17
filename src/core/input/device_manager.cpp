@@ -1,10 +1,38 @@
 #include "core/input/device_manager.hpp"
 
+#ifdef PLATFORM_APPLE
 #include "core/input/apple_gc/device_list.hpp"
+#endif
+
+#include "core/input/sdl/device_list.hpp"
 
 namespace hydra::input {
 
-DeviceManager::DeviceManager() {
+namespace {
+
+IDeviceList* CreateDeviceList() {
+    const auto input_backend = CONFIG_INSTANCE.GetInputBackend();
+    switch (input_backend) {
+    case InputBackend::Sdl:
+#if HYDRA_SDL_ENABLED
+        return new sdl::DeviceList();
+#else
+        LOG_FATAL(Input, "SDL not supported");
+#endif
+    case InputBackend::AppleGameController:
+#ifdef PLATFORM_APPLE
+        return new apple_gc::DeviceList();
+#else
+        LOG_FATAL(Input, "Apple GameController not supported");
+#endif
+    default:
+        LOG_FATAL(Input, "Unknown input backend {}", input_backend);
+    }
+}
+
+} // namespace
+
+DeviceManager::DeviceManager() : device_list{CreateDeviceList()} {
     // Profiles
     for (u32 i = 0; i < horizon::services::hid::NPAD_COUNT; i++) {
         const auto& name = CONFIG_INSTANCE.GetInputProfiles()[i];
@@ -14,12 +42,7 @@ DeviceManager::DeviceManager() {
         profiles[i] = Profile(
             static_cast<horizon::services::hid::internal::NpadIndex>(i), name);
     }
-
-    // Device list
-    device_list = new apple_gc::DeviceList();
 }
-
-DeviceManager::~DeviceManager() { delete device_list; }
 
 NpadState
 DeviceManager::PollNpad(horizon::services::hid::internal::NpadIndex index) {
@@ -31,7 +54,9 @@ DeviceManager::PollNpad(horizon::services::hid::internal::NpadIndex index) {
 
     const auto& profile = *profile_opt;
     for (const auto& device_name : profile.GetDeviceNames()) {
-        auto device = GetDevice(device_name);
+        std::scoped_lock lock(device_list->GetMutex());
+
+        auto device = device_list->GetDevice(device_name);
         if (!device)
             continue;
 
@@ -83,12 +108,14 @@ DeviceManager::PollNpad(horizon::services::hid::internal::NpadIndex index) {
 }
 
 std::map<u32, TouchState> DeviceManager::PollTouch() {
+    std::scoped_lock lock(device_list->GetMutex());
+
     std::map<u32, TouchState> state;
 
     // TODO: get name from the config
     const std::string device_name = "cursor";
 
-    auto device = GetDevice(device_name);
+    auto device = device_list->GetDevice(device_name);
     if (!device)
         return state;
 

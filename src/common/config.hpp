@@ -3,11 +3,19 @@
 #include <fmt/ranges.h>
 
 #include "common/log.hpp"
+#include "common/platform.hpp"
 #include "common/types.hpp"
 
 #define CONFIG_INSTANCE Config::GetInstance()
 
 namespace hydra {
+
+enum class InputBackend : u32 {
+    Invalid = 0,
+
+    Sdl,
+    AppleGameController,
+};
 
 enum class CpuBackend : u32 {
     Invalid = 0,
@@ -90,6 +98,7 @@ class Config {
     std::vector<std::string> game_paths;
     std::vector<LoaderPlugin> loader_plugins;
     std::vector<std::string> patch_paths;
+    InputBackend input_backend;
     std::vector<std::string> input_profiles;
     CpuBackend cpu_backend;
     GpuRenderer gpu_renderer;
@@ -116,6 +125,13 @@ class Config {
     std::vector<std::string> GetDefaultGamePaths() const { return {}; }
     std::vector<LoaderPlugin> GetDefaultLoaderPlugins() const { return {}; }
     std::vector<std::string> GetDefaultPatchPaths() const { return {}; }
+    InputBackend GetDefaultInputBackend() const {
+#ifdef PLATFORM_APPLE
+        return InputBackend::AppleGameController;
+#else
+        return InputBackend::Sdl;
+#endif
+    }
     std::vector<std::string> GetDefaultInputProfiles() const {
         return {"Default", "", "", "", "", "", "", "", "", ""};
     }
@@ -164,6 +180,7 @@ class Config {
     REF_GETTER(game_paths, GetGamePaths);
     REF_GETTER(loader_plugins, GetLoaderPlugins);
     REF_GETTER(patch_paths, GetPatchPaths);
+    REF_GETTER(input_backend, GetInputBackend);
     REF_GETTER(input_profiles, GetInputProfiles);
     REF_GETTER(cpu_backend, GetCpuBackend);
     REF_GETTER(gpu_renderer, GetGpuRenderer);
@@ -189,6 +206,9 @@ class Config {
 
 } // namespace hydra
 
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, InputBackend, input_backend, Sdl,
+                                   "SDL", AppleGameController,
+                                   "Apple GameController")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, CpuBackend, cpu_backend,
                                    AppleHypervisor, "Apple Hypervisor",
                                    Dynarmic, "dynarmic")

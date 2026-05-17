@@ -5,13 +5,16 @@
 
 namespace hydra::frontend::sdl3 {
 
-Window::Window(int argc, const char* argv[]) : system(*this) {
-    // SLD3 initialization
-    if (!SDL_Init(SDL_INIT_VIDEO)) {
-        LOG_FATAL(SDL3Window, "Failed to initialize SDL3: {}", SDL_GetError());
-        return;
+Context::Context() {
+    if (!SDL_InitSubSystem(SDL_INIT_VIDEO)) {
+        LOG_FATAL(SDL3Window, "Failed to initialize SDL: {}", SDL_GetError());
     }
+}
 
+Context::~Context() { SDL_Quit(); }
+
+Window::Window(int argc, const char* argv[]) : system(*this) {
+    // Window and renderer
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "metal");
     SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
 
@@ -19,7 +22,6 @@ Window::Window(int argc, const char* argv[]) : system(*this) {
                                      &window, &renderer)) {
         LOG_FATAL(SDL3Window, "Failed to create window/renderer: {}",
                   SDL_GetError());
-        return;
     }
 
     // Parse arguments
@@ -34,8 +36,8 @@ Window::Window(int argc, const char* argv[]) : system(*this) {
 Window::~Window() {
     system.GetInputDeviceManager().DisconnectTouchScreenDevice("cursor");
 
+    SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
-    SDL_Quit();
 }
 
 void Window::Run() {
