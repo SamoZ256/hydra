@@ -1,10 +1,12 @@
 #include "core/horizon/display/driver.hpp"
 
-#include "core/horizon/os.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::display {
 
-Driver::Driver() { display_pool.Add(new Display()); }
+Driver::Driver(System& system_) : system{system_} {
+    display_pool.Add(new Display());
+}
 
 bool Driver::AcquirePresentTextures(
     hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer) {
@@ -50,7 +52,7 @@ void Driver::Present(
     }
 
     // Viewport
-    const auto src_size = float2(OS_INSTANCE.GetDisplayResolution());
+    const auto src_size = float2(system.GetOS().GetDisplayResolution());
     auto scale_x = static_cast<f32>(width) / src_size.x();
     auto scale_y = static_cast<f32>(height) / src_size.y();
 

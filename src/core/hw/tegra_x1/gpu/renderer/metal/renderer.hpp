@@ -5,10 +5,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/metal/clear_depth_pipeline_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/const.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/depth_stencil_state_cache.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/renderer_base.hpp"
-
-#define METAL_RENDERER_INSTANCE                                                \
-    hw::tegra_x1::gpu::renderer::metal::Renderer::GetInstance()
+#include "core/hw/tegra_x1/gpu/renderer/renderer.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
@@ -26,9 +23,12 @@ struct CombinedTextureSampler {
 
 struct State {
     const RenderPass* render_pass{nullptr};
+    const Pipeline* pipeline{nullptr};
+    bool depth_test_enabled;
+    bool depth_write_enabled;
+    engines::CompareOp depth_compare_op;
     Viewport viewports[VIEWPORT_COUNT];
     Scissor scissors[VIEWPORT_COUNT];
-    const Pipeline* pipeline{nullptr};
     BufferView index_buffer{};
     engines::IndexType index_type{engines::IndexType::None};
     std::array<BufferView, VERTEX_ARRAY_COUNT> vertex_buffers{};
@@ -41,10 +41,8 @@ struct State {
     // TODO: images
 };
 
-class Renderer : public RendererBase {
+class Renderer : public IRenderer {
   public:
-    static Renderer& GetInstance();
-
     Renderer();
     ~Renderer() override;
 
@@ -59,6 +57,11 @@ class Renderer : public RendererBase {
 
     // Texture
     ITexture* CreateTexture(const TextureDescriptor& descriptor) override;
+    void BlitTexture(ICommandBuffer* command_buffer, ITextureView* src,
+                     float3 src_origin, usize3 src_size, u32 src_level,
+                     u32 src_layer, ITextureView* dst, float3 dst_origin,
+                     usize3 dst_size, u32 dst_level, u32 dst_layer,
+                     u32 level_count, u32 layer_count) override;
 
     // Sampler
     SamplerBase* CreateSampler(const SamplerDescriptor& descriptor) override;
@@ -79,16 +82,21 @@ class Renderer : public RendererBase {
     void ClearStencil(ICommandBuffer* command_buffer, u32 layer,
                       const u32 value) override;
 
-    // Viewport and scissor
-    void SetViewport(u32 index, const Viewport& viewport) override;
-    void SetScissor(u32 index, const Scissor& scissor) override;
-
     // Shader
     ShaderBase* CreateShader(const ShaderDescriptor& descriptor) override;
 
     // Pipeline
     PipelineBase* CreatePipeline(const PipelineDescriptor& descriptor) override;
     void BindPipeline(const PipelineBase* pipeline) override;
+
+    // Depth stencil
+    void SetDepthTestEnabled(bool enabled) override;
+    void SetDepthWriteEnabled(bool enabled) override;
+    void SetDepthCompareOp(engines::CompareOp op) override;
+
+    // Viewport and scissor
+    void SetViewport(u32 index, const Viewport& viewport) override;
+    void SetScissor(u32 index, const Scissor& scissor) override;
 
     // Resource binding
     void BindVertexBuffer(const BufferView& buffer, u32 index) override;
@@ -127,11 +135,6 @@ class Renderer : public RendererBase {
     void SetTexture(CommandBuffer* command_buffer, ShaderType shader_type,
                     u32 index);
 
-    void BlitTexture(CommandBuffer* command_buffer, MTL::Texture* src,
-                     const float3 src_origin, const usize3 src_size,
-                     MTL::Texture* dst, const u32 dst_layer,
-                     const float3 dst_origin, const usize3 dst_size);
-
   protected:
     // Capture
     void BeginCapture() override;
@@ -141,6 +144,13 @@ class Renderer : public RendererBase {
     MTL::Device* device;
     MTL::CommandQueue* command_queue;
 
+    // Caches
+    DepthStencilStateCache depth_stencil_state_cache;
+    BlitPipelineCache blit_pipeline_cache;
+    ClearColorPipelineCache clear_color_pipeline_cache;
+    ClearDepthPipelineCache clear_depth_pipeline_cache;
+
+    // CA
     CA::MetalLayer* ca_layer{nullptr};
     CA::MetalDrawable* ca_drawable{nullptr};
 
@@ -152,12 +162,6 @@ class Renderer : public RendererBase {
     // Samplers
     MTL::SamplerState* nearest_sampler;
     MTL::SamplerState* linear_sampler;
-
-    // Caches
-    DepthStencilStateCache* depth_stencil_state_cache;
-    BlitPipelineCache* blit_pipeline_cache;
-    ClearColorPipelineCache* clear_color_pipeline_cache;
-    ClearDepthPipelineCache* clear_depth_pipeline_cache;
 
     // State
     State state;
@@ -171,7 +175,7 @@ class Renderer : public RendererBase {
 
   public:
     GETTER(device, GetDevice);
-    GETTER(blit_pipeline_cache, GetBlitPipelineCache);
+    REF_GETTER(blit_pipeline_cache, GetBlitPipelineCache);
     GETTER(linear_sampler, GetLinearSampler);
 };
 

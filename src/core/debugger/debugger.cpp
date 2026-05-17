@@ -73,7 +73,9 @@ void Debugger::UnregisterGuestThreadForThisThread() {
     thread.guest_thread = nullptr;
 }
 
-void Debugger::ActivateGdbServer() { gdb_server = new GdbServer(*this); }
+void Debugger::ActivateGdbServer(System& system) {
+    gdb_server = new GdbServer(system, *this);
+}
 
 void Debugger::NotifySupervisorPaused(horizon::kernel::GuestThread* thread,
                                       Signal signal) {

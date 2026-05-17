@@ -5,6 +5,10 @@
 #include "core/horizon/kernel/const.hpp"
 #include "core/hw/tegra_x1/cpu/memory.hpp"
 
+namespace hydra {
+class System;
+}
+
 namespace hydra::hw::tegra_x1::cpu {
 
 struct MemoryRegion {
@@ -17,6 +21,7 @@ struct MemoryRegion {
 // each process has its own
 class IMmu {
   public:
+    IMmu(System& system_) : system{system_} {}
     virtual ~IMmu() = default;
 
     virtual void Map(vaddr_t dst_va, Range<uptr> range,
@@ -103,6 +108,8 @@ class IMmu {
     virtual void ResumeWriteTracking(Range<vaddr_t> range) = 0;
 
   private:
+    System& system;
+
     std::mutex write_tracking_mutex;
     std::vector<Range<vaddr_t>> tracked_pages;
 };

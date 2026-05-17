@@ -25,7 +25,7 @@ BufferView BufferCache::Get(ICommandBuffer* command_buffer, Range<uptr> range) {
         }
     } else {
         // Create new buffer
-        entry.buffer = RENDERER_INSTANCE.CreateBuffer(entry.range.GetSize());
+        entry.buffer = renderer.CreateBuffer(entry.range.GetSize());
         UpdateRange(command_buffer, entry, entry.range);
     }
 
@@ -66,13 +66,12 @@ void BufferCache::UpdateRange(ICommandBuffer* command_buffer,
         entry.inline_copy = false;
     } else {
         // Copy from a temporary buffer
-        auto tmp_buffer =
-            RENDERER_INSTANCE.AllocateTemporaryBuffer(range.GetSize());
+        auto tmp_buffer = renderer.AllocateTemporaryBuffer(range.GetSize());
         tmp_buffer->CopyFrom(range.GetBegin());
         entry.buffer->CopyFrom(command_buffer, tmp_buffer,
                                range.GetBegin() - entry.range.GetBegin(), 0,
                                range.GetSize());
-        RENDERER_INSTANCE.FreeTemporaryBuffer(tmp_buffer);
+        renderer.FreeTemporaryBuffer(tmp_buffer);
     }
 }
 

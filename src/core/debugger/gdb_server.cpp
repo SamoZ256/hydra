@@ -18,6 +18,7 @@
 #include "core/hw/tegra_x1/cpu/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
 #include "core/hw/tegra_x1/cpu/thread.hpp"
+#include "core/system.hpp"
 
 #define GET_THREAD_ID(thread) reinterpret_cast<u64>(thread)
 #define GET_THREAD_FROM_ID(id)                                                 \
@@ -228,7 +229,8 @@ ENABLE_ENUM_FORMATTING(hydra::debugger::BreakpointType, Software, "software",
 
 namespace hydra::debugger {
 
-GdbServer::GdbServer(Debugger& debugger_) : debugger{debugger_} {
+GdbServer::GdbServer(System& system_, Debugger& debugger_)
+    : system{system_}, debugger{debugger_} {
     const u16 port = CONFIG_INSTANCE.GetGdbPort();
 
     // Create the socket
@@ -289,7 +291,7 @@ void GdbServer::NotifySupervisorPaused(horizon::kernel::GuestThread* thread,
 }
 
 void GdbServer::RegisterThread(Thread& thread) {
-    if (CPU_INSTANCE.GetFeatures().supports_native_breakpoints) {
+    if (system.GetCpu().GetFeatures().supports_native_breakpoints) {
         std::lock_guard<std::mutex> lock(mutex);
         for (const auto addr : breakpoint_addresses)
             thread.guest_thread->GetThread()->InsertBreakpoint(addr);
@@ -475,7 +477,7 @@ void GdbServer::HandleVCont(std::string_view command) {
         crnt_thread = thread;
 
         thread->GetThread()->SingleStep();
-        if (CPU_INSTANCE.GetFeatures().supports_synchronous_single_step) {
+        if (system.GetCpu().GetFeatures().supports_synchronous_single_step) {
             // Single-stepping already finished
             NotifySupervisorPausedImpl(thread, Signal::SigTrap);
         } else {
@@ -601,7 +603,7 @@ void GdbServer::HandleInsertBreakpoint(std::string_view command) {
         ASSERT_DEBUG(size == 4, Debugger,
                      "Invalid software breakpoint size 0x{:x}", size);
 
-        if (CPU_INSTANCE.GetFeatures().supports_native_breakpoints) {
+        if (system.GetCpu().GetFeatures().supports_native_breakpoints) {
             breakpoint_addresses.push_back(addr);
             for (const auto& [_, thread] : debugger.threads)
                 thread.guest_thread->GetThread()->InsertBreakpoint(addr);
@@ -635,7 +637,7 @@ void GdbServer::HandleRemoveBreakpoint(std::string_view command) {
         ASSERT_DEBUG(size == 4, Debugger,
                      "Invalid software breakpoint size 0x{:x}", size);
 
-        if (CPU_INSTANCE.GetFeatures().supports_native_breakpoints) {
+        if (system.GetCpu().GetFeatures().supports_native_breakpoints) {
             breakpoint_addresses.erase(std::find(breakpoint_addresses.begin(),
                                                  breakpoint_addresses.end(),
                                                  addr));

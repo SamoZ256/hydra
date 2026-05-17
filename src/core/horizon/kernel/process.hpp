@@ -38,7 +38,7 @@ struct CodeSet {
 
 class Process : public SynchronizationObject {
   public:
-    Process(const std::string_view debug_name = "Process");
+    Process(System& system_, const std::string_view debug_name = "Process");
     ~Process() override;
 
     // Memory
@@ -136,6 +136,8 @@ class Process : public SynchronizationObject {
     }
 
   private:
+    System& system;
+
     hw::tegra_x1::cpu::IMmu* mmu;
     hw::tegra_x1::gpu::GMmu* gmmu;
 

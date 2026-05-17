@@ -25,7 +25,7 @@ class NsoLoader : public LoaderBase {
         main_thread_stack_size = stack_size;
     }
 
-    void LoadProcess(kernel::Process* process) override;
+    void LoadProcess(System& system, kernel::Process* process) override;
 
   private:
     filesystem::IFile* file;

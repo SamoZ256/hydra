@@ -4,9 +4,10 @@
 
 namespace hydra::horizon::kernel {
 
-SharedMemory::SharedMemory(usize size, const std::string_view debug_name)
+SharedMemory::SharedMemory(hw::tegra_x1::cpu::ICpu& cpu, usize size,
+                           const std::string_view debug_name)
     : AutoObject(debug_name) {
-    memory = CPU_INSTANCE.AllocateMemory(size);
+    memory = cpu.AllocateMemory(size);
 
     // Clear
     memset(reinterpret_cast<void*>(GetPtr()), 0, size);

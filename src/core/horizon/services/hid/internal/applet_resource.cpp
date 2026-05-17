@@ -1,6 +1,7 @@
 #include "core/horizon/services/hid/internal/applet_resource.hpp"
 
 #include "core/horizon/kernel/shared_memory.hpp"
+#include "core/system.hpp"
 
 #define SHARED_MEMORY (*reinterpret_cast<SharedMemory*>(shared_mem->GetPtr()))
 
@@ -8,8 +9,8 @@ namespace hydra::horizon::services::hid::internal {
 
 #define NPAD_INTERNAL_STATE(i) SHARED_MEMORY.npad.entries[i].internal_state
 
-AppletResource::AppletResource()
-    : shared_mem{new kernel::SharedMemory(sizeof(SharedMemory),
+AppletResource::AppletResource(System& system)
+    : shared_mem{new kernel::SharedMemory(system.GetCpu(), sizeof(SharedMemory),
                                           "HID shared memory")},
       npads{{NPAD_INTERNAL_STATE(0), NPAD_INTERNAL_STATE(1),
              NPAD_INTERNAL_STATE(2), NPAD_INTERNAL_STATE(3),

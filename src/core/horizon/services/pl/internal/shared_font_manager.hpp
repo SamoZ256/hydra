@@ -14,12 +14,14 @@ struct FontState {
 
 class SharedFontManager {
   public:
-    SharedFontManager();
+    SharedFontManager(System& system_);
     ~SharedFontManager();
 
     void LoadFonts();
 
   private:
+    System& system;
+
     kernel::SharedMemory* shared_memory;
     u32 shared_memory_offset{0};
     FontState states[u32(SharedFontType::Total)]{};

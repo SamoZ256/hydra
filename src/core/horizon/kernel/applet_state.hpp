@@ -6,6 +6,7 @@
 namespace hydra::horizon::kernel {
 
 class Event;
+class Kernel;
 
 #pragma pack(push, 1)
 struct AccountHeader {
@@ -18,7 +19,7 @@ struct AccountHeader {
 
 class AppletState {
   public:
-    AppletState();
+    AppletState(Kernel& kernel_);
     ~AppletState();
 
     // Send
@@ -37,6 +38,8 @@ class AppletState {
     sized_ptr PopLaunchParameter(const LaunchParameterKind kind);
 
   private:
+    Kernel& kernel;
+
     std::mutex mutex;
 
     AppletResourceUserId aruid;

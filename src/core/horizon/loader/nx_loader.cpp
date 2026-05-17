@@ -4,6 +4,7 @@
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/loader/npdm.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
+#include "core/system.hpp"
 
 #define NACP_PATH "meta/control.nacp"
 #define ICON_PATH "meta/icons/AmericanEnglish.jpg"
@@ -55,12 +56,12 @@ NxLoader::NxLoader(const filesystem::Directory& dir_) : dir{dir_} {
            "Failed to get RomFS entry: {}", res);
 }
 
-void NxLoader::LoadProcess(kernel::Process* process) {
+void NxLoader::LoadProcess(System& system, kernel::Process* process) {
     // Title ID
     process->SetTitleID(title_id);
 
     // ExeFS
-    LoadCode(process, exefs_dir);
+    LoadCode(system, process, exefs_dir);
 
     // RomFS
     filesystem::IFile* romfs_file;
@@ -75,7 +76,7 @@ void NxLoader::LoadProcess(kernel::Process* process) {
         ASSERT(romfs_file, Loader, "Failed to build romFS");
     }
 
-    const auto res = KERNEL_INSTANCE.GetFilesystem().AddEntry(
+    const auto res = system.GetOS().GetFilesystem().AddEntry(
         FS_SD_MOUNT "/rom/romFS", romfs_file, true);
     ASSERT(res == filesystem::FsResult::Success, Loader,
            "Failed to add romFS file: {}", res);
@@ -140,7 +141,7 @@ void NxLoader::ParseNpdm() {
     system_resource_size = meta.system_resource_size;
 }
 
-void NxLoader::LoadCode(kernel::Process* process,
+void NxLoader::LoadCode(System& system, kernel::Process* process,
                         filesystem::Directory* exefs_dir) {
     // HACK: if rtld is not present, use main as the entry point
     std::string entry_point = "rtld";
@@ -159,7 +160,7 @@ void NxLoader::LoadCode(kernel::Process* process,
             loader.SetMainThreadParams(main_thread_priority,
                                        main_thread_core_number,
                                        main_thread_stack_size);
-            loader.LoadProcess(process);
+            loader.LoadProcess(system, process);
         }
     }
 

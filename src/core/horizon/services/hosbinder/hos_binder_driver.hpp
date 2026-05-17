@@ -36,21 +36,25 @@ class IHOSBinderDriver : public IService {
 
   private:
     // Commands
-    result_t TransactParcel(i32 binder_id, TransactCode code, u32 flags,
+    result_t TransactParcel(System* system, i32 binder_id, TransactCode code,
+                            u32 flags,
                             InBuffer<BufferAttr::MapAlias> in_parcel_buffer,
                             OutBuffer<BufferAttr::MapAlias> out_parcel_buffer);
-    result_t AdjustRefcount(i32 binder_id, i32 add_value, BinderType type);
+    result_t AdjustRefcount(System* system, i32 binder_id, i32 add_value,
+                            BinderType type);
     result_t
-    GetNativeHandle(kernel::Process* process, i32 binder_id, u32 code,
+    GetNativeHandle(System* system, kernel::Process* process, i32 binder_id,
+                    u32 code,
                     OutHandle<HandleAttr::Copy>
                         out_handle); // TODO: should code be TransactCode?
     result_t
-    TransactParcelAuto(i32 binder_id, TransactCode code, u32 flags,
+    TransactParcelAuto(System* system, i32 binder_id, TransactCode code,
+                       u32 flags,
                        InBuffer<BufferAttr::AutoSelect> in_parcel_buffer,
                        OutBuffer<BufferAttr::AutoSelect> out_parcel_buffer);
 
-    void TransactParcelImpl(i32 binder_id, TransactCode code, u32 flags,
-                            io::MemoryStream* in_stream,
+    void TransactParcelImpl(System& system, i32 binder_id, TransactCode code,
+                            u32 flags, io::MemoryStream* in_stream,
                             io::MemoryStream* out_stream);
 };
 

@@ -2,6 +2,10 @@
 
 #include "core/debugger/const.hpp"
 
+namespace hydra {
+class System;
+}
+
 namespace hydra::horizon::kernel {
 class GuestThread;
 } // namespace hydra::horizon::kernel
@@ -13,7 +17,7 @@ class Debugger;
 
 class GdbServer {
   public:
-    GdbServer(Debugger& debugger_);
+    GdbServer(System& system_, Debugger& debugger_);
     ~GdbServer();
 
     void RegisterThread(Thread& thread);
@@ -23,6 +27,7 @@ class GdbServer {
     void BreakpointHit(horizon::kernel::GuestThread* thread);
 
   private:
+    System& system;
     Debugger& debugger;
 
     std::mutex mutex;

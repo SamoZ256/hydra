@@ -3,6 +3,10 @@
 #include "core/horizon/filesystem/content_archive.hpp"
 #include "core/horizon/loader/loader_base.hpp"
 
+namespace hydra {
+class System;
+}
+
 namespace hydra::horizon::loader {
 
 class NcaLoader : public LoaderBase {
@@ -19,7 +23,7 @@ class NcaLoader : public LoaderBase {
 
     const std::string& GetName() const { return name; }
 
-    void LoadProcess(kernel::Process* process) override;
+    void LoadProcess(System& system, kernel::Process* process) override;
 
   private:
     filesystem::ContentArchive content_archive;
@@ -31,7 +35,8 @@ class NcaLoader : public LoaderBase {
     u32 system_resource_size;
 
     // Helpers
-    void LoadCode(kernel::Process* process, filesystem::Directory* dir);
+    void LoadCode(System& system, kernel::Process* process,
+                  filesystem::Directory* dir);
 };
 
 } // namespace hydra::horizon::loader

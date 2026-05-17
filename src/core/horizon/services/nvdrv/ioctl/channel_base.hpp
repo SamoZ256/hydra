@@ -17,7 +17,8 @@ struct UnmapCmdBufferHandle {
 
 class ChannelBase : public FdBase {
   public:
-    NvResult Ioctl([[maybe_unused]] IoctlContext& context, u32 type, u32 nr) override;
+    NvResult Ioctl([[maybe_unused]] IoctlContext& context, u32 type,
+                   u32 nr) override;
 
   protected:
     u64 user_data;
@@ -39,7 +40,8 @@ class ChannelBase : public FdBase {
     NvResult SetNvMapFd(u32 fd_id);
     NvResult SetTimeout(u32 timeout);
     virtual NvResult
-    SubmitGpfifo([[maybe_unused]] kernel::Process* process, u64 gpfifo,
+    SubmitGpfifo([[maybe_unused]] System* system,
+                 [[maybe_unused]] kernel::Process* process, u64 gpfifo,
                  u32 num_entries,
                  InOut<hw::tegra_x1::gpu::GpfifoFlags, u32>
                      inout_flags_and_detailed_error,

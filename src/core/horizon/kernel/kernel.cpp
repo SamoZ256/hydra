@@ -12,15 +12,11 @@
 #include "core/hw/tegra_x1/cpu/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
 #include "core/hw/tegra_x1/cpu/thread.hpp"
-#include "core/hw/wall_clock.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::kernel {
 
-SINGLETON_DEFINE_GET_INSTANCE(Kernel, Kernel)
-
-Kernel::Kernel() { SINGLETON_SET_INSTANCE(Kernel, Kernel); }
-
-Kernel::~Kernel() { SINGLETON_UNSET_INSTANCE(); }
+Kernel::Kernel(System& system_) : system{system_}, process_manager(system) {}
 
 void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
                             hw::tegra_x1::cpu::IThread* guest_thread, u64 id) {
@@ -369,7 +365,7 @@ result_t Kernel::SetHeapSize(Process* crnt_process, usize size,
     // TODO: handle this more cleanly?
     auto& heap_mem = crnt_process->GetHeapMemory();
     if (!heap_mem) {
-        heap_mem = CPU_INSTANCE.AllocateMemory(size);
+        heap_mem = system.GetCpu().AllocateMemory(size);
         crnt_process->GetMmu()->Map(HEAP_REGION.GetBegin(), heap_mem,
                                     {MemoryType::Normal_1_0_0,
                                      MemoryAttribute::None,
@@ -474,7 +470,8 @@ result_t Kernel::CreateThread(Process* crnt_process, vaddr_t entry_point,
     // Thread
     // TODO: processor ID
     (void)processor_id;
-    auto thread = new GuestThread(crnt_process, stack_top_addr, priority);
+    auto thread =
+        new GuestThread(system, crnt_process, stack_top_addr, priority);
     thread->SetEntryPoint(entry_point);
     thread->SetArg(0, args_addr);
 
@@ -738,7 +735,7 @@ result_t Kernel::ArbitrateLock(IThread* crnt_thread, IThread* owner_thread,
     owner_thread->self_handle_for_mutex = owner_handle;
 
     {
-        CriticalSectionLock cs_lock;
+        CriticalSectionLock cs_lock(*this);
 
         if (atomic_load(reinterpret_cast<u32*>(mutex_addr)) !=
             (owner_thread->self_handle_for_mutex | MUTEX_WAIT_MASK))
@@ -769,7 +766,7 @@ result_t Kernel::ArbitrateUnlock(IThread* crnt_thread, uptr mutex_addr) {
     LOG_DEBUG(Kernel, "ArbitrateUnlock called (mutex: 0x{:08x})", mutex_addr);
 
     {
-        CriticalSectionLock cs_lock;
+        CriticalSectionLock cs_lock(*this);
         UnlockMutex(crnt_thread, mutex_addr);
     }
 
@@ -794,7 +791,7 @@ result_t Kernel::WaitProcessWideKeyAtomic(Process* crnt_process,
     crnt_thread->Pause();
 
     {
-        CriticalSectionLock cs_lock;
+        CriticalSectionLock cs_lock(*this);
         cond_var_waiters.AddLast(crnt_thread);
         UnlockMutex(crnt_thread, mutex_addr);
     }
@@ -814,7 +811,7 @@ result_t Kernel::WaitProcessWideKeyAtomic(Process* crnt_process,
 
     // Remove this thread from the wait list
     {
-        CriticalSectionLock cs_lock;
+        CriticalSectionLock cs_lock(*this);
 
         // Cond var
         cond_var_waiters.Remove(crnt_thread);
@@ -834,7 +831,7 @@ result_t Kernel::SignalProcessWideKey(Process* crnt_process, uptr addr,
     LOG_DEBUG(Kernel, "SignalProcessWideKey called (addr: 0x{:08x}, count: {})",
               addr, count);
 
-    CriticalSectionLock cs_lock;
+    CriticalSectionLock cs_lock(*this);
 
     if (count == -1)
         count = static_cast<i32>(cond_var_waiters.GetSize());
@@ -859,7 +856,7 @@ result_t Kernel::SignalProcessWideKey(Process* crnt_process, uptr addr,
 void Kernel::GetSystemTick(u64& out_tick) {
     LOG_DEBUG(Kernel, "GetSystemTick called");
 
-    out_tick = hw::WallClock::GetInstance().GetCntpct(); // TODO: correct?
+    out_tick = system.GetWallClock().GetCntpct(); // TODO: correct?
 }
 
 result_t Kernel::ConnectToNamedPort(const std::string_view name,
@@ -1088,7 +1085,7 @@ result_t Kernel::MapPhysicalMemory(Process* crnt_process, vaddr_t addr,
     if (!ALIAS_REGION.Contains(Range<vaddr_t>::FromSize(addr, size)))
         return MAKE_RESULT(Svc, 110); // Invalid memory region
 
-    auto mem = CPU_INSTANCE.AllocateMemory(size);
+    auto mem = system.GetCpu().AllocateMemory(size);
     // TODO: keep track of the memory
     crnt_process->GetMmu()->Map(addr, mem,
                                 {MemoryType::Alias, MemoryAttribute::None,
@@ -1131,7 +1128,7 @@ result_t Kernel::WaitForAddress(IThread* crnt_thread, uptr addr,
 
     bool wait;
     {
-        CriticalSectionLock cs_lock;
+        CriticalSectionLock cs_lock(*this);
 
         auto value_ptr = reinterpret_cast<u32*>(addr);
         u32 current_value;
@@ -1177,7 +1174,7 @@ result_t Kernel::WaitForAddress(IThread* crnt_thread, uptr addr,
         // Removal is done by the signalling thread
         /*
         {
-            CriticalSectionLock cs_lock;
+            CriticalSectionLock cs_lock(*this);
             arbiters.Remove(crnt_thread);
         }
         */
@@ -1201,7 +1198,7 @@ result_t Kernel::SignalToAddress(uptr addr, SignalType signal_type, u32 value,
     (void)value;
     (void)count;
 
-    CriticalSectionLock cs_lock;
+    CriticalSectionLock cs_lock(*this);
     for (auto waiter_node = arbiters.GetHead(); waiter_node != nullptr;) {
         auto waiter = waiter_node->Get();
         if (waiter->mutex_wait_addr != addr) {

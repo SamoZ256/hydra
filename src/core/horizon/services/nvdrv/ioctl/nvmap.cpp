@@ -1,6 +1,6 @@
 #include "core/horizon/services/nvdrv/ioctl/nvmap.hpp"
 
-#include "core/hw/tegra_x1/gpu/gpu.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::services::nvdrv::ioctl {
 
@@ -9,8 +9,8 @@ DEFINE_IOCTL_TABLE(NvMap,
                                             FromId, 0x04, Alloc, 0x05, Free,
                                             0x09, Param, 0x0e, GetId))
 
-NvResult NvMap::Create(u32 size, handle_id_t* out_handle_id) {
-    *out_handle_id = GPU_INSTANCE.CreateMap(size);
+NvResult NvMap::Create(System* system, u32 size, handle_id_t* out_handle_id) {
+    *out_handle_id = system->GetGpu().CreateMap(size);
     return NvResult::Success;
 }
 
@@ -21,22 +21,22 @@ NvResult NvMap::FromId(u32 id, handle_id_t* out_handle_id) {
 }
 
 // TODO: heap mask, kind
-NvResult NvMap::Alloc(handle_id_t handle_id, u32 heap_mask, u32 flags,
-                      InOutSingle<u32> inout_alignment, aligned<u8, 8> kind,
-                      gpu_vaddr_t addr) {
+NvResult NvMap::Alloc(System* system, handle_id_t handle_id, u32 heap_mask,
+                      u32 flags, InOutSingle<u32> inout_alignment,
+                      aligned<u8, 8> kind, gpu_vaddr_t addr) {
     (void)heap_mask;
     (void)kind;
 
     // TODO: flags?
-    GPU_INSTANCE.AllocateMap(handle_id, addr, flags == 1);
+    system->GetGpu().AllocateMap(handle_id, addr, flags == 1);
     inout_alignment = hw::tegra_x1::gpu::GPU_PAGE_SIZE; // TODO: correct?
     return NvResult::Success;
 }
 
-NvResult NvMap::Free(aligned<handle_id_t, 8> handle_id, gpu_vaddr_t* out_addr,
-                     u64* out_size, u32* out_flags) {
-    auto map = GPU_INSTANCE.GetMap(handle_id);
-    GPU_INSTANCE.FreeMap(handle_id);
+NvResult NvMap::Free(System* system, aligned<handle_id_t, 8> handle_id,
+                     gpu_vaddr_t* out_addr, u64* out_size, u32* out_flags) {
+    auto map = system->GetGpu().GetMap(handle_id);
+    system->GetGpu().FreeMap(handle_id);
 
     *out_addr = map.addr;
     *out_size = map.size;
@@ -44,9 +44,9 @@ NvResult NvMap::Free(aligned<handle_id_t, 8> handle_id, gpu_vaddr_t* out_addr,
     return NvResult::Success;
 }
 
-NvResult NvMap::Param(handle_id_t handle_id, NvMapParamType type,
-                      u32* out_value) {
-    auto map = GPU_INSTANCE.GetMap(handle_id);
+NvResult NvMap::Param(System* system, handle_id_t handle_id,
+                      NvMapParamType type, u32* out_value) {
+    auto map = system->GetGpu().GetMap(handle_id);
     switch (type) {
     case NvMapParamType::Size:
         *out_value = static_cast<u32>(map.size);

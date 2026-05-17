@@ -2,7 +2,7 @@
 
 namespace hydra::horizon::applets::controller {
 
-result_t Applet::Run() {
+result_t Applet::Run(System& system) {
     const auto arg_private = PopInData<ArgPrivate>();
 
     // Mode
@@ -20,9 +20,9 @@ result_t Applet::Run() {
     // Run with the correct args
     switch (arg_private.controller_support_arg_size) {
     case sizeof(SupportArg<4>):
-        return RunControllerSupport<4>();
+        return RunControllerSupport<4>(system);
     case sizeof(SupportArg<8>):
-        return RunControllerSupport<8>();
+        return RunControllerSupport<8>(system);
     default:
         LOG_ERROR(Applets, "Invalid controller support argument size 0x{:x}",
                   arg_private.controller_support_arg_size);

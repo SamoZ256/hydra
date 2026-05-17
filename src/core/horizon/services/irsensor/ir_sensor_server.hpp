@@ -25,21 +25,17 @@ struct PackedFunctionLevel {
 };
 
 class IIrSensorServer : public IService {
-  public:
-    IIrSensorServer();
-
   protected:
     result_t RequestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
-    kernel::SharedMemory* shared_mem; // TODO: make this global
-
     // Commands
     STUB_REQUEST_COMMAND(DeactivateIrsensor);
     // TODO: PID descriptor
     result_t
-    GetIrsensorSharedMemoryHandle(kernel::Process* process, u64 aruid,
+    GetIrsensorSharedMemoryHandle(System* system, kernel::Process* process,
+                                  u64 aruid,
                                   OutHandle<HandleAttr::Copy> out_handle);
     result_t GetNpadIrCameraHandle(hid::NpadIdType npad_id,
                                    IrCameraHandle* out_handle);

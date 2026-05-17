@@ -86,7 +86,8 @@ result_t IAudioOutManager::OpenAudioOutImpl(
     std::string device_name_out = "Hydra audio device";
     out_device_name_stream->WriteNullTerminatedString(device_name_out);
 
-    AddService(*ctx, new IAudioOut(format, sample_rate, channel_count));
+    AddService(*ctx,
+               new IAudioOut(ctx->system, format, sample_rate, channel_count));
     return RESULT_SUCCESS;
 }
 

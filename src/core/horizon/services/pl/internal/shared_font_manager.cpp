@@ -5,6 +5,7 @@
 #include "core/horizon/filesystem/filesystem.hpp"
 #include "core/horizon/filesystem/partition_filesystem.hpp"
 #include "core/horizon/filesystem/romfs/romfs.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::services::pl::internal {
 
@@ -37,12 +38,13 @@ constexpr SharedFontName shared_font_names[] = {
 
 #undef SHARED_FONT_ENTRY
 
-filesystem::IFile* GetSharedFontFile(SharedFontType font_type) {
+filesystem::IFile* GetSharedFontFile(filesystem::Filesystem& filesystem,
+                                     SharedFontType font_type) {
     const auto& name = shared_font_names[static_cast<u32>(font_type)];
 
     // NCA
     filesystem::IFile* file;
-    auto res = KERNEL_INSTANCE.GetFilesystem().GetFile(
+    auto res = filesystem.GetFile(
         fmt::format(FS_FIRMWARE_PATH "/{}", name.name), file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Services, "Failed to get shared font {} file: {}", font_type,
@@ -99,8 +101,9 @@ result_t DecryptBFTTF(io::IStream* in_stream, io::IStream* out_stream) {
 
 } // namespace
 
-SharedFontManager::SharedFontManager()
-    : shared_memory{new kernel::SharedMemory(SHARED_MEMORY_SIZE)} {}
+SharedFontManager::SharedFontManager(System& system_)
+    : system{system_}, shared_memory{new kernel::SharedMemory(
+                           system.GetCpu(), SHARED_MEMORY_SIZE)} {}
 
 SharedFontManager::~SharedFontManager() { delete shared_memory; }
 
@@ -111,7 +114,7 @@ void SharedFontManager::LoadFonts() {
 }
 
 void SharedFontManager::LoadFont(const SharedFontType type) {
-    auto file = GetSharedFontFile(type);
+    auto file = GetSharedFontFile(system.GetOS().GetFilesystem(), type);
     if (!file)
         return;
 

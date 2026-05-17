@@ -2,7 +2,7 @@
 
 #include "core/horizon/kernel/hipc/server_port.hpp"
 #include "core/horizon/kernel/hipc/service_manager.hpp"
-#include "core/horizon/kernel/kernel.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::services {
 
@@ -47,7 +47,7 @@ void Server::MainLoop(kernel::should_stop_fn_t should_stop) {
         sync_objs.insert(sync_objs.end(), sessions.begin(), sessions.end());
 
         u32 signalled_index;
-        const auto res = KERNEL_INSTANCE.ReplyAndReceive(
+        const auto res = system.GetOS().GetKernel().ReplyAndReceive(
             thread, sync_objs, reply_target_session, kernel::INFINITE_TIMEOUT,
             signalled_index);
         switch (res) {
@@ -67,7 +67,8 @@ void Server::MainLoop(kernel::should_stop_fn_t should_stop) {
                 auto session = sessions[session_index];
                 auto service = session_services.at(session);
 
-                service->HandleRequest(session->GetActiveRequestClientProcess(),
+                service->HandleRequest(system,
+                                       session->GetActiveRequestClientProcess(),
                                        thread->GetTlsPtr());
 
                 // Set the reply target
@@ -93,7 +94,8 @@ void Server::MainLoop(kernel::should_stop_fn_t should_stop) {
             // Handle all requests
             while (session->HasRequests()) {
                 session->Receive(thread);
-                service->HandleRequest(session->GetActiveRequestClientProcess(),
+                service->HandleRequest(system,
+                                       session->GetActiveRequestClientProcess(),
                                        thread->GetTlsPtr());
                 session->Reply(thread->GetTlsPtr());
             }

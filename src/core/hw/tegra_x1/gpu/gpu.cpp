@@ -8,6 +8,16 @@ namespace hydra::hw::tegra_x1::gpu {
 
 namespace {
 
+renderer::IRenderer* CreateRenderer() {
+    const auto renderer_type = CONFIG_INSTANCE.GetGpuRenderer();
+    switch (renderer_type) {
+    case GpuRenderer::Metal:
+        return new renderer::metal::Renderer();
+    default:
+        LOG_FATAL(Gpu, "Unknown Gpu renderer {}", renderer_type);
+    }
+}
+
 struct SetObjectArg {
     u32 class_id : 16;
     u32 engine_id : 5;
@@ -15,27 +25,10 @@ struct SetObjectArg {
 
 } // namespace
 
-SINGLETON_DEFINE_GET_INSTANCE(Gpu, Gpu)
-
-Gpu::Gpu() {
-    SINGLETON_SET_INSTANCE(Gpu, Gpu);
-
-    const auto renderer_type = CONFIG_INSTANCE.GetGpuRenderer();
-    switch (renderer_type) {
-    case GpuRenderer::Metal:
-        renderer = new renderer::metal::Renderer();
-        break;
-    default:
-        LOG_FATAL(Gpu, "Unknown Gpu renderer {}", renderer_type);
-        break;
-    }
-}
-
-Gpu::~Gpu() {
-    delete renderer;
-
-    SINGLETON_UNSET_INSTANCE();
-}
+Gpu::Gpu()
+    : pfifo(*this), three_d_engine(*this), compute_engine(*this),
+      inline_engine(*this), two_d_engine(*this),
+      copy_engine(*this), renderer{CreateRenderer()} {}
 
 void Gpu::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
     if (method == 0x0) { // SetEngine

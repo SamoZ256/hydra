@@ -5,7 +5,7 @@
 
 namespace hydra::frontend::sdl3 {
 
-Window::Window(int argc, const char* argv[]) : emulation_context(*this) {
+Window::Window(int argc, const char* argv[]) : system(*this) {
     // SLD3 initialization
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         LOG_FATAL(SDL3Window, "Failed to initialize SDL3: {}", SDL_GetError());
@@ -32,7 +32,7 @@ Window::Window(int argc, const char* argv[]) : emulation_context(*this) {
 }
 
 Window::~Window() {
-    INPUT_DEVICE_MANAGER_INSTANCE.DisconnectTouchScreenDevice("cursor");
+    system.GetInputDeviceManager().DisconnectTouchScreenDevice("cursor");
 
     SDL_DestroyWindow(window);
     SDL_Quit();
@@ -58,13 +58,13 @@ void Window::Run() {
                 if (modifiers & SDL_KMOD_CTRL) {
 #endif
                     if (e.key.key == SDLK_T) {
-                        emulation_context.TakeScreenshot();
+                        system.TakeScreenshot();
                     } else if (e.key.key == SDLK_O) {
                         auto& handheld_mode = CONFIG_INSTANCE.GetHandheldMode();
                         handheld_mode = !handheld_mode;
-                        emulation_context.NotifyOperationModeChanged();
+                        system.NotifyOperationModeChanged();
                     } else if (e.key.key == SDLK_P) {
-                        emulation_context.CaptureGpuFrame();
+                        system.CaptureGpuFrame();
                     }
                 }
                 break;
@@ -75,14 +75,13 @@ void Window::Run() {
             }
         }
 
-        if (emulation_context.IsRunning()) {
+        if (system.IsRunning()) {
             // Present
             i32 width, height;
             SDL_GetWindowSize(window, &width, &height);
             bool dt_average_updated;
-            emulation_context.ProgressFrame(static_cast<u32>(width),
-                                            static_cast<u32>(height),
-                                            dt_average_updated);
+            system.ProgressFrame(static_cast<u32>(width),
+                                 static_cast<u32>(height), dt_average_updated);
 
             // Update window title
             if (dt_average_updated)
@@ -125,18 +124,18 @@ Window::ShowSoftwareKeyboard(const std::string& header_text,
 
 void Window::BeginEmulation(const std::string& path) {
     // Connect cursor as a touch screen device
-    INPUT_DEVICE_MANAGER_INSTANCE.ConnectTouchScreenDevice("cursor", &cursor);
+    system.GetInputDeviceManager().ConnectTouchScreenDevice("cursor", &cursor);
 
-    emulation_context.SetSurface(SDL_GetRenderMetalLayer(renderer));
+    system.SetSurface(SDL_GetRenderMetalLayer(renderer));
     // TODO: support loading applets from firmware
     auto loader = horizon::loader::LoaderBase::CreateFromPath(path);
-    emulation_context.LoadAndStart(loader);
+    system.LoadAndStart(loader);
     title_id = loader->GetTitleID();
     delete loader;
 }
 
 void Window::UpdateWindowTitle() {
-    const auto dt = emulation_context.GetLastDeltaTimeAverage();
+    const auto dt = system.GetLastDeltaTimeAverage();
     std::string fps_str;
     if (dt == 0.0f)
         fps_str = "0";
@@ -146,7 +145,7 @@ void Window::UpdateWindowTitle() {
     // TODO: title name
     const auto title =
         fmt::format("Hydra | TODO(TITLE_NAME) - 0x{:016x} | {} | {} FPS",
-                    title_id, Config::GetInstance().GetGpuRenderer(), fps_str);
+                    title_id, CONFIG_INSTANCE.GetGpuRenderer(), fps_str);
     SetWindowTitle(title);
 }
 

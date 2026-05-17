@@ -8,7 +8,8 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
-Texture::Texture(const TextureDescriptor& descriptor) : ITexture(descriptor) {
+Texture::Texture(MTL::Device* device, const TextureDescriptor& descriptor)
+    : ITexture(descriptor) {
     const auto type = ToMtlTextureType(descriptor.type);
 
     MTL::TextureDescriptor* desc = MTL::TextureDescriptor::alloc()->init();
@@ -45,7 +46,7 @@ Texture::Texture(const TextureDescriptor& descriptor) : ITexture(descriptor) {
     const auto& pixel_format_info = to_mtl_pixel_format_info(descriptor.format);
     desc->setPixelFormat(pixel_format_info.pixel_format);
 
-    texture = METAL_RENDERER_INSTANCE.GetDevice()->newTexture(desc);
+    texture = device->newTexture(desc);
 }
 
 Texture::~Texture() { texture->release(); }
@@ -109,33 +110,6 @@ void Texture::CopyFrom(ICommandBuffer* command_buffer, const ITexture* src,
                 MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
         }
     }
-}
-
-void Texture::BlitFrom(ICommandBuffer* command_buffer, const ITexture* src,
-                       const float3 src_origin, const usize3 src_size,
-                       const u32 src_level, const u32 src_layer,
-                       const float3 dst_origin, const usize3 dst_size,
-                       const u32 dst_level, const u32 dst_layer,
-                       const u32 level_count, const u32 layer_count) {
-    // TODO: support a wider range of parameters
-    ASSERT_DEBUG(src_level == 0, MetalRenderer, "Unsupported source level {}",
-                 src_level);
-    ASSERT_DEBUG(src_layer == 0, MetalRenderer, "Unsupported source layer {}",
-                 src_layer);
-    ASSERT_DEBUG(dst_level == 0, MetalRenderer,
-                 "Unsupported destination level {}", dst_level);
-    ASSERT_DEBUG(dst_layer == 0, MetalRenderer,
-                 "Unsupported destination layer {}", dst_layer);
-    ASSERT_DEBUG(level_count == 1, MetalRenderer, "Unsupported level_count {}",
-                 level_count);
-    ASSERT_DEBUG(layer_count == 1, MetalRenderer, "Unsupported layer_count {}",
-                 layer_count);
-
-    const auto command_buffer_impl =
-        static_cast<CommandBuffer*>(command_buffer);
-    METAL_RENDERER_INSTANCE.BlitTexture(
-        command_buffer_impl, static_cast<const Texture*>(src)->GetTexture(),
-        src_origin, src_size, texture, 0, dst_origin, dst_size);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal

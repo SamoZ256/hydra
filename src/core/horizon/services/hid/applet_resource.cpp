@@ -1,19 +1,19 @@
 #include "core/horizon/services/hid/applet_resource.hpp"
 
 #include "core/horizon/kernel/process.hpp"
-#include "core/horizon/os.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::services::hid {
 
 DEFINE_SERVICE_COMMAND_TABLE(IAppletResource, 0, GetSharedMemoryHandle)
 
-IAppletResource::IAppletResource(kernel::AppletResourceUserId aruid_)
-    : aruid{aruid_}, resource{
-                         OS_INSTANCE.GetHidResourceManager().CreateResource(
-                             aruid)} {}
+IAppletResource::IAppletResource(System& system_,
+                                 kernel::AppletResourceUserId aruid_)
+    : system{system_}, aruid{aruid_},
+      resource{system.GetOS().GetHidResourceManager().CreateResource(aruid)} {}
 
 IAppletResource::~IAppletResource() {
-    OS_INSTANCE.GetHidResourceManager().DestroyResource(aruid);
+    system.GetOS().GetHidResourceManager().DestroyResource(aruid);
 }
 
 result_t

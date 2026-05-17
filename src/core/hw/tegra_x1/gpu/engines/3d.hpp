@@ -1,13 +1,8 @@
 #pragma once
 
 #include "core/hw/tegra_x1/gpu/engines/inline_base.hpp"
+#include "core/hw/tegra_x1/gpu/macro/driver_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/buffer_view.hpp"
-
-#define REGS_3D engines::ThreeD::GetInstance().GetRegs()
-
-namespace hydra::hw::tegra_x1::gpu::macro {
-class DriverBase;
-}
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
 class ITextureView;
@@ -553,10 +548,7 @@ struct Regs3D {
 
 class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
   public:
-    static ThreeD& GetInstance();
-
-    ThreeD();
-    ~ThreeD() override;
+    ThreeD(Gpu& gpu_);
 
     void Method(u32 method, u32 arg) override;
 
@@ -569,8 +561,10 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
     void Macro(u32 method, u32 arg) override;
 
   private:
+    Gpu& gpu;
+
     // Macros
-    macro::DriverBase* macro_driver;
+    std::unique_ptr<macro::DriverBase> macro_driver;
 
     // Active state (for quick access)
     renderer::ShaderBase* active_shaders[static_cast<usize>(

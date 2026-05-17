@@ -11,7 +11,7 @@ constexpr uptr KERNEL_REGION_BASE =
 
 class Mmu : public IMmu {
   public:
-    Mmu();
+    Mmu(System& system);
     ~Mmu() override;
 
     void Map(vaddr_t dst_va, Range<uptr> range,

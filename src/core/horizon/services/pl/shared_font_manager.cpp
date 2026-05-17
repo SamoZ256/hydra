@@ -1,7 +1,7 @@
 #include "core/horizon/services/pl/shared_font_manager.hpp"
 
 #include "core/horizon/kernel/process.hpp"
-#include "core/horizon/os.hpp"
+#include "core/system.hpp"
 
 namespace hydra::horizon::services::pl {
 
@@ -20,29 +20,32 @@ result_t ISharedFontManager::GetLoadState(SharedFontType font_type,
     return RESULT_SUCCESS;
 }
 
-result_t ISharedFontManager::GetSize(SharedFontType font_type, u32* out_size) {
-    *out_size =
-        static_cast<u32>(SHARED_FONT_MANAGER_INSTANCE.GetState(font_type).size);
+result_t ISharedFontManager::GetSize(System* system, SharedFontType font_type,
+                                     u32* out_size) {
+    *out_size = static_cast<u32>(
+        system->GetOS().GetSharedFontManager().GetState(font_type).size);
     return RESULT_SUCCESS;
 }
 
-result_t
-ISharedFontManager::GetSharedMemoryAddressOffset(SharedFontType font_type,
-                                                 u32* out_address_offset) {
-    *out_address_offset =
-        SHARED_FONT_MANAGER_INSTANCE.GetState(font_type).shared_memory_offset;
+result_t ISharedFontManager::GetSharedMemoryAddressOffset(
+    System* system, SharedFontType font_type, u32* out_address_offset) {
+    *out_address_offset = system->GetOS()
+                              .GetSharedFontManager()
+                              .GetState(font_type)
+                              .shared_memory_offset;
     return RESULT_SUCCESS;
 }
 
 result_t ISharedFontManager::GetSharedMemoryNativeHandle(
-    kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle =
-        process->AddHandle(SHARED_FONT_MANAGER_INSTANCE.GetSharedMemory());
+    System* system, kernel::Process* process,
+    OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = process->AddHandle(
+        system->GetOS().GetSharedFontManager().GetSharedMemory());
     return RESULT_SUCCESS;
 }
 
 result_t ISharedFontManager::GetSharedFontInOrderOfPriority(
-    LanguageCode language_code, u8* out_loaded, u32* out_count,
+    System* system, LanguageCode language_code, u8* out_loaded, u32* out_count,
     OutBuffer<BufferAttr::MapAlias> out_types_buffer,
     OutBuffer<BufferAttr::MapAlias> out_offsets_buffer,
     OutBuffer<BufferAttr::MapAlias> out_sizes_buffer) {
@@ -53,7 +56,8 @@ result_t ISharedFontManager::GetSharedFontInOrderOfPriority(
     (void)language_code;
     for (SharedFontType type = SharedFontType::JapanUsEurope;
          type < SharedFontType::Total; type++) {
-        const auto& state = SHARED_FONT_MANAGER_INSTANCE.GetState(type);
+        const auto& state =
+            system->GetOS().GetSharedFontManager().GetState(type);
         out_types_buffer.stream->Write(type);
         out_offsets_buffer.stream->Write<u32>(state.shared_memory_offset);
         out_sizes_buffer.stream->Write(static_cast<u32>(state.size));

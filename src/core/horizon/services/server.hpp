@@ -7,6 +7,10 @@
 #include "core/horizon/kernel/host_thread.hpp"
 #include "core/horizon/services/service.hpp"
 
+namespace hydra {
+class System;
+}
+
 namespace hydra::horizon::kernel::hipc {
 class ServerPort;
 class ServerSession;
@@ -18,6 +22,7 @@ typedef std::function<IService*()> create_service_fn_t;
 
 class Server {
   public:
+    Server(System& system_) : system{system_} {}
     ~Server() { Stop(); }
 
     void Start();
@@ -33,6 +38,8 @@ class Server {
     }
 
   private:
+    System& system;
+
     kernel::HostThread* thread{nullptr};
 
     std::map<kernel::hipc::ServerPort*, create_service_fn_t>

@@ -84,11 +84,6 @@ T ceil_divide(T dividend, T divisor) {
     return (dividend + divisor - 1) / divisor;
 }
 
-template <typename T>
-T random() {
-    return rand() & all_ones<T>();
-}
-
 inline constexpr u32 make_magic4(const char c0, const char c1, const char c2,
                                  const char c3) {
     return static_cast<u32>(c0) | static_cast<u32>(c1) << 8 |

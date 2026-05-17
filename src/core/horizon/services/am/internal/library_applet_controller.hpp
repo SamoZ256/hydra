@@ -4,7 +4,7 @@
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/services/am/storage.hpp"
 
-namespace hydra::horizon::services::am {
+namespace hydra::horizon::services::am::internal {
 
 class StorageQueue {
   public:
@@ -89,4 +89,4 @@ class LibraryAppletController {
     StorageQueue interactive_out_data;
 };
 
-} // namespace hydra::horizon::services::am
+} // namespace hydra::horizon::services::am::internal

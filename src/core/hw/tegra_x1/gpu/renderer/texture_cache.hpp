@@ -11,6 +11,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer {
 class ICommandBuffer;
 class ITexture;
 class ITextureView;
+class IRenderer;
 
 typedef std::chrono::steady_clock TextureCacheClock;
 typedef TextureCacheClock::time_point TextureCacheTimePoint;
@@ -67,6 +68,7 @@ struct TextureMem {
 // TODO: texture readback
 class TextureCache {
   public:
+    TextureCache(IRenderer& renderer_) : renderer{renderer_} {}
     ~TextureCache();
 
     ITextureView* Find(ICommandBuffer* command_buffer,
@@ -88,6 +90,8 @@ class TextureCache {
     }
 
   private:
+    IRenderer& renderer;
+
     std::mutex mutex;
 
     std::map<uptr, TextureMem> entries;

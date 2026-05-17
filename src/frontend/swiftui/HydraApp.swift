@@ -3,23 +3,23 @@ import SwiftUI
 class GlobalState: ObservableObject {
     // Game library
     @Published var gamePaths: [String] = []
-    @Published var loaderPluginChangeID = 0  // HACK
+    let loaderPluginManager = HydraLoaderPluginManager()
+    @Published var loaderPluginRefreshID = 0
 
     // Emulation
     @Published var activeGame: Game? = nil
-    @Published var emulationContext: HydraEmulationContext? = nil
+    @Published var system: HydraSystem? = nil
     @Published var isStopping = false
     @Published var isHandheldMode: Bool {
         didSet {
             hydraConfigGetHandheldMode().pointee = isHandheldMode
             hydraConfigSerialize()
-            guard let emulationContext = emulationContext else { return }
-            emulationContext.notifyOperationModeChanged()
+            guard let system = system else { return }
+            system.notifyOperationModeChanged()
         }
     }
 
     init() {
-        hydraLoaderPluginManagerRefresh()
         isHandheldMode = hydraConfigGetHandheldMode().pointee
 
         let gamePathsOption = hydraConfigGetGamePaths()
@@ -30,8 +30,8 @@ class GlobalState: ObservableObject {
     }
 
     func refreshLoaderPluginManager() {
-        hydraLoaderPluginManagerRefresh()
-        loaderPluginChangeID += 1
+        loaderPluginManager.refresh()
+        loaderPluginRefreshID += 1
     }
 }
 
@@ -62,6 +62,7 @@ struct HydraApp: App {
 
             Window("Texture Viewer", id: "texture-viewer") {
                 TextureViewer()
+                    .environmentObject(globalState)
             }
             .defaultLaunchBehavior(.suppressed)
 

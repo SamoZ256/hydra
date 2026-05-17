@@ -7,7 +7,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 class Pipeline final : public PipelineBase {
   public:
-    Pipeline(const PipelineDescriptor& descriptor);
+    Pipeline(MTL::Device* device, const PipelineDescriptor& descriptor);
     ~Pipeline() override;
 
     // Getters

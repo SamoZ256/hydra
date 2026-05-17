@@ -29,7 +29,7 @@ struct ContentView: View {
         var gitInsert = ""
         if gitVersion != "" { gitInsert = " (\(gitVersion))" }
         var fpsInsert = ""
-        if globalState.emulationContext != nil { fpsInsert = "  |  \(fps) FPS" }
+        if globalState.system != nil { fpsInsert = "  |  \(fps) FPS" }
         return "Hydra v\(appVersion)\(gitInsert)\(titleInsert)\(fpsInsert)"
     }
 

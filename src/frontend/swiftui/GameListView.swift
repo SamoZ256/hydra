@@ -42,24 +42,24 @@ struct GameListView: View {
             }
         }
         .onAppear {
-            games = GameListView.createGameList(gamePaths: globalState.gamePaths)
+            games = GameListView.createGameList(gamePaths: globalState.gamePaths, loaderPluginManager: self.globalState.loaderPluginManager)
         }
         .onChange(of: globalState.gamePaths) { _, newValue in
-            games = GameListView.createGameList(gamePaths: newValue)
+            games = GameListView.createGameList(gamePaths: newValue, loaderPluginManager: self.globalState.loaderPluginManager)
         }
-        .onChange(of: globalState.loaderPluginChangeID) { _, _ in
-            games = GameListView.createGameList(gamePaths: globalState.gamePaths)
+        .onChange(of: globalState.loaderPluginRefreshID) { _, _ in
+            games = GameListView.createGameList(gamePaths: globalState.gamePaths, loaderPluginManager: self.globalState.loaderPluginManager)
         }
     }
 
-    static func createGameList(gamePaths: [String]) -> [Game] {
+    static func createGameList(gamePaths: [String], loaderPluginManager: HydraLoaderPluginManager?) -> [Game] {
         // Get all games
         var games: [Game] = []
         for gamePath in gamePaths {
             do {
                 let url = try resolveUrl(URL(fileURLWithPath: gamePath))
 
-                try processUrl(games: &games, url: url)
+                try processUrl(games: &games, url: url, loaderPluginManager: loaderPluginManager)
             } catch {
                 // TODO: error popup
                 print("Failed to load game path \(gamePath): \(error)")
@@ -72,10 +72,10 @@ struct GameListView: View {
         return games
     }
 
-    static func processUrl(games: inout [Game], url: URL) throws {
+    static func processUrl(games: inout [Game], url: URL, loaderPluginManager: HydraLoaderPluginManager?) throws {
         // Check if the URL is a game
         if url.pathExtension != "" {
-            tryAddGame(games: &games, url: url)
+            tryAddGame(games: &games, url: url, loaderPluginManager: loaderPluginManager)
             return
         }
 
@@ -97,13 +97,13 @@ struct GameListView: View {
         let urls = try FileManager.default.contentsOfDirectory(
             at: url, includingPropertiesForKeys: nil)
         for url in urls {
-            try processUrl(games: &games, url: url)
+            try processUrl(games: &games, url: url, loaderPluginManager: loaderPluginManager)
         }
     }
 
-    static func tryAddGame(games: inout [Game], url: URL) {
+    static func tryAddGame(games: inout [Game], url: URL, loaderPluginManager: HydraLoaderPluginManager?) {
         do {
-            let game = try Game(url: url)
+            let game = try Game(url: url, loaderPluginManager: loaderPluginManager)
             games.append(game)
         } catch {
             // TODO: error popup

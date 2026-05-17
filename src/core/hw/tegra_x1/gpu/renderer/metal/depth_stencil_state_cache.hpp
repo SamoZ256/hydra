@@ -15,6 +15,8 @@ class DepthStencilStateCache
     : public CacheBase<DepthStencilStateCache, MTL::DepthStencilState*,
                        DepthStencilStateDescriptor> {
   public:
+    DepthStencilStateCache(MTL::Device* device_) : device{device_} {}
+
     void Destroy() {}
 
     MTL::DepthStencilState*
@@ -25,6 +27,7 @@ class DepthStencilStateCache
     void DestroyElement(MTL::DepthStencilState* depth_stencil_state);
 
   private:
+    MTL::Device* device;
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal

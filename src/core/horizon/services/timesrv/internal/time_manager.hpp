@@ -2,6 +2,10 @@
 
 #include "core/horizon/kernel/shared_memory.hpp"
 
+namespace hydra {
+class System;
+}
+
 namespace hydra::horizon::services::timesrv::internal {
 
 struct SteadyClockTimePoint {
@@ -28,7 +32,7 @@ struct ContinuousAdjustmentTimePoint {
 
 class TimeManager {
   public:
-    TimeManager();
+    TimeManager(System& system);
 
   private:
     kernel::SharedMemory* shared_memory;
