@@ -6,6 +6,8 @@ namespace hydra::horizon::loader::plugins {
 
 class Manager {
   public:
+    Manager() { Refresh(); }
+
     void Refresh();
 
     Plugin* FindPluginForFormat(std::string_view format);
