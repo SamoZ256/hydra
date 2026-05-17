@@ -17,6 +17,13 @@ bool EWWrapper(void* userdata, SDL_Event* e) {
 } // namespace
 
 DeviceList::DeviceList() {
+    has_frontend = SDL_WasInit(SDL_INIT_VIDEO);
+
+    // Initialize
+    if (!SDL_InitSubSystem(SDL_INIT_GAMEPAD)) {
+        LOG_FATAL(SDL3Window, "Failed to initialize SDL: {}", SDL_GetError());
+    }
+
     // Get initial keyboards
     int kb_count = 0;
     SDL_KeyboardID* keyboards = SDL_GetKeyboards(&kb_count);
@@ -44,7 +51,16 @@ DeviceList::DeviceList() {
     SDL_AddEventWatch(EWWrapper, this);
 }
 
-DeviceList::~DeviceList() { SDL_RemoveEventWatch(EWWrapper, this); }
+DeviceList::~DeviceList() {
+    SDL_RemoveEventWatch(EWWrapper, this);
+    SDL_QuitSubSystem(SDL_INIT_GAMEPAD);
+}
+
+void DeviceList::PumpEvents() {
+    // If there is no frontend event loop, events must be pumped manually
+    if (!has_frontend)
+        SDL_PumpEvents();
+}
 
 void DeviceList::EventWatcher(SDL_Event* e) {
     switch (e->type) {

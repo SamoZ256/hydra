@@ -7,7 +7,7 @@ namespace hydra::input::apple_gc {
 class DeviceList : public IDeviceList {
   public:
     DeviceList();
-    ~DeviceList();
+    ~DeviceList() override;
 
     void AddController(id controller);
     void RemoveController(id controller);

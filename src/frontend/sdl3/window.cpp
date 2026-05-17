@@ -6,12 +6,8 @@
 namespace hydra::frontend::sdl3 {
 
 Context::Context() {
-    u32 flags = CONFIG_INSTANCE.GetInputBackend() == InputBackend::Sdl
-                    ? SDL_INIT_VIDEO | SDL_INIT_GAMEPAD
-                    : SDL_INIT_VIDEO;
-    if (!SDL_Init(flags)) {
-        LOG_FATAL(SDL3Window, "Failed to initialize SDL3: {}", SDL_GetError());
-        return;
+    if (!SDL_InitSubSystem(SDL_INIT_VIDEO)) {
+        LOG_FATAL(SDL3Window, "Failed to initialize SDL: {}", SDL_GetError());
     }
 }
 
@@ -26,7 +22,6 @@ Window::Window(int argc, const char* argv[]) : system(*this) {
                                      &window, &renderer)) {
         LOG_FATAL(SDL3Window, "Failed to create window/renderer: {}",
                   SDL_GetError());
-        return;
     }
 
     // Parse arguments

@@ -12,6 +12,8 @@ class DeviceManager {
   public:
     DeviceManager();
 
+    void PumpEvents() { device_list->PumpEvents(); }
+
     NpadState PollNpad(horizon::services::hid::internal::NpadIndex index);
     std::map<u32, TouchState> PollTouch();
 

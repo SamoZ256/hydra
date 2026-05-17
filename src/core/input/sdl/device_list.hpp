@@ -8,11 +8,14 @@ namespace hydra::input::sdl {
 class DeviceList : public IDeviceList {
   public:
     DeviceList();
-    ~DeviceList();
+    ~DeviceList() override;
+
+    void PumpEvents() override;
 
     void EventWatcher(SDL_Event* e);
 
   private:
+    bool has_frontend; // Indicates whether the an SDL frontend is used
     u32 keyboard_count;
 
     // Helpers

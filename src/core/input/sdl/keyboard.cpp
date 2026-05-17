@@ -7,8 +7,7 @@ namespace hydra::input::sdl {
 bool Keyboard::IsPressedImpl(Key key) {
 #define KEY_CASE(key, sdl_key)                                                 \
     case Key::key:                                                             \
-        return st[sdl_key];                                                    \
-        break;
+        return st[sdl_key];
 
     const bool* st = SDL_GetKeyboardState(nullptr);
 

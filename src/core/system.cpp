@@ -459,6 +459,9 @@ void System::Resume() {
 
 void System::ProgressFrame(u32 width, u32 height,
                            bool& out_dt_average_updated) {
+    // Pump input events
+    input_device_manager.PumpEvents();
+
     // Set the resolution for OS
     os.SetSurfaceResolution({width, height});
 

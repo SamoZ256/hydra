@@ -11,6 +11,8 @@ class IDeviceList {
             delete device;
     }
 
+    virtual void PumpEvents() {}
+
     void AddDevice(std::string_view name, IDevice* device) {
         std::scoped_lock lock(mutex);
         const auto res = devices.emplace(name, device);
