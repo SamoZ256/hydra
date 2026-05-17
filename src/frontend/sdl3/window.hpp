@@ -10,6 +10,12 @@ using Native = hydra::frontend::native::cocoa::Native;
 
 namespace hydra::frontend::sdl3 {
 
+class Context {
+  public:
+    Context();
+    ~Context();
+};
+
 class Window : public horizon::ui::IHandler {
   public:
     Window(int argc, const char* argv[]);
@@ -28,6 +34,8 @@ class Window : public horizon::ui::IHandler {
                          std::string& out_text) override;
 
   private:
+    Context context;
+
     SDL_Window* window;
     SDL_Renderer* renderer;
 

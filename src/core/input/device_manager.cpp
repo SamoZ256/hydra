@@ -17,16 +17,16 @@ IDeviceList* CreateDeviceList() {
 #if HYDRA_SDL_ENABLED
         return new sdl::DeviceList();
 #else
-        LOG_FATAL(Other, "SDL not supported");
+        LOG_FATAL(Input, "SDL not supported");
 #endif
     case InputBackend::AppleGameController:
 #ifdef PLATFORM_APPLE
         return new apple_gc::DeviceList();
 #else
-        LOG_FATAL(Other, "Apple GameController not supported");
+        LOG_FATAL(Input, "Apple GameController not supported");
 #endif
     default:
-        LOG_FATAL(Other, "Unknown input backend {}", input_backend);
+        LOG_FATAL(Input, "Unknown input backend {}", input_backend);
     }
 }
 
