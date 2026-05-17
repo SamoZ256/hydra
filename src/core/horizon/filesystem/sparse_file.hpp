@@ -11,7 +11,7 @@ struct SparseFileEntry {
 
 class SparseFile : public IFile {
   public:
-    SparseFile(std::span<SparseFileEntry> entries_, usize size_) : size{size_} {
+    SparseFile(std::span<SparseFileEntry> entries_, u64 size_) : size{size_} {
         // Sort the entries by offset
         entries.assign(entries_.begin(), entries_.end());
         std::sort(entries.begin(), entries.end(),
@@ -92,11 +92,11 @@ class SparseFile : public IFile {
         return new io::OwnedSparseStream(std::move(streams), size);
     }
 
-    usize GetSize() const override { return size; }
+    u64 GetSize() const override { return size; }
 
   private:
     std::vector<SparseFileEntry> entries;
-    usize size;
+    u64 size;
 };
 
 } // namespace hydra::horizon::filesystem

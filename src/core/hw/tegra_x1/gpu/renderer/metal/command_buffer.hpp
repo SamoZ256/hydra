@@ -23,13 +23,13 @@ struct EncoderRenderState {
     MTL::CullMode cull_mode{MTL::CullModeNone};
     MTL::Winding front_face_winding{MTL::WindingClockwise};
     std::array<std::array<MtlBufferState, BUFFER_COUNT>,
-               usize(ShaderType::Count)>
+               static_cast<usize>(ShaderType::Count)>
         buffers{};
     std::array<std::array<MTL::Texture*, TEXTURE_COUNT>,
-               usize(ShaderType::Count)>
+               static_cast<usize>(ShaderType::Count)>
         textures{};
     std::array<std::array<MTL::SamplerState*, TEXTURE_COUNT>,
-               usize(ShaderType::Count)>
+               static_cast<usize>(ShaderType::Count)>
         samplers{};
 };
 

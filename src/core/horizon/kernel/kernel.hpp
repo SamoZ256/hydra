@@ -64,14 +64,14 @@ class Kernel {
     }
 
     // SVCs
-    result_t SetHeapSize(Process* crnt_process, usize size, uptr& out_base);
-    result_t SetMemoryPermission(uptr addr, usize size, MemoryPermission perm);
-    result_t SetMemoryAttribute(Process* crnt_process, vaddr_t addr, usize size,
+    result_t SetHeapSize(Process* crnt_process, u64 size, uptr& out_base);
+    result_t SetMemoryPermission(uptr addr, u64 size, MemoryPermission perm);
+    result_t SetMemoryAttribute(Process* crnt_process, vaddr_t addr, u64 size,
                                 MemoryAttribute mask, MemoryAttribute value);
     result_t MapMemory(Process* crnt_process, uptr dst_addr, uptr src_addr,
-                       usize size);
+                       u64 size);
     result_t UnmapMemory(Process* crnt_process, uptr dst_addr, uptr src_addr,
-                         usize size);
+                         u64 size);
     result_t QueryMemory(Process* crnt_process, uptr addr,
                          MemoryInfo& out_mem_info, u32& out_page_info);
     void ExitProcess(Process* crnt_process);
@@ -90,9 +90,9 @@ class Kernel {
     result_t SignalEvent(Event* event);
     result_t ClearEvent(Event* event);
     result_t MapSharedMemory(Process* crnt_process, SharedMemory* shmem,
-                             uptr addr, usize size, MemoryPermission perm);
+                             uptr addr, u64 size, MemoryPermission perm);
     result_t UnmapSharedMemory(Process* crnt_process, SharedMemory* shmem,
-                               uptr addr, usize size);
+                               uptr addr, u64 size);
     result_t CreateTransferMemory(uptr addr, u64 size, MemoryPermission perm,
                                   TransferMemory*& out_tmem);
     result_t CloseHandle(Process* crnt_process, handle_id_t handle_id);
@@ -116,11 +116,11 @@ class Kernel {
     result_t SendSyncRequest(Process* crnt_process, IThread* crnt_thread,
                              hipc::ClientSession* client_session);
     result_t GetThreadId(IThread* thread, u64& out_thread_id);
-    result_t Break(BreakReason reason, uptr buffer_ptr, usize buffer_size);
-    result_t OutputDebugString(const std::string_view str, usize len);
+    result_t Break(BreakReason reason, uptr buffer_ptr, u64 buffer_size);
+    result_t OutputDebugString(const std::string_view str, u64 len);
     result_t GetInfo(Process* crnt_process, InfoType info_type, AutoObject* obj,
                      u64 info_sub_type, u64& out_info);
-    result_t MapPhysicalMemory(Process* crnt_process, vaddr_t addr, usize size);
+    result_t MapPhysicalMemory(Process* crnt_process, vaddr_t addr, u64 size);
     result_t SetThreadActivity(IThread* thread, ThreadActivity activity);
     result_t GetThreadContext3(IThread* thread,
                                ThreadContext& out_thread_context);

@@ -553,14 +553,14 @@ void Renderer::BindDrawState(CommandBuffer* command_buffer) {
     // Resources
     for (u32 i = 0; i < VERTEX_ARRAY_COUNT; i++)
         SetVertexBuffer(command_buffer, i);
-    for (u32 shader_type = 0; shader_type < usize(ShaderType::Count);
-         shader_type++) {
+    for (u32 shader_type = 0;
+         shader_type < static_cast<usize>(ShaderType::Count); shader_type++) {
         for (u32 i = 0; i < CONST_BUFFER_BINDING_COUNT; i++)
             SetUniformBuffer(command_buffer, ShaderType(shader_type), i);
     }
     // TODO: storage buffers
-    for (u32 shader_type = 0; shader_type < usize(ShaderType::Count);
-         shader_type++) {
+    for (u32 shader_type = 0;
+         shader_type < static_cast<usize>(ShaderType::Count); shader_type++) {
         for (u32 i = 0; i < TEXTURE_COUNT; i++)
             SetTexture(command_buffer, ShaderType(shader_type), i);
     }

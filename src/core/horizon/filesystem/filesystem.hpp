@@ -19,7 +19,7 @@ class Filesystem {
                                     const std::string_view host_path,
                                     bool add_intermediate = false);
     [[nodiscard]] FsResult CreateFile(const std::string_view path,
-                                      usize size = invalid<usize>(),
+                                      u64 size = invalid<u64>(),
                                       bool add_intermediate = false);
     [[nodiscard]] FsResult CreateDirectory(const std::string_view path,
                                            bool add_intermediate = false);

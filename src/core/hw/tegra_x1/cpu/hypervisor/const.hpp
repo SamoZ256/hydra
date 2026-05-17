@@ -6,7 +6,7 @@
 
 namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
-constexpr usize APPLE_PAGE_SIZE = 0x4000;
+constexpr u64 APPLE_PAGE_SIZE = 0x4000;
 
 constexpr u64 PAGE_TABLE_RESERVED_SIZE = 0x01000000;
 constexpr paddr_t KERNEL_PAGE_TABLE_REGION_BASE = 0x100000000;
@@ -57,7 +57,7 @@ enum class AllocateVmMemoryError {
     AllocationFailed,
 };
 
-inline uptr AllocateVmMemory(usize size) {
+inline uptr AllocateVmMemory(u64 size) {
     ASSERT_ALIGNMENT(size, APPLE_PAGE_SIZE, Hypervisor, "size")
 
     void* ptr;

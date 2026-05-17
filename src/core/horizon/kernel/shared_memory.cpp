@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::kernel {
 
-SharedMemory::SharedMemory(hw::tegra_x1::cpu::ICpu& cpu, usize size,
+SharedMemory::SharedMemory(hw::tegra_x1::cpu::ICpu& cpu, u64 size,
                            const std::string_view debug_name)
     : AutoObject(debug_name) {
     memory = cpu.AllocateMemory(size);

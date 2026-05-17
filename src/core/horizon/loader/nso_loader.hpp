@@ -33,10 +33,10 @@ class NsoLoader : public LoaderBase {
     const bool is_entry_point;
 
     u32 text_offset;
-    usize executable_size{0};
+    u64 executable_size{0};
     struct {
         Segment seg;
-        usize file_size;
+        u64 file_size;
         bool compressed;
     } segments[3];
     u32 dyn_str_offset;

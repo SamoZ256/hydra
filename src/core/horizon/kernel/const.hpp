@@ -14,7 +14,7 @@ constexpr Range<vaddr_t> EXECUTABLE_REGION =
     Range<vaddr_t>(0x40000000, 0x80000000);
 constexpr Range<vaddr_t> HEAP_REGION = Range<vaddr_t>(0x100000000, 0x200000000);
 
-constexpr usize HEAP_MEM_ALIGNMENT = 0x200000;
+constexpr u64 HEAP_MEM_ALIGNMENT = 0x200000;
 
 constexpr i64 INFINITE_TIMEOUT = -1;
 

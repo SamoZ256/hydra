@@ -42,12 +42,12 @@ class Process : public SynchronizationObject {
     ~Process() override;
 
     // Memory
-    uptr CreateMemory(Range<vaddr_t> region, usize size, MemoryType type,
+    uptr CreateMemory(Range<vaddr_t> region, u64 size, MemoryType type,
                       MemoryPermission perm, vaddr_t& out_base);
     uptr CreateExecutableMemory(const std::string_view module_name,
                                 CodeSet code_set, vaddr_t& out_base);
     hw::tegra_x1::cpu::IMemory* CreateTlsMemory(vaddr_t& base);
-    void CreateStackMemory(usize stack_size);
+    void CreateStackMemory(u64 stack_size);
 
     // Thread
     handle_id_t SetMainThread(GuestThread* thread) {

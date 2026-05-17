@@ -12,7 +12,7 @@ namespace hydra::horizon::loader {
 
 namespace {
 
-constexpr usize STACK_MEMORY_SIZE = 0x40000;
+constexpr u64 STACK_MEMORY_SIZE = 0x40000;
 
 enum class ConfigEntryType : u32 {
     EndOfList = 0,
@@ -64,11 +64,11 @@ class HomebrewThread : public kernel::GuestThread {
         static constexpr char NOTICE_TEXT[] =
             "Hydra Nintendo Switch emulator - Homebrew loader";
 
-        static constexpr usize NOTICE_TEXT_SIZE = 0x100;
-        static constexpr usize RETURN_ADDRESS_SIZE = sizeof(u32);
-        static constexpr usize USER_ID_STORAGE_SIZE = sizeof(u128);
-        static constexpr usize ARGV_SIZE = 0x800;
-        static constexpr usize NEXT_LOAD_PATH_SIZE = 0x200;
+        static constexpr u64 NOTICE_TEXT_SIZE = 0x100;
+        static constexpr u64 RETURN_ADDRESS_SIZE = sizeof(u32);
+        static constexpr u64 USER_ID_STORAGE_SIZE = sizeof(u128);
+        static constexpr u64 ARGV_SIZE = 0x800;
+        static constexpr u64 NEXT_LOAD_PATH_SIZE = 0x200;
 
         static constexpr u32 NOTICE_TEXT_OFFSET = 0x0;
         static constexpr u32 RETURN_ADDRESS_OFFSET =

@@ -30,7 +30,7 @@ Page PageAllocator::GetNextPage() {
 void PageAllocator::Allocate(usize page_count) {
     page_count = align(page_count, PAGE_COUNT_ALIGNMENT);
 
-    const usize size = page_count * GUEST_PAGE_SIZE;
+    const u64 size = page_count * GUEST_PAGE_SIZE;
     uptr ptr = AllocateVmMemory(size);
 
     const paddr_t pa = base_pa + current_page * GUEST_PAGE_SIZE;

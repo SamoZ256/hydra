@@ -9,7 +9,7 @@ namespace hydra::horizon::services::pl::internal {
 
 struct FontState {
     u32 shared_memory_offset{0};
-    usize size{0};
+    u64 size{0};
 };
 
 class SharedFontManager {

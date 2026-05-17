@@ -154,7 +154,7 @@ DEFINE_SERVICE_COMMAND_TABLE(IAudioRenderer, 4, RequestUpdate, 5, Start, 6,
                              10, RequestUpdateAuto)
 
 IAudioRenderer::IAudioRenderer(const AudioRendererParameters& params_,
-                               const usize work_buffer_size_)
+                               const u64 work_buffer_size_)
     : params{params_}, work_buffer_size{work_buffer_size_},
       event{new kernel::Event(false, "IAudioRenderer event")} {
     voices.resize(params.voice_count);

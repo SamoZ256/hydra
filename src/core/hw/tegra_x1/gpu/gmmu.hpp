@@ -11,7 +11,7 @@ namespace hydra::hw::tegra_x1::gpu {
 
 struct AddressSpace {
     uptr ptr;
-    usize size;
+    u64 size;
 };
 
 // TODO: free memory
@@ -19,7 +19,7 @@ class GMmu : public GenericMmu<GMmu, AddressSpace> {
   public:
     GMmu(cpu::IMmu* mmu_) : mmu{mmu_} {}
 
-    usize ImplGetSize(const AddressSpace& as) const { return as.size; }
+    u64 ImplGetSize(const AddressSpace& as) const { return as.size; }
 
     AddressSpace& UnmapAddrToAddressSpace(uptr gpu_addr) {
         uptr base;
@@ -41,7 +41,7 @@ class GMmu : public GenericMmu<GMmu, AddressSpace> {
     // Address space
     uptr CreateAddressSpace(Range<vaddr_t> range, uptr gpu_addr);
 
-    uptr AllocatePrivateAddressSpace(usize size, uptr gpu_addr) {
+    uptr AllocatePrivateAddressSpace(u64 size, uptr gpu_addr) {
         return CreateAddressSpace(Range<vaddr_t>::FromSize(0x0, size),
                                   gpu_addr);
     }
@@ -52,7 +52,7 @@ class GMmu : public GenericMmu<GMmu, AddressSpace> {
 
     // TODO
     /*
-    void ModifyAddressSpace(uptr ptr, usize size, uptr gpu_addr) {
+    void ModifyAddressSpace(uptr ptr, u64 size, uptr gpu_addr) {
         auto& as = UnmapAddrToAddressSpace(gpu_addr);
         ASSERT_DEBUG(size == as.size, Gpu, "Size mismatch: {} != {}", size,
                      as.size)

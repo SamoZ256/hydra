@@ -38,7 +38,7 @@ class FileAdapter : public filesystem::IFile {
         return new StreamAdapter(plugin, plugin.FileOpen(handle));
     }
 
-    usize GetSize() const override { return plugin.FileGetSize(handle); }
+    u64 GetSize() const override { return plugin.FileGetSize(handle); }
 
   private:
     Plugin& plugin;

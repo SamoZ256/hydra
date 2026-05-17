@@ -32,7 +32,7 @@ Process::~Process() {
     DEBUGGER_MANAGER_INSTANCE.DetachDebugger(this);
 }
 
-uptr Process::CreateMemory(Range<vaddr_t> region, usize size, MemoryType type,
+uptr Process::CreateMemory(Range<vaddr_t> region, u64 size, MemoryType type,
                            MemoryPermission perm, vaddr_t& out_base) {
     out_base = mmu->FindFreeMemory(region, size);
     ASSERT(out_base != 0x0, Kernel, "Failed to find free memory");
@@ -87,7 +87,7 @@ hw::tegra_x1::cpu::IMemory* Process::CreateTlsMemory(vaddr_t& base) {
     return mem;
 }
 
-void Process::CreateStackMemory(usize stack_size) {
+void Process::CreateStackMemory(u64 stack_size) {
     // main_thread = new GuestThread(this, STACK_REGION.begin + stack_size -
     // 0x10, priority); auto handle_id = AddHandle(main_thread);
 

@@ -6,7 +6,7 @@ namespace hydra::horizon::services::timesrv::internal {
 
 namespace {
 
-constexpr usize SHARED_MEMORY_SIZE = 0x1000;
+constexpr u64 SHARED_MEMORY_SIZE = 0x1000;
 
 constexpr u32 STEADY_CLOCK_CONTEXT_OFFSET = 0x00;
 constexpr u32 LOCAL_SYSTEM_CLOCK_CONTEXT_OFFSET = 0x38;

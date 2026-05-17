@@ -33,7 +33,7 @@ class NroLoader : public LoaderBase {
 
     uptr executable_ptr{invalid<uptr>()};
     vaddr_t executable_base{invalid<vaddr_t>()};
-    usize executable_size{0};
+    u64 executable_size{0};
 
     void TryLoadAssetSection(filesystem::IFile* file);
 

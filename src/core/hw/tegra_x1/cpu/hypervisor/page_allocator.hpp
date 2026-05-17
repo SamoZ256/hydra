@@ -11,7 +11,7 @@ struct Page {
 
 struct Allocation {
     uptr ptr;
-    usize page_count;
+    u64 page_count;
 };
 
 constexpr usize PAGE_COUNT_ALIGNMENT = 4;

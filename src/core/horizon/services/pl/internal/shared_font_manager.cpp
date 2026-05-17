@@ -11,7 +11,7 @@ namespace hydra::horizon::services::pl::internal {
 
 namespace {
 
-constexpr usize SHARED_MEMORY_SIZE = 0x01100000;
+constexpr u64 SHARED_MEMORY_SIZE = 0x01100000;
 
 struct SharedFontName {
     std::string_view name;

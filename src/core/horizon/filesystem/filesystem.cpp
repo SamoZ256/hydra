@@ -72,7 +72,7 @@ FsResult Filesystem::AddEntry(const std::string_view path,
     return device.AddEntry(entry_path, host_path, add_intermediate);
 }
 
-FsResult Filesystem::CreateFile(const std::string_view path, usize size,
+FsResult Filesystem::CreateFile(const std::string_view path, u64 size,
                                 bool add_intermediate) {
     GET_MOUNT(path);
 

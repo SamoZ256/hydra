@@ -55,7 +55,7 @@ void Mmu::Protect(Range<vaddr_t> range,
     }
 }
 
-void Mmu::ResizeHeap(IMemory* heap_mem, vaddr_t va, usize size) {
+void Mmu::ResizeHeap(IMemory* heap_mem, vaddr_t va, u64 size) {
     auto mem_impl = static_cast<Memory*>(heap_mem);
 
     mem_impl->Resize(size);

@@ -21,7 +21,7 @@ class Mmu : public IMmu {
     void Protect(Range<vaddr_t> range,
                  horizon::kernel::MemoryPermission perm) override;
 
-    void ResizeHeap(IMemory* heap_mem, vaddr_t va, usize size) override;
+    void ResizeHeap(IMemory* heap_mem, vaddr_t va, u64 size) override;
 
     uptr UnmapAddr(vaddr_t va) const override;
     MemoryRegion QueryRegion(vaddr_t va) const override;

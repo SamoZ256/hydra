@@ -10,9 +10,9 @@ class FileView : public IFile {
         SizeTooLarge,
     };
 
-    FileView(IFile* base_, u64 offset_, usize size_ = invalid<usize>())
+    FileView(IFile* base_, u64 offset_, u64 size_ = invalid<u64>())
         : base{base_}, offset{offset_}, size{size_} {
-        if (size == invalid<usize>())
+        if (size == invalid<u64>())
             size = base->GetSize() - offset;
         else
             ASSERT_THROWING(size <= base->GetSize() - offset, Filesystem,
@@ -26,12 +26,12 @@ class FileView : public IFile {
         return new io::OwnedStreamView(base->Open(flags), offset, size);
     }
 
-    usize GetSize() const override { return size; }
+    u64 GetSize() const override { return size; }
 
   private:
     IFile* base;
     u64 offset;
-    usize size;
+    u64 size;
 
   public:
     GETTER(base, GetBase);

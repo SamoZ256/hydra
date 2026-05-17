@@ -10,7 +10,7 @@ NspLoader::NspLoader(const filesystem::PartitionFilesystem& pfs_) : pfs(pfs_) {
     // HACK: find the largest one
     struct {
         filesystem::IFile* file;
-        usize size;
+        u64 size;
     } largest_entry{nullptr, 0};
     for (const auto& [filename, entry] : pfs.GetEntries()) {
         auto file = dynamic_cast<filesystem::IFile*>(entry);

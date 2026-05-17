@@ -50,12 +50,12 @@ struct NsoHeader {
 };
 
 void read_segment(io::IStream* stream, uptr executable_mem_ptr,
-                  const Segment& segment, const usize segment_file_size,
+                  const Segment& segment, const u64 segment_file_size,
                   bool is_compressed) {
     // Skip
     stream->SeekTo(segment.file_offset);
 
-    usize file_size = (is_compressed ? segment_file_size : segment.size);
+    u64 file_size = (is_compressed ? segment_file_size : segment.size);
 
     if (is_compressed) {
         // Decompress
@@ -80,7 +80,7 @@ struct ArgData {
 };
 
 // TODO: what should this be?
-constexpr usize ARG_DATA_SIZE = 0x9000;
+constexpr u64 ARG_DATA_SIZE = 0x9000;
 
 } // namespace
 
@@ -108,8 +108,8 @@ NsoLoader::NsoLoader(filesystem::IFile* file_, const std::string_view name_,
     // Determine executable memory size
     for (u32 i = 0; i < 3; i++) {
         executable_size = std::max(
-            executable_size, static_cast<usize>(segments[i].seg.memory_offset +
-                                                segments[i].seg.size));
+            executable_size, static_cast<u64>(segments[i].seg.memory_offset +
+                                              segments[i].seg.size));
     }
     LOG_DEBUG(Loader,
               "NSO: 0x{:08x} + 0x{:08x}, 0x{:08x} + 0x{:08x}, 0x{:08x} + "

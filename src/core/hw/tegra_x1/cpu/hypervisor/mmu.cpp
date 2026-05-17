@@ -128,7 +128,7 @@ void Mmu::Protect(Range<vaddr_t> range,
 }
 
 // TODO: just improve this...
-void Mmu::ResizeHeap(IMemory* heap_mem, vaddr_t va, usize size) {
+void Mmu::ResizeHeap(IMemory* heap_mem, vaddr_t va, u64 size) {
     (void)heap_mem;
 
     const auto region = user_page_table.QueryRegion(va);

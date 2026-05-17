@@ -37,7 +37,7 @@ class IMmu {
                          horizon::kernel::MemoryPermission perm) = 0;
 
     virtual void ResizeHeap(IMemory* heap_mem, vaddr_t va,
-                            usize size) = 0; // TODO: remove this
+                            u64 size) = 0; // TODO: remove this
 
     virtual uptr UnmapAddr(vaddr_t va) const = 0;
     virtual MemoryRegion QueryRegion(vaddr_t va) const = 0;
@@ -46,7 +46,7 @@ class IMmu {
                                     horizon::kernel::MemoryAttribute value) = 0;
 
     horizon::kernel::MemoryInfo QueryMemory(vaddr_t va) const;
-    vaddr_t FindFreeMemory(Range<vaddr_t> region, usize size) const;
+    vaddr_t FindFreeMemory(Range<vaddr_t> region, u64 size) const;
 
     // Write tracking
     void EnableWriteTracking(Range<vaddr_t> range) {

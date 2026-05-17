@@ -20,7 +20,7 @@ IThread* Cpu::CreateThread(WallClock& wall_clock, IMmu* mmu,
     return new Thread(wall_clock, mmu, callbacks, tls_mem, tls_mem_base);
 }
 
-IMemory* Cpu::AllocateMemory(usize size) {
+IMemory* Cpu::AllocateMemory(u64 size) {
     size = align(size, GUEST_PAGE_SIZE);
     auto memory = new Memory(size);
 

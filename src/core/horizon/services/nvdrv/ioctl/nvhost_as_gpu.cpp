@@ -30,7 +30,7 @@ NvResult NvHostAsGpu::AllocSpace(kernel::Process* process, u32 pages,
         gpu_addr = align_and_offset; // TODO: is it really align?
 
     align_and_offset = process->GetGMmu()->AllocatePrivateAddressSpace(
-        static_cast<usize>(pages) * static_cast<usize>(page_size), gpu_addr);
+        static_cast<u64>(pages) * static_cast<u64>(page_size), gpu_addr);
     return NvResult::Success;
 }
 
@@ -65,7 +65,7 @@ NvResult NvHostAsGpu::MapBufferEX(System* system, kernel::Process* process,
 
     const auto& map = system->GetGpu().GetMap(nvmap_handle_id);
 
-    usize size = mapping_size;
+    u64 size = mapping_size;
     if (size == 0x0)
         size = map.size; // TODO: correct?
 

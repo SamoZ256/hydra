@@ -622,7 +622,7 @@ renderer::ShaderBase* ThreeD::GetShaderUnchecked(ShaderStage stage) const {
 }
 
 renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) {
-    const auto& program = regs.shader_programs[usize(stage)];
+    const auto& program = regs.shader_programs[static_cast<usize>(stage)];
     if (!program.config.enable)
         return nullptr;
 

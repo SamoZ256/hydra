@@ -33,7 +33,7 @@ DiskFile::~DiskFile() {
     //}
 }
 
-void DiskFile::Resize(usize new_size) {
+void DiskFile::Resize(u64 new_size) {
     ASSERT(is_mutable, Filesystem, "Immutable file cannot be resized");
 
     // size = new_size;
@@ -63,7 +63,7 @@ io::IStream* DiskFile::Open(FileOpenFlags flags) {
     return new DiskStream(path, std_flags);
 }
 
-usize DiskFile::GetSize() const {
+u64 DiskFile::GetSize() const {
     // return size;
     return std::filesystem::file_size(path);
 }

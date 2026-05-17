@@ -25,7 +25,7 @@ struct HusrHeader {
 
 #define DEFAULT_AVATAR_IMAGE_PATH ""
 #define SYSTEM_AVATARS_PATH "$SYSTEM_AVATARS"
-constexpr usize AVATAR_UNCOMPRESSED_IMAGE_SIZE = 0x40000;
+constexpr u64 AVATAR_UNCOMPRESSED_IMAGE_SIZE = 0x40000;
 constexpr u32 AVATAR_IMAGE_DIMENSIONS = 256;
 
 static void jpg_to_memory(void* context, void* data, int len) {
@@ -326,7 +326,7 @@ void UserManager::PreloadAvatar(Avatar& avatar, bool is_compressed) {
         avatar.dimensions = static_cast<u32>(width);
 
         // TODO: avoid intermediate copy
-        usize size = avatar.dimensions * avatar.dimensions * 4;
+        u64 size = avatar.dimensions * avatar.dimensions * 4;
         avatar.data.resize(size);
         std::memcpy(avatar.data.data(), pixels, size);
         stbi_image_free(pixels);

@@ -33,10 +33,10 @@ struct State {
     engines::IndexType index_type{engines::IndexType::None};
     std::array<BufferView, VERTEX_ARRAY_COUNT> vertex_buffers{};
     std::array<std::array<BufferView, CONST_BUFFER_BINDING_COUNT>,
-               usize(ShaderType::Count)>
+               static_cast<usize>(ShaderType::Count)>
         uniform_buffers{};
     std::array<std::array<CombinedTextureSampler, TEXTURE_BINDING_COUNT>,
-               usize(ShaderType::Count)>
+               static_cast<usize>(ShaderType::Count)>
         textures{};
     // TODO: images
 };

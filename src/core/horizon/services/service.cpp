@@ -86,8 +86,7 @@ void IService::HandleRequest(System& system, kernel::Process* caller_process,
     if (should_respond) {
         // HIPC header
 #define GET_ARRAY_SIZE(stream)                                                 \
-    static_cast<u32>(align(streams.stream.GetSeek(), static_cast<usize>(4)) /  \
-                     sizeof(u32))
+    static_cast<u32>(align(streams.stream.GetSeek(), 4ull) / sizeof(u32))
 
 #define WRITE_ARRAY(stream, ptr)                                               \
     if (ptr) {                                                                 \

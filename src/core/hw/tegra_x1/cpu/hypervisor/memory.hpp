@@ -7,7 +7,7 @@ namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 class Memory : public IMemory {
   public:
-    Memory(usize size) : IMemory(size) { Allocate(); }
+    Memory(u64 size) : IMemory(size) { Allocate(); }
     ~Memory() override { Free(); }
 
     uptr GetPtr() const override { return ptr; }
@@ -22,7 +22,7 @@ class Memory : public IMemory {
     uptr ptr;
 
     // Helpers
-    usize GetSizeAligned() const { return align(GetSize(), APPLE_PAGE_SIZE); }
+    u64 GetSizeAligned() const { return align(GetSize(), APPLE_PAGE_SIZE); }
 
     void Allocate() {
         const auto size = GetSizeAligned();

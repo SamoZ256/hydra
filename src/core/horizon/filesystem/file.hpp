@@ -14,7 +14,7 @@ class IFile : public IEntry {
         return FsResult::Success;
     }
 
-    virtual void Resize(usize new_size) {
+    virtual void Resize(u64 new_size) {
         LOG_FATAL(Filesystem, "File cannot be resized (size: 0x{:x})",
                   new_size);
     }
@@ -22,7 +22,7 @@ class IFile : public IEntry {
 
     virtual io::IStream* Open(FileOpenFlags flags) = 0;
 
-    virtual usize GetSize() const = 0;
+    virtual u64 GetSize() const = 0;
 
     void Save(std::string_view host_path) const override;
 

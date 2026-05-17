@@ -355,8 +355,7 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
     }
 }
 
-result_t Kernel::SetHeapSize(Process* crnt_process, usize size,
-                             uptr& out_base) {
+result_t Kernel::SetHeapSize(Process* crnt_process, u64 size, uptr& out_base) {
     LOG_DEBUG(Kernel, "SetHeapSize called (size: 0x{:08x})", size);
 
     if ((size % HEAP_MEM_ALIGNMENT) != 0)
@@ -380,7 +379,7 @@ result_t Kernel::SetHeapSize(Process* crnt_process, usize size,
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::SetMemoryPermission(uptr addr, usize size,
+result_t Kernel::SetMemoryPermission(uptr addr, u64 size,
                                      MemoryPermission perm) {
     LOG_DEBUG(
         Kernel,
@@ -396,7 +395,7 @@ result_t Kernel::SetMemoryPermission(uptr addr, usize size,
 }
 
 result_t Kernel::SetMemoryAttribute(Process* crnt_process, vaddr_t addr,
-                                    usize size, MemoryAttribute mask,
+                                    u64 size, MemoryAttribute mask,
                                     MemoryAttribute value) {
     LOG_DEBUG(
         Kernel,
@@ -411,7 +410,7 @@ result_t Kernel::SetMemoryAttribute(Process* crnt_process, vaddr_t addr,
 }
 
 result_t Kernel::MapMemory(Process* crnt_process, uptr dst_addr, uptr src_addr,
-                           usize size) {
+                           u64 size) {
     LOG_DEBUG(Kernel,
               "MapMemory called (dst_addr: 0x{:08x}, src_addr: 0x{:08x}, size: "
               "0x{:08x})",
@@ -424,7 +423,7 @@ result_t Kernel::MapMemory(Process* crnt_process, uptr dst_addr, uptr src_addr,
 }
 
 result_t Kernel::UnmapMemory(Process* crnt_process, uptr dst_addr,
-                             uptr src_addr, usize size) {
+                             uptr src_addr, u64 size) {
     LOG_DEBUG(
         Kernel,
         "UnmapMemory called (dst_addr: 0x{:08x}, src_addr: 0x{:08x}, size: "
@@ -583,7 +582,7 @@ result_t Kernel::ClearEvent(Event* event) {
 }
 
 result_t Kernel::MapSharedMemory(Process* crnt_process, SharedMemory* shmem,
-                                 uptr addr, usize size, MemoryPermission perm) {
+                                 uptr addr, u64 size, MemoryPermission perm) {
     LOG_DEBUG(Kernel,
               "MapSharedMemory called (handle: {}, addr: 0x{:08x}, size: "
               "0x{:08x}, perm: {})",
@@ -596,7 +595,7 @@ result_t Kernel::MapSharedMemory(Process* crnt_process, SharedMemory* shmem,
 }
 
 result_t Kernel::UnmapSharedMemory(Process* crnt_process, SharedMemory* shmem,
-                                   uptr addr, usize size) {
+                                   uptr addr, u64 size) {
     (void)shmem;
 
     LOG_DEBUG(Kernel,
@@ -922,7 +921,7 @@ result_t Kernel::GetThreadId(IThread* thread, u64& out_thread_id) {
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::Break(BreakReason reason, uptr buffer_ptr, usize buffer_size) {
+result_t Kernel::Break(BreakReason reason, uptr buffer_ptr, u64 buffer_size) {
     LOG_DEBUG(Kernel,
               "Break called (reason: {}, buffer ptr: 0x{:08x}, buffer "
               "size: 0x{:08x})",
@@ -954,7 +953,7 @@ result_t Kernel::Break(BreakReason reason, uptr buffer_ptr, usize buffer_size) {
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::OutputDebugString(const std::string_view str, usize len) {
+result_t Kernel::OutputDebugString(const std::string_view str, u64 len) {
     LOG_DEBUG(Kernel, "OutputDebugString called");
     if (len != 0) {
         // TODO: handle differently
@@ -998,7 +997,7 @@ result_t Kernel::GetInfo(Process* crnt_process, InfoType info_type,
     case InfoType::UsedMemorySize: {
         // TODO: correct?
         /*
-        usize size = stack_mem->GetSize() + kernel_mem->GetSize() +
+        u64 size = stack_mem->GetSize() + kernel_mem->GetSize() +
                      tls_mem->GetSize() + heap_mem->GetSize();
         for (auto executable_mem : executable_memories)
             size += executable_mem->GetSize();
@@ -1071,7 +1070,7 @@ result_t Kernel::GetInfo(Process* crnt_process, InfoType info_type,
 }
 
 result_t Kernel::MapPhysicalMemory(Process* crnt_process, vaddr_t addr,
-                                   usize size) {
+                                   u64 size) {
     LOG_DEBUG(Kernel,
               "MapPhysicalMemory called (addr: 0x{:08x}, size: 0x{:08x})", addr,
               size);

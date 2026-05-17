@@ -38,18 +38,18 @@ class DiskFile : public IFile {
     DiskFile(const std::string_view path_, bool is_mutable_ = false);
     ~DiskFile() override;
 
-    void Resize(usize new_size) override;
+    void Resize(u64 new_size) override;
     void Flush() override;
 
     io::IStream* Open(FileOpenFlags flags) override;
 
-    usize GetSize() const override;
+    u64 GetSize() const override;
 
   private:
     std::string path;
     bool is_mutable;
 
-    // usize size;
+    // u64 size;
 
     void DeleteImpl() override;
 };

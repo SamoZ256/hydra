@@ -14,7 +14,7 @@ result_t IStorageAccessor::Write(i64 offset,
     ASSERT_DEBUG(offset >= 0, Services, "Offset must be >= 0");
 
     // TODO: correct?
-    const usize size = data.GetSize() - static_cast<u64>(offset);
+    const u64 size = data.GetSize() - static_cast<u64>(offset);
 
     const auto span = buffer.stream->ReadSpan<u8>(size);
     std::copy(span.begin(), span.end(), data.GetPtrU8() + offset);
@@ -26,7 +26,7 @@ result_t IStorageAccessor::Read(i64 offset,
     ASSERT_DEBUG(offset >= 0, Services, "Offset must be >= 0");
 
     // TODO: correct?
-    const usize size = data.GetSize() - static_cast<u64>(offset);
+    const u64 size = data.GetSize() - static_cast<u64>(offset);
 
     out_buffer.stream->WriteSpan(
         std::span<const u8>(data.GetPtrU8() + offset, size));

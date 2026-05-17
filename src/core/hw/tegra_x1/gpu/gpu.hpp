@@ -21,7 +21,7 @@ class ICommandBuffer;
 
 struct MemoryMap {
     uptr addr = 0;
-    usize size;
+    u64 size;
     bool write;
     // TODO: alignment
     // TODO: kind
@@ -37,7 +37,7 @@ class Gpu {
     Gpu();
 
     // Memory map
-    u32 CreateMap(usize size) {
+    u32 CreateMap(u64 size) {
         handle_id_t handle_id = memory_maps.AllocateHandle();
         MemoryMap& memory_map = memory_maps.Get(handle_id);
         memory_map = {};

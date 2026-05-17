@@ -48,7 +48,7 @@ horizon::kernel::MemoryInfo IMmu::QueryMemory(vaddr_t va) const {
     return info;
 }
 
-vaddr_t IMmu::FindFreeMemory(Range<vaddr_t> region, usize size) const {
+vaddr_t IMmu::FindFreeMemory(Range<vaddr_t> region, u64 size) const {
     size = align(size, GUEST_PAGE_SIZE);
     auto crnt_region = Range<vaddr_t>::FromSize(region.GetBegin(), size);
     while (region.Contains(crnt_region)) {

@@ -9,7 +9,7 @@ namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 namespace {
 
-constexpr usize KERNEL_MEM_SIZE = 0x1000;
+constexpr u64 KERNEL_MEM_SIZE = 0x1000;
 
 const u32 exception_handler[] = {
     0xd41fffe2u, // hvc #0xFFFF
@@ -96,6 +96,6 @@ IThread* Cpu::CreateThread(WallClock& wall_clock, IMmu* mmu,
     return new Thread(wall_clock, *this, mmu, callbacks, tls_mem, tls_mem_base);
 }
 
-IMemory* Cpu::AllocateMemory(usize size) { return new Memory(size); }
+IMemory* Cpu::AllocateMemory(u64 size) { return new Memory(size); }
 
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor

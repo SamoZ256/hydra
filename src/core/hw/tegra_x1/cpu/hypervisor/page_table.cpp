@@ -190,7 +190,7 @@ paddr_t PageTable::UnmapAddr(vaddr_t va) const {
 }
 
 void PageTable::MapLevel(PageTableLevel& level, vaddr_t va, paddr_t pa,
-                         usize size, const horizon::kernel::MemoryState state,
+                         u64 size, const horizon::kernel::MemoryState state,
                          ApFlags ap_flags) {
     vaddr_t end_va = va + size;
     do {
@@ -206,8 +206,7 @@ void PageTable::MapLevel(PageTableLevel& level, vaddr_t va, paddr_t pa,
 }
 
 void PageTable::MapLevelNext(PageTableLevel& level, vaddr_t va, paddr_t pa,
-                             usize size,
-                             const horizon::kernel::MemoryState state,
+                             u64 size, const horizon::kernel::MemoryState state,
                              ApFlags ap_flags) {
     // LOG_DEBUG(Hypervisor,
     //           "Level: {}, va: 0x{:08x}, pa: 0x{:08x}, size: 0x{:08x}",
