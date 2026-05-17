@@ -1,5 +1,11 @@
 import SwiftUI
 
+#if HYDRA_DEBUG
+let debugLoggingEnabled = true
+#else
+let debugLoggingEnabled = false
+#endif
+
 struct DebugSettingsView: View {
     @State private var logOutput: HydraLogOutput = HYDRA_LOG_OUTPUT_INVALID
     @State private var logFsAccess = false
@@ -37,6 +43,7 @@ struct DebugSettingsView: View {
                         }
 
                     Toggle("Debug logging", isOn: self.$debugLogging)
+                        .disabled(!debugLoggingEnabled)
                         .onChange(of: self.debugLogging) { _, newValue in
                             hydraConfigGetDebugLogging().pointee = newValue
                         }
@@ -56,14 +63,16 @@ struct DebugSettingsView: View {
                         .onChange(of: self.gdbEnabled) { _, newValue in
                             hydraConfigGetGdbEnabled().pointee = newValue
                         }
-                    TextField("Port", value: self.$gdbPort, formatter: NumberFormatter())
-                        .onChange(of: self.gdbPort) { _, newValue in
-                            hydraConfigGetGdbPort().pointee = newValue
-                        }
-                    Toggle("Wait for client", isOn: self.$gdbWaitForClient)
-                        .onChange(of: self.gdbWaitForClient) { _, newValue in
-                            hydraConfigGetGdbWaitForClient().pointee = newValue
-                        }
+                    if (self.gdbEnabled) {
+                        TextField("Port", value: self.$gdbPort, formatter: NumberFormatter())
+                            .onChange(of: self.gdbPort) { _, newValue in
+                                hydraConfigGetGdbPort().pointee = newValue
+                            }
+                        Toggle("Wait for client", isOn: self.$gdbWaitForClient)
+                            .onChange(of: self.gdbWaitForClient) { _, newValue in
+                                hydraConfigGetGdbWaitForClient().pointee = newValue
+                            }
+                    }
                 }
             }
             .formStyle(.grouped)

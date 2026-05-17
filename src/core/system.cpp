@@ -32,11 +32,11 @@
 #include "core/hw/tegra_x1/gpu/renderer/texture_view.hpp"
 #include "core/input/device_manager.hpp"
 
-#if HYDRA_HYPERVISOR_ENABLED
+#ifdef HYDRA_HYPERVISOR_ENABLED
 #include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 #endif
 
-#if HYDRA_CUBEB_ENABLED
+#ifdef HYDRA_CUBEB_ENABLED
 #include "core/audio/cubeb/core.hpp"
 #endif
 
@@ -50,7 +50,7 @@ constexpr auto STARTUP_MOVIE_BREAK_AFTER_FADE_IN_DURATION = 200ms;
 hw::tegra_x1::cpu::ICpu* CreateCpu() {
     switch (CONFIG_INSTANCE.GetCpuBackend()) {
     case CpuBackend::AppleHypervisor:
-#if HYDRA_HYPERVISOR_ENABLED
+#ifdef HYDRA_HYPERVISOR_ENABLED
         return new hw::tegra_x1::cpu::hypervisor::Cpu();
 #else
         LOG_FATAL(Other, "Apple Hypervisor not supported");
@@ -69,7 +69,7 @@ audio::ICore* CreateAudioCore() {
     case AudioBackend::Null:
         return new audio::null::Core();
     case AudioBackend::Cubeb:
-#if HYDRA_CUBEB_ENABLED
+#ifdef HYDRA_CUBEB_ENABLED
         return new audio::cubeb::Core();
 #else
         LOG_FATAL(Other, "cubeb not supported");

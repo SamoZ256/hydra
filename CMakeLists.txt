@@ -150,15 +150,11 @@ target_compile_options(hydra_warnings INTERFACE
 include_directories(externals/metal-cpp externals/dynarmic externals/stb)
 
 if (HYPERVISOR_ENABLED)
-    add_compile_definitions(HYDRA_HYPERVISOR_ENABLED=1)
-else ()
-    add_compile_definitions(HYDRA_HYPERVISOR_ENABLED=0)
+    add_compile_definitions(HYDRA_HYPERVISOR_ENABLED)
 endif ()
 
 if (CUBEB_ENABLED)
-    add_compile_definitions(HYDRA_CUBEB_ENABLED=1)
-else ()
-    add_compile_definitions(HYDRA_CUBEB_ENABLED=0)
+    add_compile_definitions(HYDRA_CUBEB_ENABLED)
 endif ()
 
 if (APPLE)
@@ -166,7 +162,7 @@ if (APPLE)
 endif ()
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_definitions(-DHYDRA_DEBUG)
+    add_compile_definitions(HYDRA_DEBUG)
 endif ()
 
 add_subdirectory(src)

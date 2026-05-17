@@ -120,7 +120,7 @@ class Config {
         return {"Default", "", "", "", "", "", "", "", "", ""};
     }
     CpuBackend GetDefaultCpuBackend() const {
-#if HYDRA_HYPERVISOR_ENABLED
+#ifdef HYDRA_HYPERVISOR_ENABLED
         return CpuBackend::AppleHypervisor;
 #else
         return CpuBackend::Dynarmic;
@@ -131,7 +131,7 @@ class Config {
     Resolution GetDefaultDisplayResolution() const { return Resolution::Auto; }
     uint2 GetDefaultCustomDisplayResolution() const { return {1920, 1080}; }
     AudioBackend GetDefaultAudioBackend() const {
-#if HYDRA_CUBEB_ENABLED
+#ifdef HYDRA_CUBEB_ENABLED
         return AudioBackend::Cubeb;
 #else
         return AudioBackend::Null;
