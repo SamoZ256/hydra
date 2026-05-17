@@ -13,6 +13,9 @@ class IDeviceList {
             delete device;
     }
 
+  protected:
+    bool HasDevice(std::string_view name) { return devices.contains(name); }
+
     void AddDevice(std::string_view name, IDevice* device) {
         const auto res = devices.emplace(name, device);
         ASSERT(res.second, Input, "{} already connected", name);
@@ -20,7 +23,7 @@ class IDeviceList {
     }
 
     void RemoveDevice(std::string_view name) {
-        const auto it = devices.find(std::string(name));
+        const auto it = devices.find(name);
         ASSERT(it != devices.end(), Input, "{} not connected", name);
         delete it->second;
         devices.erase(it);
@@ -28,7 +31,7 @@ class IDeviceList {
     }
 
   private:
-    std::map<std::string, IDevice*> devices;
+    std::map<std::string, IDevice*, std::less<>> devices;
 };
 
 } // namespace hydra::input

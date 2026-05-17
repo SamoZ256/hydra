@@ -9,6 +9,11 @@ class DeviceList : public IDeviceList {
     DeviceList();
     ~DeviceList();
 
+    void _AddController(id controller);
+    void _RemoveController(id controller);
+    void _AddKeyboard(id keyboard);
+    void _RemoveKeyboard(id keyboard);
+
   private:
     id impl;
 };
