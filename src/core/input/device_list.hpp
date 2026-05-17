@@ -5,24 +5,21 @@
 namespace hydra::input {
 
 class IDeviceList {
-    friend class DeviceManager;
-
   public:
     virtual ~IDeviceList() {
         for (auto [name, device] : devices)
             delete device;
     }
 
-  protected:
-    bool HasDevice(std::string_view name) { return devices.contains(name); }
-
     void AddDevice(std::string_view name, IDevice* device) {
+        std::scoped_lock lock(mutex);
         const auto res = devices.emplace(name, device);
         ASSERT(res.second, Input, "{} already connected", name);
         LOG_INFO(Input, "Device connected: {}", name);
     }
 
     void RemoveDevice(std::string_view name) {
+        std::scoped_lock lock(mutex);
         const auto it = devices.find(name);
         ASSERT(it != devices.end(), Input, "{} not connected", name);
         delete it->second;
@@ -30,8 +27,20 @@ class IDeviceList {
         LOG_INFO(Input, "Device disconnected: {}", name);
     }
 
+    IDevice* GetDevice(std::string_view name) {
+        auto it = devices.find(name);
+        if (it == devices.end())
+            return nullptr;
+
+        return it->second;
+    }
+
   private:
+    std::mutex mutex;
     std::map<std::string, IDevice*, std::less<>> devices;
+
+  public:
+    REF_GETTER(mutex, GetMutex);
 };
 
 } // namespace hydra::input

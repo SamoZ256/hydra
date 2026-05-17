@@ -45,13 +45,13 @@ using DeviceList = hydra::input::apple_gc::DeviceList;
         if (@available(macOS 11.0, iOS 14.0, tvOS 14.0, *)) {
             GCKeyboard* keyboard = [GCKeyboard coalescedKeyboard];
             if (keyboard) {
-                self.parent->_AddKeyboard(keyboard);
+                self.parent->AddKeyboard(keyboard);
             }
         }
 
         // Connected controllers
         for (GCController* controller in [GCController controllers]) {
-            self.parent->_AddController(controller);
+            self.parent->AddController(controller);
         }
     }
 
@@ -66,23 +66,23 @@ using DeviceList = hydra::input::apple_gc::DeviceList;
 - (void)controllerConnected:(NSNotification*)notification {
     GCController* controller =
         reinterpret_cast<GCController*>(notification.object);
-    _parent->_AddController(controller);
+    _parent->AddController(controller);
 }
 
 - (void)controllerDisconnected:(NSNotification*)notification {
     GCController* controller =
         reinterpret_cast<GCController*>(notification.object);
-    _parent->_RemoveController(controller);
+    _parent->RemoveController(controller);
 }
 
 - (void)keyboardConnected:(NSNotification*)notification {
     GCKeyboard* keyboard = reinterpret_cast<GCKeyboard*>(notification.object);
-    _parent->_AddKeyboard(keyboard);
+    _parent->AddKeyboard(keyboard);
 }
 
 - (void)keyboardDisconnected:(NSNotification*)notification {
     GCKeyboard* keyboard = reinterpret_cast<GCKeyboard*>(notification.object);
-    _parent->_RemoveKeyboard(keyboard);
+    _parent->RemoveKeyboard(keyboard);
 }
 
 @end
@@ -103,23 +103,19 @@ DeviceList::DeviceList() {
 
 DeviceList::~DeviceList() { [impl release]; }
 
-void DeviceList::_AddController(id controller) {
-    const auto name = GetDeviceName(controller);
-    if (!HasDevice(name))
-        AddDevice(name, new Controller(controller));
+void DeviceList::AddController(id controller) {
+    AddDevice(GetDeviceName(controller), new Controller(controller));
 }
 
-void DeviceList::_RemoveController(id controller) {
+void DeviceList::RemoveController(id controller) {
     RemoveDevice(GetDeviceName(controller));
 }
 
-void DeviceList::_AddKeyboard(id keyboard) {
-    const auto name = GetDeviceName(keyboard);
-    if (!HasDevice(name))
-        AddDevice(name, new Keyboard(keyboard));
+void DeviceList::AddKeyboard(id keyboard) {
+    AddDevice(GetDeviceName(keyboard), new Keyboard(keyboard));
 }
 
-void DeviceList::_RemoveKeyboard(id keyboard) {
+void DeviceList::RemoveKeyboard(id keyboard) {
     RemoveDevice(GetDeviceName(keyboard));
 }
 
