@@ -41,7 +41,7 @@ cmake . -B build -G Ninja -DMACOS_BUNDLE=ON
 ninja -C build
 ```
 
-You will find a macOS app at `build/bin/Hydra.app`. If you want to use the SwiftUI frontend instead of `SDL3`, you can use the `-DFRONTEND=SwiftUI` option.
+You will find a macOS app at `build/bin/Hydra.app`. If you want to use the SwiftUI frontend instead of `SDL3`, you can use the `-DFRONTEND=SwiftUI` option, Note: SwiftUI requires MacOS 15+
 
 ### Configuring
 
