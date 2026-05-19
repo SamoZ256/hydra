@@ -93,7 +93,7 @@ Gpu::GetTexture(renderer::ICommandBuffer* command_buffer, cpu::IMmu* mmu,
                        plane.offset),
         renderer::TextureType::_2D,
         renderer::to_texture_format(plane.color_format), is_linear, plane.pitch,
-        plane.width, plane.height, 1, 1, 0x0, plane.block_height_log2, 0x0,
+        plane.width, plane.height, 1, 1, 0x0, plane.block_height_gobs_log2, 0x0,
         static_cast<u32>(plane.size));
 
     return renderer->GetTextureCache().Find(command_buffer, descriptor,

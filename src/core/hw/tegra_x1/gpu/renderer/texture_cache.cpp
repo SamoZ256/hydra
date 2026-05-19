@@ -435,7 +435,7 @@ void TextureCache::DecodeTexture(ICommandBuffer* command_buffer,
                 get_texture_format_stride(descriptor.format, descriptor.width),
                 64u),
             descriptor.layer_count * descriptor.depth * descriptor.height,
-            descriptor.block_height_log2, in_data, out_data);
+            descriptor.block_height_gobs_log2, in_data, out_data);
     }
 
     storage.base->CopyFrom(command_buffer, tmp_buffer);

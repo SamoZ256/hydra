@@ -14,16 +14,16 @@ struct MemoryLayout {
     u32 vertical_blocks;
 };
 
-MemoryLayout GetMemoryLayout(u32 stride, u32 rows, u32 block_height_log2) {
+MemoryLayout GetMemoryLayout(u32 stride, u32 rows, u32 block_height_gobs_log2) {
     MemoryLayout layout;
-    layout.block_height_gobs = 1 << block_height_log2;
+    layout.block_height_gobs = 1 << block_height_gobs_log2;
     layout.block_height = layout.block_height_gobs * GOB_HEIGHT;
 
     layout.horizontal_gobs = align(stride, GOB_WIDTH) >> GOB_WIDTH_LOG2;
     layout.horizontal_blocks =
-        layout.horizontal_gobs; // GOBs = blocks (horizontally)
+        layout.horizontal_gobs; // Blocks = GOBs (horizontally)
     layout.vertical_gobs = align(rows, layout.block_height) >> GOB_HEIGHT_LOG2;
-    layout.vertical_blocks = layout.vertical_gobs >> block_height_log2;
+    layout.vertical_blocks = layout.vertical_gobs >> block_height_gobs_log2;
 
     return layout;
 }
@@ -36,9 +36,10 @@ uint2 UnswizzleGobCoords(u32 index) {
 
 } // namespace
 
-void ConvertBlockLinearToLinear(u32 stride, u32 rows, u32 block_height_log2,
-                                const u8* in_data, WriteGobFn write_fn) {
-    const auto layout = GetMemoryLayout(stride, rows, block_height_log2);
+void ConvertBlockLinearToLinear(u32 stride, u32 rows,
+                                u32 block_height_gobs_log2, const u8* in_data,
+                                WriteGobFn write_fn) {
+    const auto layout = GetMemoryLayout(stride, rows, block_height_gobs_log2);
     u32 gob_index = 0;
     for (u32 block_y = 0; block_y < layout.vertical_blocks; block_y++) {
         for (u32 block_x = 0; block_x < layout.horizontal_blocks; block_x++) {
@@ -61,7 +62,7 @@ void ConvertBlockLinearToLinear(u32 stride, u32 rows, u32 block_height_log2,
                 }
 
                 write_fn(out_gob, block_x,
-                         (block_y << block_height_log2) + gob_y, 0,
+                         (block_y << block_height_gobs_log2) + gob_y, 0,
                          layout.horizontal_gobs, layout.vertical_gobs);
 
                 gob_index++;
@@ -70,10 +71,11 @@ void ConvertBlockLinearToLinear(u32 stride, u32 rows, u32 block_height_log2,
     }
 }
 
-void ConvertBlockLinearToLinear(u32 stride, u32 rows, u32 block_height_log2,
-                                const u8* in_data, u8* out_data) {
+void ConvertBlockLinearToLinear(u32 stride, u32 rows,
+                                u32 block_height_gobs_log2, const u8* in_data,
+                                u8* out_data) {
     ConvertBlockLinearToLinear(
-        stride, rows, block_height_log2, in_data,
+        stride, rows, block_height_gobs_log2, in_data,
         [=](const u8* in_gob, u32 gob_x, u32 gob_y, u32 gob_z,
             u32 horizontal_gobs, u32 vertical_gobs) {
             (void)gob_z;
@@ -87,9 +89,10 @@ void ConvertBlockLinearToLinear(u32 stride, u32 rows, u32 block_height_log2,
         });
 }
 
-void ConvertLinearToBlockLinear(u32 stride, u32 rows, u32 block_height_log2,
-                                ReadGobFn read_fn, u8* out_data) {
-    const auto layout = GetMemoryLayout(stride, rows, block_height_log2);
+void ConvertLinearToBlockLinear(u32 stride, u32 rows,
+                                u32 block_height_gobs_log2, ReadGobFn read_fn,
+                                u8* out_data) {
+    const auto layout = GetMemoryLayout(stride, rows, block_height_gobs_log2);
     for (u32 block_y = 0; block_y < layout.vertical_blocks; block_y++) {
         for (u32 block_x = 0; block_x < layout.horizontal_blocks; block_x++) {
             for (u32 gob_y = 0; gob_y < layout.block_height_gobs; gob_y++) {
@@ -102,7 +105,7 @@ void ConvertLinearToBlockLinear(u32 stride, u32 rows, u32 block_height_log2,
                 }
 
                 u8 gob[GOB_SIZE];
-                read_fn(block_x, (block_y << block_height_log2) + gob_y, 0,
+                read_fn(block_x, (block_y << block_height_gobs_log2) + gob_y, 0,
                         layout.horizontal_gobs, layout.vertical_gobs, gob);
 
                 u8* out_gob = out_data + y * stride + x;
@@ -117,10 +120,11 @@ void ConvertLinearToBlockLinear(u32 stride, u32 rows, u32 block_height_log2,
     }
 }
 
-void ConvertLinearToBlockLinear(u32 stride, u32 rows, u32 block_height_log2,
-                                const u8* in_data, u8* out_data) {
+void ConvertLinearToBlockLinear(u32 stride, u32 rows,
+                                u32 block_height_gobs_log2, const u8* in_data,
+                                u8* out_data) {
     ConvertLinearToBlockLinear(
-        stride, rows, block_height_log2,
+        stride, rows, block_height_gobs_log2,
         [=](u32 gob_x, u32 gob_y, u32 gob_z, u32 horizontal_gobs,
             u32 vertical_gobs, u8* out_gob) {
             (void)gob_z;

@@ -103,7 +103,7 @@ renderer::TextureBase* Copy::GetTexture(const u32 gpu_addr_lo,
         .kind = NvKind::Pitch,                   // TODO: correct?
         .width = info.stride,                    // HACK
         .height = info.height,                   // HACK
-        .block_height_log2 = 0,                  // TODO
+        .block_height_gobs_log2 = 0,                  // TODO
         .stride = info.stride,
     };
     LOG_DEBUG(Engines, "COPYING: {}x{}", descriptor.width, descriptor.height);

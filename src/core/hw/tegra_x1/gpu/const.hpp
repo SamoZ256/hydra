@@ -692,7 +692,7 @@ struct NvSurface {
                 // completely unused/overwritten during marshalling
     u32 offset;
     NvKind kind;
-    u32 block_height_log2;
+    u32 block_height_gobs_log2;
     NvDisplayScanFormat scan;
     u32 second_field_offset;
     u64 flags;

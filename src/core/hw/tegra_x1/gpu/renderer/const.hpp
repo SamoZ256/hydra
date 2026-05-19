@@ -220,17 +220,16 @@ struct TextureDescriptor {
     u32 depth;
     u32 level_count;
     u32 layer_count;
-    u32 block_width_log2;
-    u32 block_height_log2;
-    u32 block_depth_log2;
+    u32 block_width_gobs_log2;
+    u32 block_height_gobs_log2;
+    u32 block_depth_gobs_log2;
     u32 layer_size;
 
-    static TextureDescriptor
-    CreateWithLevelCount(uptr ptr, TextureType type, TextureFormat format,
-                         bool is_linear, u32 linear_stride, u32 width,
-                         u32 height, u32 depth, u32 level_count,
-                         u32 layer_count, u32 block_width_log2,
-                         u32 block_height_log2, u32 block_depth_log2) {
+    static TextureDescriptor CreateWithLevelCount(
+        uptr ptr, TextureType type, TextureFormat format, bool is_linear,
+        u32 linear_stride, u32 width, u32 height, u32 depth, u32 level_count,
+        u32 layer_count, u32 block_width_gobs_log2, u32 block_height_gobs_log2,
+        u32 block_depth_gobs_log2) {
         TextureDescriptor d;
         d.ptr = ptr;
         d.type = type;
@@ -242,9 +241,9 @@ struct TextureDescriptor {
         d.depth = depth;
         d.level_count = level_count;
         d.layer_count = layer_count;
-        d.block_width_log2 = block_width_log2;
-        d.block_height_log2 = block_height_log2;
-        d.block_depth_log2 = block_depth_log2;
+        d.block_width_gobs_log2 = block_width_gobs_log2;
+        d.block_height_gobs_log2 = block_height_gobs_log2;
+        d.block_depth_gobs_log2 = block_depth_gobs_log2;
 
         d.CalculateLayerSize();
         return d;
@@ -254,8 +253,8 @@ struct TextureDescriptor {
     CreateWithLayerSize(uptr ptr, TextureType type, TextureFormat format,
                         bool is_linear, u32 linear_stride, u32 width,
                         u32 height, u32 depth, u32 layer_count,
-                        u32 block_width_log2, u32 block_height_log2,
-                        u32 block_depth_log2, u32 layer_size = 0) {
+                        u32 block_width_gobs_log2, u32 block_height_gobs_log2,
+                        u32 block_depth_gobs_log2, u32 layer_size = 0) {
         TextureDescriptor d;
         d.ptr = ptr;
         d.type = type;
@@ -266,9 +265,9 @@ struct TextureDescriptor {
         d.height = height;
         d.depth = depth;
         d.layer_count = layer_count;
-        d.block_width_log2 = block_width_log2;
-        d.block_height_log2 = block_height_log2;
-        d.block_depth_log2 = block_depth_log2;
+        d.block_width_gobs_log2 = block_width_gobs_log2;
+        d.block_height_gobs_log2 = block_height_gobs_log2;
+        d.block_depth_gobs_log2 = block_depth_gobs_log2;
         d.layer_size = layer_size;
 
         d.CalculateLevelCount();
