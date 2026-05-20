@@ -325,8 +325,8 @@ void TextureCache::Update(ICommandBuffer* command_buffer,
                                    TextureType::_3D) { // Both 3D
                         const auto slice_size =
                             descriptor.height *
-                            align(get_texture_format_stride(descriptor.format,
-                                                            descriptor.width),
+                            align(GetTextureFormatStride(descriptor.format,
+                                                         descriptor.width),
                                   64u); // TODO: calculate properly
 
                         // Z
@@ -353,8 +353,8 @@ void TextureCache::Update(ICommandBuffer* command_buffer,
                                    TextureType::_2D) { // HACK: special case
                         const auto slice_size =
                             descriptor.height *
-                            align(get_texture_format_stride(descriptor.format,
-                                                            descriptor.width),
+                            align(GetTextureFormatStride(descriptor.format,
+                                                         descriptor.width),
                                   64u); // TODO: calculate properly
 
                         // Z
@@ -407,7 +407,7 @@ u32 TextureCache::GetDataHash(const ITexture* texture) {
     constexpr u32 SAMPLE_COUNT = 37;
 
     const auto& descriptor = texture->GetDescriptor();
-    u64 mem_range = descriptor.GetSize();
+    u64 mem_range = descriptor.size;
     u64 mem_step = std::max(mem_range / SAMPLE_COUNT, 1ull);
 
     HashCode hash;
@@ -421,26 +421,68 @@ void TextureCache::DecodeTexture(ICommandBuffer* command_buffer,
                                  TextureStorage& storage) {
     const auto& descriptor = storage.base->GetDescriptor();
 
-    auto tmp_buffer = renderer.AllocateTemporaryBuffer(descriptor.GetSize());
+    // Calculate size
+    u32 size = 0;
+    for (u32 level = 0; level < descriptor.level_count; level++) {
+        const auto dims = descriptor.GetLevelDimensions(level);
+        const u32 stride = GetTextureFormatStride(descriptor.format, dims.x());
+        const u32 rows = GetTextureFormatRows(descriptor.format, dims.y());
+        const u32 slice_stride = rows * stride;
+        size += dims.z() * slice_stride;
+    }
+    size *= descriptor.layer_count;
+
+    // Allocate temporary buffer
+    auto tmp_buffer = renderer.AllocateTemporaryBuffer(size);
 
     const u8* in_data = reinterpret_cast<const u8*>(descriptor.ptr);
     u8* out_data = reinterpret_cast<u8*>(tmp_buffer->GetPtr());
     if (descriptor.is_linear) {
-        std::memcpy(out_data, in_data, descriptor.GetSize());
+        const u32 stride =
+            GetTextureFormatStride(descriptor.format, descriptor.width);
+        const u32 rows =
+            GetTextureFormatRows(descriptor.format, descriptor.height);
+        for (u32 row = 0; row < rows; row++) {
+            std::memcpy(out_data + row * stride,
+                        in_data + row * descriptor.linear_stride, stride);
+        }
     } else {
-        const auto& format_info = GetTextureFormatInfo(descriptor.format);
+        u32 offset = 0;
         for (u32 layer = 0; layer < descriptor.layer_count; layer++) {
-            u32 level_offset = layer * descriptor.layer_size;
             for (u32 level = 0; level < descriptor.level_count; level++) {
+                // Calculate sizes
                 const auto dims = descriptor.GetLevelDimensions(level);
+                const u32 stride =
+                    GetTextureFormatStride(descriptor.format, dims.x());
+                const u32 rows =
+                    GetTextureFormatRows(descriptor.format, dims.y());
+                const u32 slice_stride = rows * stride;
+
+                // Convert
                 ConvertBlockLinearToLinear(
-                    dims.x() * format_info.bytes_per_block /
-                        format_info.block_width,
-                    dims.y() / format_info.block_height, dims.z(),
-                    descriptor.block_height_gobs_log2,
-                    descriptor.block_depth_gobs_log2, in_data + level_offset,
-                    out_data + level_offset);
-                level_offset += descriptor.GetLevelSize(level);
+                    stride, rows, dims.z(), descriptor.block_height_gobs_log2,
+                    descriptor.block_depth_gobs_log2, in_data + offset,
+                    [=](const u8* in_gob, u32 gob_x, u32 gob_y, u32 gob_z,
+                        u32 horizontal_gobs, u32 vertical_gobs) {
+                        (void)horizontal_gobs;
+                        (void)vertical_gobs;
+
+                        const u32 x = gob_x * GOB_WIDTH;
+                        for (u32 local_y = 0; local_y < GOB_HEIGHT; local_y++) {
+                            const u32 y = gob_y * GOB_HEIGHT + local_y;
+                            if (y >= rows)
+                                break;
+
+                            const u32 crnt_offset =
+                                offset + gob_z * slice_stride + y * stride + x;
+                            std::memcpy(out_data + crnt_offset,
+                                        in_gob + local_y * GOB_WIDTH,
+                                        std::min(GOB_WIDTH, stride - x));
+                        }
+                    });
+
+                // Add offset
+                offset += dims.z() * slice_stride;
             }
         }
     }

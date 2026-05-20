@@ -374,17 +374,28 @@ TextureFormat to_texture_format(DepthSurfaceFormat depth_surface_format) {
 #undef DEPTH_SURFACE_FORMAT_CASE
 }
 
+u32 GetTextureFormatStride(const TextureFormat format, u32 width) {
+    const auto& info = GetTextureFormatInfo(format);
+    return ceil_divide(width, info.block_width) * info.bytes_per_block;
+}
+
+u32 GetTextureFormatRows(const TextureFormat format, u32 height) {
+    const auto& info = GetTextureFormatInfo(format);
+    return ceil_divide(height, info.block_height);
+}
+
+u32 GetTextureFormatSliceStride(const TextureFormat format, u32 width,
+                                u32 height) {
+    return GetTextureFormatRows(format, height) *
+           GetTextureFormatStride(format, width);
+}
+
 u32 get_texture_format_bpp(const TextureFormat format) {
     const auto& info = GetTextureFormatInfo(format);
     if (info.block_width != 1 || info.block_height != 1)
         throw GetTextureFormatBppError::UnsupportedFormatForBpp;
 
     return info.bytes_per_block;
-}
-
-u32 get_texture_format_stride(const TextureFormat format, u32 width) {
-    const auto& info = GetTextureFormatInfo(format);
-    return ceil_divide(width, info.block_width) * info.bytes_per_block;
 }
 
 bool is_texture_format_compressed(const TextureFormat format) {
@@ -658,49 +669,35 @@ uint3 TextureDescriptor::GetLevelDimensions(u32 level) const {
 
 u32 TextureDescriptor::GetLevelOffset(u32 level) const {
     u32 offset = 0;
-    for (u32 l = 0; l < level; l++) {
+    for (u32 l = 0; l < level; l++)
         offset += GetLevelSize(l);
-    }
 
     return offset;
 }
 
-// TODO: correct?
 u32 TextureDescriptor::GetLevelSize(u32 level) const {
-    const auto& format_info = GetTextureFormatInfo(format);
-
     const u32 block_width = GOB_WIDTH << block_width_gobs_log2;
     const u32 block_height = GOB_HEIGHT << block_height_gobs_log2;
     const u32 block_depth = 1u << block_depth_gobs_log2;
 
-    const auto level_dims = GetLevelDimensions(level);
+    const auto dims = GetLevelDimensions(level);
 
-    const u32 dim_x = align(level_dims.x() * format_info.bytes_per_block /
-                                format_info.block_width,
-                            block_width);
-    const u32 dim_y =
-        align(level_dims.y() / format_info.block_height, block_height);
-    const u32 dim_z = align(level_dims.z(), block_depth);
+    const u32 stride =
+        align(GetTextureFormatStride(format, dims.x()), block_width);
+    const u32 rows =
+        align(GetTextureFormatRows(format, dims.y()), block_height);
+    const u32 slices = align(dims.z(), block_depth);
 
-    return dim_z * dim_y * dim_x;
+    return slices * rows * stride;
 }
 
-void TextureDescriptor::CalculateLayerSize() {
+u32 TextureDescriptor::GetLayerSize() const {
     if (is_linear) {
-        // HACK
-        layer_size = depth * align(height, 16u) * linear_stride;
+        return height * linear_stride;
     } else {
-        layer_size = GetLevelOffset(level_count);
+        u32 layer_size_ = GetLevelOffset(level_count);
         // TODO: align
-    }
-}
-
-void TextureDescriptor::CalculateLevelCount() {
-    level_count = 0;
-
-    u32 size = 0;
-    while (size < layer_size) {
-        size += GetLevelSize(level_count++);
+        return layer_size_;
     }
 }
 

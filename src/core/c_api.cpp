@@ -1164,5 +1164,5 @@ hydra_texture_descriptor_get_size(const void* descriptor) {
     return static_cast<
                const hydra::hw::tegra_x1::gpu::renderer::TextureDescriptor*>(
                descriptor)
-        ->GetSize();
+        ->size;
 }

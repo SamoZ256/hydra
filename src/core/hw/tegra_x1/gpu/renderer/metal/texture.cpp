@@ -66,22 +66,27 @@ void Texture::CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
 
     auto encoder = command_buffer_impl->GetBlitCommandEncoder();
 
-    // TODO: bytes per image
-    // TODO: don't align
-    const auto stride = align(
-        get_texture_format_stride(descriptor.format, descriptor.width), 64u);
+    u32 offset = 0;
     for (u32 layer = dst_layers.GetBegin(); layer < dst_layers.GetEnd();
          layer++) {
         for (u32 level = dst_levels.GetBegin(); level < dst_levels.GetEnd();
              level++) {
+            // Calculate sizes
+            const auto dims = descriptor.GetLevelDimensions(level);
+            const auto stride =
+                GetTextureFormatStride(descriptor.format, dims.x());
+            const auto slice_stride = GetTextureFormatSliceStride(
+                descriptor.format, dims.x(), dims.y());
+
+            // Copy
             encoder->copyFromBuffer(
-                mtl_src,
-                layer * descriptor.layer_size +
-                    /*descriptor.GetLevelOffset(level)*/ 0,
-                stride, descriptor.height * stride,
+                mtl_src, offset, stride, slice_stride,
                 MTL::Size(dst_size.x(), dst_size.y(), dst_size.z()), texture,
                 layer, level,
                 MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
+
+            // Add offset
+            offset += dims.z() * slice_stride;
         }
     }
 }

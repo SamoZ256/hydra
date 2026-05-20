@@ -172,8 +172,11 @@ enum class GetTextureFormatBppError {
     UnsupportedFormatForBpp,
 };
 
+u32 GetTextureFormatStride(const TextureFormat format, u32 width);
+u32 GetTextureFormatRows(const TextureFormat format, u32 height);
+u32 GetTextureFormatSliceStride(const TextureFormat format, u32 width,
+                                u32 height);
 u32 get_texture_format_bpp(const TextureFormat format);
-u32 get_texture_format_stride(const TextureFormat format, u32 width);
 bool is_texture_format_compressed(const TextureFormat format);
 bool is_texture_format_depth_or_stencil(const TextureFormat format);
 
@@ -224,66 +227,32 @@ struct TextureDescriptor {
     u32 block_height_gobs_log2;
     u32 block_depth_gobs_log2;
     u32 layer_size;
+    u32 size;
 
-    static TextureDescriptor CreateWithLevelCount(
-        uptr ptr, TextureType type, TextureFormat format, bool is_linear,
-        u32 linear_stride, u32 width, u32 height, u32 depth, u32 level_count,
-        u32 layer_count, u32 block_width_gobs_log2, u32 block_height_gobs_log2,
-        u32 block_depth_gobs_log2) {
-        TextureDescriptor d;
-        d.ptr = ptr;
-        d.type = type;
-        d.format = format;
-        d.is_linear = is_linear;
-        d.linear_stride = linear_stride;
-        d.width = width;
-        d.height = height;
-        d.depth = depth;
-        d.level_count = level_count;
-        d.layer_count = layer_count;
-        d.block_width_gobs_log2 = block_width_gobs_log2;
-        d.block_height_gobs_log2 = block_height_gobs_log2;
-        d.block_depth_gobs_log2 = block_depth_gobs_log2;
-
-        d.CalculateLayerSize();
-        return d;
-    }
-
-    static TextureDescriptor
-    CreateWithLayerSize(uptr ptr, TextureType type, TextureFormat format,
-                        bool is_linear, u32 linear_stride, u32 width,
-                        u32 height, u32 depth, u32 layer_count,
-                        u32 block_width_gobs_log2, u32 block_height_gobs_log2,
-                        u32 block_depth_gobs_log2, u32 layer_size) {
-        TextureDescriptor d;
-        d.ptr = ptr;
-        d.type = type;
-        d.format = format;
-        d.is_linear = is_linear;
-        d.linear_stride = linear_stride;
-        d.width = width;
-        d.height = height;
-        d.depth = depth;
-        d.layer_count = layer_count;
-        d.block_width_gobs_log2 = block_width_gobs_log2;
-        d.block_height_gobs_log2 = block_height_gobs_log2;
-        d.block_depth_gobs_log2 = block_depth_gobs_log2;
-        d.layer_size = layer_size;
-
-        if (layer_size == 0) {
-            d.level_count = 1;
-            d.CalculateLayerSize();
+    TextureDescriptor(uptr ptr_, TextureType type_, TextureFormat format_,
+                      bool is_linear_, u32 linear_stride_, u32 width_,
+                      u32 height_, u32 depth_, u32 level_count_,
+                      u32 layer_count_, u32 block_width_gobs_log2_,
+                      u32 block_height_gobs_log2_, u32 block_depth_gobs_log2_,
+                      u32 layer_size_ = 0)
+        : ptr{ptr_}, type{type_}, format{format_}, is_linear{is_linear_},
+          linear_stride{linear_stride_}, width{width_}, height{height_},
+          depth{depth_}, level_count{level_count_}, layer_count{layer_count_},
+          block_width_gobs_log2{block_width_gobs_log2_},
+          block_height_gobs_log2{block_height_gobs_log2_},
+          block_depth_gobs_log2{block_depth_gobs_log2_}, layer_size{
+                                                             layer_size_} {
+        if (layer_count == 1) {
+            layer_size = 0;
+            size = GetLayerSize();
         } else {
-            d.CalculateLevelCount();
+            if (layer_size == 0)
+                layer_size = GetLayerSize();
+            size = layer_count * layer_size;
         }
-
-        return d;
     }
 
-    u32 GetSize() const { return layer_count * layer_size; }
-    Range<uptr> GetRange() const {
-        return Range<uptr>::FromSize(ptr, GetSize());
-    }
+    Range<uptr> GetRange() const { return Range<uptr>::FromSize(ptr, size); }
 
     u32 GetHash() const;
 
@@ -292,10 +261,7 @@ struct TextureDescriptor {
     u32 GetLevelSize(u32 level) const;
 
   private:
-    TextureDescriptor() = default;
-
-    void CalculateLayerSize();
-    void CalculateLevelCount();
+    u32 GetLayerSize() const;
 };
 
 struct TextureViewDescriptor {

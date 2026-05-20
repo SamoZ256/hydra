@@ -50,7 +50,7 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
                 Range<uptr>::FromSize(dst_ptr,
                                       regs.line_count * regs.stride_out));
         } else {
-            // TODO: origin and line size
+            // TODO: origin, line size, src stride
             // TODO: block size log2 can also be negative?
             ConvertLinearToBlockLinear(
                 dst_stride, regs.dst.height, regs.dst.depth,
@@ -64,7 +64,7 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
         }
     } else {
         if (data.dst_memory_layout == MemoryLayout::Pitch) {
-            // TODO: origin and line size
+            // TODO: origin, line size, dst stride
             // TODO: block size log2 can also be negative?
             ConvertBlockLinearToLinear(
                 src_stride, regs.src.height, regs.src.depth,
