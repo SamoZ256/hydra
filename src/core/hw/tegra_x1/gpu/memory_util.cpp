@@ -106,16 +106,17 @@ void ConvertLinearToBlockLinear(u32 stride, u32 rows, u32 depth,
                                 u8* out_data) {
     const auto layout = GetMemoryLayout(
         stride, rows, depth, block_height_gobs_log2, block_depth_gobs_log2);
+    u32 gob_index = 0;
     for (u32 block_z = 0; block_z < layout.z_blocks; block_z++) {
         for (u32 block_y = 0; block_y < layout.y_blocks; block_y++) {
             for (u32 block_x = 0; block_x < layout.x_blocks; block_x++) {
                 for (u32 gob_y = 0; gob_y < layout.block_height_gobs; gob_y++) {
-                    const u32 x = block_x * GOB_WIDTH;
                     const u32 y =
                         block_y * layout.block_height + gob_y * GOB_HEIGHT;
                     const u32 z = block_z;
                     if (z >= depth || y >= rows) {
                         // Skip this GOB if we're past the valid height
+                        gob_index++;
                         continue;
                     }
 
@@ -124,13 +125,15 @@ void ConvertLinearToBlockLinear(u32 stride, u32 rows, u32 depth,
                             (block_y << block_height_gobs_log2) + gob_y,
                             block_z, layout.x_gobs, layout.y_gobs, gob);
 
-                    u8* out_gob = out_data + y * stride + x;
                     for (u32 i = 0; i < GOB_SIZE / sizeof(u128); i++) {
                         const auto local = UnswizzleGobCoords(i);
-                        *reinterpret_cast<u128*>(out_gob + local.y() * stride +
-                                                 local.x()) =
-                            reinterpret_cast<const u128*>(gob)[i];
+                        reinterpret_cast<u128*>(out_data +
+                                                gob_index * GOB_SIZE)[i] =
+                            *reinterpret_cast<const u128*>(
+                                gob + local.y() * GOB_WIDTH + local.x());
                     }
+
+                    gob_index++;
                 }
             }
         }
