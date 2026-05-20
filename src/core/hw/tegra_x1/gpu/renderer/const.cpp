@@ -642,15 +642,6 @@ u32 TextureDescriptor::GetHash() const {
     return hash.ToHashCode();
 }
 
-u32 TextureDescriptor::GetLevelOffset(u32 level) {
-    u32 offset = 0;
-    for (u32 l = 0; l < level; l++) {
-        offset += GetLevelSize(l);
-    }
-
-    return offset;
-}
-
 namespace {
 
 u32 AdjustDim(u32 dim, u32 level) {
@@ -660,24 +651,36 @@ u32 AdjustDim(u32 dim, u32 level) {
 
 } // namespace
 
+uint3 TextureDescriptor::GetLevelDimensions(u32 level) const {
+    return uint3({AdjustDim(width, level), AdjustDim(height, level),
+                  AdjustDim(depth, level)});
+}
+
+u32 TextureDescriptor::GetLevelOffset(u32 level) const {
+    u32 offset = 0;
+    for (u32 l = 0; l < level; l++) {
+        offset += GetLevelSize(l);
+    }
+
+    return offset;
+}
+
 // TODO: correct?
-u32 TextureDescriptor::GetLevelSize(u32 level) {
+u32 TextureDescriptor::GetLevelSize(u32 level) const {
     const auto& format_info = GetTextureFormatInfo(format);
 
     const u32 block_width = GOB_WIDTH << block_width_gobs_log2;
     const u32 block_height = GOB_HEIGHT << block_height_gobs_log2;
     const u32 block_depth = 1u << block_depth_gobs_log2;
 
-    const u32 level_width = AdjustDim(width, level);
-    const u32 level_height = AdjustDim(height, level);
-    const u32 level_depth = AdjustDim(depth, level);
+    const auto level_dims = GetLevelDimensions(level);
 
-    const u32 dim_x = align(level_width * format_info.bytes_per_block /
+    const u32 dim_x = align(level_dims.x() * format_info.bytes_per_block /
                                 format_info.block_width,
                             block_width);
     const u32 dim_y =
-        align(level_height / format_info.block_height, block_height);
-    const u32 dim_z = align(level_depth, block_depth);
+        align(level_dims.y() / format_info.block_height, block_height);
+    const u32 dim_z = align(level_dims.z(), block_depth);
 
     return dim_z * dim_y * dim_x;
 }

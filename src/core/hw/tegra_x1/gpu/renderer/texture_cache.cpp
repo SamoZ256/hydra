@@ -423,20 +423,26 @@ void TextureCache::DecodeTexture(ICommandBuffer* command_buffer,
 
     auto tmp_buffer = renderer.AllocateTemporaryBuffer(descriptor.GetSize());
 
-    u8* in_data = reinterpret_cast<u8*>(descriptor.ptr);
+    const u8* in_data = reinterpret_cast<const u8*>(descriptor.ptr);
     u8* out_data = reinterpret_cast<u8*>(tmp_buffer->GetPtr());
     if (descriptor.is_linear) {
         std::memcpy(out_data, in_data, descriptor.GetSize());
     } else {
         const auto& format_info = GetTextureFormatInfo(descriptor.format);
-        // HACK
-        ConvertBlockLinearToLinear(
-            align(descriptor.width * format_info.bytes_per_block /
-                      format_info.block_width,
-                  64u),
-            descriptor.layer_count * descriptor.depth * descriptor.height /
-                format_info.block_height,
-            descriptor.block_height_gobs_log2, in_data, out_data);
+        for (u32 layer = 0; layer < descriptor.layer_count; layer++) {
+            u32 level_offset = layer * descriptor.layer_size;
+            for (u32 level = 0; level < descriptor.level_count; level++) {
+                const auto dims = descriptor.GetLevelDimensions(level);
+                ConvertBlockLinearToLinear(
+                    dims.x() * format_info.bytes_per_block /
+                        format_info.block_width,
+                    dims.y() / format_info.block_height, dims.z(),
+                    descriptor.block_height_gobs_log2,
+                    descriptor.block_depth_gobs_log2, in_data + level_offset,
+                    out_data + level_offset);
+                level_offset += descriptor.GetLevelSize(level);
+            }
+        }
     }
 
     storage.base->CopyFrom(command_buffer, tmp_buffer);

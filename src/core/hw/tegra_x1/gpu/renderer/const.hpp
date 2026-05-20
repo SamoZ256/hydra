@@ -287,8 +287,9 @@ struct TextureDescriptor {
 
     u32 GetHash() const;
 
-    u32 GetLevelOffset(u32 level);
-    u32 GetLevelSize(u32 level);
+    uint3 GetLevelDimensions(u32 level) const;
+    u32 GetLevelOffset(u32 level) const;
+    u32 GetLevelSize(u32 level) const;
 
   private:
     TextureDescriptor() = default;

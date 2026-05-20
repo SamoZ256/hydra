@@ -487,7 +487,7 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
         render_target.tile_mode.width_gobs_log2,
         render_target.tile_mode.height_gobs_log2,
         render_target.tile_mode.depth_gobs_log2,
-        !is_linear ? render_target.layer_stride * 4 : 0);
+        (!is_linear && layer_count > 1) ? render_target.layer_stride * 4 : 0);
 
     return gpu.GetRenderer().GetTextureCache().Find(
         tls_crnt_command_buffer, descriptor, renderer::TextureUsage::Write);
@@ -513,7 +513,9 @@ renderer::ITextureView* ThreeD::GetDepthStencilTargetTexture() const {
         regs.depth_target_tile_mode.width_gobs_log2,
         regs.depth_target_tile_mode.height_gobs_log2,
         regs.depth_target_tile_mode.depth_gobs_log2,
-        regs.depth_target_layer_stride * 4);
+        (regs.depth_target_array_mode.layers > 1)
+            ? regs.depth_target_layer_stride * 4
+            : 0);
 
     return gpu.GetRenderer().GetTextureCache().Find(
         tls_crnt_command_buffer, descriptor, renderer::TextureUsage::Write);
