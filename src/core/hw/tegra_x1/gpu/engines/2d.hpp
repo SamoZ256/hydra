@@ -16,9 +16,15 @@ namespace hydra::hw::tegra_x1::gpu::engines {
 struct Texture2DInfo {
     ColorSurfaceFormat format;
     MemoryLayout layout;
-    BlockDim block_dim;
+    struct {
+        u32 : 4;
+        u32 block_height_gobs_log2 : 3;
+        u32 : 1;
+        u32 block_depth_gobs_log2 : 3;
+        u32 : 21;
+    };
     u32 depth;
-    u32 layer; // InvalidateTextureDataCache in case of src
+    u32 layer;
     u32 stride;
     u32 width;
     u32 height;

@@ -254,7 +254,7 @@ struct TextureDescriptor {
                         bool is_linear, u32 linear_stride, u32 width,
                         u32 height, u32 depth, u32 layer_count,
                         u32 block_width_gobs_log2, u32 block_height_gobs_log2,
-                        u32 block_depth_gobs_log2, u32 layer_size = 0) {
+                        u32 block_depth_gobs_log2, u32 layer_size) {
         TextureDescriptor d;
         d.ptr = ptr;
         d.type = type;
@@ -270,10 +270,12 @@ struct TextureDescriptor {
         d.block_depth_gobs_log2 = block_depth_gobs_log2;
         d.layer_size = layer_size;
 
-        d.CalculateLevelCount();
-        // HACK: calculate layer size when layer count is 1
-        if (layer_size == 0 || layer_count == 1)
+        if (layer_size == 0) {
+            d.level_count = 1;
             d.CalculateLayerSize();
+        } else {
+            d.CalculateLevelCount();
+        }
 
         return d;
     }
@@ -285,23 +287,14 @@ struct TextureDescriptor {
 
     u32 GetHash() const;
 
+    u32 GetLevelOffset(u32 level);
+    u32 GetLevelSize(u32 level);
+
   private:
     TextureDescriptor() = default;
 
-    void CalculateLayerSize() {
-        // HACK
-        if (is_linear) {
-            layer_size = depth * align(height, 16u) * linear_stride;
-        } else {
-            layer_size = depth * align(height, 16u) *
-                         align(get_texture_format_stride(format, width), 64u);
-        }
-    }
-
-    void CalculateLevelCount() {
-        // HACK
-        level_count = 1;
-    }
+    void CalculateLayerSize();
+    void CalculateLevelCount();
 };
 
 struct TextureViewDescriptor {

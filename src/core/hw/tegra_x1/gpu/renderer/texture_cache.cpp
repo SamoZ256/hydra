@@ -421,7 +421,6 @@ void TextureCache::DecodeTexture(ICommandBuffer* command_buffer,
                                  TextureStorage& storage) {
     const auto& descriptor = storage.base->GetDescriptor();
 
-    // Align the height to 16 bytes (TODO: why 16?)
     auto tmp_buffer = renderer.AllocateTemporaryBuffer(descriptor.GetSize());
 
     u8* in_data = reinterpret_cast<u8*>(descriptor.ptr);
@@ -429,12 +428,14 @@ void TextureCache::DecodeTexture(ICommandBuffer* command_buffer,
     if (descriptor.is_linear) {
         std::memcpy(out_data, in_data, descriptor.GetSize());
     } else {
+        const auto& format_info = GetTextureFormatInfo(descriptor.format);
         // HACK
         ConvertBlockLinearToLinear(
-            align(
-                get_texture_format_stride(descriptor.format, descriptor.width),
-                64u),
-            descriptor.layer_count * descriptor.depth * descriptor.height,
+            align(descriptor.width * format_info.bytes_per_block /
+                      format_info.block_width,
+                  64u),
+            descriptor.layer_count * descriptor.depth * descriptor.height /
+                format_info.block_height,
             descriptor.block_height_gobs_log2, in_data, out_data);
     }
 

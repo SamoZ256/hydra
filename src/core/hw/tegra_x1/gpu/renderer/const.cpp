@@ -1,5 +1,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/const.hpp"
 
+#include "core/hw/tegra_x1/gpu/memory_util.hpp"
+
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
 namespace {
@@ -178,7 +180,7 @@ static TextureTypeCompatibility ToTextureTypeCompatibility(TextureType type) {
 } // namespace
 
 const TextureFormatInfo& GetTextureFormatInfo(TextureFormat format) {
-    return texture_format_infos[static_cast<u32>(format)];
+    return texture_format_infos[static_cast<usize>(format)];
 }
 
 TextureFormat to_texture_format(NvColorFormat color_format) {
@@ -624,9 +626,9 @@ u32 TextureDescriptor::GetHash() const {
     hash.Add(width);
     hash.Add(height);
     hash.Add(depth);
-    // TODO
-    // hash.Add(level_count);
+    hash.Add(level_count);
     hash.Add(layer_count);
+    // TODO: block size?
     hash.Add(layer_size);
 
     hash.Add(ToTextureTypeCompatibility(type));
@@ -638,6 +640,65 @@ u32 TextureDescriptor::GetHash() const {
     hash.Add(format_info.is_depth_stencil);
 
     return hash.ToHashCode();
+}
+
+u32 TextureDescriptor::GetLevelOffset(u32 level) {
+    u32 offset = 0;
+    for (u32 l = 0; l < level; l++) {
+        offset += GetLevelSize(l);
+    }
+
+    return offset;
+}
+
+namespace {
+
+u32 AdjustDim(u32 dim, u32 level) {
+    dim >>= level;
+    return dim != 0 ? dim : 1;
+}
+
+} // namespace
+
+// TODO: correct?
+u32 TextureDescriptor::GetLevelSize(u32 level) {
+    const auto& format_info = GetTextureFormatInfo(format);
+
+    const u32 block_width = GOB_WIDTH << block_width_gobs_log2;
+    const u32 block_height = GOB_HEIGHT << block_height_gobs_log2;
+    const u32 block_depth = 1u << block_depth_gobs_log2;
+
+    const u32 level_width = AdjustDim(width, level);
+    const u32 level_height = AdjustDim(height, level);
+    const u32 level_depth = AdjustDim(depth, level);
+
+    const u32 dim_x = align(level_width * format_info.bytes_per_block /
+                                format_info.block_width,
+                            block_width);
+    const u32 dim_y =
+        align(level_height / format_info.block_height, block_height);
+    const u32 dim_z = align(level_depth, block_depth);
+
+    return dim_z * dim_y * dim_x;
+}
+
+void TextureDescriptor::CalculateLayerSize() {
+    if (is_linear) {
+        // HACK
+        layer_size = depth * align(height, 16u) * linear_stride;
+    } else {
+        layer_size = GetLevelOffset(level_count);
+        // TODO: align
+    }
+}
+
+void TextureDescriptor::CalculateLevelCount() {
+    level_count = 0;
+
+    u32 size = 0;
+    while (size < layer_size) {
+        size += GetLevelSize(level_count++);
+    }
 }
 
 u32 TextureViewDescriptor::GetHash() const {
