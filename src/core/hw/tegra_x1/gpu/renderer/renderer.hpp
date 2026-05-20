@@ -40,10 +40,16 @@ class IRenderer {
           index_cache(*this) {}
     virtual ~IRenderer() {}
 
-    // TODO: make this thread safe
     void InvalidateMemory(Range<uptr> range) {
-        buffer_cache.InvalidateMemory(range);
-        texture_cache.InvalidateMemory(range);
+        {
+            // TODO: lock
+            buffer_cache.InvalidateMemory(range);
+        }
+
+        {
+            std::scoped_lock lock(texture_cache.GetMutex());
+            texture_cache.InvalidateMemory(range);
+        }
         // TODO: shader cache
     }
 
