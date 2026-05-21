@@ -17,8 +17,7 @@ Texture::Texture(MTL::Device* device, const TextureDescriptor& descriptor)
     desc->setWidth(descriptor.width);
     desc->setHeight(descriptor.height);
     desc->setDepth(descriptor.depth);
-    // TODO
-    // desc->setMipmapLevelCount(descriptor.level_count);
+    desc->setMipmapLevelCount(descriptor.level_count);
     desc->setStorageMode(MTL::StorageModePrivate);
 
     switch (descriptor.type) {
@@ -57,7 +56,6 @@ Texture::CreateView(const TextureViewDescriptor& view_descriptor) {
 }
 
 void Texture::CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
-                       const uint3 dst_origin, const usize3 dst_size,
                        const Range<u32> dst_levels,
                        const Range<u32> dst_layers) {
     const auto command_buffer_impl =
@@ -79,14 +77,36 @@ void Texture::CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
                 descriptor.format, dims.x(), dims.y());
 
             // Copy
-            encoder->copyFromBuffer(
-                mtl_src, offset, stride, slice_stride,
-                MTL::Size(dst_size.x(), dst_size.y(), dst_size.z()), texture,
-                layer, level,
-                MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
+            encoder->copyFromBuffer(mtl_src, offset, stride, slice_stride,
+                                    MTL::Size(dims.x(), dims.y(), dims.z()),
+                                    texture, layer, level,
+                                    MTL::Origin(0, 0, 0));
 
             // Add offset
             offset += dims.z() * slice_stride;
+        }
+    }
+}
+
+// TODO: make sure source and destination sizes match
+void Texture::CopyFrom(ICommandBuffer* command_buffer, const ITexture* src,
+                       const u32 src_level, const u32 src_layer,
+                       const u32 dst_level, const u32 dst_layer,
+                       const u32 level_count, const u32 layer_count) {
+    const auto command_buffer_impl =
+        static_cast<CommandBuffer*>(command_buffer);
+    const auto mtl_src = static_cast<const Texture*>(src)->GetTexture();
+
+    auto encoder = command_buffer_impl->GetBlitCommandEncoder();
+
+    for (u32 i = 0; i < layer_count; i++) {
+        for (u32 j = 0; j < level_count; j++) {
+            const u32 crnt_dst_level = dst_level + j;
+            const auto dims = descriptor.GetLevelDimensions(crnt_dst_level);
+            encoder->copyFromTexture(
+                mtl_src, src_layer + i, src_level + j, MTL::Origin(0, 0, 0),
+                MTL::Size(dims.x(), dims.y(), dims.z()), texture, dst_layer + i,
+                crnt_dst_level, MTL::Origin(0, 0, 0));
         }
     }
 }
@@ -95,25 +115,20 @@ void Texture::CopyFrom(ICommandBuffer* command_buffer, const ITexture* src,
                        const uint3 src_origin, const u32 src_level,
                        const u32 src_layer, const uint3 dst_origin,
                        const u32 dst_level, const u32 dst_layer,
-                       const usize3 size, const u32 level_count,
-                       const u32 layer_count) {
+                       const uint3 size, const u32 layer_count) {
     const auto command_buffer_impl =
         static_cast<CommandBuffer*>(command_buffer);
     const auto mtl_src = static_cast<const Texture*>(src)->GetTexture();
 
     auto encoder = command_buffer_impl->GetBlitCommandEncoder();
 
-    // TODO: levels
-    (void)level_count;
     for (u32 i = 0; i < layer_count; i++) {
-        for (u32 j = 0; j < /*level_count*/ 1; j++) {
-            encoder->copyFromTexture(
-                mtl_src, src_layer + i, src_level /* + j*/,
-                MTL::Origin(src_origin.x(), src_origin.y(), src_origin.z()),
-                MTL::Size(size.x(), size.y(), size.z()), texture, dst_layer + i,
-                dst_level /* + j*/,
-                MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
-        }
+        encoder->copyFromTexture(
+            mtl_src, src_layer + i, src_level,
+            MTL::Origin(src_origin.x(), src_origin.y(), src_origin.z()),
+            MTL::Size(size.x(), size.y(), size.z()), texture, dst_layer + i,
+            dst_level,
+            MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
     }
 }
 

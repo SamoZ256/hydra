@@ -233,7 +233,7 @@ TextureCache::AddToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
         // TODO: make sure the formats match
         new_tex->CopyFrom(
             tex, 0, uint3({0, 0, 0}), offset / layer_size, uint3({0, 0, 0}),
-            usize3({descriptor.width, descriptor.height, descriptor.depth}));
+            uint3({descriptor.width, descriptor.height, descriptor.depth}));
     }
 
     // TODO: return a view
@@ -313,21 +313,19 @@ void TextureCache::Update(ICommandBuffer* command_buffer,
 
                         // Copy
                         // TODO: make sure the formats match
-                        base->CopyFrom(
-                            command_buffer, other_base, uint3({0, 0, 0}), 0,
-                            src_layer, uint3({0, 0, 0}), 0, dst_layer,
-                            usize3({descriptor.width, descriptor.height, 1}),
-                            std::min(descriptor.level_count,
-                                     other_descriptor.level_count),
-                            layer_count);
+                        base->CopyFrom(command_buffer, other_base, 0, src_layer,
+                                       0, dst_layer,
+                                       std::min(descriptor.level_count,
+                                                other_descriptor.level_count),
+                                       layer_count);
                     } else if (descriptor.type == TextureType::_3D &&
                                other_descriptor.type ==
                                    TextureType::_3D) { // Both 3D
-                        const auto slice_size =
-                            descriptor.height *
-                            align(GetTextureFormatStride(descriptor.format,
-                                                         descriptor.width),
-                                  64u); // TODO: calculate properly
+                        // TODO: what about multiple levels?
+
+                        const auto slice_size = GetTextureFormatSliceStride(
+                            descriptor.format, descriptor.width,
+                            descriptor.height);
 
                         // Z
                         const auto src_z = static_cast<u32>(
@@ -343,19 +341,17 @@ void TextureCache::Update(ICommandBuffer* command_buffer,
                         base->CopyFrom(command_buffer, other_base,
                                        uint3({0, 0, src_z}), 0, 0,
                                        uint3({0, 0, dst_z}), 0, 0,
-                                       usize3({descriptor.width,
-                                               descriptor.height, z_count}),
-                                       std::min(descriptor.level_count,
-                                                other_descriptor.level_count),
+                                       uint3({descriptor.width,
+                                              descriptor.height, z_count}),
                                        1);
                     } else if (descriptor.type == TextureType::_3D &&
                                other_descriptor.type ==
                                    TextureType::_2D) { // HACK: special case
-                        const auto slice_size =
-                            descriptor.height *
-                            align(GetTextureFormatStride(descriptor.format,
-                                                         descriptor.width),
-                                  64u); // TODO: calculate properly
+                        // TODO: what about multiple levels?
+
+                        const auto slice_size = GetTextureFormatSliceStride(
+                            descriptor.format, descriptor.width,
+                            descriptor.height);
 
                         // Z
                         const auto dst_z =
@@ -366,10 +362,7 @@ void TextureCache::Update(ICommandBuffer* command_buffer,
                         base->CopyFrom(
                             command_buffer, other_base, uint3({0, 0, 0}), 0, 0,
                             uint3({0, 0, dst_z}), 0, 0,
-                            usize3({descriptor.width, descriptor.height, 1}),
-                            std::min(descriptor.level_count,
-                                     other_descriptor.level_count),
-                            1);
+                            uint3({descriptor.width, descriptor.height, 1}), 1);
                     } else {
                         LOG_WARN(Gpu,
                                  "Unimplemented texture copy (source: {}, "

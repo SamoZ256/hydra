@@ -45,8 +45,7 @@ TextureView::TextureView(Texture* base, const TextureViewDescriptor& descriptor)
     // TODO: levels
     texture = base->GetTexture()->newTextureView(
         to_mtl_pixel_format(descriptor.format), ToMtlTextureType(type),
-        NS::Range(/*descriptor.levels.GetBegin()*/ 0,
-                  /*descriptor.levels.GetSize()*/ 1),
+        NS::Range(descriptor.levels.GetBegin(), descriptor.levels.GetSize()),
         NS::Range(descriptor.layers.GetBegin(), descriptor.layers.GetSize()),
         swizzle_channels_mtl);
 }

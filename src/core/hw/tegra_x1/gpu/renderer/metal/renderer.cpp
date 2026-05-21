@@ -111,9 +111,9 @@ ITexture* Renderer::CreateTexture(const TextureDescriptor& descriptor) {
 }
 
 void Renderer::BlitTexture(ICommandBuffer* command_buffer, ITextureView* src,
-                           float3 src_origin, usize3 src_size, u32 src_level,
+                           float3 src_origin, uint3 src_size, u32 src_level,
                            u32 src_layer, ITextureView* dst, float3 dst_origin,
-                           usize3 dst_size, u32 dst_level, u32 dst_layer,
+                           uint3 dst_size, u32 dst_level, u32 dst_layer,
                            u32 level_count, u32 layer_count) {
     // TODO: what about 3D textures?
     (void)src_level;

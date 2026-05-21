@@ -65,9 +65,9 @@ class IRenderer {
     // Texture
     virtual ITexture* CreateTexture(const TextureDescriptor& descriptor) = 0;
     virtual void BlitTexture(ICommandBuffer* command_buffer, ITextureView* src,
-                             float3 src_origin, usize3 src_size, u32 src_level,
+                             float3 src_origin, uint3 src_size, u32 src_level,
                              u32 src_layer, ITextureView* dst,
-                             float3 dst_origin, usize3 dst_size, u32 dst_level,
+                             float3 dst_origin, uint3 dst_size, u32 dst_level,
                              u32 dst_layer, u32 level_count,
                              u32 layer_count) = 0;
 

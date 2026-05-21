@@ -58,9 +58,9 @@ class Renderer : public IRenderer {
     // Texture
     ITexture* CreateTexture(const TextureDescriptor& descriptor) override;
     void BlitTexture(ICommandBuffer* command_buffer, ITextureView* src,
-                     float3 src_origin, usize3 src_size, u32 src_level,
+                     float3 src_origin, uint3 src_size, u32 src_level,
                      u32 src_layer, ITextureView* dst, float3 dst_origin,
-                     usize3 dst_size, u32 dst_level, u32 dst_layer,
+                     uint3 dst_size, u32 dst_level, u32 dst_layer,
                      u32 level_count, u32 layer_count) override;
 
     // Sampler
