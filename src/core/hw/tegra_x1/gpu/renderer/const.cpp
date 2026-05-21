@@ -628,23 +628,15 @@ SwizzleChannels::SwizzleChannels(const TextureFormat format,
 #undef SWIZZLE
 }
 
-u32 TextureDescriptor::GetHash() const {
+u32 TextureDescriptor::GetGroupHash() const {
     HashCode hash;
-    hash.Add(ptr);
-    if (is_linear)
-        hash.Add(linear_stride);
     hash.Add(width);
     hash.Add(height);
     hash.Add(depth);
-    hash.Add(level_count);
-    hash.Add(layer_count);
-    // TODO: block size?
-    hash.Add(layer_size);
-
-    // View compatibility
     hash.Add(ToTextureTypeCompatibility(type));
 
     const auto& format_info = GetTextureFormatInfo(format);
+    // TODO: make sure BC and ASTC formats are incompatible
     hash.Add(format_info.bytes_per_block);
     hash.Add(format_info.block_width);
     hash.Add(format_info.block_height);
@@ -653,17 +645,17 @@ u32 TextureDescriptor::GetHash() const {
     return hash.ToHashCode();
 }
 
-bool TextureDescriptor::IsViewCompatible(const TextureDescriptor& other) const {
-    if (ToTextureTypeCompatibility(type) !=
-        ToTextureTypeCompatibility(other.type))
-        return false;
+u32 TextureDescriptor::GetStorageHash() const {
+    HashCode hash;
+    hash.Add(ptr);
+    if (is_linear)
+        hash.Add(linear_stride);
+    hash.Add(level_count);
+    hash.Add(layer_count);
+    // TODO: block size?
+    hash.Add(layer_size);
 
-    const auto& format_info = GetTextureFormatInfo(format);
-    const auto& other_format_info = GetTextureFormatInfo(other.format);
-    return format_info.bytes_per_block == other_format_info.bytes_per_block &&
-           format_info.block_width == other_format_info.block_width &&
-           format_info.block_height == other_format_info.block_height &&
-           format_info.is_depth_stencil == other_format_info.is_depth_stencil;
+    return hash.ToHashCode();
 }
 
 namespace {

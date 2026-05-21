@@ -254,9 +254,8 @@ struct TextureDescriptor {
 
     Range<uptr> GetRange() const { return Range<uptr>::FromSize(ptr, size); }
 
-    u32 GetHash() const;
-
-    bool IsViewCompatible(const TextureDescriptor& other) const;
+    u32 GetGroupHash() const;
+    u32 GetStorageHash() const;
 
     uint3 GetLevelDimensions(u32 level) const;
     uint3 GetLevelBlockSizeLog2(u32 level) const;
@@ -504,6 +503,26 @@ ENABLE_ENUM_FORMATTING(
     "etc2_rg_snorm", ETC2_RGB, "etc2_rgb", PTA_ETC2_RGB, "pta_etc2_rgb",
     ETC2_RGBA, "etc2_rgba", ETC2_RGB_sRGB, "etc2_rgb_srgb", PTA_ETC2_RGB_sRGB,
     "pta_etc2_rgb_srgb", ETC2_RGBA_sRGB, "etc2_rgba_srgb")
+
+ENABLE_STRUCT_FORMATTING(hydra::hw::tegra_x1::gpu::renderer::SwizzleChannels, r,
+                         "", "r", g, "", "g", b, "", "b", a, "", "a")
+
+ENABLE_STRUCT_FORMATTING(hydra::hw::tegra_x1::gpu::renderer::TextureDescriptor,
+                         ptr, ":#x", "ptr", type, "", "type", format, "",
+                         "format", is_linear, "", "is linear", linear_stride,
+                         "", "linear stride", width, "", "width", height, "",
+                         "height", depth, "", "depth", level_count, "",
+                         "level count", layer_count, "", "layer count",
+                         block_width_gobs_log2, "", "log2(block width in GOBs)",
+                         block_height_gobs_log2, "",
+                         "log2(block height in GOBs)", block_depth_gobs_log2,
+                         "", "log2(block depth in GOBs)", layer_size, ":#x",
+                         "layer size", size, ":#x", "size")
+
+ENABLE_STRUCT_FORMATTING(
+    hydra::hw::tegra_x1::gpu::renderer::TextureViewDescriptor, type, "", "type",
+    format, "", "format", levels, "", "levels", layers, "", "layers",
+    swizzle_channels, "", "swizzle channels")
 
 ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::renderer::ShaderType, Vertex,
                        "vertex", Fragment, "fragment", Count, "invalid")
