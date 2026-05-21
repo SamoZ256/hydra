@@ -462,11 +462,7 @@ void TextureCache::DecodeTexture(ICommandBuffer* command_buffer,
                 ConvertBlockLinearToLinear(
                     stride, rows, dims.z(), descriptor.block_height_gobs_log2,
                     descriptor.block_depth_gobs_log2, in_data + offset,
-                    [=](const u8* in_gob, u32 gob_x, u32 gob_y, u32 gob_z,
-                        u32 horizontal_gobs, u32 vertical_gobs) {
-                        (void)horizontal_gobs;
-                        (void)vertical_gobs;
-
+                    [=](const u8* in_gob, u32 gob_x, u32 gob_y, u32 gob_z) {
                         const u32 x = gob_x * GOB_WIDTH;
                         for (u32 local_y = 0; local_y < GOB_HEIGHT; local_y++) {
                             const u32 y = gob_y * GOB_HEIGHT + local_y;

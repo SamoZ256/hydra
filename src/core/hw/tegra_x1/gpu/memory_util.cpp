@@ -72,7 +72,7 @@ void ConvertBlockLinearToLinear(u32 stride, u32 rows, u32 depth,
 
                     write_fn(out_gob, block_x,
                              (block_y << block_height_gobs_log2) + gob_y,
-                             block_z, layout.x_gobs, layout.y_gobs);
+                             block_z);
 
                     gob_index++;
                 }
@@ -81,21 +81,25 @@ void ConvertBlockLinearToLinear(u32 stride, u32 rows, u32 depth,
     }
 }
 
-void ConvertBlockLinearToLinear(u32 stride, u32 rows, u32 depth,
+void ConvertBlockLinearToLinear(u32 src_stride, u32 dst_stride,
+                                u32 dst_slice_stride, u32 rows, u32 depth,
                                 u32 block_height_gobs_log2,
                                 u32 block_depth_gobs_log2, const u8* in_data,
                                 u8* out_data) {
     ConvertBlockLinearToLinear(
-        stride, rows, depth, block_height_gobs_log2, block_depth_gobs_log2,
-        in_data,
-        [=](const u8* in_gob, u32 gob_x, u32 gob_y, u32 gob_z,
-            u32 horizontal_gobs, u32 vertical_gobs) {
+        src_stride, rows, depth, block_height_gobs_log2, block_depth_gobs_log2,
+        in_data, [=](const u8* in_gob, u32 gob_x, u32 gob_y, u32 gob_z) {
+            const u32 x = gob_x * GOB_WIDTH;
             for (u32 local_y = 0; local_y < GOB_HEIGHT; local_y++) {
-                const u32 row =
-                    (gob_z * vertical_gobs + gob_y) * GOB_HEIGHT + local_y;
-                std::memcpy(out_data +
-                                (row * horizontal_gobs + gob_x) * GOB_WIDTH,
-                            in_gob + local_y * GOB_WIDTH, GOB_WIDTH);
+                const u32 y = gob_y * GOB_HEIGHT + local_y;
+                if (y >= rows)
+                    break;
+
+                const u32 crnt_offset =
+                    gob_z * dst_slice_stride + y * dst_stride + x;
+                std::memcpy(out_data + crnt_offset,
+                            in_gob + local_y * GOB_WIDTH,
+                            std::min(GOB_WIDTH, dst_stride - x));
             }
         });
 }
@@ -123,7 +127,7 @@ void ConvertLinearToBlockLinear(u32 stride, u32 rows, u32 depth,
                     u8 gob[GOB_SIZE];
                     read_fn(block_x,
                             (block_y << block_height_gobs_log2) + gob_y,
-                            block_z, layout.x_gobs, layout.y_gobs, gob);
+                            block_z, gob);
 
                     for (u32 i = 0; i < GOB_SIZE / sizeof(u128); i++) {
                         const auto local = UnswizzleGobCoords(i);
@@ -140,21 +144,25 @@ void ConvertLinearToBlockLinear(u32 stride, u32 rows, u32 depth,
     }
 }
 
-void ConvertLinearToBlockLinear(u32 stride, u32 rows, u32 depth,
+void ConvertLinearToBlockLinear(u32 src_stride, u32 src_slice_stride,
+                                u32 dst_stride, u32 rows, u32 depth,
                                 u32 block_height_gobs_log2,
                                 u32 block_depth_gobs_log2, const u8* in_data,
                                 u8* out_data) {
     ConvertLinearToBlockLinear(
-        stride, rows, depth, block_height_gobs_log2, block_depth_gobs_log2,
-        [=](u32 gob_x, u32 gob_y, u32 gob_z, u32 horizontal_gobs,
-            u32 vertical_gobs, u8* out_gob) {
+        dst_stride, rows, depth, block_height_gobs_log2, block_depth_gobs_log2,
+        [=](u32 gob_x, u32 gob_y, u32 gob_z, u8* out_gob) {
+            const u32 x = gob_x * GOB_WIDTH;
             for (u32 local_y = 0; local_y < GOB_HEIGHT; local_y++) {
-                const u32 row =
-                    (gob_z * vertical_gobs + gob_y) * GOB_HEIGHT + local_y;
+                const u32 y = gob_y * GOB_HEIGHT + local_y;
+                if (y >= rows)
+                    break;
+
+                const u32 crnt_offset =
+                    gob_z * src_slice_stride + y * src_stride + x;
                 std::memcpy(out_gob + local_y * GOB_WIDTH,
-                            in_data +
-                                (row * horizontal_gobs + gob_x) * GOB_WIDTH,
-                            GOB_WIDTH);
+                            in_data + crnt_offset,
+                            std::min(GOB_WIDTH, src_stride - x));
             }
         },
         out_data);

@@ -50,10 +50,13 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
                 Range<uptr>::FromSize(dst_ptr,
                                       regs.line_count * regs.stride_out));
         } else {
-            // TODO: origin, line size, src stride
+            // TODO: is slice stride correct?
+            // TODO: can this copy to multiple slices at once?
+            // TODO: origin, line size
             // TODO: block size log2 can also be negative?
             ConvertLinearToBlockLinear(
-                dst_stride, regs.dst.height, regs.dst.depth,
+                regs.stride_in, regs.line_count * regs.stride_in, dst_stride,
+                regs.dst.height, regs.dst.depth,
                 static_cast<u32>(
                     get_block_size_log2(regs.dst.block_size.height)),
                 static_cast<u32>(
@@ -64,10 +67,13 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
         }
     } else {
         if (data.dst_memory_layout == MemoryLayout::Pitch) {
-            // TODO: origin, line size, dst stride
+            // TODO: is slice stride correct?
+            // TODO: can this copy from multiple slices at once?
+            // TODO: origin, line size
             // TODO: block size log2 can also be negative?
             ConvertBlockLinearToLinear(
-                src_stride, regs.src.height, regs.src.depth,
+                src_stride, regs.stride_out, regs.line_count * regs.stride_out,
+                regs.src.height, regs.src.depth,
                 static_cast<u32>(
                     get_block_size_log2(regs.src.block_size.height)),
                 static_cast<u32>(
