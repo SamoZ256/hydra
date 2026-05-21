@@ -655,16 +655,36 @@ u32 TextureDescriptor::GetHash() const {
 
 namespace {
 
-u32 AdjustDim(u32 dim, u32 level) {
-    dim >>= level;
-    return dim != 0 ? dim : 1;
-}
+u32 AdjustDim(u32 dim, u32 level) { return std::max(dim >> level, 1u); }
 
 } // namespace
 
 uint3 TextureDescriptor::GetLevelDimensions(u32 level) const {
     return uint3({AdjustDim(width, level), AdjustDim(height, level),
                   AdjustDim(depth, level)});
+}
+
+namespace {
+
+u32 AdjustBlockSizeLog2(u32 size_log2, u32 gob_dim, u32 dim) {
+    while (dim <= (gob_dim << (size_log2 - 1)) && size_log2 != 0)
+        size_log2--;
+
+    return size_log2;
+}
+
+} // namespace
+
+uint3 TextureDescriptor::GetLevelBlockSizeLog2(u32 level) const {
+    const auto dims = GetLevelDimensions(level);
+
+    const u32 stride = GetTextureFormatStride(format, dims.x());
+    const u32 rows = GetTextureFormatRows(format, dims.y());
+    const u32 slices = dims.z();
+
+    return uint3({AdjustBlockSizeLog2(block_width_gobs_log2, GOB_WIDTH, stride),
+                  AdjustBlockSizeLog2(block_height_gobs_log2, GOB_HEIGHT, rows),
+                  AdjustBlockSizeLog2(block_depth_gobs_log2, 1, slices)});
 }
 
 u32 TextureDescriptor::GetLevelOffset(u32 level) const {
@@ -676,11 +696,12 @@ u32 TextureDescriptor::GetLevelOffset(u32 level) const {
 }
 
 u32 TextureDescriptor::GetLevelSize(u32 level) const {
-    const u32 block_width = GOB_WIDTH << block_width_gobs_log2;
-    const u32 block_height = GOB_HEIGHT << block_height_gobs_log2;
-    const u32 block_depth = 1u << block_depth_gobs_log2;
-
     const auto dims = GetLevelDimensions(level);
+    const auto block_size_log2 = GetLevelBlockSizeLog2(level);
+
+    const u32 block_width = GOB_WIDTH << block_size_log2.x();
+    const u32 block_height = GOB_HEIGHT << block_size_log2.y();
+    const u32 block_depth = 1u << block_size_log2.z();
 
     const u32 stride =
         align(GetTextureFormatStride(format, dims.x()), block_width);

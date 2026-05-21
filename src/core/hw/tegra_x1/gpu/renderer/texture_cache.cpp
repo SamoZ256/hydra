@@ -445,6 +445,8 @@ void TextureCache::DecodeTexture(ICommandBuffer* command_buffer,
             for (u32 level = 0; level < descriptor.level_count; level++) {
                 // Calculate sizes
                 const auto dims = descriptor.GetLevelDimensions(level);
+                const auto block_size_log2 =
+                    descriptor.GetLevelBlockSizeLog2(level);
                 const u32 stride =
                     GetTextureFormatStride(descriptor.format, dims.x());
                 const u32 rows =
@@ -453,8 +455,8 @@ void TextureCache::DecodeTexture(ICommandBuffer* command_buffer,
 
                 // Convert
                 ConvertBlockLinearToLinear(
-                    stride, rows, dims.z(), descriptor.block_height_gobs_log2,
-                    descriptor.block_depth_gobs_log2, in_data + offset,
+                    stride, rows, dims.z(), block_size_log2.y(),
+                    block_size_log2.z(), in_data + offset,
                     [=](const u8* in_gob, u32 gob_x, u32 gob_y, u32 gob_z) {
                         const u32 x = gob_x * GOB_WIDTH;
                         for (u32 local_y = 0; local_y < GOB_HEIGHT; local_y++) {
