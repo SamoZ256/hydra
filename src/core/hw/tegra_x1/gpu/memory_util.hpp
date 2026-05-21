@@ -11,7 +11,7 @@ constexpr u32 GOB_HEIGHT_LOG2 = 3;
 constexpr u32 GOB_WIDTH = 1 << GOB_WIDTH_LOG2;
 constexpr u32 GOB_HEIGHT = 1 << GOB_HEIGHT_LOG2;
 
-constexpr usize GOB_SIZE = 512;
+constexpr u32 GOB_SIZE = 512;
 
 typedef std::function<void(u32 gob_x, u32 gob_y, u32 gob_z, u8* out_gob)>
     ReadGobFn;

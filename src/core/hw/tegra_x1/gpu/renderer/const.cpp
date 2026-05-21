@@ -717,13 +717,51 @@ u32 TextureDescriptor::GetLevelSize(u32 level) const {
     return slices * rows * stride;
 }
 
-u32 TextureDescriptor::GetLayerSize() const {
+namespace {
+
+u32 AlignLayerSize(u32 layer_size, u32 height, u32 depth, u32 block_height,
+                   u32 block_height_gobs_log2, u32 block_depth_gobs_log2) {
+    height = align(height, block_height);
+    while (block_height_gobs_log2 != 0 &&
+           height <= 8U << (block_height_gobs_log2 - 1))
+        --block_height_gobs_log2;
+
+    while (block_depth_gobs_log2 != 0 &&
+           depth <= 1U << (block_depth_gobs_log2 - 1))
+        --block_depth_gobs_log2;
+
+    u32 block_size = GOB_SIZE
+                     << (block_height_gobs_log2 + block_depth_gobs_log2);
+    u32 blocks = layer_size / block_size;
+
+    if (layer_size != blocks * block_size)
+        return (blocks + 1) * block_size;
+
+    return layer_size;
+}
+
+} // namespace
+
+void TextureDescriptor::CalculateSize() {
     if (is_linear) {
-        return height * linear_stride;
+        layer_size = 0;
+        size = height * linear_stride;
     } else {
-        u32 layer_size_ = GetLevelOffset(level_count);
-        // TODO: align
-        return layer_size_;
+        const u32 layer_size_ = GetLevelOffset(level_count);
+        if (layer_count == 1) {
+            layer_size = 0;
+            size = layer_size_;
+        } else {
+            if (layer_size == 0) {
+                layer_size = AlignLayerSize(
+                    layer_size_, height, depth,
+                    GetTextureFormatInfo(format).block_height,
+                    block_height_gobs_log2, block_depth_gobs_log2);
+            } else {
+                // TODO: make sure the layer sizes match?
+            }
+            size = layer_count * layer_size;
+        }
     }
 }
 

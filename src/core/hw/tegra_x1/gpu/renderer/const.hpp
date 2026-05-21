@@ -242,14 +242,7 @@ struct TextureDescriptor {
           block_height_gobs_log2{block_height_gobs_log2_},
           block_depth_gobs_log2{block_depth_gobs_log2_}, layer_size{
                                                              layer_size_} {
-        if (layer_count == 1) {
-            layer_size = 0;
-            size = GetLayerSize();
-        } else {
-            if (layer_size == 0)
-                layer_size = GetLayerSize();
-            size = layer_count * layer_size;
-        }
+        CalculateSize();
     }
 
     Range<uptr> GetRange() const { return Range<uptr>::FromSize(ptr, size); }
@@ -263,7 +256,7 @@ struct TextureDescriptor {
     u32 GetLevelSize(u32 level) const;
 
   private:
-    u32 GetLayerSize() const;
+    void CalculateSize();
 };
 
 struct TextureViewDescriptor {
