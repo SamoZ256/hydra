@@ -157,7 +157,6 @@ enum class TextureTypeCompatibility {
     _1DBuffer,
     _2D,
     _3D,
-    Cube,
 };
 
 static TextureTypeCompatibility ToTextureTypeCompatibility(TextureType type) {
@@ -169,11 +168,11 @@ static TextureTypeCompatibility ToTextureTypeCompatibility(TextureType type) {
         return TextureTypeCompatibility::_1DBuffer;
     case TextureType::_2D:
     case TextureType::_2DArray:
-    case TextureType::_3D: // TODO: 2D arrays aren't compatible with 3D
-        return TextureTypeCompatibility::_2D;
     case TextureType::Cube:
     case TextureType::CubeArray:
-        return TextureTypeCompatibility::Cube;
+        return TextureTypeCompatibility::_2D;
+    case TextureType::_3D:
+        return TextureTypeCompatibility::_3D;
     }
 }
 
@@ -642,6 +641,7 @@ u32 TextureDescriptor::GetHash() const {
     // TODO: block size?
     hash.Add(layer_size);
 
+    // View compatibility
     hash.Add(ToTextureTypeCompatibility(type));
 
     const auto& format_info = GetTextureFormatInfo(format);
@@ -651,6 +651,19 @@ u32 TextureDescriptor::GetHash() const {
     hash.Add(format_info.is_depth_stencil);
 
     return hash.ToHashCode();
+}
+
+bool TextureDescriptor::IsViewCompatible(const TextureDescriptor& other) const {
+    if (ToTextureTypeCompatibility(type) !=
+        ToTextureTypeCompatibility(other.type))
+        return false;
+
+    const auto& format_info = GetTextureFormatInfo(format);
+    const auto& other_format_info = GetTextureFormatInfo(other.format);
+    return format_info.bytes_per_block == other_format_info.bytes_per_block &&
+           format_info.block_width == other_format_info.block_width &&
+           format_info.block_height == other_format_info.block_height &&
+           format_info.is_depth_stencil == other_format_info.is_depth_stencil;
 }
 
 namespace {

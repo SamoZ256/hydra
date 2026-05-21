@@ -256,6 +256,8 @@ struct TextureDescriptor {
 
     u32 GetHash() const;
 
+    bool IsViewCompatible(const TextureDescriptor& other) const;
+
     uint3 GetLevelDimensions(u32 level) const;
     uint3 GetLevelBlockSizeLog2(u32 level) const;
     u32 GetLevelOffset(u32 level) const;
