@@ -1151,6 +1151,33 @@ hydra_texture_descriptor_get_layer_count(const void* descriptor) {
         ->layer_count;
 }
 
+HYDRA_EXPORT uint32_t
+hydra_texture_descriptor_get_block_width_gobs(const void* descriptor) {
+    return 1u
+           << static_cast<
+                  const hydra::hw::tegra_x1::gpu::renderer::TextureDescriptor*>(
+                  descriptor)
+                  ->block_width_gobs_log2;
+}
+
+HYDRA_EXPORT uint32_t
+hydra_texture_descriptor_get_block_height_gobs(const void* descriptor) {
+    return 1u
+           << static_cast<
+                  const hydra::hw::tegra_x1::gpu::renderer::TextureDescriptor*>(
+                  descriptor)
+                  ->block_height_gobs_log2;
+}
+
+HYDRA_EXPORT uint32_t
+hydra_texture_descriptor_get_block_depth_gobs(const void* descriptor) {
+    return 1u
+           << static_cast<
+                  const hydra::hw::tegra_x1::gpu::renderer::TextureDescriptor*>(
+                  descriptor)
+                  ->block_depth_gobs_log2;
+}
+
 HYDRA_EXPORT uint64_t
 hydra_texture_descriptor_get_layer_size(const void* descriptor) {
     return static_cast<
