@@ -120,36 +120,106 @@ void TextureCache::MergeMemories(TextureMem& mem, TextureMem& other) {
 
 namespace {
 
-bool CalculateLevelAndLayer(const auto& descriptor,
-                            const auto& other_descriptor, u32& out_level,
-                            u32& out_layer) {
-    const auto offset = static_cast<u32>(other_descriptor.ptr - descriptor.ptr);
+bool CalculateLevelAndLayer(const TextureDescriptor& base_descriptor, uptr ptr,
+                            u32& out_level, u32& out_layer) {
+    const auto offset = static_cast<u32>(ptr - base_descriptor.ptr);
 
     // Layer
     out_layer = 0;
     u32 layer_offset = 0;
-    if (descriptor.layer_count > 1) {
-        out_layer = offset / descriptor.layer_size;
-        layer_offset = out_layer * descriptor.layer_size;
+    if (base_descriptor.layer_count > 1) {
+        out_layer = offset / base_descriptor.layer_size;
+        layer_offset = out_layer * base_descriptor.layer_size;
     }
-    const u32 level_offset = offset - layer_offset;
 
     // Level
     out_level = 0;
     u32 crnt_level_offset = 0;
+    const u32 level_offset = offset - layer_offset;
     for (; crnt_level_offset < level_offset;
-         crnt_level_offset += descriptor.GetLevelSize(out_level++)) {
+         crnt_level_offset += base_descriptor.GetLevelSize(out_level++)) {
     }
 
     // Check if level is aligned
     if (crnt_level_offset != level_offset)
         return false;
 
-    // Check if size is the correct size for that particular level
-    const auto expected_dims = descriptor.GetLevelDimensions(out_level);
-    if (other_descriptor.width != expected_dims.x() ||
-        other_descriptor.height != expected_dims.y() ||
-        other_descriptor.depth != expected_dims.z())
+    return true;
+}
+
+bool CalculateLevelAndLayer(const TextureDescriptor& base_descriptor,
+                            const TextureDescriptor& view_descriptor,
+                            u32& out_level, u32& out_layer) {
+    if (!CalculateLevelAndLayer(base_descriptor, view_descriptor.ptr, out_level,
+                                out_layer))
+        return false;
+
+    if (base_descriptor.GetLevelDimensions(out_level) !=
+        uint3({view_descriptor.width, view_descriptor.height,
+               view_descriptor.depth}))
+        return false;
+
+    return true;
+}
+
+bool CalculateLevelAndLayer(const TextureDescriptor& base1_descriptor,
+                            const TextureDescriptor& base2_descriptor, uptr ptr,
+                            u32& out_level1, u32& out_layer1, u32& out_level2,
+                            u32& out_layer2) {
+    if (!CalculateLevelAndLayer(base1_descriptor, ptr, out_level1, out_layer1))
+        return false;
+
+    if (!CalculateLevelAndLayer(base2_descriptor, ptr, out_level2, out_layer2))
+        return false;
+
+    if (base1_descriptor.GetLevelDimensions(out_level1) !=
+        base2_descriptor.GetLevelDimensions(out_level2))
+        return false;
+
+    return true;
+}
+
+bool CalculateLevelAndSlice(const TextureDescriptor& base_descriptor, uptr ptr,
+                            u32& out_level, u32& out_slice) {
+    const auto offset = static_cast<u32>(ptr - base_descriptor.ptr);
+
+    // Level
+    out_level = 0;
+    u32 level_offset = 0;
+    while (level_offset < offset) {
+        const u32 level_size = base_descriptor.GetLevelSize(out_level);
+        if (level_offset + level_size >= offset)
+            break;
+
+        level_offset += level_size;
+        out_level++;
+    }
+
+    // Slice
+    const u32 slice_offset = offset - level_offset;
+    const u32 slice_size = base_descriptor.size / base_descriptor.depth;
+    out_slice = slice_offset / slice_size;
+
+    // Check if slice is aligned
+    if (out_slice * slice_size != slice_offset)
+        return false;
+
+    return true;
+}
+
+bool CalculateLevelAndSlice(const TextureDescriptor& base1_descriptor,
+                            const TextureDescriptor& base2_descriptor, uptr ptr,
+                            u32& out_level1, u32& out_slice1, u32& out_level2,
+                            u32& out_slice2) {
+    if (!CalculateLevelAndSlice(base1_descriptor, ptr, out_level1, out_slice1))
+        return false;
+
+    if (!CalculateLevelAndSlice(base2_descriptor, ptr, out_level2, out_slice2))
+        return false;
+
+    const auto dims1 = base1_descriptor.GetLevelDimensions(out_level1);
+    const auto dims2 = base2_descriptor.GetLevelDimensions(out_level2);
+    if (dims1.x() != dims2.x() || dims1.y() != dims2.y()) // Z can differ
         return false;
 
     return true;
@@ -367,95 +437,33 @@ void TextureCache::Update(ICommandBuffer* command_buffer,
         const auto& descriptor = base->GetDescriptor();
         const auto range = descriptor.GetRange();
         for (auto& [group_key, group] : mem.cache) {
-            // Skip this group
-            if (group_key == storage.base->GetDescriptor().GetGroupHash())
-                continue;
-
             for (auto& [storage_key, other_storage] : group.cache) {
-                const auto other_base = other_storage.base;
-                const auto& other_descriptor = other_base->GetDescriptor();
-                const auto other_range = other_descriptor.GetRange();
-
-                // Check if the textures can actually be copied
-                if (other_descriptor.width != descriptor.width ||
-                    other_descriptor.height != descriptor.height)
+                // Skip this storage
+                if (storage_key ==
+                    storage.base->GetDescriptor().GetStorageHash())
                     continue;
 
-                // TODO: rework
+                const auto& other_descriptor =
+                    other_storage.base->GetDescriptor();
+                const auto other_range = other_descriptor.GetRange();
+
                 if (range.Intersects(other_range)) {
-                    const auto copy_range = range.ClampedTo(other_range);
-                    const auto dst_offset =
-                        copy_range.GetBegin() - range.GetBegin();
-
-                    if (descriptor.type != TextureType::_3D &&
-                        other_descriptor.type !=
-                            TextureType::_3D) { // Neither 3D
-                        // Layer
-                        const auto src_layer = static_cast<u32>(
-                            (copy_range.GetBegin() - other_range.GetBegin()) /
-                            descriptor.layer_size);
-                        const auto dst_layer = static_cast<u32>(
-                            dst_offset / descriptor.layer_size);
-                        const auto layer_count = static_cast<u32>(
-                            copy_range.GetSize() / descriptor.layer_size);
-
-                        // Copy
-                        // TODO: make sure the formats match
-                        base->CopyFrom(command_buffer, other_base, 0, src_layer,
-                                       0, dst_layer,
-                                       std::min(descriptor.level_count,
-                                                other_descriptor.level_count),
-                                       layer_count);
-                    } else if (descriptor.type == TextureType::_3D &&
-                               other_descriptor.type ==
-                                   TextureType::_3D) { // Both 3D
-                        // TODO: what about multiple levels?
-
-                        const auto slice_size = GetTextureFormatSliceStride(
-                            descriptor.format, descriptor.width,
-                            descriptor.height);
-
-                        // Z
-                        const auto src_z = static_cast<u32>(
-                            (copy_range.GetBegin() - other_range.GetBegin()) /
-                            slice_size);
-                        const auto dst_z =
-                            static_cast<u32>(dst_offset / slice_size);
-                        const auto z_count =
-                            static_cast<u32>(copy_range.GetSize() / slice_size);
-
-                        // Copy
-                        // TODO: make sure the formats match
-                        base->CopyFrom(command_buffer, other_base,
-                                       uint3({0, 0, src_z}), 0, 0,
-                                       uint3({0, 0, dst_z}), 0, 0,
-                                       uint3({descriptor.width,
-                                              descriptor.height, z_count}),
-                                       1);
-                    } else if (descriptor.type == TextureType::_3D &&
-                               other_descriptor.type ==
-                                   TextureType::_2D) { // HACK: special case
-                        // TODO: what about multiple levels?
-
-                        const auto slice_size = GetTextureFormatSliceStride(
-                            descriptor.format, descriptor.width,
-                            descriptor.height);
-
-                        // Z
-                        const auto dst_z =
-                            static_cast<u32>(dst_offset / slice_size);
-
-                        // Copy
-                        // TODO: make sure the formats match
-                        base->CopyFrom(
-                            command_buffer, other_base, uint3({0, 0, 0}), 0, 0,
-                            uint3({0, 0, dst_z}), 0, 0,
-                            uint3({descriptor.width, descriptor.height, 1}), 1);
+                    const auto type_class =
+                        GetTextureTypeClass(descriptor.type);
+                    const auto other_type_class =
+                        GetTextureTypeClass(other_descriptor.type);
+                    if (type_class == TextureTypeClass::_2D &&
+                        other_type_class == TextureTypeClass::_2D) {
+                        Synchronize2DWith2D(command_buffer, storage,
+                                            other_storage);
+                    } else if (type_class == TextureTypeClass::_3D &&
+                               other_type_class == TextureTypeClass::_3D) {
+                        Synchronize3DWith3D(command_buffer, storage,
+                                            other_storage);
                     } else {
                         LOG_WARN(Gpu,
-                                 "Unimplemented texture copy (source: {}, "
-                                 "destination: {})",
-                                 descriptor.type, other_descriptor.type);
+                                 "Cannot synchronize textures ({}) and ({})",
+                                 descriptor, other_descriptor);
                     }
                 }
             }
@@ -482,6 +490,72 @@ void TextureCache::Update(ICommandBuffer* command_buffer,
 
     if (usage == TextureUsage::Write || sync)
         storage.MarkUpdated();
+}
+
+void TextureCache::Synchronize2DWith2D(ICommandBuffer* command_buffer,
+                                       TextureStorage& storage,
+                                       TextureStorage& other_storage) {
+    const auto& descriptor = storage.base->GetDescriptor();
+    const auto& other_descriptor = other_storage.base->GetDescriptor();
+    const auto copy_range =
+        descriptor.GetRange().ClampedTo(other_descriptor.GetRange());
+
+    u32 level, layer, other_level, other_layer;
+    if (!CalculateLevelAndLayer(descriptor, other_descriptor,
+                                copy_range.GetBegin(), level, layer,
+                                other_level, other_layer)) {
+        LOG_DEBUG(Gpu, "Cannot synchronize 2D textures ({}) and ({})",
+                  descriptor, other_descriptor);
+        return;
+    }
+
+    storage.base->CopyFrom(
+        command_buffer, other_storage.base, other_layer, level, layer,
+        other_level,
+        std::min(descriptor.level_count - level,
+                 other_descriptor.level_count - other_level),
+        std::min(descriptor.layer_count - layer,
+                 other_descriptor.layer_count - other_layer));
+}
+
+void TextureCache::Synchronize3DWith3D(ICommandBuffer* command_buffer,
+                                       TextureStorage& storage,
+                                       TextureStorage& other_storage) {
+    const auto& descriptor = storage.base->GetDescriptor();
+    const auto& other_descriptor = other_storage.base->GetDescriptor();
+    const auto copy_range =
+        descriptor.GetRange().ClampedTo(other_descriptor.GetRange());
+
+    u32 level, slice, other_level, other_slice;
+    if (!CalculateLevelAndSlice(descriptor, other_descriptor,
+                                copy_range.GetBegin(), level, slice,
+                                other_level, other_slice)) {
+        LOG_DEBUG(Gpu, "Cannot synchronize 3D textures ({}) and ({})",
+                  descriptor, other_descriptor);
+        return;
+    }
+
+    const auto dims = descriptor.GetLevelDimensions(level);
+    const auto other_dims = other_descriptor.GetLevelDimensions(other_level);
+    const u32 level_count =
+        std::min(descriptor.level_count - level,
+                 other_descriptor.level_count - other_level);
+
+    if (slice == 0 && other_slice == 0 && dims.z() == other_dims.z()) {
+        // Do a simplified copy in case we are copying whole levels
+        storage.base->CopyFrom(command_buffer, other_storage.base, other_level,
+                               0, level, 0, level_count, 1);
+    } else {
+        ASSERT_DEBUG(
+            level_count == 1, Gpu,
+            "Cannot copy multiple 3D levels with non-matching dimensions");
+        const u32 slice_count =
+            std::min(dims.z() - slice, other_dims.z() - other_slice);
+        storage.base->CopyFrom(command_buffer, other_storage.base,
+                               uint3({0, 0, other_slice}), other_level, 0,
+                               uint3({0, 0, slice}), level, 0,
+                               uint3({dims.x(), dims.y(), slice_count}), 1);
+    }
 }
 
 u32 TextureCache::GetDataHash(const ITexture* texture) {

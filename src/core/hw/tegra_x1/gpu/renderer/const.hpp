@@ -18,6 +18,15 @@ enum class TextureType {
     CubeArray,
 };
 
+enum class TextureTypeClass {
+    _1D,
+    _1DBuffer,
+    _2D,
+    _3D,
+};
+
+TextureTypeClass GetTextureTypeClass(TextureType type);
+
 enum class TextureFormat {
     Invalid,
 

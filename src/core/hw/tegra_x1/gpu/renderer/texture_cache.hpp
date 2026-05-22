@@ -118,6 +118,14 @@ class TextureCache {
     void Update(ICommandBuffer* command_buffer, TextureStorage& storage,
                 TextureMem& mem, TextureUsage usage);
 
+    // Data synchronization
+    void Synchronize2DWith2D(ICommandBuffer* command_buffer,
+                             TextureStorage& storage,
+                             TextureStorage& other_storage);
+    void Synchronize3DWith3D(ICommandBuffer* command_buffer,
+                             TextureStorage& storage,
+                             TextureStorage& other_storage);
+
     // Helpers
     u32 GetDataHash(const ITexture* texture);
     void DecodeTexture(ICommandBuffer* command_buffer, TextureStorage& storage);

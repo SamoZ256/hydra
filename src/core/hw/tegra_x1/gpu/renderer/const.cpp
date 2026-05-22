@@ -4,6 +4,23 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
+TextureTypeClass GetTextureTypeClass(TextureType type) {
+    switch (type) {
+    case TextureType::_1D:
+    case TextureType::_1DArray:
+        return TextureTypeClass::_1D;
+    case TextureType::_1DBuffer:
+        return TextureTypeClass::_1DBuffer;
+    case TextureType::_2D:
+    case TextureType::_2DArray:
+    case TextureType::Cube:
+    case TextureType::CubeArray:
+        return TextureTypeClass::_2D;
+    case TextureType::_3D:
+        return TextureTypeClass::_3D;
+    }
+}
+
 namespace {
 
 #define FORMAT(bytes_per_block, block_width, block_height, is_depth_stencil)   \
@@ -151,30 +168,6 @@ TextureFormatInfo texture_format_infos[] = {
 #undef DEPTH_STENCIL_FORMAT
 #undef COLOR_FORMAT
 #undef FORMAT
-
-enum class TextureTypeCompatibility {
-    _1D,
-    _1DBuffer,
-    _2D,
-    _3D,
-};
-
-static TextureTypeCompatibility ToTextureTypeCompatibility(TextureType type) {
-    switch (type) {
-    case TextureType::_1D:
-    case TextureType::_1DArray:
-        return TextureTypeCompatibility::_1D;
-    case TextureType::_1DBuffer:
-        return TextureTypeCompatibility::_1DBuffer;
-    case TextureType::_2D:
-    case TextureType::_2DArray:
-    case TextureType::Cube:
-    case TextureType::CubeArray:
-        return TextureTypeCompatibility::_2D;
-    case TextureType::_3D:
-        return TextureTypeCompatibility::_3D;
-    }
-}
 
 } // namespace
 
@@ -630,7 +623,7 @@ SwizzleChannels::SwizzleChannels(const TextureFormat format,
 
 u32 TextureDescriptor::GetGroupHash() const {
     HashCode hash;
-    hash.Add(ToTextureTypeCompatibility(type));
+    hash.Add(GetTextureTypeClass(type));
 
     const auto& format_info = GetTextureFormatInfo(format);
     // TODO: make sure BC and ASTC formats are incompatible
