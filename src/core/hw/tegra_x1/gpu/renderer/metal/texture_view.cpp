@@ -42,7 +42,6 @@ TextureView::TextureView(Texture* base, const TextureViewDescriptor& descriptor)
         break;
     }
 
-    // TODO: levels
     texture = base->GetTexture()->newTextureView(
         to_mtl_pixel_format(descriptor.format), ToMtlTextureType(type),
         NS::Range(descriptor.levels.GetBegin(), descriptor.levels.GetSize()),

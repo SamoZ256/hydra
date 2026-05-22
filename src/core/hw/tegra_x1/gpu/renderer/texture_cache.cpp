@@ -141,7 +141,18 @@ bool CalculateLevelAndLayer(const auto& descriptor,
          crnt_level_offset += descriptor.GetLevelSize(out_level++)) {
     }
 
-    return crnt_level_offset == level_offset;
+    // Check if level is aligned
+    if (crnt_level_offset != level_offset)
+        return false;
+
+    // Check if size is the correct size for that particular level
+    const auto expected_dims = descriptor.GetLevelDimensions(out_level);
+    if (other_descriptor.width != expected_dims.x() ||
+        other_descriptor.height != expected_dims.y() ||
+        other_descriptor.depth != expected_dims.z())
+        return false;
+
+    return true;
 }
 
 } // namespace
@@ -182,8 +193,9 @@ TextureCache::AddToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
             u32 level, layer;
             if (!CalculateLevelAndLayer(other_descriptor, descriptor, level,
                                         layer)) {
-                LOG_WARN(Gpu, "Misaligned textures (existing: ({}), new: ({}))",
-                         other_descriptor, descriptor);
+                LOG_DEBUG(Gpu,
+                          "Misaligned textures (existing: ({}), new: ({}))",
+                          other_descriptor, descriptor);
                 continue;
             }
 
@@ -250,9 +262,9 @@ TextureCache::AddToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
             if (other_range.GetBegin() >= range.GetBegin()) {
                 if (!CalculateLevelAndLayer(descriptor, other_descriptor, level,
                                             layer)) {
-                    LOG_WARN(Gpu,
-                             "Misaligned textures (existing: ({}), new: ({}))",
-                             other_descriptor, descriptor);
+                    LOG_DEBUG(Gpu,
+                              "Misaligned textures (existing: ({}), new: ({}))",
+                              other_descriptor, descriptor);
                     ++it;
                     continue;
                 }
