@@ -148,13 +148,6 @@ class Copy : public EngineWithRegsBase<RegsCopy> {
     };
 
     void LaunchDMA(const u32 index, const LaunchDMAData data);
-
-    // Helpers
-    // static renderer::BufferBase* GetBuffer(const Iova addr,
-    //                                       const usize size);
-    // static renderer::TextureBase* GetTexture(const u32 gpu_addr_lo,
-    //                                          const u32 gpu_addr_hi,
-    //                                          const TextureCopyInfo& info);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::engines

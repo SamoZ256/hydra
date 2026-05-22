@@ -1381,6 +1381,18 @@ struct HydraTextureDescriptor: HandleStruct {
         hydra_texture_descriptor_get_layer_count(self.handle)
     }
 
+    var blockWidthGobs: UInt32 {
+        hydra_texture_descriptor_get_block_width_gobs(self.handle)
+    }
+
+    var blockHeightGobs: UInt32 {
+        hydra_texture_descriptor_get_block_height_gobs(self.handle)
+    }
+
+    var blockDepthGobs: UInt32 {
+        hydra_texture_descriptor_get_block_depth_gobs(self.handle)
+    }
+
     var layerSize: UInt64 {
         hydra_texture_descriptor_get_layer_size(self.handle)
     }

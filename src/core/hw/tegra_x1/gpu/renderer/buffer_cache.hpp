@@ -19,6 +19,7 @@ struct BufferEntry {
 };
 
 // TODO: optional data hashing
+// TODO: thread safety
 class BufferCache {
   public:
     BufferCache(IRenderer& renderer_) : renderer{renderer_} {}

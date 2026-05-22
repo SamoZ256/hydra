@@ -1,6 +1,25 @@
 #include "core/hw/tegra_x1/gpu/renderer/const.hpp"
 
+#include "core/hw/tegra_x1/gpu/memory_util.hpp"
+
 namespace hydra::hw::tegra_x1::gpu::renderer {
+
+TextureTypeClass GetTextureTypeClass(TextureType type) {
+    switch (type) {
+    case TextureType::_1D:
+    case TextureType::_1DArray:
+        return TextureTypeClass::_1D;
+    case TextureType::_1DBuffer:
+        return TextureTypeClass::_1DBuffer;
+    case TextureType::_2D:
+    case TextureType::_2DArray:
+    case TextureType::Cube:
+    case TextureType::CubeArray:
+        return TextureTypeClass::_2D;
+    case TextureType::_3D:
+        return TextureTypeClass::_3D;
+    }
+}
 
 namespace {
 
@@ -150,35 +169,10 @@ TextureFormatInfo texture_format_infos[] = {
 #undef COLOR_FORMAT
 #undef FORMAT
 
-enum class TextureTypeCompatibility {
-    _1D,
-    _1DBuffer,
-    _2D,
-    _3D,
-    Cube,
-};
-
-static TextureTypeCompatibility ToTextureTypeCompatibility(TextureType type) {
-    switch (type) {
-    case TextureType::_1D:
-    case TextureType::_1DArray:
-        return TextureTypeCompatibility::_1D;
-    case TextureType::_1DBuffer:
-        return TextureTypeCompatibility::_1DBuffer;
-    case TextureType::_2D:
-    case TextureType::_2DArray:
-    case TextureType::_3D: // TODO: 2D arrays aren't compatible with 3D
-        return TextureTypeCompatibility::_2D;
-    case TextureType::Cube:
-    case TextureType::CubeArray:
-        return TextureTypeCompatibility::Cube;
-    }
-}
-
 } // namespace
 
 const TextureFormatInfo& GetTextureFormatInfo(TextureFormat format) {
-    return texture_format_infos[static_cast<u32>(format)];
+    return texture_format_infos[static_cast<usize>(format)];
 }
 
 TextureFormat to_texture_format(NvColorFormat color_format) {
@@ -372,17 +366,28 @@ TextureFormat to_texture_format(DepthSurfaceFormat depth_surface_format) {
 #undef DEPTH_SURFACE_FORMAT_CASE
 }
 
+u32 GetTextureFormatStride(const TextureFormat format, u32 width) {
+    const auto& info = GetTextureFormatInfo(format);
+    return ceil_divide(width, info.block_width) * info.bytes_per_block;
+}
+
+u32 GetTextureFormatRows(const TextureFormat format, u32 height) {
+    const auto& info = GetTextureFormatInfo(format);
+    return ceil_divide(height, info.block_height);
+}
+
+u32 GetTextureFormatSliceStride(const TextureFormat format, u32 width,
+                                u32 height) {
+    return GetTextureFormatRows(format, height) *
+           GetTextureFormatStride(format, width);
+}
+
 u32 get_texture_format_bpp(const TextureFormat format) {
     const auto& info = GetTextureFormatInfo(format);
     if (info.block_width != 1 || info.block_height != 1)
         throw GetTextureFormatBppError::UnsupportedFormatForBpp;
 
     return info.bytes_per_block;
-}
-
-u32 get_texture_format_stride(const TextureFormat format, u32 width) {
-    const auto& info = GetTextureFormatInfo(format);
-    return ceil_divide(width, info.block_width) * info.bytes_per_block;
 }
 
 bool is_texture_format_compressed(const TextureFormat format) {
@@ -616,7 +621,21 @@ SwizzleChannels::SwizzleChannels(const TextureFormat format,
 #undef SWIZZLE
 }
 
-u32 TextureDescriptor::GetHash() const {
+u32 TextureDescriptor::GetGroupHash() const {
+    HashCode hash;
+    hash.Add(GetTextureTypeClass(type));
+
+    const auto& format_info = GetTextureFormatInfo(format);
+    // TODO: make sure BC and ASTC formats are incompatible
+    hash.Add(format_info.bytes_per_block);
+    hash.Add(format_info.block_width);
+    hash.Add(format_info.block_height);
+    hash.Add(format_info.is_depth_stencil);
+
+    return hash.ToHashCode();
+}
+
+u32 TextureDescriptor::GetStorageHash() const {
     HashCode hash;
     hash.Add(ptr);
     if (is_linear)
@@ -624,20 +643,119 @@ u32 TextureDescriptor::GetHash() const {
     hash.Add(width);
     hash.Add(height);
     hash.Add(depth);
-    // TODO
-    // hash.Add(level_count);
+    hash.Add(level_count);
     hash.Add(layer_count);
+    // TODO: block size?
     hash.Add(layer_size);
 
-    hash.Add(ToTextureTypeCompatibility(type));
-
-    const auto& format_info = GetTextureFormatInfo(format);
-    hash.Add(format_info.bytes_per_block);
-    hash.Add(format_info.block_width);
-    hash.Add(format_info.block_height);
-    hash.Add(format_info.is_depth_stencil);
-
     return hash.ToHashCode();
+}
+
+namespace {
+
+u32 AdjustDim(u32 dim, u32 level) { return std::max(dim >> level, 1u); }
+
+} // namespace
+
+uint3 TextureDescriptor::GetLevelDimensions(u32 level) const {
+    return uint3({AdjustDim(width, level), AdjustDim(height, level),
+                  AdjustDim(depth, level)});
+}
+
+namespace {
+
+u32 AdjustBlockSizeLog2(u32 size_log2, u32 gob_dim, u32 dim) {
+    while (dim <= (gob_dim << (size_log2 - 1)) && size_log2 != 0)
+        size_log2--;
+
+    return size_log2;
+}
+
+} // namespace
+
+uint3 TextureDescriptor::GetLevelBlockSizeLog2(u32 level) const {
+    const auto dims = GetLevelDimensions(level);
+
+    const u32 stride = GetTextureFormatStride(format, dims.x());
+    const u32 rows = GetTextureFormatRows(format, dims.y());
+    const u32 slices = dims.z();
+
+    return uint3({AdjustBlockSizeLog2(block_width_gobs_log2, GOB_WIDTH, stride),
+                  AdjustBlockSizeLog2(block_height_gobs_log2, GOB_HEIGHT, rows),
+                  AdjustBlockSizeLog2(block_depth_gobs_log2, 1, slices)});
+}
+
+u32 TextureDescriptor::GetLevelOffset(u32 level) const {
+    u32 offset = 0;
+    for (u32 l = 0; l < level; l++)
+        offset += GetLevelSize(l);
+
+    return offset;
+}
+
+u32 TextureDescriptor::GetLevelSize(u32 level) const {
+    const auto dims = GetLevelDimensions(level);
+    const auto block_size_log2 = GetLevelBlockSizeLog2(level);
+
+    const u32 block_width = GOB_WIDTH << block_size_log2.x();
+    const u32 block_height = GOB_HEIGHT << block_size_log2.y();
+    const u32 block_depth = 1u << block_size_log2.z();
+
+    const u32 stride =
+        align(GetTextureFormatStride(format, dims.x()), block_width);
+    const u32 rows =
+        align(GetTextureFormatRows(format, dims.y()), block_height);
+    const u32 slices = align(dims.z(), block_depth);
+
+    return slices * rows * stride;
+}
+
+namespace {
+
+u32 AlignLayerSize(u32 layer_size, u32 height, u32 depth, u32 block_height,
+                   u32 block_height_gobs_log2, u32 block_depth_gobs_log2) {
+    height = align(height, block_height);
+    while (block_height_gobs_log2 != 0 &&
+           height <= 8U << (block_height_gobs_log2 - 1))
+        --block_height_gobs_log2;
+
+    while (block_depth_gobs_log2 != 0 &&
+           depth <= 1U << (block_depth_gobs_log2 - 1))
+        --block_depth_gobs_log2;
+
+    u32 block_size = GOB_SIZE
+                     << (block_height_gobs_log2 + block_depth_gobs_log2);
+    u32 blocks = layer_size / block_size;
+
+    if (layer_size != blocks * block_size)
+        return (blocks + 1) * block_size;
+
+    return layer_size;
+}
+
+} // namespace
+
+void TextureDescriptor::CalculateSize() {
+    if (is_linear) {
+        layer_size = 0;
+        size = height * linear_stride;
+    } else {
+        const u32 layer_size_ = GetLevelOffset(level_count);
+        if (layer_count == 1) {
+            layer_size = 0;
+            size = layer_size_;
+        } else {
+            if (layer_size == 0) {
+                layer_size = AlignLayerSize(
+                    layer_size_, height, depth,
+                    GetTextureFormatInfo(format).block_height,
+                    block_height_gobs_log2, block_depth_gobs_log2);
+            } else {
+                // TODO: make sure the layer sizes match?
+            }
+            size = layer_count * layer_size;
+        }
+    }
 }
 
 u32 TextureViewDescriptor::GetHash() const {

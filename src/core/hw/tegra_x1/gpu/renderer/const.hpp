@@ -18,6 +18,15 @@ enum class TextureType {
     CubeArray,
 };
 
+enum class TextureTypeClass {
+    _1D,
+    _1DBuffer,
+    _2D,
+    _3D,
+};
+
+TextureTypeClass GetTextureTypeClass(TextureType type);
+
 enum class TextureFormat {
     Invalid,
 
@@ -172,8 +181,11 @@ enum class GetTextureFormatBppError {
     UnsupportedFormatForBpp,
 };
 
+u32 GetTextureFormatStride(const TextureFormat format, u32 width);
+u32 GetTextureFormatRows(const TextureFormat format, u32 height);
+u32 GetTextureFormatSliceStride(const TextureFormat format, u32 width,
+                                u32 height);
 u32 get_texture_format_bpp(const TextureFormat format);
-u32 get_texture_format_stride(const TextureFormat format, u32 width);
 bool is_texture_format_compressed(const TextureFormat format);
 bool is_texture_format_depth_or_stencil(const TextureFormat format);
 
@@ -220,89 +232,40 @@ struct TextureDescriptor {
     u32 depth;
     u32 level_count;
     u32 layer_count;
-    u32 block_width_log2;
-    u32 block_height_log2;
-    u32 block_depth_log2;
+    u32 block_width_gobs_log2;
+    u32 block_height_gobs_log2;
+    u32 block_depth_gobs_log2;
     u32 layer_size;
+    u32 size;
 
-    static TextureDescriptor
-    CreateWithLevelCount(uptr ptr, TextureType type, TextureFormat format,
-                         bool is_linear, u32 linear_stride, u32 width,
-                         u32 height, u32 depth, u32 level_count,
-                         u32 layer_count, u32 block_width_log2,
-                         u32 block_height_log2, u32 block_depth_log2) {
-        TextureDescriptor d;
-        d.ptr = ptr;
-        d.type = type;
-        d.format = format;
-        d.is_linear = is_linear;
-        d.linear_stride = linear_stride;
-        d.width = width;
-        d.height = height;
-        d.depth = depth;
-        d.level_count = level_count;
-        d.layer_count = layer_count;
-        d.block_width_log2 = block_width_log2;
-        d.block_height_log2 = block_height_log2;
-        d.block_depth_log2 = block_depth_log2;
-
-        d.CalculateLayerSize();
-        return d;
+    TextureDescriptor(uptr ptr_, TextureType type_, TextureFormat format_,
+                      bool is_linear_, u32 linear_stride_, u32 width_,
+                      u32 height_, u32 depth_, u32 level_count_,
+                      u32 layer_count_, u32 block_width_gobs_log2_,
+                      u32 block_height_gobs_log2_, u32 block_depth_gobs_log2_,
+                      u32 layer_size_ = 0)
+        : ptr{ptr_}, type{type_}, format{format_}, is_linear{is_linear_},
+          linear_stride{linear_stride_}, width{width_}, height{height_},
+          depth{depth_}, level_count{level_count_}, layer_count{layer_count_},
+          block_width_gobs_log2{block_width_gobs_log2_},
+          block_height_gobs_log2{block_height_gobs_log2_},
+          block_depth_gobs_log2{block_depth_gobs_log2_}, layer_size{
+                                                             layer_size_} {
+        CalculateSize();
     }
 
-    static TextureDescriptor
-    CreateWithLayerSize(uptr ptr, TextureType type, TextureFormat format,
-                        bool is_linear, u32 linear_stride, u32 width,
-                        u32 height, u32 depth, u32 layer_count,
-                        u32 block_width_log2, u32 block_height_log2,
-                        u32 block_depth_log2, u32 layer_size = 0) {
-        TextureDescriptor d;
-        d.ptr = ptr;
-        d.type = type;
-        d.format = format;
-        d.is_linear = is_linear;
-        d.linear_stride = linear_stride;
-        d.width = width;
-        d.height = height;
-        d.depth = depth;
-        d.layer_count = layer_count;
-        d.block_width_log2 = block_width_log2;
-        d.block_height_log2 = block_height_log2;
-        d.block_depth_log2 = block_depth_log2;
-        d.layer_size = layer_size;
+    Range<uptr> GetRange() const { return Range<uptr>::FromSize(ptr, size); }
 
-        d.CalculateLevelCount();
-        // HACK: calculate layer size when layer count is 1
-        if (layer_size == 0 || layer_count == 1)
-            d.CalculateLayerSize();
+    u32 GetGroupHash() const;
+    u32 GetStorageHash() const;
 
-        return d;
-    }
-
-    u32 GetSize() const { return layer_count * layer_size; }
-    Range<uptr> GetRange() const {
-        return Range<uptr>::FromSize(ptr, GetSize());
-    }
-
-    u32 GetHash() const;
+    uint3 GetLevelDimensions(u32 level) const;
+    uint3 GetLevelBlockSizeLog2(u32 level) const;
+    u32 GetLevelOffset(u32 level) const;
+    u32 GetLevelSize(u32 level) const;
 
   private:
-    TextureDescriptor() = default;
-
-    void CalculateLayerSize() {
-        // HACK
-        if (is_linear) {
-            layer_size = depth * align(height, 16u) * linear_stride;
-        } else {
-            layer_size = depth * align(height, 16u) *
-                         align(get_texture_format_stride(format, width), 64u);
-        }
-    }
-
-    void CalculateLevelCount() {
-        // HACK
-        level_count = 1;
-    }
+    void CalculateSize();
 };
 
 struct TextureViewDescriptor {
@@ -542,6 +505,26 @@ ENABLE_ENUM_FORMATTING(
     "etc2_rg_snorm", ETC2_RGB, "etc2_rgb", PTA_ETC2_RGB, "pta_etc2_rgb",
     ETC2_RGBA, "etc2_rgba", ETC2_RGB_sRGB, "etc2_rgb_srgb", PTA_ETC2_RGB_sRGB,
     "pta_etc2_rgb_srgb", ETC2_RGBA_sRGB, "etc2_rgba_srgb")
+
+ENABLE_STRUCT_FORMATTING(hydra::hw::tegra_x1::gpu::renderer::SwizzleChannels, r,
+                         "", "r", g, "", "g", b, "", "b", a, "", "a")
+
+ENABLE_STRUCT_FORMATTING(hydra::hw::tegra_x1::gpu::renderer::TextureDescriptor,
+                         ptr, ":#x", "ptr", type, "", "type", format, "",
+                         "format", is_linear, "", "is linear", linear_stride,
+                         "", "linear stride", width, "", "width", height, "",
+                         "height", depth, "", "depth", level_count, "",
+                         "level count", layer_count, "", "layer count",
+                         block_width_gobs_log2, "", "log2(block width in GOBs)",
+                         block_height_gobs_log2, "",
+                         "log2(block height in GOBs)", block_depth_gobs_log2,
+                         "", "log2(block depth in GOBs)", layer_size, ":#x",
+                         "layer size", size, ":#x", "size")
+
+ENABLE_STRUCT_FORMATTING(
+    hydra::hw::tegra_x1::gpu::renderer::TextureViewDescriptor, type, "", "type",
+    format, "", "format", levels, "", "levels", layers, "", "layers",
+    swizzle_channels, "", "swizzle channels")
 
 ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::renderer::ShaderType, Vertex,
                        "vertex", Fragment, "fragment", Count, "invalid")

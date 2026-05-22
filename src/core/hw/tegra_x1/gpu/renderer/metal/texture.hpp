@@ -15,14 +15,17 @@ class Texture final : public ITexture {
 
     // Copying
     void CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
-                  const uint3 dst_origin, const usize3 dst_size,
                   const Range<u32> dst_levels,
                   const Range<u32> dst_layers) override;
     void CopyFrom(ICommandBuffer* command_buffer, const ITexture* src,
+                  const u32 src_level, const u32 src_layer, const u32 dst_level,
+                  const u32 dst_layer, const u32 level_count,
+                  const u32 layer_count) override;
+    void CopyFrom(ICommandBuffer* command_buffer, const ITexture* src,
                   const uint3 src_origin, const u32 src_level,
                   const u32 src_layer, const uint3 dst_origin,
-                  const u32 dst_level, const u32 dst_layer, const usize3 size,
-                  const u32 level_count, const u32 layer_count) override;
+                  const u32 dst_level, const u32 dst_layer, const uint3 size,
+                  const u32 layer_count) override;
 
   private:
     MTL::Texture* texture;

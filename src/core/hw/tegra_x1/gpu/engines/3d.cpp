@@ -481,12 +481,13 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
         stride = 0;
     }
 
-    const auto descriptor = renderer::TextureDescriptor::CreateWithLayerSize(
+    const renderer::TextureDescriptor descriptor(
         tls_crnt_gmmu->UnmapAddr(gpu_addr), type, format, is_linear, stride,
-        width, render_target.height, depth, layer_count,
-        render_target.tile_mode.width, render_target.tile_mode.height,
-        render_target.tile_mode.depth,
-        !is_linear ? render_target.layer_stride * 4 : 0);
+        width, render_target.height, depth, 1, layer_count,
+        render_target.tile_mode.width_gobs_log2,
+        render_target.tile_mode.height_gobs_log2,
+        render_target.tile_mode.depth_gobs_log2,
+        render_target.layer_stride * 4);
 
     return gpu.GetRenderer().GetTextureCache().Find(
         tls_crnt_command_buffer, descriptor, renderer::TextureUsage::Write);
@@ -504,12 +505,14 @@ renderer::ITextureView* ThreeD::GetDepthStencilTargetTexture() const {
                           ? renderer::TextureType::_2DArray
                           : renderer::TextureType::_2D;
 
-    const auto descriptor = renderer::TextureDescriptor::CreateWithLayerSize(
+    const renderer::TextureDescriptor descriptor(
         tls_crnt_gmmu->UnmapAddr(gpu_addr), type,
         renderer::to_texture_format(regs.depth_target_format), false, 0,
-        regs.depth_target_width, regs.depth_target_height, 1,
-        regs.depth_target_array_mode.layers, regs.depth_target_tile_mode.width,
-        regs.depth_target_tile_mode.height, regs.depth_target_tile_mode.depth,
+        regs.depth_target_width, regs.depth_target_height, 1, 1,
+        regs.depth_target_array_mode.layers,
+        regs.depth_target_tile_mode.width_gobs_log2,
+        regs.depth_target_tile_mode.height_gobs_log2,
+        regs.depth_target_tile_mode.depth_gobs_log2,
         regs.depth_target_layer_stride * 4);
 
     return gpu.GetRenderer().GetTextureCache().Find(
@@ -805,10 +808,10 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
     }
 
     const u32 level_count = tic.mip_max_levels + 1;
-    const auto descriptor = renderer::TextureDescriptor::CreateWithLevelCount(
+    const renderer::TextureDescriptor descriptor(
         tls_crnt_gmmu->UnmapAddr(gpu_addr), type, format, is_linear,
         linear_stride, tic.width_minus_one + 1, tic.height_minus_one + 1, depth,
-        level_count, layer_count, tic.tile_width_gobs_log2,
+        level_count, layer_count, tic.sparse_tile_width_gobs_log2,
         tic.tile_height_gobs_log2, tic.tile_depth_gobs_log2);
     const renderer::TextureViewDescriptor view_descriptor(
         type, format, Range<u32>(0, level_count), Range<u32>(0, layer_count),

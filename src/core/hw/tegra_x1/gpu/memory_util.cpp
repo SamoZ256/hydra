@@ -4,75 +4,168 @@ namespace hydra::hw::tegra_x1::gpu {
 
 namespace {
 
-// block_height_log2 is in GOBs
-template <bool to_block_linear>
-void Convert(u32 stride, u32 rows, u32 block_height_log2, u8* block_linear,
-             u8* linear) {
-    constexpr u32 GOB_WIDTH_LOG2 = 6;
-    constexpr u32 GOB_HEIGHT_LOG2 = 3;
-    constexpr u32 GOB_WIDTH = 1 << GOB_WIDTH_LOG2;
-    constexpr u32 GOB_HEIGHT = 1 << GOB_HEIGHT_LOG2;
+struct MemoryLayout {
+    u32 block_height_gobs;
+    u32 block_height;
 
-    const u32 block_height_gobs = 1 << block_height_log2;
-    const u32 block_height_px = GOB_HEIGHT << block_height_log2;
+    u32 x_gobs;
+    u32 x_blocks;
+    u32 y_gobs;
+    u32 y_blocks;
+    u32 z_gobs;
+    u32 z_blocks;
+};
 
-    const u32 horizontal_blocks =
-        stride >> GOB_WIDTH_LOG2; // GOBs = blocks (horizontally)
-    const u32 vertical_blocks =
-        align(rows, block_height_px) >> (GOB_HEIGHT_LOG2 + block_height_log2);
+MemoryLayout GetMemoryLayout(u32 stride, u32 rows, u32 depth,
+                             u32 block_height_gobs_log2,
+                             u32 block_depth_gobs_log2) {
+    MemoryLayout layout;
+    layout.block_height_gobs = 1 << block_height_gobs_log2;
+    layout.block_height = layout.block_height_gobs * GOB_HEIGHT;
 
-    // Clear the output buffer first
-    // TODO: is this necessary?
-    // memset(out_data, 0, stride * height);
+    layout.x_gobs = align(stride, GOB_WIDTH) >> GOB_WIDTH_LOG2;
+    layout.x_blocks = layout.x_gobs; // Blocks = GOBs (in X)
+    layout.y_gobs = align(rows, layout.block_height) >> GOB_HEIGHT_LOG2;
+    layout.y_blocks = layout.y_gobs >> block_height_gobs_log2;
+    layout.z_gobs = depth;
+    layout.z_blocks = layout.z_gobs >> block_depth_gobs_log2;
 
-    constexpr usize GOB_SIZE = 512;
+    return layout;
+}
 
-    for (u32 block_y = 0; block_y < vertical_blocks; block_y++) {
-        for (u32 block_x = 0; block_x < horizontal_blocks; block_x++) {
-            for (u32 gob_y = 0; gob_y < block_height_gobs; gob_y++) {
-                const u32 x = block_x * GOB_WIDTH;
-                const u32 y = block_y * block_height_px + gob_y * GOB_HEIGHT;
-                if (y >= rows) {
-                    // Skip this GOB if we're past the valid height
-                    block_linear += GOB_SIZE;
-                    continue;
-                }
+uint2 UnswizzleGobCoords(u32 index) {
+    const u32 local_y = ((index >> 1) & 0x06) | (index & 0x01);
+    const u32 local_x = ((index << 3) & 0x10) | ((index << 1) & 0x20);
+    return uint2({local_x, local_y});
+}
 
-                u8* decoded_gob = linear + y * stride + x;
+} // namespace
 
-                // Reverse the 16Bx2 swizzling for each GOB
-                for (u32 i = 0; i < GOB_SIZE / sizeof(u128); i++) {
-                    const u32 local_y = ((i >> 1) & 0x06) | (i & 0x01);
-                    const u32 local_x = ((i << 3) & 0x10) | ((i << 1) & 0x20);
+void ConvertBlockLinearToLinear(u32 stride, u32 rows, u32 depth,
+                                u32 block_height_gobs_log2,
+                                u32 block_depth_gobs_log2, const u8* in_data,
+                                WriteGobFn write_fn) {
+    const auto layout = GetMemoryLayout(
+        stride, rows, depth, block_height_gobs_log2, block_depth_gobs_log2);
+    u32 gob_index = 0;
+    for (u32 block_z = 0; block_z < layout.z_blocks; block_z++) {
+        for (u32 block_y = 0; block_y < layout.y_blocks; block_y++) {
+            for (u32 block_x = 0; block_x < layout.x_blocks; block_x++) {
+                for (u32 gob_y = 0; gob_y < layout.block_height_gobs; gob_y++) {
+                    const u32 y =
+                        block_y * layout.block_height + gob_y * GOB_HEIGHT;
+                    const u32 z = block_z;
+                    if (z >= depth || y >= rows) {
+                        // Skip this GOB if we're past the valid height
+                        gob_index++;
+                        continue;
+                    }
 
-                    auto linear_data = reinterpret_cast<u128*>(
-                        decoded_gob + local_y * stride + local_x);
-                    auto block_linear_data =
-                        reinterpret_cast<u128*>(block_linear);
-                    if constexpr (to_block_linear)
-                        *block_linear_data = *linear_data;
-                    else
-                        *linear_data = *block_linear_data;
+                    u8 out_gob[GOB_SIZE];
+                    for (u32 i = 0; i < GOB_SIZE / sizeof(u128); i++) {
+                        const auto local = UnswizzleGobCoords(i);
+                        *reinterpret_cast<u128*>(
+                            out_gob + local.y() * GOB_WIDTH + local.x()) =
+                            reinterpret_cast<const u128*>(
+                                in_data + gob_index * GOB_SIZE)[i];
+                    }
 
-                    block_linear += sizeof(u128);
+                    write_fn(out_gob, block_x,
+                             (block_y << block_height_gobs_log2) + gob_y,
+                             block_z);
+
+                    gob_index++;
                 }
             }
         }
     }
 }
 
-} // namespace
+void ConvertBlockLinearToLinear(u32 src_stride, u32 dst_stride,
+                                u32 dst_slice_stride, u32 rows, u32 depth,
+                                u32 block_height_gobs_log2,
+                                u32 block_depth_gobs_log2, const u8* in_data,
+                                u8* out_data) {
+    ConvertBlockLinearToLinear(
+        src_stride, rows, depth, block_height_gobs_log2, block_depth_gobs_log2,
+        in_data, [=](const u8* in_gob, u32 gob_x, u32 gob_y, u32 gob_z) {
+            const u32 x = gob_x * GOB_WIDTH;
+            for (u32 local_y = 0; local_y < GOB_HEIGHT; local_y++) {
+                const u32 y = gob_y * GOB_HEIGHT + local_y;
+                if (y >= rows)
+                    break;
 
-void ConvertBlockLinearToLinear(u32 stride, u32 rows, u32 block_height_log2,
-                                const u8* in_data, u8* out_data) {
-    Convert<false>(stride, rows, block_height_log2, const_cast<u8*>(in_data),
-                   out_data);
+                const u32 crnt_offset =
+                    gob_z * dst_slice_stride + y * dst_stride + x;
+                std::memcpy(out_data + crnt_offset,
+                            in_gob + local_y * GOB_WIDTH,
+                            std::min(GOB_WIDTH, dst_stride - x));
+            }
+        });
 }
 
-void ConvertLinearToBlockLinear(u32 stride, u32 rows, u32 block_height_log2,
-                                const u8* in_data, u8* out_data) {
-    Convert<true>(stride, rows, block_height_log2, out_data,
-                  const_cast<u8*>(in_data));
+void ConvertLinearToBlockLinear(u32 stride, u32 rows, u32 depth,
+                                u32 block_height_gobs_log2,
+                                u32 block_depth_gobs_log2, ReadGobFn read_fn,
+                                u8* out_data) {
+    const auto layout = GetMemoryLayout(
+        stride, rows, depth, block_height_gobs_log2, block_depth_gobs_log2);
+    u32 gob_index = 0;
+    for (u32 block_z = 0; block_z < layout.z_blocks; block_z++) {
+        for (u32 block_y = 0; block_y < layout.y_blocks; block_y++) {
+            for (u32 block_x = 0; block_x < layout.x_blocks; block_x++) {
+                for (u32 gob_y = 0; gob_y < layout.block_height_gobs; gob_y++) {
+                    const u32 y =
+                        block_y * layout.block_height + gob_y * GOB_HEIGHT;
+                    const u32 z = block_z;
+                    if (z >= depth || y >= rows) {
+                        // Skip this GOB if we're past the valid height
+                        gob_index++;
+                        continue;
+                    }
+
+                    u8 gob[GOB_SIZE];
+                    read_fn(block_x,
+                            (block_y << block_height_gobs_log2) + gob_y,
+                            block_z, gob);
+
+                    for (u32 i = 0; i < GOB_SIZE / sizeof(u128); i++) {
+                        const auto local = UnswizzleGobCoords(i);
+                        reinterpret_cast<u128*>(out_data +
+                                                gob_index * GOB_SIZE)[i] =
+                            *reinterpret_cast<const u128*>(
+                                gob + local.y() * GOB_WIDTH + local.x());
+                    }
+
+                    gob_index++;
+                }
+            }
+        }
+    }
+}
+
+void ConvertLinearToBlockLinear(u32 src_stride, u32 src_slice_stride,
+                                u32 dst_stride, u32 rows, u32 depth,
+                                u32 block_height_gobs_log2,
+                                u32 block_depth_gobs_log2, const u8* in_data,
+                                u8* out_data) {
+    ConvertLinearToBlockLinear(
+        dst_stride, rows, depth, block_height_gobs_log2, block_depth_gobs_log2,
+        [=](u32 gob_x, u32 gob_y, u32 gob_z, u8* out_gob) {
+            const u32 x = gob_x * GOB_WIDTH;
+            for (u32 local_y = 0; local_y < GOB_HEIGHT; local_y++) {
+                const u32 y = gob_y * GOB_HEIGHT + local_y;
+                if (y >= rows)
+                    break;
+
+                const u32 crnt_offset =
+                    gob_z * src_slice_stride + y * src_stride + x;
+                std::memcpy(out_gob + local_y * GOB_WIDTH,
+                            in_data + crnt_offset,
+                            std::min(GOB_WIDTH, src_stride - x));
+            }
+        },
+        out_data);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu

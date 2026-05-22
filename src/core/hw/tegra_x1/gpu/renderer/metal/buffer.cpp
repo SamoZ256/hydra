@@ -36,8 +36,8 @@ void Buffer::CopyFrom(ICommandBuffer* command_buffer, ITextureView* src,
                                   src_origin.z()),
                 MTL::Size::Make(src_size.x(), src_size.y(), src_size.z()),
                 buffer, dst_offset,
-                get_texture_format_stride(src_impl->GetDescriptor().format,
-                                          src_size.x()),
+                GetTextureFormatStride(src_impl->GetDescriptor().format,
+                                       src_size.x()),
                 0);
         }
     }

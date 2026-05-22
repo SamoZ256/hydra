@@ -25,14 +25,14 @@ struct TextureStorage {
 };
 
 struct TextureGroup {
-    SmallCache<uptr, TextureStorage> cache;
+    SmallCache<u32, TextureStorage> cache;
 
     // Debug
     usize GetStorageCount() const { return cache.GetCount(); }
 
     const TextureStorage& GetStorage(u32 index) const {
         // HACK: const cast
-        auto it = const_cast<SmallCache<uptr, TextureStorage>&>(cache).begin();
+        auto it = const_cast<SmallCache<u32, TextureStorage>&>(cache).begin();
         std::advance(it, index);
         return it->second;
     }
@@ -101,17 +101,30 @@ class TextureCache {
                               const TextureDescriptor& descriptor,
                               const TextureViewDescriptor& view_descriptor,
                               TextureUsage usage);
+    void UpdateStorage(ICommandBuffer* command_buffer, TextureStorage& storage,
+                       TextureMem& mem, const TextureDescriptor& descriptor,
+                       TextureUsage usage);
+    ITextureView* GetTextureView(TextureStorage& storage,
+                                 const TextureViewDescriptor& view_descriptor);
+    ITextureView* GetTextureView(ICommandBuffer* command_buffer,
+                                 TextureStorage& storage, TextureMem& mem,
+                                 const TextureViewDescriptor& view_descriptor,
+                                 TextureUsage usage);
     ITextureView* GetTexture(ICommandBuffer* command_buffer,
                              TextureStorage& storage, TextureMem& mem,
                              const TextureDescriptor& descriptor,
                              const TextureViewDescriptor& view_descriptor,
                              TextureUsage usage);
-    ITextureView* GetTextureView(ICommandBuffer* command_buffer,
-                                 TextureStorage& storage, TextureMem& mem,
-                                 const TextureViewDescriptor& view_descriptor,
-                                 TextureUsage usage);
     void Update(ICommandBuffer* command_buffer, TextureStorage& storage,
                 TextureMem& mem, TextureUsage usage);
+
+    // Data synchronization
+    void Synchronize2DWith2D(ICommandBuffer* command_buffer,
+                             TextureStorage& storage,
+                             TextureStorage& other_storage);
+    void Synchronize3DWith3D(ICommandBuffer* command_buffer,
+                             TextureStorage& storage,
+                             TextureStorage& other_storage);
 
     // Helpers
     u32 GetDataHash(const ITexture* texture);

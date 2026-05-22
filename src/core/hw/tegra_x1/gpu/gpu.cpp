@@ -88,13 +88,13 @@ Gpu::GetTexture(renderer::ICommandBuffer* command_buffer, cpu::IMmu* mmu,
         (plane.kind == NvKind::Pitch || plane.kind == NvKind::PitchNoSwizzle);
 
     // TODO: why are there more planes?
-    const auto descriptor = renderer::TextureDescriptor::CreateWithLayerSize(
+    const renderer::TextureDescriptor descriptor(
         mmu->UnmapAddr(GetMap(static_cast<u32>(buff.nvmap_id)).addr +
                        plane.offset),
         renderer::TextureType::_2D,
         renderer::to_texture_format(plane.color_format), is_linear, plane.pitch,
-        plane.width, plane.height, 1, 1, 0x0, plane.block_height_log2, 0x0,
-        static_cast<u32>(plane.size));
+        plane.width, plane.height, 1, 1, 1, 0x0, plane.block_height_gobs_log2,
+        0x0);
 
     return renderer->GetTextureCache().Find(command_buffer, descriptor,
                                             renderer::TextureUsage::Present);

@@ -41,7 +41,7 @@ struct TextureImageControl {
         u16 width_minus_one_16_31;
         u16 pitch_5_20;
         struct {
-            u16 tile_width_gobs_log2 : 3;
+            u16 tile_width_gobs_log2 : 3; // Ignored
             u16 tile_height_gobs_log2 : 3;
             u16 tile_depth_gobs_log2 : 3;
             u16 : 1;
@@ -153,9 +153,9 @@ struct RenderTarget {
     u32 height;
     ColorSurfaceFormat format;
     struct {
-        u32 width : 4;
-        u32 height : 4;
-        u32 depth : 4;
+        u32 width_gobs_log2 : 4;
+        u32 height_gobs_log2 : 4;
+        u32 depth_gobs_log2 : 4;
         bool32 is_linear : 1;
         u32 unused : 3;
         bool32 is_3d : 1;
@@ -315,9 +315,9 @@ struct Regs3D {
     Iova depth_target_addr;
     DepthSurfaceFormat depth_target_format;
     struct {
-        u32 width : 4;
-        u32 height : 4;
-        u32 depth : 4;
+        u32 width_gobs_log2 : 4;
+        u32 height_gobs_log2 : 4;
+        u32 depth_gobs_log2 : 4;
         u32 padding : 20;
     } depth_target_tile_mode;
     u32 depth_target_layer_stride;
