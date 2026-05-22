@@ -187,8 +187,34 @@ TextureCache::AddToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
                 continue;
             }
 
+            auto actual_storage = &storage;
+
+            // Check if the base texture has enough levels
+            const u32 min_levels = level + descriptor.level_count;
+            if (other_descriptor.level_count < min_levels) {
+                // Remove the old storage
+                group.cache.Remove(key);
+
+                // Create a new storage
+                auto new_descriptor = other_descriptor;
+                new_descriptor.level_count = min_levels;
+                auto& new_storage =
+                    group.cache.Add(new_descriptor.GetStorageHash());
+                UpdateStorage(command_buffer, new_storage, mem, new_descriptor,
+                              usage);
+
+                // Copy the old storage to the new one
+                new_storage.base->CopyFrom(command_buffer, storage.base, 0, 0,
+                                           0, 0, other_descriptor.level_count,
+                                           other_descriptor.layer_count);
+
+                // TODO: destroy the old storage
+
+                actual_storage = &new_storage;
+            }
+
             return GetTextureView(
-                command_buffer, storage, mem,
+                command_buffer, *actual_storage, mem,
                 TextureViewDescriptor(
                     view_descriptor.type, view_descriptor.format,
                     Range<u32>::FromSize(level +

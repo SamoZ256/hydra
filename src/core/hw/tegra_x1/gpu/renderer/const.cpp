@@ -630,9 +630,6 @@ SwizzleChannels::SwizzleChannels(const TextureFormat format,
 
 u32 TextureDescriptor::GetGroupHash() const {
     HashCode hash;
-    hash.Add(width);
-    hash.Add(height);
-    hash.Add(depth);
     hash.Add(ToTextureTypeCompatibility(type));
 
     const auto& format_info = GetTextureFormatInfo(format);
@@ -650,6 +647,9 @@ u32 TextureDescriptor::GetStorageHash() const {
     hash.Add(ptr);
     if (is_linear)
         hash.Add(linear_stride);
+    hash.Add(width);
+    hash.Add(height);
+    hash.Add(depth);
     hash.Add(level_count);
     hash.Add(layer_count);
     // TODO: block size?
