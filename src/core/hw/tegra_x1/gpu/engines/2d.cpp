@@ -20,7 +20,6 @@ void TwoD::Copy(const u32 index, const u32 pixels_from_memory_src_y0_int) {
 
     const auto dudx = static_cast<f64>(pixels.dudx);
     const auto dvdy = static_cast<f64>(pixels.dvdy);
-    // TODO: why are these params messed up?
     const auto src_x0 = static_cast<f64>(pixels.src_x0);
     const auto src_y0 = static_cast<f64>(pixels.src_y0);
 
@@ -45,8 +44,8 @@ renderer::ITextureView* TwoD::GetTexture(const Texture2DInfo& info,
         tls_crnt_gmmu->UnmapAddr(info.addr), renderer::TextureType::_2D,
         renderer::to_texture_format(info.format),
         info.layout == MemoryLayout::Pitch, info.stride, info.width,
-        info.height, 1, 1, info.depth, 0x0, info.block_height_gobs_log2,
-        info.block_depth_gobs_log2);
+        info.height, 1, 1, std::max(info.depth, 1u), 0x0,
+        info.block_height_gobs_log2, info.block_depth_gobs_log2);
 
     // TODO: texture view (layer)
 
