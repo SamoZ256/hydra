@@ -24,15 +24,8 @@ void InlineBase::LoadInlineDataImpl(Gpu& gpu, RegsInline& regs, const u32 index,
 
         // Buffer to buffer
         uptr dst_ptr = tls_crnt_gmmu->UnmapAddr(regs.offset_out);
-        // TODO: do a Gpu copy instead?
         memcpy(reinterpret_cast<void*>(dst_ptr), inline_data.data(),
                inline_data.size() * sizeof(u32));
-        /*
-        auto dst = RENDERER_INSTANCE.GetBufferCache().Find(
-            {dst_ptr, inline_data.size() * sizeof(u32)});
-
-        dst->CopyFrom(inline_data.data());
-        */
         inline_data.clear();
 
         // Invalidate

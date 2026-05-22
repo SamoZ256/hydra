@@ -93,7 +93,6 @@ class TextureCache {
     IRenderer& renderer;
 
     std::mutex mutex;
-
     std::map<uptr, TextureMem> entries;
 
     void MergeMemories(TextureMem& mem, TextureMem& other);

@@ -32,6 +32,14 @@ struct Info {
     }
 };
 
+enum class MemoryInvalidationScope {
+    None = 0,
+    BufferCache = BIT(0),
+    TextureCache = BIT(1),
+    ShaderCache = BIT(2),
+};
+ENABLE_ENUM_BITWISE_OPERATORS(MemoryInvalidationScope)
+
 class IRenderer {
   public:
     IRenderer()
@@ -40,17 +48,24 @@ class IRenderer {
           index_cache(*this) {}
     virtual ~IRenderer() {}
 
-    void InvalidateMemory(Range<uptr> range) {
-        {
-            // TODO: lock
+    void InvalidateMemory(
+        Range<uptr> range,
+        MemoryInvalidationScope scope = MemoryInvalidationScope::BufferCache |
+                                        MemoryInvalidationScope::TextureCache |
+                                        MemoryInvalidationScope::ShaderCache) {
+        if (any(scope & MemoryInvalidationScope::BufferCache)) {
+            std::scoped_lock lock(buffer_cache.GetMutex());
             buffer_cache.InvalidateMemory(range);
         }
 
-        {
+        if (any(scope & MemoryInvalidationScope::TextureCache)) {
             std::scoped_lock lock(texture_cache.GetMutex());
             texture_cache.InvalidateMemory(range);
         }
-        // TODO: shader cache
+
+        if (any(scope & MemoryInvalidationScope::ShaderCache)) {
+            // TODO
+        }
     }
 
     // Surface

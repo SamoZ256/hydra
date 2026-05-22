@@ -280,15 +280,22 @@ void ThreeD::LoadMmeStartAddressRam(const u32 index, const u32 data) {
 }
 
 void ThreeD::DrawVertexArray(const u32 index, u32 count) {
-    if (!DrawInternal())
-        return;
-
     auto index_type = IndexType::None;
     auto primitive_type = regs.begin.primitive_type;
-    const auto index_buffer = gpu.GetRenderer().GetIndexCache().Decode(
-        tls_crnt_command_buffer,
-        {.type = index_type, .primitive_type = primitive_type, .count = count},
-        index_type, primitive_type, count);
+    renderer::BufferView index_buffer;
+    {
+        std::lock_guard buffer_cache_lock(
+            gpu.GetRenderer().GetBufferCache().GetMutex());
+        if (!DrawInternal())
+            return;
+
+        index_buffer = gpu.GetRenderer().GetIndexCache().Decode(
+            tls_crnt_command_buffer,
+            {.type = index_type,
+             .primitive_type = primitive_type,
+             .count = count},
+            index_type, primitive_type, count);
+    }
 
     if (index_buffer.GetBase()) {
         // Bind index buffer
@@ -312,29 +319,35 @@ void ThreeD::DrawVertexArray(const u32 index, u32 count) {
 }
 
 void ThreeD::DrawVertexElements(const u32 index, u32 count) {
-    if (!DrawInternal())
-        return;
-
-    // Index buffer
-    gpu_vaddr_t index_buffer_ptr =
-        tls_crnt_gmmu->UnmapAddr(regs.index_buffer_addr);
-    // TODO: uncomment?
-    u32 index_buffer_size =
-        count * get_index_type_size(
-                    regs.index_type); // u64(regs.index_buffer_limit_addr) + 1
-                                      // - u64(regs.index_buffer_addr);
-    const auto range =
-        Range<uptr>::FromSize(index_buffer_ptr, index_buffer_size);
-
     auto index_type = regs.index_type;
     auto primitive_type = regs.begin.primitive_type;
-    const auto index_buffer = gpu.GetRenderer().GetIndexCache().Decode(
-        tls_crnt_command_buffer,
-        {.type = index_type,
-         .primitive_type = primitive_type,
-         .count = count,
-         .mem_range = range},
-        index_type, primitive_type, count);
+    renderer::BufferView index_buffer;
+    {
+        std::lock_guard buffer_cache_lock(
+            gpu.GetRenderer().GetBufferCache().GetMutex());
+        if (!DrawInternal())
+            return;
+
+        // Index buffer
+        gpu_vaddr_t index_buffer_ptr =
+            tls_crnt_gmmu->UnmapAddr(regs.index_buffer_addr);
+        // TODO: uncomment?
+        u32 index_buffer_size =
+            count *
+            get_index_type_size(
+                regs.index_type); // u64(regs.index_buffer_limit_addr) + 1
+                                  // - u64(regs.index_buffer_addr);
+        const auto range =
+            Range<uptr>::FromSize(index_buffer_ptr, index_buffer_size);
+
+        index_buffer = gpu.GetRenderer().GetIndexCache().Decode(
+            tls_crnt_command_buffer,
+            {.type = index_type,
+             .primitive_type = primitive_type,
+             .count = count,
+             .mem_range = range},
+            index_type, primitive_type, count);
+    }
 
     // Bind index buffer
     ASSERT_DEBUG(index_buffer.GetBase(), Gpu, "Index buffer not found");
@@ -404,7 +417,9 @@ void ThreeD::LoadConstBuffer(const u32 index, const u32 data) {
 
     // Invalidate
     // TODO: invalidate as a whole
-    gpu.GetRenderer().InvalidateMemory(Range<uptr>::FromSize(ptr, sizeof(u32)));
+    gpu.GetRenderer().InvalidateMemory(
+        Range<uptr>::FromSize(ptr, sizeof(u32)),
+        renderer::MemoryInvalidationScope::BufferCache);
 }
 
 void ThreeD::BindGroup(const u32 index, const u32 data) {

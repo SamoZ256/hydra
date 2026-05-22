@@ -19,7 +19,6 @@ struct BufferEntry {
 };
 
 // TODO: optional data hashing
-// TODO: thread safety
 class BufferCache {
   public:
     BufferCache(IRenderer& renderer_) : renderer{renderer_} {}
@@ -32,12 +31,16 @@ class BufferCache {
   private:
     IRenderer& renderer;
 
+    std::mutex mutex;
     std::map<uptr, BufferEntry> entries;
 
     // Helpers
     void UpdateRange(ICommandBuffer* command_buffer, BufferEntry& entry,
                      Range<uptr> range);
     BufferEntry& Find(Range<uptr> range);
+
+  public:
+    REF_GETTER(mutex, GetMutex);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

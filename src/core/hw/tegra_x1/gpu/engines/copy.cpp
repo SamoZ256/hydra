@@ -44,11 +44,6 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
                 memcpy(reinterpret_cast<void*>(dst_ptr + regs.stride_out * i),
                        reinterpret_cast<void*>(src_ptr + regs.stride_in * i),
                        regs.stride_in);
-
-            // Invalidate
-            gpu.GetRenderer().GetBufferCache().InvalidateMemory(
-                Range<uptr>::FromSize(dst_ptr,
-                                      regs.line_count * regs.stride_out));
         } else {
             // TODO: is slice stride correct?
             // TODO: can this copy to multiple slices at once?
@@ -62,8 +57,6 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
                 static_cast<u32>(
                     get_block_size_log2(regs.dst.block_size.depth)),
                 reinterpret_cast<u8*>(src_ptr), reinterpret_cast<u8*>(dst_ptr));
-
-            // TODO: invalidate memory
         }
     } else {
         if (data.dst_memory_layout == MemoryLayout::Pitch) {
@@ -79,16 +72,30 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
                 static_cast<u32>(
                     get_block_size_log2(regs.src.block_size.depth)),
                 reinterpret_cast<u8*>(src_ptr), reinterpret_cast<u8*>(dst_ptr));
-
-            // TODO: invalidate memory
         } else {
             LOG_NOT_IMPLEMENTED(Engines, "BlockLinear to BlockLinear");
         }
     }
 
-    // Invalidate
-    gpu.GetRenderer().GetTextureCache().InvalidateMemory(
-        Range<uptr>(dst_ptr, regs.stride_in * regs.line_count));
+    // Invalidate memory
+    if (data.dst_memory_layout == MemoryLayout::Pitch) {
+        gpu.GetRenderer().InvalidateMemory(
+            Range<uptr>::FromSize(dst_ptr, regs.line_count * regs.stride_out),
+            renderer::MemoryInvalidationScope::BufferCache |
+                renderer::MemoryInvalidationScope::TextureCache);
+    } else {
+        const u32 stride = align(dst_stride, GOB_WIDTH);
+        const u32 rows =
+            align(regs.dst.height,
+                  GOB_HEIGHT << static_cast<u32>(
+                      get_block_size_log2(regs.dst.block_size.height)));
+        const u32 slices =
+            align(regs.dst.depth, 1u << static_cast<u32>(get_block_size_log2(
+                                      regs.dst.block_size.depth)));
+        gpu.GetRenderer().InvalidateMemory(
+            Range<uptr>::FromSize(dst_ptr, slices * rows * stride),
+            renderer::MemoryInvalidationScope::TextureCache);
+    }
 }
 
 #pragma GCC diagnostic pop
