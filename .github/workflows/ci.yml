@@ -18,6 +18,9 @@ on:
 
 jobs:
     macOS:
+        permissions:
+            contents: read
+
         strategy:
             fail-fast: false
             matrix:
