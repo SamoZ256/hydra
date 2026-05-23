@@ -3,7 +3,7 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.15)
 
 include(FetchContent)
 
-project(hydra VERSION 0.4.1 LANGUAGES CXX)
+project(hydra VERSION 0.4.2 LANGUAGES CXX)
 
 set(IOS_DEPLOYMENT_TARGET 17.4.0)
 
