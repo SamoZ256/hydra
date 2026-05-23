@@ -18,6 +18,9 @@ on:
 
 jobs:
     macOS:
+        permissions:
+            contents: read
+
         strategy:
             fail-fast: false
             matrix:
@@ -45,6 +48,8 @@ jobs:
                   repository: SamoZ256/hydra
                   submodules: recursive
                   path: hydra
+                  persist-credentials: true
+                  token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Install Dependencies
               run: |
