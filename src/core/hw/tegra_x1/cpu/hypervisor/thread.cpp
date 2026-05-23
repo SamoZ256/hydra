@@ -7,6 +7,7 @@
 #include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/mmu.hpp"
 #include "core/hw/wall_clock.hpp"
+
 #define MMU (*static_cast<Mmu*>(mmu))
 
 namespace hydra::hw::tegra_x1::cpu::hypervisor {
@@ -177,7 +178,8 @@ void Thread::Run() {
                 }
                 case ExceptionClass::DataAbortLowerEl: {
                     // TODO: use the correct size
-                    if (MMU.TrackWrite(Range<vaddr_t>::FromSize(far, 8)))
+                    if (far < ADDRESS_SPACE_SIZE &&
+                        MMU.TrackWrite(Range<vaddr_t>::FromSize(far, 8)))
                         break;
 
                     bool far_valid = (esr & 0x00000400) == 0;
