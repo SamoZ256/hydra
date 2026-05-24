@@ -39,8 +39,7 @@ result_t IApplicationFunctions::EnsureSaveData(uuid_t user_id,
 
 result_t
 IApplicationFunctions::GetDesiredLanguage(LanguageCode* out_language_code) {
-    // TODO: make this configurable
-    *out_language_code = LanguageCode::AmericanEnglish;
+    *out_language_code = ToLanguageCode(CONFIG_INSTANCE.GetSystemLanguage());
     return RESULT_SUCCESS;
 }
 

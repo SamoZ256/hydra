@@ -190,7 +190,8 @@ void System::LoadAndStart(horizon::loader::LoaderBase* loader) {
             new horizon::applets::error::ParamForApplicationError{
                 .version = 1,
                 .error_code_number = MAKE_RESULT(Svc, 0),
-                .language_code = horizon::LanguageCode::AmericanEnglish,
+                .language_code = horizon::ToLanguageCode(
+                    CONFIG_INSTANCE.GetSystemLanguage()),
                 .dialog_message = "Dialog message",
                 .fullscreen_message = "Fullscreen message",
             };

@@ -8,8 +8,7 @@ DEFINE_SERVICE_COMMAND_TABLE(ISettingsServer, 0, GetLanguageCode, 1,
                              GetAvailableLanguageCodes2)
 
 result_t ISettingsServer::GetLanguageCode(LanguageCode* out_language_code) {
-    // TODO: make this configurable
-    *out_language_code = LanguageCode::AmericanEnglish;
+    *out_language_code = ToLanguageCode(CONFIG_INSTANCE.GetSystemLanguage());
     return RESULT_SUCCESS;
 }
 
