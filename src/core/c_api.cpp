@@ -242,6 +242,11 @@ HYDRA_EXPORT hydra_u128* hydra_config_get_user_id() {
     return reinterpret_cast<hydra_u128*>(&hydra::CONFIG_INSTANCE.GetUserId());
 }
 
+HYDRA_EXPORT uint32_t* hydra_config_get_system_language() {
+    return reinterpret_cast<uint32_t*>(
+        &hydra::CONFIG_INSTANCE.GetSystemLanguage());
+}
+
 HYDRA_EXPORT hydra_string hydra_config_get_firmware_path() {
     return hydra_string_from_string_view(
         hydra::CONFIG_INSTANCE.GetFirmwarePath());
@@ -574,10 +579,11 @@ HYDRA_EXPORT void hydra_nacp_destroy(void* nacp) {
         hydra::horizon::services::ns::ApplicationControlProperty*>(nacp);
 }
 
-HYDRA_EXPORT const void* hydra_nacp_get_title(void* nacp) {
+HYDRA_EXPORT const void* hydra_nacp_get_title(void* nacp,
+                                              HydraSystemLanguage lang) {
     return &reinterpret_cast<
                 hydra::horizon::services::ns::ApplicationControlProperty*>(nacp)
-                ->GetApplicationTitle();
+                ->GetApplicationTitle(static_cast<hydra::SystemLanguage>(lang));
 }
 
 HYDRA_EXPORT hydra_string hydra_nacp_get_display_version(void* nacp) {

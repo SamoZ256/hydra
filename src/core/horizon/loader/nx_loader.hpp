@@ -37,6 +37,7 @@ class NxLoader : public LoaderBase {
     // Helpers
     void ParseInfo();
     void ParseNpdm();
+    void FindIcon();
     void LoadCode(System& system, kernel::Process* process,
                   filesystem::Directory* exefs_dir);
 };

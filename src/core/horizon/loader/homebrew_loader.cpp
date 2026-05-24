@@ -241,8 +241,10 @@ void HomebrewLoader::LoadProcess(System& system, kernel::Process* process) {
     // Get name
     auto stream = nacp_file->Open(filesystem::FileOpenFlags::Read);
 
+    // Create a virtual filename
     const auto nacp = stream->Read<services::ns::ApplicationControlProperty>();
-    std::string title_name = nacp.GetApplicationTitle().name;
+    std::string title_name =
+        nacp.GetApplicationTitle(SystemLanguage::AmericanEnglish).name;
     std::replace(title_name.begin(), title_name.end(), ' ', '_');
 
     delete stream;

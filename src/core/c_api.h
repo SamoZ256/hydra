@@ -197,6 +197,7 @@ uint32_t* hydra_config_get_display_resolution();
 hydra_uint2* hydra_config_get_custom_display_resolution();
 uint32_t* hydra_config_get_audio_backend();
 hydra_u128* hydra_config_get_user_id();
+uint32_t* hydra_config_get_system_language();
 hydra_string hydra_config_get_firmware_path();
 void hydra_config_set_firmware_path(hydra_string value);
 hydra_string hydra_config_get_sd_card_path();
@@ -287,7 +288,7 @@ const void* hydra_loader_plugin_get_option_config(const void* plugin,
 
 // NACP
 void hydra_nacp_destroy(void* nacp);
-const void* hydra_nacp_get_title(void* nacp);
+const void* hydra_nacp_get_title(void* nacp, HydraSystemLanguage lang);
 hydra_string hydra_nacp_get_display_version(void* nacp);
 
 // NACP title

@@ -7,7 +7,7 @@ let hypervisorEnabled = false
 #endif
 
 struct CpuSettingsView: View {
-    @State private var cpuBackend: HydraCpuBackend = HYDRA_CPU_BACKEND_INVALID
+    @State private var cpuBackend = HydraCpuBackend(rawValue: hydraConfigGetCpuBackend().pointee)
 
     var body: some View {
         Spacer()
@@ -29,9 +29,6 @@ struct CpuSettingsView: View {
 
             }
             .formStyle(.grouped)
-            .onAppear {
-                self.cpuBackend.rawValue = hydraConfigGetCpuBackend().pointee
-            }
             Spacer()
         }
         Spacer()

@@ -51,8 +51,51 @@ enum class LanguageCode : u64 {
     LatinAmericanSpanish = "es-419"_u64,
     SimplifiedChinese = "zh-Hans"_u64,
     TraditionalChinese = "zh-Hant"_u64,
-    BrazilianPortugese = "pt-BR"_u64,
+    BrazilianPortuguese = "pt-BR"_u64,
 };
+
+inline LanguageCode ToLanguageCode(SystemLanguage lang) {
+    switch (lang) {
+    case SystemLanguage::AmericanEnglish:
+        return LanguageCode::AmericanEnglish;
+    case SystemLanguage::BritishEnglish:
+        return LanguageCode::BritishEnglish;
+    case SystemLanguage::Japanese:
+        return LanguageCode::Japanese;
+    case SystemLanguage::French:
+        return LanguageCode::French;
+    case SystemLanguage::German:
+        return LanguageCode::German;
+    case SystemLanguage::LatinAmericanSpanish:
+        return LanguageCode::LatinAmericanSpanish;
+    case SystemLanguage::Spanish:
+        return LanguageCode::Spanish;
+    case SystemLanguage::Italian:
+        return LanguageCode::Italian;
+    case SystemLanguage::Dutch:
+        return LanguageCode::Dutch;
+    case SystemLanguage::CanadianFrench:
+        return LanguageCode::CanadianFrench;
+    case SystemLanguage::Portuguese:
+        return LanguageCode::Portuguese;
+    case SystemLanguage::Russian:
+        return LanguageCode::Russian;
+    case SystemLanguage::Korean:
+        return LanguageCode::Korean;
+    case SystemLanguage::TraditionalChinese:
+        return LanguageCode::TraditionalChinese; // TODO: return Chinese on
+                                                 // pre-4.0.0?
+    case SystemLanguage::SimplifiedChinese:
+        return LanguageCode::SimplifiedChinese; // TODO: return Chinese on
+                                                // pre-4.0.0?
+    case SystemLanguage::BrazilianPortuguese:
+        return LanguageCode::BrazilianPortuguese;
+    case SystemLanguage::Polish:
+        return LanguageCode::AmericanEnglish; // No equivalent
+    case SystemLanguage::Thai:
+        return LanguageCode::AmericanEnglish; // No equivalent
+    }
+}
 
 constexpr LanguageCode available_languages[] = {
     LanguageCode::Japanese,
@@ -72,7 +115,7 @@ constexpr LanguageCode available_languages[] = {
     LanguageCode::LatinAmericanSpanish,
     LanguageCode::SimplifiedChinese,
     LanguageCode::TraditionalChinese,
-    LanguageCode::BrazilianPortugese,
+    LanguageCode::BrazilianPortuguese,
 };
 
 // TODO: rename some values

@@ -7,7 +7,7 @@ let cubebEnabled = false
 #endif
 
 struct AudioSettingsView: View {
-    @State private var audioBackend: HydraAudioBackend = HYDRA_AUDIO_BACKEND_INVALID
+    @State private var audioBackend = HydraAudioBackend(rawValue: hydraConfigGetAudioBackend().pointee)
 
     var body: some View {
         Spacer()
@@ -28,9 +28,6 @@ struct AudioSettingsView: View {
                 }
             }
             .formStyle(.grouped)
-            .onAppear {
-                self.audioBackend.rawValue = hydraConfigGetAudioBackend().pointee
-            }
             Spacer()
         }
         Spacer()

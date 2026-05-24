@@ -1,10 +1,10 @@
 import SwiftUI
 
 struct GraphicsSettingsView: View {
-    @State private var gpuRenderer: HydraGpuRenderer = HYDRA_GPU_RENDERER_INVALID
-    @State private var shaderBackend: HydraShaderBackend = HYDRA_SHADER_BACKEND_INVALID
-    @State private var displayResolution: HydraResolution = HYDRA_RESOLUTION_INVALID
-    @State private var customDisplayResolution: hydra_uint2 = hydra_uint2(x: 0, y: 0)
+    @State private var gpuRenderer = HydraGpuRenderer(rawValue: hydraConfigGetGpuRenderer().pointee)
+    @State private var shaderBackend = HydraShaderBackend(rawValue: hydraConfigGetShaderBackend().pointee)
+    @State private var displayResolution = HydraResolution(rawValue: hydraConfigGetDisplayResolution().pointee)
+    @State private var customDisplayResolution = hydraConfigGetCustomDisplayResolution().pointee
 
     var body: some View {
         Spacer()
@@ -59,12 +59,6 @@ struct GraphicsSettingsView: View {
                 }
             }
             .formStyle(.grouped)
-            .onAppear {
-                self.gpuRenderer.rawValue = hydraConfigGetGpuRenderer().pointee
-                self.shaderBackend.rawValue = hydraConfigGetShaderBackend().pointee
-                self.displayResolution.rawValue = hydraConfigGetDisplayResolution().pointee
-                self.customDisplayResolution = hydraConfigGetCustomDisplayResolution().pointee
-            }
             Spacer()
         }
         Spacer()

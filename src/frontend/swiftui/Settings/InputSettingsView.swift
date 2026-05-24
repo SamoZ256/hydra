@@ -7,7 +7,7 @@ import SwiftUI
 #endif
 
 struct InputSettingsView: View {
-    @State private var inputBackend: HydraInputBackend = HYDRA_INPUT_BACKEND_INVALID
+    @State private var inputBackend = HydraInputBackend(rawValue: hydraConfigGetInputBackend().pointee)
 
     var body: some View {
         Spacer()
@@ -33,9 +33,6 @@ struct InputSettingsView: View {
                 }
             }
             .formStyle(.grouped)
-            .onAppear {
-                self.inputBackend.rawValue = hydraConfigGetInputBackend().pointee
-            }
             Spacer()
         }
         Spacer()

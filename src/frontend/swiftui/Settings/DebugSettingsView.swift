@@ -7,17 +7,17 @@ import SwiftUI
 #endif
 
 struct DebugSettingsView: View {
-    @State private var logOutput: HydraLogOutput = HYDRA_LOG_OUTPUT_INVALID
-    @State private var logFsAccess = false
-    @State private var debugLogging = false
+    @State private var logOutput = HydraLogOutput(rawValue: hydraConfigGetLogOutput().pointee)
+    @State private var logFsAccess = hydraConfigGetLogFsAccess().pointee
+    @State private var debugLogging = hydraConfigGetDebugLogging().pointee
 
     // TODO: process args
 
-    @State private var recoverFromSegfault = false
+    @State private var recoverFromSegfault = hydraConfigGetRecoverFromSegfault().pointee
 
-    @State private var gdbEnabled = false
-    @State private var gdbPort: UInt16 = 0
-    @State private var gdbWaitForClient = false
+    @State private var gdbEnabled = hydraConfigGetGdbEnabled().pointee
+    @State private var gdbPort = hydraConfigGetGdbPort().pointee
+    @State private var gdbWaitForClient = hydraConfigGetGdbWaitForClient().pointee
 
     var body: some View {
         Spacer()
@@ -77,15 +77,7 @@ struct DebugSettingsView: View {
             }
             .formStyle(.grouped)
             .onAppear {
-                self.logOutput.rawValue = hydraConfigGetLogOutput().pointee
-                self.logFsAccess = hydraConfigGetLogFsAccess().pointee
-                self.debugLogging = hydraConfigGetDebugLogging().pointee
-
-                self.recoverFromSegfault = hydraConfigGetRecoverFromSegfault().pointee
-
-                self.gdbEnabled = hydraConfigGetGdbEnabled().pointee
-                self.gdbPort = hydraConfigGetGdbPort().pointee
-                self.gdbWaitForClient = hydraConfigGetGdbWaitForClient().pointee
+                // TODO: process args
             }
             Spacer()
         }

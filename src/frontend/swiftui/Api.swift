@@ -418,6 +418,10 @@ func hydraConfigGetUserId() -> UnsafeMutablePointer<hydra_u128> {
     hydra_config_get_user_id()
 }
 
+func hydraConfigGetSystemLanguage() -> UnsafeMutablePointer<UInt32> {
+    hydra_config_get_system_language()
+}
+
 func hydraConfigGetFirmwarePath() -> String {
     String.init(withHydraString: hydra_config_get_firmware_path())
 }
@@ -757,8 +761,8 @@ struct HydraNacp: MutableHandleStruct {
         self.handle = handle
     }
 
-    var title: HydraNacpTitle {
-        HydraNacpTitle(handle: hydra_nacp_get_title(self.handle))
+    func getTitle(language: HydraSystemLanguage) -> HydraNacpTitle {
+        return HydraNacpTitle(handle: hydra_nacp_get_title(self.handle, language))
     }
 
     var displayVersion: String {

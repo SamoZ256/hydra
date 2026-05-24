@@ -7,7 +7,7 @@
 #include "core/system.hpp"
 
 #define NACP_PATH "meta/control.nacp"
-#define ICON_PATH "meta/icons/AmericanEnglish.jpg"
+#define ICONS_PATH "meta/icons"
 #define NINTENDO_LOGO_PATH "loading_screen/NintendoLogo.png"
 #define STARTUP_MOVIE_PATH "loading_screen/StartupMovie.gif"
 
@@ -25,11 +25,7 @@ NxLoader::NxLoader(const filesystem::Directory& dir_) : dir{dir_} {
     }
 
     // Icon
-    res = dir.GetFile(ICON_PATH, icon_file);
-    if (res != filesystem::FsResult::Success) {
-        LOG_ERROR(Loader, "Failed to get " ICON_PATH ": {}", res);
-        return;
-    }
+    FindIcon();
 
     // Nintendo logo
     res = dir.GetFile(NINTENDO_LOGO_PATH, nintendo_logo_file);
@@ -139,6 +135,76 @@ void NxLoader::ParseNpdm() {
     main_thread_core_number = meta.main_thread_core_number;
     main_thread_stack_size = meta.main_thread_stack_size;
     system_resource_size = meta.system_resource_size;
+}
+
+namespace {
+
+std::string_view GetLanguageIconFilename(LanguageCode code) {
+    switch (code) {
+    case LanguageCode::Japanese:
+        return "Japanese";
+    case LanguageCode::AmericanEnglish:
+        return "AmericanEnglish";
+    case LanguageCode::French:
+        return "French";
+    case LanguageCode::German:
+        return "German";
+    case LanguageCode::Italian:
+        return "Italian";
+    case LanguageCode::Spanish:
+        return "Spanish";
+    case LanguageCode::Chinese:
+        return "Chinese";
+    case LanguageCode::Korean:
+        return "Korean";
+    case LanguageCode::Dutch:
+        return "Dutch";
+    case LanguageCode::Portuguese:
+        return "Portuguese";
+    case LanguageCode::Russian:
+        return "Russian";
+    case LanguageCode::Taiwanese:
+        return "Taiwanese";
+    case LanguageCode::BritishEnglish:
+        return "BritishEnglish";
+    case LanguageCode::CanadianFrench:
+        return "CanadianFrench";
+    case LanguageCode::LatinAmericanSpanish:
+        return "LatinAmericanSpanish";
+    case LanguageCode::TraditionalChinese:
+        return "TraditionalChinese";
+    case LanguageCode::SimplifiedChinese:
+        return "SimplifiedChinese";
+    case LanguageCode::BrazilianPortuguese:
+        return "BrazilianPortuguese";
+    }
+}
+
+} // namespace
+
+void NxLoader::FindIcon() {
+    // Get the icons directory
+    filesystem::Directory* icons_dir;
+    auto res = dir.GetDirectory(ICONS_PATH, icons_dir);
+    if (res != filesystem::FsResult::Success) {
+        LOG_ERROR(Loader, "Failed to get " ICONS_PATH ": {}", res);
+        return;
+    }
+
+    // First, try to get the icon for the desired language
+    const auto lang_code = ToLanguageCode(CONFIG_INSTANCE.GetSystemLanguage());
+    const auto filename = GetLanguageIconFilename(lang_code);
+    res = dir.GetFile(filename, icon_file);
+    if (res != filesystem::FsResult::Success) {
+        // Failed, get any icon
+        auto it = icons_dir->GetEntries().begin();
+        if (it == icons_dir->GetEntries().end()) {
+            LOG_ERROR(Loader, "Failed to get icon");
+            return;
+        }
+
+        icon_file = static_cast<filesystem::IFile*>(it->second);
+    }
 }
 
 void NxLoader::LoadCode(System& system, kernel::Process* process,

@@ -7,7 +7,7 @@ struct SystemSettingsView: View {
         @State private var savePath: String = ""
         @State private var sysmodulesPath: String = ""
     #else
-        @State private var handheldMode = true
+        @State private var handheldMode = hydraConfigGetHandheldMode().pointee
     #endif
 
     var body: some View {
@@ -51,8 +51,6 @@ struct SystemSettingsView: View {
                     self.sdCardPath = hydraConfigGetSdCardPath()
                     self.savePath = hydraConfigGetSavePath()
                     self.sysmodulesPath = hydraConfigGetSysmodulesPath()
-                #else
-                    self.handheldMode = hydraConfigGetHandheldMode().pointee
                 #endif
             }
             Spacer()
