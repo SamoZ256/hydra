@@ -5,7 +5,7 @@
 namespace hydra::input {
 
 enum class DeviceType : u32 {
-    Invalid = 0,
+    Invalid,
 
     Keyboard,
     Controller,
@@ -53,6 +53,6 @@ struct CodeAnalogMapping {
 
 } // namespace hydra::input
 
-ENABLE_ENUM_FORMATTING_AND_CASTING(hydra::input, DeviceType, device_type,
-                                   Keyboard, "Keyboard", Controller,
-                                   "Controller", Cursor, "Cursor")
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra::input, DeviceType, Keyboard,
+                                   "Keyboard", Controller, "Controller", Cursor,
+                                   "Cursor")

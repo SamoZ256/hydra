@@ -11,35 +11,25 @@
 namespace hydra {
 
 enum class InputBackend : u32 {
-    Invalid = 0,
-
     AppleGameController,
     Sdl,
 };
 
 enum class CpuBackend : u32 {
-    Invalid = 0,
-
     AppleHypervisor,
     Dynarmic,
 };
 
 enum class GpuRenderer : u32 {
-    Invalid = 0,
-
     Metal,
 };
 
 enum class ShaderBackend : u32 {
-    Invalid = 0,
-
     Msl,
     Air,
 };
 
 enum class Resolution : u32 {
-    Invalid = 0,
-
     Auto,
     _720p,
     _1080p,
@@ -53,10 +43,29 @@ enum class Resolution : u32 {
 STRONG_TYPEDEF(CustomResolution, uint2);
 
 enum class AudioBackend : u32 {
-    Invalid = 0,
-
     Null,
     Cubeb,
+};
+
+enum class SystemLanguage : u32 {
+    AmericanEnglish = 0,
+    BritishEnglish = 1,
+    Japanese = 2,
+    French = 3,
+    German = 4,
+    LatinAmericanSpanish = 5,
+    Spanish = 6,
+    Italian = 7,
+    Dutch = 8,
+    CanadianFrench = 9,
+    Portuguese = 10,
+    Russian = 11,
+    Korean = 12,
+    TraditionalChinese = 13,
+    SimplifiedChinese = 14,
+    BrazilianPortuguese = 15,
+    Polish = 16,
+    Thai = 17,
 };
 
 struct LoaderPlugin {
@@ -89,6 +98,66 @@ class Config {
         return fmt::format("{}/config.toml", app_data_path);
     }
 
+    // Default values
+    static std::vector<std::string> GetDefaultGamePaths() { return {}; }
+    static std::vector<LoaderPlugin> GetDefaultLoaderPlugins() { return {}; }
+    static std::vector<std::string> GetDefaultPatchPaths() { return {}; }
+    static InputBackend GetDefaultInputBackend() {
+#ifdef PLATFORM_APPLE
+        return InputBackend::AppleGameController;
+#else
+        return InputBackend::Sdl;
+#endif
+    }
+    static std::vector<std::string> GetDefaultInputProfiles() {
+        return {"Default", "", "", "", "", "", "", "", "", ""};
+    }
+    static CpuBackend GetDefaultCpuBackend() {
+#ifdef HYDRA_HYPERVISOR_ENABLED
+        return CpuBackend::AppleHypervisor;
+#else
+        return CpuBackend::Dynarmic;
+#endif
+    }
+    static GpuRenderer GetDefaultGpuRenderer() { return GpuRenderer::Metal; }
+    static ShaderBackend GetDefaultShaderBackend() {
+        return ShaderBackend::Msl;
+    }
+    static Resolution GetDefaultDisplayResolution() { return Resolution::Auto; }
+    static uint2 GetDefaultCustomDisplayResolution() { return {1920, 1080}; }
+    static AudioBackend GetDefaultAudioBackend() {
+#ifdef HYDRA_CUBEB_ENABLED
+        return AudioBackend::Cubeb;
+#else
+        return AudioBackend::Null;
+#endif
+    }
+    static uuid_t GetDefaultUserID() {
+        return 0x0; // TODO: INVALID_USER_ID
+    }
+    static SystemLanguage GetDefaultSystemLanguage() {
+        return SystemLanguage::AmericanEnglish;
+    }
+    static std::string GetDefaultFirmwarePath() { return ""; }
+    std::string GetDefaultSdCardPath() const {
+        return fmt::format("{}/sdmc", app_data_path);
+    }
+    std::string GetDefaultSavePath() const {
+        return fmt::format("{}/save", app_data_path);
+    }
+    std::string GetDefaultSysmodulesPath() const {
+        return fmt::format("{}/sysmodules", app_data_path);
+    }
+    static bool GetDefaultHandheldMode() { return true; }
+    static LogOutput GetDefaultLogOutput() { return LogOutput::File; }
+    static bool GetDefaultLogFsAccess() { return false; }
+    static bool GetDefaultDebugLogging() { return false; }
+    static std::vector<std::string> GetDefaultProcessArgs() { return {}; }
+    static bool GetDefaultRecoverFromSegfault() { return false; }
+    static bool GetDefaultGdbEnabled() { return false; }
+    static u16 GetDefaultGdbPort() { return 1234; }
+    static bool GetDefaultGdbWaitForClient() { return false; }
+
   private:
     std::string app_data_path;
     std::string logs_path;
@@ -107,6 +176,7 @@ class Config {
     uint2 custom_display_resolution;
     AudioBackend audio_backend;
     uuid_t user_id;
+    SystemLanguage system_language;
     std::string firmware_path;
     std::string sd_card_path;
     std::string save_path;
@@ -121,61 +191,6 @@ class Config {
     u16 gdb_port;
     bool gdb_wait_for_client;
 
-    // Default values
-    std::vector<std::string> GetDefaultGamePaths() const { return {}; }
-    std::vector<LoaderPlugin> GetDefaultLoaderPlugins() const { return {}; }
-    std::vector<std::string> GetDefaultPatchPaths() const { return {}; }
-    InputBackend GetDefaultInputBackend() const {
-#ifdef PLATFORM_APPLE
-        return InputBackend::AppleGameController;
-#else
-        return InputBackend::Sdl;
-#endif
-    }
-    std::vector<std::string> GetDefaultInputProfiles() const {
-        return {"Default", "", "", "", "", "", "", "", "", ""};
-    }
-    CpuBackend GetDefaultCpuBackend() const {
-#ifdef HYDRA_HYPERVISOR_ENABLED
-        return CpuBackend::AppleHypervisor;
-#else
-        return CpuBackend::Dynarmic;
-#endif
-    }
-    GpuRenderer GetDefaultGpuRenderer() const { return GpuRenderer::Metal; }
-    ShaderBackend GetDefaultShaderBackend() const { return ShaderBackend::Msl; }
-    Resolution GetDefaultDisplayResolution() const { return Resolution::Auto; }
-    uint2 GetDefaultCustomDisplayResolution() const { return {1920, 1080}; }
-    AudioBackend GetDefaultAudioBackend() const {
-#ifdef HYDRA_CUBEB_ENABLED
-        return AudioBackend::Cubeb;
-#else
-        return AudioBackend::Null;
-#endif
-    }
-    uuid_t GetDefaultUserID() const {
-        return 0x0; // TODO: INVALID_USER_ID
-    }
-    std::string GetDefaultFirmwarePath() const { return ""; }
-    std::string GetDefaultSdCardPath() const {
-        return fmt::format("{}/sdmc", app_data_path);
-    }
-    std::string GetDefaultSavePath() const {
-        return fmt::format("{}/save", app_data_path);
-    }
-    std::string GetDefaultSysmodulesPath() const {
-        return fmt::format("{}/sysmodules", app_data_path);
-    }
-    bool GetDefaultHandheldMode() const { return true; }
-    LogOutput GetDefaultLogOutput() const { return LogOutput::File; }
-    bool GetDefaultLogFsAccess() const { return false; }
-    bool GetDefaultDebugLogging() const { return false; }
-    std::vector<std::string> GetDefaultProcessArgs() const { return {}; }
-    bool GetDefaultRecoverFromSegfault() const { return false; }
-    bool GetDefaultGdbEnabled() const { return false; }
-    u16 GetDefaultGdbPort() const { return 1234; }
-    bool GetDefaultGdbWaitForClient() const { return false; }
-
   public:
     REF_GETTER(game_paths, GetGamePaths);
     REF_GETTER(loader_plugins, GetLoaderPlugins);
@@ -189,6 +204,7 @@ class Config {
     REF_GETTER(custom_display_resolution, GetCustomDisplayResolution);
     REF_GETTER(audio_backend, GetAudioBackend);
     REF_GETTER(user_id, GetUserId);
+    REF_GETTER(system_language, GetSystemLanguage);
     REF_GETTER(firmware_path, GetFirmwarePath);
     REF_GETTER(sd_card_path, GetSdCardPath);
     REF_GETTER(save_path, GetSavePath);
@@ -206,21 +222,25 @@ class Config {
 
 } // namespace hydra
 
-ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, InputBackend, input_backend,
-                                   AppleGameController, "Apple GameController",
-                                   Sdl, "SDL")
-ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, CpuBackend, cpu_backend,
-                                   AppleHypervisor, "Apple Hypervisor",
-                                   Dynarmic, "dynarmic")
-ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, GpuRenderer, gpu_renderer, Metal,
-                                   "Metal")
-ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, ShaderBackend, shader_backend, Msl,
-                                   "MSL", Air, "AIR")
-ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, Resolution, resolution, Auto, "auto",
-                                   _720p, "720p", _1080p, "1080p", _1440p,
-                                   "1440p", _2160p, "2160p", _4320p, "4320p",
-                                   AutoExact, "Auto exact", Custom, "custom")
-ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, AudioBackend, audio_backend, Null,
-                                   "Null", Cubeb, "Cubeb")
-ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, LogOutput, output, None, "none",
-                                   StdOut, "stdout", File, "file")
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, InputBackend, AppleGameController,
+                                   "Apple GameController", Sdl, "SDL")
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, CpuBackend, AppleHypervisor,
+                                   "Apple Hypervisor", Dynarmic, "dynarmic")
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, GpuRenderer, Metal, "Metal")
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, ShaderBackend, Msl, "MSL", Air, "AIR")
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, Resolution, Auto, "auto", _720p,
+                                   "720p", _1080p, "1080p", _1440p, "1440p",
+                                   _2160p, "2160p", _4320p, "4320p", AutoExact,
+                                   "Auto exact", Custom, "custom")
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, AudioBackend, Null, "Null", Cubeb,
+                                   "Cubeb")
+ENABLE_ENUM_FORMATTING_AND_CASTING(
+    hydra, SystemLanguage, AmericanEnglish, "American English", BritishEnglish,
+    "British English", Japanese, "Japanese", French, "French", German, "German",
+    LatinAmericanSpanish, "Latin American Spanish", Spanish, "Spanish", Italian,
+    "Italian", Dutch, "Dutch", CanadianFrench, "Canadian French", Portuguese,
+    "Portuguese", Russian, "Russian", Korean, "Korean", TraditionalChinese,
+    "Traditional Chinese", SimplifiedChinese, "Simplified Chinese",
+    BrazilianPortuguese, "Brazilian Portuguese", Polish, "Polish", Thai, "Thai")
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, LogOutput, None, "none", StdOut,
+                                   "stdout", File, "file")

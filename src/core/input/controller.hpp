@@ -6,8 +6,6 @@ namespace hydra::input {
 
 // Uses Nintendo Switch layout
 enum class ControllerInput {
-    Invalid = 0,
-
     A,
     B,
     X,
@@ -84,10 +82,10 @@ class IController : public IDevice {
 } // namespace hydra::input
 
 ENABLE_ENUM_FORMATTING_AND_CASTING(
-    hydra::input, ControllerInput, controller_input, A, "A", B, "B", X, "X", Y,
-    "Y", StickL, "stick L", StickR, "stick R", L, "L", R, "R", ZL, "ZL", ZR,
-    "ZR", Plus, "+", Minus, "-", Left, "left", Up, "up", Right, "right", Down,
-    "down", StickLLeft, "stick L left", StickLUp, "stick L up", StickLRight,
+    hydra::input, ControllerInput, A, "A", B, "B", X, "X", Y, "Y", StickL,
+    "stick L", StickR, "stick R", L, "L", R, "R", ZL, "ZL", ZR, "ZR", Plus, "+",
+    Minus, "-", Left, "left", Up, "up", Right, "right", Down, "down",
+    StickLLeft, "stick L left", StickLUp, "stick L up", StickLRight,
     "stick L right", StickLDown, "stick L down", StickRLeft, "stick R left",
     StickRUp, "stick R up", StickRRight, "stick R right", StickRDown,
     "stick R down", LeftSL, "left SL", LeftSR, "left SR", RightSL, "right SL",

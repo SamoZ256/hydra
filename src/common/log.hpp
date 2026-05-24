@@ -105,8 +105,6 @@ constexpr const char* trim_source_path(std::string_view source) {
 
 // TODO: move this to config
 enum class LogOutput {
-    Invalid = 0,
-
     None,
     StdOut,
     File,

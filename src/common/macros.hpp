@@ -206,9 +206,6 @@
         }                                                                      \
     };
 
-#define ENABLE_ENUM_FORMATTING_WITH_INVALID(type, ...)                         \
-    ENABLE_ENUM_FORMATTING(type, Invalid, "invalid", __VA_ARGS__)
-
 #define STRUCT_FORMAT_CASE(member, f, name)                                    \
     fmt::format(name ": {" f "}", value.member),
 
@@ -230,17 +227,17 @@
     if (value_str == n)                                                        \
         return type::value;
 
-#define ENABLE_ENUM_CASTING(namespc, type, e_lower_case, ...)                  \
+#define ENABLE_ENUM_CASTING(namespc, type, ...)                                \
     namespace namespc {                                                        \
-    inline type to_##e_lower_case(std::string_view value_str) {                \
+    inline std::optional<type> To##type(std::string_view value_str) {          \
         FOR_EACH_1_2(ENUM_CAST_CASE, type, __VA_ARGS__)                        \
-        return type::Invalid;                                                  \
+        return std::nullopt;                                                   \
     }                                                                          \
     }
 
-#define ENABLE_ENUM_FORMATTING_AND_CASTING(namespc, type, e_lower_case, ...)   \
-    ENABLE_ENUM_FORMATTING_WITH_INVALID(namespc::type, __VA_ARGS__)            \
-    ENABLE_ENUM_CASTING(namespc, type, e_lower_case, __VA_ARGS__)
+#define ENABLE_ENUM_FORMATTING_AND_CASTING(namespc, type, ...)                 \
+    ENABLE_ENUM_FORMATTING(namespc::type, __VA_ARGS__)                         \
+    ENABLE_ENUM_CASTING(namespc, type, __VA_ARGS__)
 
 #define ENUM_BIT_TEST(type, c, n)                                              \
     if (any(value & type::c)) {                                                \

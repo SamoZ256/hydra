@@ -13,6 +13,14 @@ TOML11_DEFINE_CONVERSION_ENUM(hydra::Resolution, Auto, "auto", _720p, "720p",
                               _4320p, "4320p", AutoExact, "Auto exact", Custom,
                               "custom")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::AudioBackend, Null, "null", Cubeb, "Cubeb")
+TOML11_DEFINE_CONVERSION_ENUM(
+    hydra::SystemLanguage, AmericanEnglish, "American English", BritishEnglish,
+    "British English", Japanese, "Japanese", French, "French", German, "German",
+    LatinAmericanSpanish, "Latin American Spanish", Spanish, "Spanish", Italian,
+    "Italian", Dutch, "Dutch", CanadianFrench, "Canadian French", Portuguese,
+    "Portuguese", Russian, "Russian", Korean, "Korean", TraditionalChinese,
+    "Traditional Chinese", SimplifiedChinese, "Simplified Chinese",
+    BrazilianPortuguese, "Brazilian Portuguese", Polish, "Polish", Thai, "Thai")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::LogOutput, None, "none", StdOut, "stdout",
                               File, "file")
 
@@ -129,6 +137,7 @@ void Config::LoadDefaults() {
     custom_display_resolution = GetDefaultCustomDisplayResolution();
     audio_backend = GetDefaultAudioBackend();
     user_id = GetDefaultUserID();
+    system_language = GetDefaultSystemLanguage();
     firmware_path = GetDefaultFirmwarePath();
     sd_card_path = GetDefaultSdCardPath();
     save_path = GetDefaultSavePath();
@@ -205,6 +214,7 @@ void Config::Serialize() {
 
     {
         auto& system = data.at("System");
+        system["system_language"] = system_language;
         system["firmware_path"] = firmware_path;
         if (sd_card_path != GetDefaultSdCardPath())
             system["sd_card_path"] = sd_card_path;
@@ -255,32 +265,40 @@ void Config::Deserialize() {
     }
     if (data.contains("Input")) {
         const auto& input = data.at("Input");
-        input_backend = toml::find_or<InputBackend>(input, "backend",
-                                                    GetDefaultInputBackend());
+        input_backend = toml::find_or<std::optional<InputBackend>>(
+                            input, "backend", GetDefaultInputBackend())
+                            .value_or(GetDefaultInputBackend());
         input_profiles = toml::find_or<std::vector<std::string>>(
             input, "profiles", GetDefaultInputProfiles());
     }
     if (data.contains("CPU")) {
         const auto& cpu = data.at("CPU");
-        cpu_backend =
-            toml::find_or<CpuBackend>(cpu, "backend", GetDefaultCpuBackend());
+        cpu_backend = toml::find_or<std::optional<CpuBackend>>(
+                          cpu, "backend", GetDefaultCpuBackend())
+                          .value_or(GetDefaultCpuBackend());
     }
     if (data.contains("Graphics")) {
         const auto& graphics = data.at("Graphics");
-        gpu_renderer = toml::find_or<GpuRenderer>(graphics, "renderer",
-                                                  GetDefaultGpuRenderer());
-        shader_backend = toml::find_or<ShaderBackend>(
-            graphics, "shader_backend", GetDefaultShaderBackend());
-        display_resolution = toml::find_or<Resolution>(
-            graphics, "display_resolution", GetDefaultDisplayResolution());
+        gpu_renderer = toml::find_or<std::optional<GpuRenderer>>(
+                           graphics, "renderer", GetDefaultGpuRenderer())
+                           .value_or(GetDefaultGpuRenderer());
+        shader_backend =
+            toml::find_or<std::optional<ShaderBackend>>(
+                graphics, "shader_backend", GetDefaultShaderBackend())
+                .value_or(GetDefaultShaderBackend());
+        display_resolution =
+            toml::find_or<std::optional<Resolution>>(
+                graphics, "display_resolution", GetDefaultDisplayResolution())
+                .value_or(GetDefaultDisplayResolution());
         custom_display_resolution = toml::find_or<CustomResolution>(
             graphics, "custom_display_resolution",
             GetDefaultCustomDisplayResolution());
     }
     if (data.contains("Audio")) {
         const auto& audio = data.at("Audio");
-        audio_backend = toml::find_or<AudioBackend>(audio, "backend",
-                                                    GetDefaultAudioBackend());
+        audio_backend = toml::find_or<std::optional<AudioBackend>>(
+                            audio, "backend", GetDefaultAudioBackend())
+                            .value_or(GetDefaultAudioBackend());
     }
     if (data.contains("User")) {
         const auto& user = data.at("User");
@@ -288,6 +306,10 @@ void Config::Deserialize() {
     }
     if (data.contains("System")) {
         const auto& system = data.at("System");
+        system_language =
+            toml::find_or<std::optional<SystemLanguage>>(
+                system, "system_language", GetDefaultSystemLanguage())
+                .value_or(GetDefaultSystemLanguage());
         firmware_path = toml::find_or<std::string>(system, "firmware_path",
                                                    GetDefaultFirmwarePath());
         sd_card_path = toml::find_or<std::string>(system, "sd_card_path",
@@ -301,8 +323,9 @@ void Config::Deserialize() {
     }
     if (data.contains("Debug")) {
         const auto& debug = data.at("Debug");
-        log_output = toml::find_or<LogOutput>(debug, "log_output",
-                                              GetDefaultLogOutput());
+        log_output = toml::find_or<std::optional<LogOutput>>(
+                         debug, "log_output", GetDefaultLogOutput())
+                         .value_or(GetDefaultLogOutput());
         log_fs_access = toml::find_or<bool>(debug, "log_fs_access",
                                             GetDefaultLogFsAccess());
         debug_logging = toml::find_or<bool>(debug, "debug_logging",
@@ -316,44 +339,6 @@ void Config::Deserialize() {
         gdb_port = toml::find_or<u16>(debug, "gdb_port", GetDefaultGdbPort());
         gdb_wait_for_client = toml::find_or<bool>(debug, "gdb_wait_for_client",
                                                   GetDefaultGdbWaitForClient());
-    }
-
-    // Validate
-    if (input_backend == InputBackend::Invalid) {
-        input_backend = GetDefaultInputBackend();
-        LOG_WARN(Other, "Invalid input backend, falling back to {}",
-                 input_backend);
-    }
-
-    if (cpu_backend == CpuBackend::Invalid) {
-        cpu_backend = GetDefaultCpuBackend();
-        LOG_WARN(Other, "Invalid CPU backend, falling back to {}", cpu_backend);
-    }
-
-    if (gpu_renderer == GpuRenderer::Invalid) {
-        gpu_renderer = GetDefaultGpuRenderer();
-        LOG_WARN(Other, "Invalid Gpu renderer, falling back to {}",
-                 gpu_renderer);
-    }
-
-    if (shader_backend == ShaderBackend::Invalid) {
-        shader_backend = GetDefaultShaderBackend();
-        LOG_WARN(Other, "Invalid shader backend, falling back to {}",
-                 shader_backend);
-    } else if (shader_backend == ShaderBackend::Air) {
-        LOG_ERROR(Other, "AIR shader backend is not functional");
-    }
-
-    if (display_resolution == Resolution::Invalid) {
-        display_resolution = GetDefaultDisplayResolution();
-        LOG_WARN(Other, "Invalid display resolution, falling back to {}",
-                 display_resolution);
-    }
-
-    if (audio_backend == AudioBackend::Invalid) {
-        audio_backend = GetDefaultAudioBackend();
-        LOG_WARN(Other, "Invalid audio backend, falling back to {}",
-                 audio_backend);
     }
 }
 
@@ -371,6 +356,7 @@ void Config::Log() {
              custom_display_resolution.x(), custom_display_resolution.y());
     LOG_INFO(Other, "Audio backend: {}", audio_backend);
     LOG_INFO(Other, "User ID: {:032x}", user_id);
+    LOG_INFO(Other, "System language: {}", system_language);
     LOG_INFO(Other, "Firmware path: {}", firmware_path);
     LOG_INFO(Other, "SD card path: {}", sd_card_path);
     LOG_INFO(Other, "Save path: {}", save_path);

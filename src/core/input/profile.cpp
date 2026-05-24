@@ -5,28 +5,36 @@
 #include "core/input/keyboard.hpp"
 
 ENABLE_ENUM_FORMATTING_AND_CASTING(
-    hydra::horizon::services::hid, NpadButtons, npad_buttons, A, "a", B, "b", X,
-    "x", Y, "y", StickL, "stick_l", StickR, "stick_r", L, "l", R, "r", ZL, "zl",
-    ZR, "zr", Plus, "plus", Minus, "minus", Left, "left", Up, "up", Right,
-    "right", Down, "down", StickLLeft, "stick_l_left", StickLUp, "stick_l_up",
-    StickLRight, "stick_l_right", StickLDown, "stick_l_down", StickRLeft,
-    "stick_r_left", StickRUp, "stick_r_up", StickRRight, "stick_r_right",
-    StickRDown, "stick_r_down", LeftSL, "left_sl", LeftSR, "left_sr", RightSL,
-    "right_sl", RightSR, "right_sr", Palma, "palma", Verification,
-    "verification", HandheldLeftB, "handheld_left_b", LagonCLeft,
-    "lagon_c_left", LagonCUp, "lagon_c_up", LagonCRight, "lagon_c_right",
-    LagonCDown, "lagon_c_down")
+    hydra::horizon::services::hid, NpadButtons, A, "a", B, "b", X, "x", Y, "y",
+    StickL, "stick_l", StickR, "stick_r", L, "l", R, "r", ZL, "zl", ZR, "zr",
+    Plus, "plus", Minus, "minus", Left, "left", Up, "up", Right, "right", Down,
+    "down", StickLLeft, "stick_l_left", StickLUp, "stick_l_up", StickLRight,
+    "stick_l_right", StickLDown, "stick_l_down", StickRLeft, "stick_r_left",
+    StickRUp, "stick_r_up", StickRRight, "stick_r_right", StickRDown,
+    "stick_r_down", LeftSL, "left_sl", LeftSR, "left_sr", RightSL, "right_sl",
+    RightSR, "right_sr", Palma, "palma", Verification, "verification",
+    HandheldLeftB, "handheld_left_b", LagonCLeft, "lagon_c_left", LagonCUp,
+    "lagon_c_up", LagonCRight, "lagon_c_right", LagonCDown, "lagon_c_down")
 
 namespace hydra::input {
 
 namespace {
 
-u32 to_value(DeviceType type, const std::string_view value_str) {
+std::optional<u32> ToValue(DeviceType type, const std::string_view value_str) {
     switch (type) {
-    case DeviceType::Keyboard:
-        return u32(to_key(value_str));
-    case DeviceType::Controller:
-        return u32(to_controller_input(value_str));
+    case DeviceType::Keyboard: {
+        const auto key_opt = ToKey(value_str);
+        return key_opt.has_value()
+                   ? std::optional{static_cast<u32>(key_opt.value())}
+                   : std::nullopt;
+    }
+    case DeviceType::Controller: {
+        const auto controller_input_opt = ToControllerInput(value_str);
+        return controller_input_opt.has_value()
+                   ? std::optional{static_cast<u32>(
+                         controller_input_opt.value())}
+                   : std::nullopt;
+    }
     case DeviceType::Cursor:
         LOG_ERROR(Input, "Cursor device does not support codes");
         return invalid<u32>();
@@ -35,7 +43,7 @@ u32 to_value(DeviceType type, const std::string_view value_str) {
     }
 }
 
-std::string value_to_string(DeviceType device_type, u32 value) {
+std::string ValueToString(DeviceType device_type, u32 value) {
     switch (device_type) {
     case DeviceType::Keyboard:
         return fmt::format("{}", Key(value));
@@ -49,33 +57,33 @@ std::string value_to_string(DeviceType device_type, u32 value) {
     }
 }
 
-Code to_code(const std::string_view str) {
+std::optional<Code> ToCode(const std::string_view str) {
     const auto slash_pos = str.find("/");
     if (slash_pos == std::string::npos) {
         LOG_ERROR(Input, "Invalid input code format: {}", str);
-        return {};
+        return std::nullopt;
     }
 
     // Device type
     const auto device_type_str = str.substr(0, slash_pos);
-    const auto device_type = to_device_type(device_type_str);
-    if (device_type == DeviceType::Invalid) {
+    const auto device_type = ToDeviceType(device_type_str);
+    if (device_type == std::nullopt) {
         LOG_ERROR(Input, "Invalid device type: {}", device_type_str);
-        return {};
+        return std::nullopt;
     }
 
     // Value
     const auto value_str = str.substr(slash_pos + 1);
-    const auto value = to_value(device_type, value_str);
-    if (value == invalid<u32>()) {
+    const auto value = ToValue(device_type.value(), value_str);
+    if (value == std::nullopt) {
         LOG_ERROR(Input, "Invalid value: {}", value_str);
-        return {};
+        return std::nullopt;
     }
 
-    return Code(device_type, value);
+    return Code(device_type.value(), value.value());
 }
 
-AnalogStickAxis to_analog_stick_axis(const std::string_view str) {
+AnalogStickAxis ToAnalogStickAxis(const std::string_view str) {
     // TODO: clean this up?
     if (str == "l_right") {
         return {true, AnalogStickDirection::Right};
@@ -99,7 +107,7 @@ AnalogStickAxis to_analog_stick_axis(const std::string_view str) {
     }
 }
 
-std::string analog_stick_direction_to_string(const AnalogStickDirection& dir) {
+std::string AnalogStickDirectionToString(const AnalogStickDirection& dir) {
     switch (dir) {
     case AnalogStickDirection::Right:
         return "right";
@@ -112,10 +120,10 @@ std::string analog_stick_direction_to_string(const AnalogStickDirection& dir) {
     }
 }
 
-std::string analog_stick_axis_to_string(const AnalogStickAxis& axis) {
+std::string AnalogStickAxisToString(const AnalogStickAxis& axis) {
     return fmt::format(
         "{}_{}", axis.is_left ? "l" : "r",
-        hydra::input::analog_stick_direction_to_string(axis.direction));
+        hydra::input::AnalogStickDirectionToString(axis.direction));
 }
 
 } // namespace
@@ -139,7 +147,7 @@ struct into<hydra::input::Code> {
     static basic_value<TC> into_toml(const hydra::input::Code& obj) {
         return fmt::format(
             "{}/{}", obj.GetDeviceType(),
-            hydra::input::value_to_string(obj.GetDeviceType(), obj.GetValue()));
+            hydra::input::ValueToString(obj.GetDeviceType(), obj.GetValue()));
     }
 };
 
@@ -148,7 +156,7 @@ struct from<hydra::input::AnalogStickAxis> {
     template <typename TC>
     static hydra::input::AnalogStickAxis from_toml(const basic_value<TC>& v) {
         const auto str = v.as_string();
-        return hydra::input::to_analog_stick_axis(str);
+        return hydra::input::ToAnalogStickAxis(str);
     }
 };
 
@@ -157,7 +165,7 @@ struct into<hydra::input::AnalogStickAxis> {
     template <typename TC>
     static basic_value<TC>
     into_toml(const hydra::input::AnalogStickAxis& axis) {
-        return hydra::input::analog_stick_axis_to_string(axis);
+        return hydra::input::AnalogStickAxisToString(axis);
     }
 };
 
@@ -327,7 +335,7 @@ void Profile::Serialize() {
     {
         auto& analog = data.at("AnalogSticks");
         for (const auto& mapping : analog_mappings) {
-            const auto axis_str = analog_stick_axis_to_string(mapping.axis);
+            const auto axis_str = AnalogStickAxisToString(mapping.axis);
             bool has_entry = analog.contains(axis_str);
             auto& axis = analog[axis_str];
             if (!has_entry)
@@ -364,10 +372,16 @@ void Profile::Deserialize() {
         const auto& buttons = data.at("Buttons");
         for (const auto& mappings : buttons.as_table()) {
             const auto button =
-                horizon::services::hid::to_npad_buttons(mappings.first);
+                horizon::services::hid::ToNpadButtons(mappings.first);
+            if (!button)
+                continue;
+
             for (const auto& mapping : mappings.second.as_array()) {
-                const auto& code = to_code(mapping.as_string());
-                button_mappings.push_back({code, button});
+                const auto& code = ToCode(mapping.as_string());
+                if (!code)
+                    continue;
+
+                button_mappings.push_back({code.value(), button.value()});
             }
         }
     }
@@ -376,10 +390,13 @@ void Profile::Deserialize() {
     if (data.contains("AnalogSticks")) {
         const auto& analog = data.at("AnalogSticks");
         for (const auto& mappings : analog.as_table()) {
-            const auto axis = to_analog_stick_axis(mappings.first);
+            const auto axis = ToAnalogStickAxis(mappings.first);
             for (const auto& mapping : mappings.second.as_array()) {
-                const auto& code = to_code(mapping.as_string());
-                analog_mappings.push_back({code, axis});
+                const auto& code = ToCode(mapping.as_string());
+                if (!code)
+                    continue;
+
+                analog_mappings.push_back({code.value(), axis});
             }
         }
     }
