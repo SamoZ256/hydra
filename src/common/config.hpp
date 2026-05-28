@@ -21,6 +21,7 @@ enum class CpuBackend : u32 {
 };
 
 enum class GpuRenderer : u32 {
+    Null,
     Metal,
 };
 
@@ -119,7 +120,13 @@ class Config {
         return CpuBackend::Dynarmic;
 #endif
     }
-    static GpuRenderer GetDefaultGpuRenderer() { return GpuRenderer::Metal; }
+    static GpuRenderer GetDefaultGpuRenderer() {
+#ifdef PLATFORM_APPLE
+        return GpuRenderer::Metal;
+#else
+        return GpuRenderer::Null;
+#endif
+    }
     static ShaderBackend GetDefaultShaderBackend() {
         return ShaderBackend::Msl;
     }
@@ -226,7 +233,7 @@ ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, InputBackend, AppleGameController,
                                    "Apple GameController", Sdl, "SDL")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, CpuBackend, AppleHypervisor,
                                    "Apple Hypervisor", Dynarmic, "dynarmic")
-ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, GpuRenderer, Metal, "Metal")
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, GpuRenderer, Null, "Null", Metal, "Metal")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, ShaderBackend, Msl, "MSL", Air, "AIR")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, Resolution, Auto, "auto", _720p,
                                    "720p", _1080p, "1080p", _1440p, "1440p",
