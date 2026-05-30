@@ -2,7 +2,11 @@
 
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
 #include "core/hw/tegra_x1/gpu/const.hpp"
+
+#ifdef PLATFORM_APPLE
 #include "core/hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
+#endif
+#include "core/hw/tegra_x1/gpu/renderer/null/renderer.hpp"
 
 namespace hydra::hw::tegra_x1::gpu {
 
@@ -12,7 +16,13 @@ renderer::IRenderer* CreateRenderer() {
     const auto renderer_type = CONFIG_INSTANCE.GetGpuRenderer();
     switch (renderer_type) {
     case GpuRenderer::Metal:
+#ifdef PLATFORM_APPLE
         return new renderer::metal::Renderer();
+#else
+        LOG_FATAL(Gpu, "Metal renderer not supported");
+#endif
+    case GpuRenderer::Null:
+        return new renderer::null::Renderer();
     default:
         LOG_FATAL(Gpu, "Unknown Gpu renderer {}", renderer_type);
     }
