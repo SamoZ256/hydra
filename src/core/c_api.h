@@ -42,6 +42,7 @@ typedef enum : uint32_t {
 } HydraCpuBackend;
 
 typedef enum : uint32_t {
+    HYDRA_GPU_RENDERER_NULL,
     HYDRA_GPU_RENDERER_METAL,
 } HydraGpuRenderer;
 

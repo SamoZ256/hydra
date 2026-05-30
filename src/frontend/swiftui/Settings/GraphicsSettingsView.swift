@@ -13,6 +13,7 @@ struct GraphicsSettingsView: View {
             Form {
                 Section {
                     Picker("Gpu renderer", selection: self.$gpuRenderer.rawValue) {
+                        Text("Null").tag(HYDRA_GPU_RENDERER_NULL.rawValue)
                         Text("Metal (recommended)").tag(HYDRA_GPU_RENDERER_METAL.rawValue)
                     }
                     .onChange(of: self.gpuRenderer.rawValue) { _, newValue in
