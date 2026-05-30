@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/hw/tegra_x1/gpu/renderer/texture.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/texture_view.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer::null {
 
@@ -25,6 +26,11 @@ class Texture final : public ITexture {
                   const u32 src_layer, const uint3 dst_origin,
                   const u32 dst_level, const u32 dst_layer, const uint3 size,
                   const u32 layer_count) override;
+};
+
+class TextureView final : public ITextureView {
+  public:
+    TextureView(Texture* base, const TextureViewDescriptor& descriptor);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::null
