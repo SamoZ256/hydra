@@ -27,7 +27,7 @@ class Stream final : public IStream {
 
     std::mutex buffer_mutex;
     std::queue<std::pair<buffer_id_t, std::span<const u8>>> buffer_queue;
-    u32 pos_in_buffer;
+    u32 pos_in_buffer{};
 
     static long DataCallback(cubeb_stream* stream, void* user_data,
                              const void* input_buffer, void* output_buffer,
