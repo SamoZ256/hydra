@@ -8,8 +8,35 @@ struct LocationName {
     char name[0x24];
 };
 
+struct TimeTypeInfo {
+    i32 gmt_offset;
+    bool is_day_saving_time;
+    u8 _padding_x5[3];
+    i32 abbreviation_list_index;
+    bool is_standard_time_daylight;
+    bool is_gmt;
+    u8 _padding_xe[2];
+};
+
 struct TimeZoneRule {
-    u8 data[0x4000];
+    static constexpr usize MAX_TYPE_COUNT = 128;
+    static constexpr usize MAX_CHAR_LEN = 50;
+    static constexpr usize MAX_LEAP_LEN = 50;
+    static constexpr usize MAX_TIME_COUNT = 1000;
+    static constexpr usize MAX_NAME_LEN = 255;
+    static constexpr usize CHAR_ARRAY_SIZE = 2 * (MAX_NAME_LEN + 1);
+
+    i32 time_len;
+    i32 type_len;
+    i32 char_len;
+    bool go_back;
+    bool go_ahead;
+    i64 ats[MAX_TIME_COUNT];
+    u8 type_indices[MAX_TIME_COUNT];
+    TimeTypeInfo type_infos[MAX_TYPE_COUNT];
+    char chars[CHAR_ARRAY_SIZE];
+    i32 default_type;
+    u8 _padding_x2d40[0x12c0];
 };
 
 struct CalendarTime {
@@ -69,6 +96,9 @@ class ITimeZoneService : public IService {
     // TODO: support more than 1 time?
     result_t ToPosixTimeImpl(const CalendarTime& calendar_time,
                              const TimeZoneRule& rule, i64& out_time);
+
+    // Helpers
+    std::string_view GetLocationName();
 };
 
 } // namespace hydra::horizon::services::timesrv

@@ -127,6 +127,10 @@ add_subdirectory(externals/libyaz0)
 # nx2elf
 add_subdirectory(externals/nx2elf)
 
+# date
+set(BUILD_TZ_LIB ON)
+add_subdirectory(externals/date)
+
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 add_library(hydra_warnings INTERFACE)
 target_compile_options(hydra_warnings INTERFACE

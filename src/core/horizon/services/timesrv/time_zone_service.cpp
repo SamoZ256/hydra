@@ -1,5 +1,8 @@
 #include "core/horizon/services/timesrv/time_zone_service.hpp"
 
+#include "date/date.h"
+#include "date/tz.h"
+
 namespace hydra::horizon::services::timesrv {
 
 DEFINE_SERVICE_COMMAND_TABLE(ITimeZoneService, 0, GetDeviceLocationName, 4,
@@ -8,10 +11,9 @@ DEFINE_SERVICE_COMMAND_TABLE(ITimeZoneService, 0, GetDeviceLocationName, 4,
                              ToPosixTimeWithMyRule)
 
 result_t ITimeZoneService::GetDeviceLocationName(LocationName* out_name) {
-    LOG_FUNC_STUBBED(Services);
-
-    // HACK
-    std::memcpy(out_name, "UTC\0", 4);
+    const auto name = GetLocationName();
+    std::memcpy(out_name->name, name.data(), name.size());
+    out_name->name[name.size()] = '\0';
     return RESULT_SUCCESS;
 }
 
@@ -68,27 +70,46 @@ result_t ITimeZoneService::ToPosixTimeWithMyRule(
 result_t ITimeZoneService::ToCalendarTimeImpl(
     i64 posix_time, const TimeZoneRule& rule, CalendarTime& out_time,
     CalendarAdditionalInfo& out_additional_info) {
-    (void)rule;
+    // Find the type
+    i32 type_idx = rule.default_type;
+    for (i32 i = 0; i < rule.time_len; ++i) {
+        if (posix_time >= rule.ats[i]) {
+            type_idx = rule.type_indices[i];
+        } else {
+            break;
+        }
+    }
 
-    LOG_FUNC_WITH_ARGS_STUBBED(Services, "posix time: {}", posix_time);
+    const auto& info = rule.type_infos[type_idx];
 
-    // Time
+    // Adjust by GMT offset
+    auto adjusted_tp = std::chrono::sys_seconds{
+        std::chrono::seconds{posix_time + info.gmt_offset}};
+    auto days = date::floor<date::days>(adjusted_tp);
+    date::year_month_day ymd{days};
+    std::chrono::hh_mm_ss hms{adjusted_tp - days};
+
+    // Get time zone name
+    const char* tz_name = rule.chars + info.abbreviation_list_index;
+
+    // Output
     out_time = {
-        .year = 0,   // TODO
-        .month = 0,  // TODO
-        .day = 0,    // TODO
-        .hour = 0,   // TODO
-        .minute = 0, // TODO
-        .second = 0, // TODO
+        .year = static_cast<u16>(static_cast<int>(ymd.year())),
+        .month = static_cast<u8>(ymd.month().operator unsigned()),
+        .day = static_cast<u8>(ymd.day().operator unsigned()),
+        .hour = static_cast<u8>(hms.hours().count()),
+        .minute = static_cast<u8>(hms.minutes().count()),
+        .second = static_cast<u8>(hms.seconds().count()),
     };
 
-    // Additional info
     out_additional_info = {
-        .day_of_week = 0,           // TODO
-        .day_of_year = 0,           // TODO
-        .timezone_name = "UTC"_u64, // HACK
-        .dst = 0,                   // TODO
-        .seconds_rel_to_utc = 0,    // TODO
+        .day_of_week = static_cast<u8>(
+            date::year_month_weekday{ymd}.weekday().c_encoding()),
+        .day_of_year = static_cast<u32>(
+            (date::sys_days{ymd} - date::sys_days{ymd.year() / 1 / 0}).count()),
+        .timezone_name = ToU64String(tz_name),
+        .dst = info.is_day_saving_time ? 1u : 0u,
+        .seconds_rel_to_utc = info.gmt_offset,
     };
 
     return RESULT_SUCCESS;
@@ -104,6 +125,12 @@ result_t ITimeZoneService::ToPosixTimeImpl(const CalendarTime& calendar_time,
     // HACK
     out_time = 0;
     return RESULT_SUCCESS;
+}
+
+std::string_view ITimeZoneService::GetLocationName() {
+    // TODO: make this configurable
+    const auto* tz = date::current_zone();
+    return tz->name();
 }
 
 } // namespace hydra::horizon::services::timesrv

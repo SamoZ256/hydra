@@ -691,7 +691,7 @@ endif ()
 
 target_include_directories(hydra-core PRIVATE ${CMAKE_SOURCE_DIR}/externals/libyaz0/include)
 # TODO: only link Apple frameworks if Apple
-target_link_libraries(hydra-core PRIVATE hydra_warnings "-framework Foundation" "-framework Metal" "-framework QuartzCore" "-framework GameController" dynarmic hatch libyaz0 nx2elf hydra-common)
+target_link_libraries(hydra-core PRIVATE hydra_warnings "-framework Foundation" "-framework Metal" "-framework QuartzCore" "-framework GameController" dynarmic hatch libyaz0 nx2elf date::date date::date-tz hydra-common)
 
 if (HYPERVISOR_ENABLED)
     target_link_libraries(hydra-core PRIVATE "-framework Hypervisor")
