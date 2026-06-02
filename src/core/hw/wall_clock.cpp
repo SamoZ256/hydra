@@ -14,8 +14,13 @@ u64 MultiplyByFactor(u64 num, u128 factor) { return (num * factor) >> 64; }
 
 WallClock::WallClock() {
     const auto host_freq = GetSystemFrequency();
+    ns_factor = GetFactor(1'000'000'000, host_freq);
     guest_factor = GetFactor(GUEST_CNTFRQ, host_freq);
     gpu_tick_factor = GetFactor(GPU_TICK_FREQ, host_freq);
+}
+
+u64 WallClock::GetTimeNs() const {
+    return MultiplyByFactor(GetSystemTick(), ns_factor);
 }
 
 u64 WallClock::GetCntpct() const {

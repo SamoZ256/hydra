@@ -1,6 +1,5 @@
 #include "core/horizon/services/timesrv/time_zone_service.hpp"
 
-#include "date/date.h"
 #include "date/tz.h"
 
 namespace hydra::horizon::services::timesrv {
@@ -85,8 +84,8 @@ result_t ITimeZoneService::ToCalendarTimeImpl(
     // Adjust by GMT offset
     auto adjusted_tp = std::chrono::sys_seconds{
         std::chrono::seconds{posix_time + info.gmt_offset}};
-    auto days = date::floor<date::days>(adjusted_tp);
-    date::year_month_day ymd{days};
+    auto days = std::chrono::floor<std::chrono::days>(adjusted_tp);
+    std::chrono::year_month_day ymd{days};
     std::chrono::hh_mm_ss hms{adjusted_tp - days};
 
     // Get time zone name
@@ -104,9 +103,11 @@ result_t ITimeZoneService::ToCalendarTimeImpl(
 
     out_additional_info = {
         .day_of_week = static_cast<u8>(
-            date::year_month_weekday{ymd}.weekday().c_encoding()),
-        .day_of_year = static_cast<u32>(
-            (date::sys_days{ymd} - date::sys_days{ymd.year() / 1 / 0}).count()),
+            std::chrono::year_month_weekday{ymd}.weekday().c_encoding()),
+        .day_of_year =
+            static_cast<u32>((std::chrono::sys_days{ymd} -
+                              std::chrono::sys_days{ymd.year() / 1 / 0})
+                                 .count()),
         .timezone_name = ToU64String(tz_name),
         .dst = info.is_day_saving_time ? 1u : 0u,
         .seconds_rel_to_utc = info.gmt_offset,
