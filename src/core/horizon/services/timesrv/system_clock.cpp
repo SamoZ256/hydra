@@ -1,18 +1,18 @@
 #include "core/horizon/services/timesrv/system_clock.hpp"
 
+#include "core/system.hpp"
+
 namespace hydra::horizon::services::timesrv {
 
 DEFINE_SERVICE_COMMAND_TABLE(ISystemClock, 0, GetCurrentTime, 2,
                              GetSystemClockContext)
 
-// TODO: type
-result_t ISystemClock::GetCurrentTime(i64* out_posix_time) {
+result_t ISystemClock::GetCurrentTime(RequestContext* ctx,
+                                      i64* out_posix_time) {
+    // TODO: take type into account?
     (void)type;
-
-    // TODO: take type into account
-    *out_posix_time = std::chrono::duration_cast<std::chrono::seconds>(
-                          std::chrono::system_clock::now().time_since_epoch())
-                          .count();
+    *out_posix_time = static_cast<i64>(
+        ctx->system.GetOS().GetTimeManager().GetSystemClock().GetTimePoint());
     return RESULT_SUCCESS;
 }
 

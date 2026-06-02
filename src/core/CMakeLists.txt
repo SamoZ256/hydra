@@ -133,12 +133,7 @@ add_library(hydra-core
     horizon/services/fssrv/save_data_info_reader.hpp
     horizon/services/fssrv/filesystem_proxy.cpp
     horizon/services/fssrv/filesystem_proxy.hpp
-    horizon/services/timesrv/internal/steady_clock.cpp
-    horizon/services/timesrv/internal/steady_clock.hpp
-    horizon/services/timesrv/internal/system_clock.cpp
-    horizon/services/timesrv/internal/system_clock.hpp
-    horizon/services/timesrv/internal/time_manager.cpp
-    horizon/services/timesrv/internal/time_manager.hpp
+    horizon/services/timesrv/const.hpp
     horizon/services/timesrv/static_service.cpp
     horizon/services/timesrv/static_service.hpp
     horizon/services/timesrv/system_clock.cpp
@@ -147,6 +142,12 @@ add_library(hydra-core
     horizon/services/timesrv/steady_clock.hpp
     horizon/services/timesrv/time_zone_service.cpp
     horizon/services/timesrv/time_zone_service.hpp
+    horizon/services/timesrv/internal/steady_clock.cpp
+    horizon/services/timesrv/internal/steady_clock.hpp
+    horizon/services/timesrv/internal/system_clock.cpp
+    horizon/services/timesrv/internal/system_clock.hpp
+    horizon/services/timesrv/internal/time_manager.cpp
+    horizon/services/timesrv/internal/time_manager.hpp
     horizon/services/nvdrv/const.hpp
     horizon/services/nvdrv/nvdrv_services.cpp
     horizon/services/nvdrv/nvdrv_services.hpp

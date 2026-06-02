@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/horizon/kernel/shared_memory.hpp"
+#include "core/horizon/services/timesrv/const.hpp"
 #include "core/horizon/services/timesrv/internal/steady_clock.hpp"
 #include "core/horizon/services/timesrv/internal/system_clock.hpp"
 
@@ -9,30 +10,6 @@ class System;
 }
 
 namespace hydra::horizon::services::timesrv::internal {
-
-#pragma pack(push, 1)
-struct SteadyClockTimePoint {
-    u64 time_point;
-    u128 clock_source_id;
-};
-
-struct SteadyClockContext {
-    u64 internal_offset;
-    u128 clock_source_id;
-};
-
-struct SystemClockContext {
-    i64 offset;
-    SteadyClockTimePoint steady_time_point;
-};
-
-struct ContinuousAdjustmentTimePoint {
-    u64 clock_offset;
-    i64 multiplier;
-    i64 divisor_log2;
-    SystemClockContext context;
-};
-#pragma pack(pop)
 
 class TimeManager {
   public:
@@ -76,6 +53,8 @@ class TimeManager {
     }
 
   public:
+    REF_GETTER(steady_clock, GetSteadyClock);
+    REF_GETTER(system_clock, GetSystemClock);
     GETTER(shared_memory, GetSharedMemory);
 };
 

@@ -8,10 +8,6 @@ namespace hydra::horizon::services::timesrv::internal {
 
 namespace {
 
-constexpr u128 CLOCK_SOURCE_ID =
-    (static_cast<u128>(0x3901f6dde03fe1c0ull) << 64) |
-    static_cast<u128>(0x4950593b2204f44dull);
-
 constexpr u64 SHARED_MEMORY_SIZE = 0x1000;
 
 constexpr u32 STEADY_CLOCK_CONTEXT_OFFSET = 0x00;

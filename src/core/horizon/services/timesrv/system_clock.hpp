@@ -23,7 +23,7 @@ class ISystemClock : public IService {
     SystemClockType type;
 
     // Commands
-    result_t GetCurrentTime(i64* out_posix_time);
+    result_t GetCurrentTime(RequestContext* ctx, i64* out_posix_time);
     STUB_REQUEST_COMMAND(GetSystemClockContext);
 };
 
