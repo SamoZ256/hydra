@@ -53,6 +53,12 @@ result_t ISelfController::CreateManagedDisplayLayer(System* system,
     return RESULT_SUCCESS;
 }
 
+result_t ISelfController::IsSystemBufferSharingEnabled() {
+    // TODO: implement
+    LOG_FUNC_STUBBED(Services);
+    return MAKE_RESULT(Am, 998); // Not implemented
+}
+
 result_t ISelfController::CreateManagedDisplaySeparableLayer(
     System* system, kernel::Process* process, u64* out_display_layer_id,
     u64* out_recording_layer_id) {
