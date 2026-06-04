@@ -15,17 +15,13 @@ NcaLoader::NcaLoader(const filesystem::ContentArchive& content_archive_)
     : content_archive{content_archive_} {
     // Nintendo logo
     auto res = content_archive.GetFile(NINTENDO_LOGO_PATH, nintendo_logo_file);
-    if (res != filesystem::FsResult::Success) {
-        LOG_ERROR(Loader, "Failed to get " NINTENDO_LOGO_PATH ": {}", res);
-        return;
-    }
+    if (res != filesystem::FsResult::Success)
+        LOG_WARN(Loader, "Failed to get " NINTENDO_LOGO_PATH ": {}", res);
 
     // Startup movie
     res = content_archive.GetFile(STARTUP_MOVIE_PATH, startup_movie_file);
-    if (res != filesystem::FsResult::Success) {
-        LOG_ERROR(Loader, "Failed to get " STARTUP_MOVIE_PATH ": {}", res);
-        return;
-    }
+    if (res != filesystem::FsResult::Success)
+        LOG_WARN(Loader, "Failed to get " STARTUP_MOVIE_PATH ": {}", res);
 
     // ExeFS
     res = content_archive.GetDirectory("code", exefs_dir);
