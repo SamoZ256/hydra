@@ -6,6 +6,7 @@
 #include "core/horizon/services/am/debug_functions.hpp"
 #include "core/horizon/services/am/display_controller.hpp"
 #include "core/horizon/services/am/global_state_controller.hpp"
+#include "core/horizon/services/am/home_menu_functions.hpp"
 #include "core/horizon/services/am/library_applet_creator.hpp"
 #include "core/horizon/services/am/process_winding_controller.hpp"
 #include "core/horizon/services/am/self_controller.hpp"
@@ -50,6 +51,11 @@ result_t IProxy::GetLibraryAppletCreator(RequestContext* ctx) {
 
 result_t IProxy::GetAppletCommonFunctions(RequestContext* ctx) {
     AddService(*ctx, new IAppletCommonFunctions());
+    return RESULT_SUCCESS;
+}
+
+result_t IProxy::GetHomeMenuFunctions(RequestContext* ctx) {
+    AddService(*ctx, new IHomeMenuFunctions());
     return RESULT_SUCCESS;
 }
 

@@ -12,7 +12,8 @@ DEFINE_SERVICE_COMMAND_TABLE(ILibraryAppletSelfAccessor, 0, PopInData, 1,
                              PushOutData, 2, PopInteractiveInData, 3,
                              PushInteractiveOutData, 10, ExitProcessAndReturn,
                              11, GetLibraryAppletInfo, 14,
-                             GetCallerAppletIdentityInfo)
+                             GetCallerAppletIdentityInfo, 160,
+                             GetLibraryAppletInfoEx)
 
 result_t ILibraryAppletSelfAccessor::PopInData(RequestContext* ctx,
                                                System* system) {
@@ -72,6 +73,12 @@ result_t ILibraryAppletSelfAccessor::GetCallerAppletIdentityInfo(
         .id = AppletId::None,
         .application_id = 0x1,
     };
+    return RESULT_SUCCESS;
+}
+
+result_t ILibraryAppletSelfAccessor::GetLibraryAppletInfoEx(u64* out_info) {
+    // Always returns 0
+    *out_info = 0;
     return RESULT_SUCCESS;
 }
 

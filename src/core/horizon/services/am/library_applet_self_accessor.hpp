@@ -30,6 +30,7 @@ class ILibraryAppletSelfAccessor : public IService {
     result_t ExitProcessAndReturn(kernel::Process* process);
     result_t GetLibraryAppletInfo(LibraryAppletInfo* out_info);
     result_t GetCallerAppletIdentityInfo(AppletIdentityInfo* out_info);
+    result_t GetLibraryAppletInfoEx(u64* out_info); // 17.0.0+
 };
 
 } // namespace hydra::horizon::services::am

@@ -11,7 +11,6 @@ class ISystemAppletProxy : public IProxy {
 
   private:
     // Commands
-    result_t GetHomeMenuFunctions(RequestContext* ctx);
     result_t GetApplicationCreator(RequestContext* ctx);
 };
 
