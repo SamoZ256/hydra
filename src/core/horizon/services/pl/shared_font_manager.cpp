@@ -69,4 +69,15 @@ result_t ISharedFontManager::GetSharedFontInOrderOfPriority(
     return RESULT_SUCCESS;
 }
 
+result_t ISharedFontManager::GetSharedFontInOrderOfPriorityForSystem(
+    System* system, LanguageCode language_code, u8* out_loaded, u32* out_count,
+    OutBuffer<BufferAttr::MapAlias> out_types_buffer,
+    OutBuffer<BufferAttr::MapAlias> out_offsets_buffer,
+    OutBuffer<BufferAttr::MapAlias> out_sizes_buffer) {
+    // TODO: how is this different from GetSharedFontInOrderOfPriority?
+    return GetSharedFontInOrderOfPriority(system, language_code, out_loaded,
+                                          out_count, out_types_buffer,
+                                          out_offsets_buffer, out_sizes_buffer);
+}
+
 } // namespace hydra::horizon::services::pl

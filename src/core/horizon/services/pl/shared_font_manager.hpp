@@ -26,6 +26,11 @@ class ISharedFontManager : public IService {
         u32* out_count, OutBuffer<BufferAttr::MapAlias> out_types_buffer,
         OutBuffer<BufferAttr::MapAlias> out_offsets_buffer,
         OutBuffer<BufferAttr::MapAlias> out_sizes_buffer);
+    result_t GetSharedFontInOrderOfPriorityForSystem(
+        System* system, LanguageCode language_code, u8* out_loaded,
+        u32* out_count, OutBuffer<BufferAttr::MapAlias> out_types_buffer,
+        OutBuffer<BufferAttr::MapAlias> out_offsets_buffer,
+        OutBuffer<BufferAttr::MapAlias> out_sizes_buffer);
 };
 
 } // namespace hydra::horizon::services::pl
