@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SystemSettingsView: View {
+    @State private var deviceNickname = hydraConfigGetDeviceNickname()
     @State private var systemLanguage = HydraSystemLanguage(rawValue: hydraConfigGetSystemLanguage().pointee)
     #if os(macOS)
         @State private var firmwarePath = hydraConfigGetFirmwarePath()
@@ -16,6 +17,11 @@ struct SystemSettingsView: View {
         HStack {
             Spacer()
             Form {
+                TextField("Device nickname", text: $deviceNickname)
+                    .onChange(of: deviceNickname) { _, newValue in
+                        hydraConfigSetDeviceNickname(newValue)
+                    }
+
                 Picker("System language", selection: self.$systemLanguage.rawValue) {
                     Text("American English").tag(HYDRA_SYSTEM_LANGUAGE_AMERICAN_ENGLISH.rawValue)
                     Text("British English").tag(HYDRA_SYSTEM_LANGUAGE_BRITISH_ENGLISH.rawValue)

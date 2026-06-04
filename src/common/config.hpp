@@ -142,6 +142,7 @@ class Config {
     static uuid_t GetDefaultUserID() {
         return 0x0; // TODO: INVALID_USER_ID
     }
+    static std::string GetDefaultDeviceNickname() { return "Hydra's Switch"; }
     static SystemLanguage GetDefaultSystemLanguage() {
         return SystemLanguage::AmericanEnglish;
     }
@@ -183,6 +184,7 @@ class Config {
     uint2 custom_display_resolution;
     AudioBackend audio_backend;
     uuid_t user_id;
+    std::string device_nickname;
     SystemLanguage system_language;
     std::string firmware_path;
     std::string sd_card_path;
@@ -211,6 +213,7 @@ class Config {
     REF_GETTER(custom_display_resolution, GetCustomDisplayResolution);
     REF_GETTER(audio_backend, GetAudioBackend);
     REF_GETTER(user_id, GetUserId);
+    REF_GETTER(device_nickname, GetDeviceNickname);
     REF_GETTER(system_language, GetSystemLanguage);
     REF_GETTER(firmware_path, GetFirmwarePath);
     REF_GETTER(sd_card_path, GetSdCardPath);
@@ -233,7 +236,8 @@ ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, InputBackend, AppleGameController,
                                    "Apple GameController", Sdl, "SDL")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, CpuBackend, AppleHypervisor,
                                    "Apple Hypervisor", Dynarmic, "dynarmic")
-ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, GpuRenderer, Null, "Null", Metal, "Metal")
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, GpuRenderer, Null, "Null", Metal,
+                                   "Metal")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, ShaderBackend, Msl, "MSL", Air, "AIR")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, Resolution, Auto, "auto", _720p,
                                    "720p", _1080p, "1080p", _1440p, "1440p",

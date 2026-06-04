@@ -242,6 +242,16 @@ HYDRA_EXPORT hydra_u128* hydra_config_get_user_id() {
     return reinterpret_cast<hydra_u128*>(&hydra::CONFIG_INSTANCE.GetUserId());
 }
 
+HYDRA_EXPORT hydra_string hydra_config_get_device_nickname() {
+    return hydra_string_from_string_view(
+        hydra::CONFIG_INSTANCE.GetDeviceNickname());
+}
+
+HYDRA_EXPORT void hydra_config_set_device_nickname(hydra_string value) {
+    hydra::CONFIG_INSTANCE.GetDeviceNickname() =
+        string_view_from_hydra_string(value);
+}
+
 HYDRA_EXPORT uint32_t* hydra_config_get_system_language() {
     return reinterpret_cast<uint32_t*>(
         &hydra::CONFIG_INSTANCE.GetSystemLanguage());

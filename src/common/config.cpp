@@ -137,6 +137,7 @@ void Config::LoadDefaults() {
     custom_display_resolution = GetDefaultCustomDisplayResolution();
     audio_backend = GetDefaultAudioBackend();
     user_id = GetDefaultUserID();
+    device_nickname = GetDefaultDeviceNickname();
     system_language = GetDefaultSystemLanguage();
     firmware_path = GetDefaultFirmwarePath();
     sd_card_path = GetDefaultSdCardPath();
@@ -214,6 +215,7 @@ void Config::Serialize() {
 
     {
         auto& system = data.at("System");
+        system["device_nickname"] = device_nickname;
         system["system_language"] = system_language;
         system["firmware_path"] = firmware_path;
         if (sd_card_path != GetDefaultSdCardPath())
@@ -306,6 +308,8 @@ void Config::Deserialize() {
     }
     if (data.contains("System")) {
         const auto& system = data.at("System");
+        device_nickname = toml::find_or<std::string>(
+            system, "device_nickname", GetDefaultDeviceNickname());
         system_language =
             toml::find_or<std::optional<SystemLanguage>>(
                 system, "system_language", GetDefaultSystemLanguage())
@@ -356,6 +360,7 @@ void Config::Log() {
              custom_display_resolution.x(), custom_display_resolution.y());
     LOG_INFO(Other, "Audio backend: {}", audio_backend);
     LOG_INFO(Other, "User ID: {:032x}", user_id);
+    LOG_INFO(Other, "Device nickname: {}", device_nickname);
     LOG_INFO(Other, "System language: {}", system_language);
     LOG_INFO(Other, "Firmware path: {}", firmware_path);
     LOG_INFO(Other, "SD card path: {}", sd_card_path);

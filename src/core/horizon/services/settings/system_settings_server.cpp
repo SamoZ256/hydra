@@ -1,17 +1,10 @@
 #include "core/horizon/services/settings/system_settings_server.hpp"
 
 #include "core/horizon/const.hpp"
+#include "core/horizon/services/settings/const.hpp"
 #include "core/horizon/services/settings/nx_settings.hpp"
 
 namespace hydra::horizon::services::settings {
-
-namespace {
-
-struct DeviceNickName {
-    char name[0x80];
-};
-
-} // namespace
 
 DEFINE_SERVICE_COMMAND_TABLE(ISystemSettingsServer, 3, GetFirmwareVersion, 4,
                              GetFirmwareVersion2, 23, GetColorSetId, 37,

@@ -418,6 +418,16 @@ func hydraConfigGetUserId() -> UnsafeMutablePointer<hydra_u128> {
     hydra_config_get_user_id()
 }
 
+func hydraConfigGetDeviceNickname() -> String {
+    String.init(withHydraString: hydra_config_get_device_nickname())
+}
+
+func hydraConfigSetDeviceNickname(_ value: String) {
+    value.withHydraString { hydraString in
+        hydra_config_set_device_nickname(hydraString)
+    }
+}
+
 func hydraConfigGetSystemLanguage() -> UnsafeMutablePointer<UInt32> {
     hydra_config_get_system_language()
 }

@@ -1,11 +1,13 @@
 #include "core/horizon/services/settings/settings_server.hpp"
 
+#include "core/horizon/services/settings/const.hpp"
+
 namespace hydra::horizon::services::settings {
 
 DEFINE_SERVICE_COMMAND_TABLE(ISettingsServer, 0, GetLanguageCode, 1,
                              GetAvailableLanguageCodes, 3,
                              GetAvailableLanguageCodeCount, 4, GetRegionCode, 5,
-                             GetAvailableLanguageCodes2)
+                             GetAvailableLanguageCodes2, 11, GetDeviceNickName)
 
 result_t ISettingsServer::GetLanguageCode(LanguageCode* out_language_code) {
     *out_language_code = ToLanguageCode(CONFIG_INSTANCE.GetSystemLanguage());
@@ -36,6 +38,16 @@ result_t ISettingsServer::GetAvailableLanguageCodes2(
     out_buffer.stream->WriteSpan(
         std::span(available_languages, sizeof_array(available_languages)));
     *out_count = sizeof_array(available_languages);
+    return RESULT_SUCCESS;
+}
+
+result_t
+ISettingsServer::GetDeviceNickName(OutBuffer<BufferAttr::MapAlias> out_buffer) {
+    DeviceNickName nickname{};
+    std::memset(nickname.name, 0, sizeof_array(nickname.name));
+    std::memcpy(nickname.name, CONFIG_INSTANCE.GetDeviceNickname().data(),
+                CONFIG_INSTANCE.GetDeviceNickname().size());
+    out_buffer.stream->Write(nickname);
     return RESULT_SUCCESS;
 }
 

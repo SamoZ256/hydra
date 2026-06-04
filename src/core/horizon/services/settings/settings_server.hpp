@@ -30,6 +30,8 @@ class ISettingsServer : public IService {
     result_t
     GetAvailableLanguageCodes2(i32* out_count,
                                OutBuffer<BufferAttr::MapAlias> out_buffer);
+    result_t
+    GetDeviceNickName(OutBuffer<BufferAttr::MapAlias> out_buffer); // 10.1.0+
 };
 
 } // namespace hydra::horizon::services::settings

@@ -198,6 +198,8 @@ uint32_t* hydra_config_get_display_resolution();
 hydra_uint2* hydra_config_get_custom_display_resolution();
 uint32_t* hydra_config_get_audio_backend();
 hydra_u128* hydra_config_get_user_id();
+hydra_string hydra_config_get_device_nickname();
+void hydra_config_set_device_nickname(hydra_string value);
 uint32_t* hydra_config_get_system_language();
 hydra_string hydra_config_get_firmware_path();
 void hydra_config_set_firmware_path(hydra_string value);
