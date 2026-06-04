@@ -13,13 +13,21 @@ namespace hydra::horizon::services::timesrv::internal {
 
 class TimeManager {
   public:
-    TimeManager(System& system);
+    TimeManager(System& system_);
+
+    // Time zone
+    static std::string_view GetDeviceLocationName();
+    void LoadTimeZoneRule(std::string_view location_name,
+                          TimeZoneRule& out_rule);
 
   private:
+    System& system;
+
     SteadyClock steady_clock;
     SystemClock system_clock;
 
     kernel::SharedMemory* shared_memory;
+    TimeZoneRule my_time_zone_rule;
 
     // Helpers
 
@@ -56,6 +64,7 @@ class TimeManager {
     REF_GETTER(steady_clock, GetSteadyClock);
     REF_GETTER(system_clock, GetSystemClock);
     GETTER(shared_memory, GetSharedMemory);
+    CONST_REF_GETTER(my_time_zone_rule, GetMyTimeZoneRule);
 };
 
 } // namespace hydra::horizon::services::timesrv::internal

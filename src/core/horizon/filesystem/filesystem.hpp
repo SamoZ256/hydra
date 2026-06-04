@@ -38,6 +38,7 @@ class Filesystem {
     std::map<std::string, Device> devices;
 
     void MountImpl(const std::string_view mount, Directory* root);
+    void InstallFirmware();
 };
 
 } // namespace hydra::horizon::filesystem

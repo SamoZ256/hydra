@@ -242,7 +242,6 @@ hydra_loader_plugin_option_config_get_path_content_types(const void* config);
 // Filesystem
 void* hydra_create_filesystem();
 void hydra_filesystem_destroy(void* fs);
-void hydra_try_install_firmware_to_filesystem(void* fs);
 
 void* hydra_open_file(hydra_string path);
 void hydra_file_close(void* file);

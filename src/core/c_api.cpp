@@ -3,7 +3,6 @@
 #include "core/debugger/debugger_manager.hpp"
 #include "core/horizon/filesystem/content_archive.hpp"
 #include "core/horizon/filesystem/disk_file.hpp"
-#include "core/horizon/firmware.hpp"
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/plugins/manager.hpp"
 #include "core/horizon/ui/handler_base.hpp"
@@ -385,11 +384,6 @@ HYDRA_EXPORT void* hydra_create_filesystem() {
 
 HYDRA_EXPORT void hydra_filesystem_destroy(void* fs) {
     delete reinterpret_cast<hydra::horizon::filesystem::Filesystem*>(fs);
-}
-
-HYDRA_EXPORT void hydra_try_install_firmware_to_filesystem(void* fs) {
-    hydra::horizon::try_install_firmware_to_filesystem(
-        *reinterpret_cast<hydra::horizon::filesystem::Filesystem*>(fs));
 }
 
 HYDRA_EXPORT void* hydra_open_file(hydra_string path) {

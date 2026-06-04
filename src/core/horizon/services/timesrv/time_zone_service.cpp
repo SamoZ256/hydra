@@ -1,6 +1,6 @@
 #include "core/horizon/services/timesrv/time_zone_service.hpp"
 
-#include "date/tz.h"
+#include "core/system.hpp"
 
 namespace hydra::horizon::services::timesrv {
 
@@ -10,19 +10,20 @@ DEFINE_SERVICE_COMMAND_TABLE(ITimeZoneService, 0, GetDeviceLocationName, 4,
                              ToPosixTimeWithMyRule)
 
 result_t ITimeZoneService::GetDeviceLocationName(LocationName* out_name) {
-    const auto name = GetLocationName();
+    const auto name = internal::TimeManager::GetDeviceLocationName();
     std::memcpy(out_name->name, name.data(), name.size());
     out_name->name[name.size()] = '\0';
     return RESULT_SUCCESS;
 }
 
 result_t ITimeZoneService::LoadTimeZoneRule(
-    LocationName location_name,
+    RequestContext* ctx, LocationName location_name,
     OutBuffer<BufferAttr::MapAlias> out_rule_buffer) {
-    LOG_FUNC_WITH_ARGS_STUBBED(Services, "location: {}", location_name.name);
+    TimeZoneRule rule;
+    ctx->system.GetOS().GetTimeManager().LoadTimeZoneRule(location_name.name,
+                                                          rule);
 
-    // HACK
-    out_rule_buffer.stream->Write(TimeZoneRule{});
+    out_rule_buffer.stream->Write(rule);
     return RESULT_SUCCESS;
 }
 
@@ -36,10 +37,11 @@ ITimeZoneService::ToCalendarTime(i64 posix_time,
 }
 
 result_t
-ITimeZoneService::ToCalendarTimeWithMyRule(i64 posix_time,
+ITimeZoneService::ToCalendarTimeWithMyRule(RequestContext* ctx, i64 posix_time,
                                            ToCalendarTimeWithMyRuleOut* out) {
-    // TODO: my rule (probably the current timezone rule?)
-    return ToCalendarTimeImpl(posix_time, {}, out->time, out->additional_info);
+    return ToCalendarTimeImpl(
+        posix_time, ctx->system.GetOS().GetTimeManager().GetMyTimeZoneRule(),
+        out->time, out->additional_info);
 }
 
 result_t ITimeZoneService::ToPosixTime(
@@ -55,11 +57,12 @@ result_t ITimeZoneService::ToPosixTime(
 }
 
 result_t ITimeZoneService::ToPosixTimeWithMyRule(
-    CalendarTime calendar_time, i32* out_count,
+    RequestContext* ctx, CalendarTime calendar_time, i32* out_count,
     OutBuffer<BufferAttr::HipcPointer> out_buffer) {
     i64 time;
-    // TODO: my rule (probably the current timezone rule?)
-    const auto res = ToPosixTimeImpl(calendar_time, {}, time);
+    const auto res = ToPosixTimeImpl(
+        calendar_time, ctx->system.GetOS().GetTimeManager().GetMyTimeZoneRule(),
+        time);
 
     out_buffer.stream->Write(time);
     *out_count = static_cast<i32>(out_buffer.stream->GetSeek() / sizeof(i64));
@@ -126,12 +129,6 @@ result_t ITimeZoneService::ToPosixTimeImpl(const CalendarTime& calendar_time,
     // HACK
     out_time = 0;
     return RESULT_SUCCESS;
-}
-
-std::string_view ITimeZoneService::GetLocationName() {
-    // TODO: make this configurable
-    const auto* tz = date::current_zone();
-    return tz->name();
 }
 
 } // namespace hydra::horizon::services::timesrv

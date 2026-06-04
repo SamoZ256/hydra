@@ -507,10 +507,6 @@ class HydraFilesystem: MutableHandleClass {
     deinit {
         hydra_filesystem_destroy(self.handle)
     }
-
-    func tryInstallFirmware() {
-        hydra_try_install_firmware_to_filesystem(self.handle)
-    }
 }
 
 class HydraFile: MutableHandleClass {
