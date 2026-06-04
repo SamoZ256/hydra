@@ -2,6 +2,6 @@
 
 namespace hydra::horizon::services::mii {
 
-DEFINE_SERVICE_COMMAND_TABLE(IDatabaseService)
+DEFINE_SERVICE_COMMAND_TABLE(IDatabaseService, 22, SetInterfaceVersion)
 
 } // namespace hydra::horizon::services::mii

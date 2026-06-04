@@ -4,14 +4,15 @@
 
 namespace hydra::horizon::services::mii {
 
-class IDatabaseService : public IService {
+class IImageDatabaseService : public IService {
   protected:
     result_t RequestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    STUB_REQUEST_COMMAND(SetInterfaceVersion); // 5.0.0+
+    result_t Initialize(bool use_database, bool* out_is_dirty);
+    result_t GetCount(u32* out_count);
 };
 
 } // namespace hydra::horizon::services::mii

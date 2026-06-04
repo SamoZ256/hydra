@@ -33,6 +33,7 @@
 #include "core/horizon/services/irsensor/ir_sensor_server.hpp"
 #include "core/horizon/services/lbl/lbl_controller.hpp"
 #include "core/horizon/services/lm/log_service.hpp"
+#include "core/horizon/services/mii/image_database_service.hpp"
 #include "core/horizon/services/mii/static_service.hpp"
 #include "core/horizon/services/mmnv/request.hpp"
 #include "core/horizon/services/ncm/content_manager.hpp"
@@ -305,13 +306,14 @@ OS::OS(System& system_)
     // Shared database
     REGISTER_SERVICE(others, pl::detail::IPlatformServiceManagerForSystem,
                      "pl:s");
+    REGISTER_SERVICE(others, mii::IStaticService, "mii:u", "mii:e");
+    REGISTER_SERVICE(others, mii::IImageDatabaseService, "miiimg");
 
     // RO
     REGISTER_SERVICE(others, ro::detail::IRoInterface, "ldr:ro", "ro:1");
 
     // Unknown
     REGISTER_SERVICE(others, lm::ILogService, "lm");
-    REGISTER_SERVICE(others, mii::IStaticService, "mii:u", "mii:e");
 
     others_server.Start();
 

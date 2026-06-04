@@ -369,6 +369,8 @@ add_library(hydra-core
     horizon/services/oe/const.hpp
     horizon/services/mii/database_service.cpp
     horizon/services/mii/database_service.hpp
+    horizon/services/mii/image_database_service.cpp
+    horizon/services/mii/image_database_service.hpp
     horizon/services/mii/static_service.cpp
     horizon/services/mii/static_service.hpp
     horizon/services/fatalsrv/service.cpp
