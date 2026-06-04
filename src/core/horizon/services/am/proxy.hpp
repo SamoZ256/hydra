@@ -14,6 +14,7 @@ class IProxy : public IService {
     result_t GetDisplayController(RequestContext* ctx);
     result_t GetProcessWindingController(RequestContext* ctx);
     result_t GetLibraryAppletCreator(RequestContext* ctx);
+    result_t GetAppletCommonFunctions(RequestContext* ctx); // 7.0.0+
     result_t GetGlobalStateController(RequestContext* ctx);
     result_t GetDebugFunctions(RequestContext* ctx);
 };

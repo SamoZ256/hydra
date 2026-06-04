@@ -188,6 +188,8 @@ add_library(hydra-core
     horizon/services/am/all_system_applet_proxies_service.hpp
     horizon/services/am/common_state_getter.cpp
     horizon/services/am/common_state_getter.hpp
+    horizon/services/am/applet_common_functions.cpp
+    horizon/services/am/applet_common_functions.hpp
     horizon/services/am/self_controller.cpp
     horizon/services/am/self_controller.hpp
     horizon/services/am/window_controller.cpp

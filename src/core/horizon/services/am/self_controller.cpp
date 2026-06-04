@@ -11,10 +11,10 @@ DEFINE_SERVICE_COMMAND_TABLE(
     SetOperationModeChangedNotification, 12,
     SetPerformanceModeChangedNotification, 13, SetFocusHandlingMode, 14,
     SetRestartMessageEnabled, 16, SetOutOfFocusSuspendingEnabled, 19,
-    SetAlbumImageOrientation, 40, CreateManagedDisplayLayer, 44,
-    CreateManagedDisplaySeparableLayer, 50, SetHandlesRequestToDisplay, 62,
-    SetIdleTimeDetectionExtension, 80, SetWirelessPriorityMode, 91,
-    GetAccumulatedSuspendedTickChangedEvent)
+    SetAlbumImageOrientation, 40, CreateManagedDisplayLayer, 41,
+    IsSystemBufferSharingEnabled, 44, CreateManagedDisplaySeparableLayer, 50,
+    SetHandlesRequestToDisplay, 62, SetIdleTimeDetectionExtension, 80,
+    SetWirelessPriorityMode, 91, GetAccumulatedSuspendedTickChangedEvent)
 
 ISelfController::ISelfController()
     : library_applet_launchable_event{new kernel::Event(

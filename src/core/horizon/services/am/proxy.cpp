@@ -1,5 +1,6 @@
 #include "core/horizon/services/am/proxy.hpp"
 
+#include "core/horizon/services/am/applet_common_functions.hpp"
 #include "core/horizon/services/am/audio_controller.hpp"
 #include "core/horizon/services/am/common_state_getter.hpp"
 #include "core/horizon/services/am/debug_functions.hpp"
@@ -44,6 +45,11 @@ result_t IProxy::GetProcessWindingController(RequestContext* ctx) {
 
 result_t IProxy::GetLibraryAppletCreator(RequestContext* ctx) {
     AddService(*ctx, new ILibraryAppletCreator());
+    return RESULT_SUCCESS;
+}
+
+result_t IProxy::GetAppletCommonFunctions(RequestContext* ctx) {
+    AddService(*ctx, new IAppletCommonFunctions());
     return RESULT_SUCCESS;
 }
 

@@ -11,7 +11,8 @@ DEFINE_SERVICE_COMMAND_TABLE(ISystemAppletProxy, 0, GetCommonStateGetter, 1,
                              GetProcessWindingController, 11,
                              GetLibraryAppletCreator, 20, GetHomeMenuFunctions,
                              21, GetGlobalStateController, 22,
-                             GetApplicationCreator, 1000, GetDebugFunctions)
+                             GetApplicationCreator, 23,
+                             GetAppletCommonFunctions, 1000, GetDebugFunctions)
 
 result_t ISystemAppletProxy::GetHomeMenuFunctions(RequestContext* ctx) {
     AddService(*ctx, new IHomeMenuFunctions());

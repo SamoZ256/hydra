@@ -39,6 +39,7 @@ class ISelfController : public IService {
     STUB_REQUEST_COMMAND(SetAlbumImageOrientation);
     result_t CreateManagedDisplayLayer(System* system, kernel::Process* process,
                                        u64* out_layer_id);
+    STUB_REQUEST_COMMAND(IsSystemBufferSharingEnabled);
     result_t CreateManagedDisplaySeparableLayer(System* system,
                                                 kernel::Process* process,
                                                 u64* out_display_layer_id,

@@ -9,8 +9,8 @@ DEFINE_SERVICE_COMMAND_TABLE(ILibraryAppletProxy, 0, GetCommonStateGetter, 1,
                              GetAudioController, 4, GetDisplayController, 10,
                              GetProcessWindingController, 11,
                              GetLibraryAppletCreator, 20,
-                             OpenLibraryAppletSelfAccessor, 1000,
-                             GetDebugFunctions)
+                             OpenLibraryAppletSelfAccessor, 21,
+                             GetAppletCommonFunctions, 1000, GetDebugFunctions)
 
 result_t
 ILibraryAppletProxy::OpenLibraryAppletSelfAccessor(RequestContext* ctx) {
