@@ -1,5 +1,7 @@
 #include "core/horizon/services/audio/audio_renderer_manager.hpp"
 
+#include "core/horizon/kernel/process.hpp"
+#include "core/horizon/kernel/transfer_memory.hpp"
 #include "core/horizon/services/audio/audio_device.hpp"
 #include "core/horizon/services/audio/audio_renderer.hpp"
 
@@ -11,10 +13,20 @@ DEFINE_SERVICE_COMMAND_TABLE(IAudioRendererManager, 0, OpenAudioRenderer, 1,
 
 result_t IAudioRendererManager::OpenAudioRenderer(
     RequestContext* ctx, aligned<AudioRendererParameters, 56> params,
-    u64 work_buffer_size, u64 aruid) {
+    u64 work_buffer_size, u64 aruid,
+    InHandle<HandleAttr::Copy> work_buffer_handle,
+    InHandle<HandleAttr::Copy> process_handle) {
     (void)aruid;
+    (void)process_handle;
 
-    AddService(*ctx, new IAudioRenderer(params, work_buffer_size));
+    // Work buffer
+    const auto work_buffer =
+        ctx->process->GetHandle<kernel::TransferMemory>(work_buffer_handle);
+
+    AddService(*ctx, new IAudioRenderer(
+                         params, std::span<u8>(reinterpret_cast<u8*>(
+                                                   work_buffer->GetAddress()),
+                                               work_buffer_size)));
     return RESULT_SUCCESS;
 }
 
