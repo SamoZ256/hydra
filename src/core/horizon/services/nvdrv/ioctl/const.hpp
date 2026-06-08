@@ -180,8 +180,8 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
             return;
         } else if constexpr (traits::type == ArgumentType::Out) {
             ASSERT_DEBUG(context.out_stream, Services, "No output stream");
-            arg = context.out_stream
-                      ->WriteReturningPtr<typename traits::BaseType>();
+            arg = &context.out_stream
+                       ->WriteReturningRef<typename traits::BaseType>();
             if (context.in_stream)
                 context.in_stream->SeekBy(sizeof(typename traits::BaseType));
 
@@ -193,7 +193,7 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
             ASSERT_DEBUG(context.out_stream, Services, "No output stream");
             arg.in = context.in_stream->Read<typename traits::In>();
             arg.out =
-                context.out_stream->WriteReturningPtr<typename traits::Out>();
+                &context.out_stream->WriteReturningRef<typename traits::Out>();
 
             // Next
             read_arg<CommandArguments, arg_index + 1>(context, args);
@@ -201,8 +201,8 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
         } else if constexpr (traits::type == ArgumentType::InOutSingle) {
             ASSERT_DEBUG(context.in_stream, Services, "No input stream");
             ASSERT_DEBUG(context.out_stream, Services, "No output stream");
-            arg.data = context.out_stream
-                           ->WriteReturningPtr<typename traits::BaseType>();
+            arg.data = &context.out_stream
+                            ->WriteReturningRef<typename traits::BaseType>();
             *arg.data = context.in_stream->Read<typename traits::BaseType>();
 
             // Next

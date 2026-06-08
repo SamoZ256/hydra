@@ -88,15 +88,15 @@ class IStream {
     }
 
     template <typename T>
-    T* WriteReturningPtr() {
-        return WriteReturningSpan<T>(1).data();
+    T& WriteReturningRef() {
+        return *WriteReturningSpan<T>(1).data();
     }
 
     template <typename T>
-    T* WriteReturningPtr(const T& value) {
-        auto ptr = WriteReturningPtr<T>();
-        *ptr = value;
-        return ptr;
+    T& WriteReturningRef(const T& value) {
+        auto& ref = WriteReturningRef<T>();
+        ref = value;
+        return ref;
     }
 
     template <typename T>

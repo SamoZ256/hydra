@@ -219,8 +219,8 @@ void read_arg(RequestContext& context, Class& instance,
                      arg_index + 1>(context, instance, args);
             return;
         } else if constexpr (traits::type == ArgumentType::OutData) {
-            arg = context.streams.out_stream
-                      .WriteReturningPtr<typename traits::BaseType>();
+            arg = &context.streams.out_stream
+                       .WriteReturningRef<typename traits::BaseType>();
 
             // Next
             read_arg<Class, CommandArguments, in_buffer_index, out_buffer_index,
@@ -302,11 +302,11 @@ void read_arg(RequestContext& context, Class& instance,
         } else if constexpr (traits::type == ArgumentType::OutHandle) {
             handle_id_t* handle_id;
             if constexpr (Arg::attr == HandleAttr::Copy) {
-                handle_id = context.streams.out_copy_handles_stream
-                                .WriteReturningPtr<handle_id_t>();
+                handle_id = &context.streams.out_copy_handles_stream
+                                 .WriteReturningRef<handle_id_t>();
             } else if constexpr (Arg::attr == HandleAttr::Move) {
-                handle_id = context.streams.out_move_handles_stream
-                                .WriteReturningPtr<handle_id_t>();
+                handle_id = &context.streams.out_move_handles_stream
+                                 .WriteReturningRef<handle_id_t>();
             } else {
                 LOG_FATAL(Services, "Invalid out handle args");
             }

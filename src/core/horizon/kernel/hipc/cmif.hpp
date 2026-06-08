@@ -66,14 +66,14 @@ struct OutHeader {
 };
 
 inline result_t* write_out_header(io::MemoryStream& stream) {
-    auto hdr = stream.WriteReturningPtr<OutHeader>({
+    auto& hdr = stream.WriteReturningRef<OutHeader>({
         .magic = OUT_HEADER_MAGIC,
         .version = 0,
         .result = RESULT_SUCCESS,
         .token = 0,
     });
 
-    return &hdr->result;
+    return &hdr.result;
 }
 
 inline void write_domain_out_header(io::MemoryStream& stream) {

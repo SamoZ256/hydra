@@ -99,34 +99,33 @@ class ParcelReader {
 
 class ParcelWriter {
   public:
-    ParcelWriter(io::MemoryStream* stream_) : stream{stream_} {
-        header = stream->WriteReturningPtr<ParcelHeader>({
-            .data_size = 0x0,
-            .data_offset = sizeof(ParcelHeader),
-            .objects_size = 0x0,
-            .objects_offset = 0x0,
-        });
-    }
+    ParcelWriter(io::MemoryStream* stream_)
+        : stream{stream_}, header{stream->WriteReturningRef<ParcelHeader>({
+                               .data_size = 0x0,
+                               .data_offset = sizeof(ParcelHeader),
+                               .objects_size = 0x0,
+                               .objects_offset = 0x0,
+                           })} {}
 
     void Finish() {
-        header->data_size =
-            static_cast<u32>(stream->GetSeek() - header->data_offset);
-        header->objects_size = static_cast<u32>(objects.size() * sizeof(u32));
-        header->objects_offset = header->data_offset + header->data_size;
-        stream->SeekTo(header->objects_offset);
+        header.data_size =
+            static_cast<u32>(stream->GetSeek() - header.data_offset);
+        header.objects_size = static_cast<u32>(objects.size() * sizeof(u32));
+        header.objects_offset = header.data_offset + header.data_size;
+        stream->SeekTo(header.objects_offset);
         stream->WriteSpan(std::span<const u32>(objects));
     }
 
     template <typename T>
-    T* WriteReturningPtr() {
-        return WriteReturningSpan<T>(1).data();
+    T& WriteReturningRef() {
+        return *WriteReturningSpan<T>(1).data();
     }
 
     template <typename T>
-    T* WriteReturningPtr(const T& value) {
-        auto ptr = WriteReturningPtr<T>();
-        *ptr = value;
-        return ptr;
+    T& WriteReturningRef(const T& value) {
+        auto& ref = WriteReturningRef<T>();
+        ref = value;
+        return ref;
     }
 
     template <typename T>
@@ -142,7 +141,7 @@ class ParcelWriter {
 
     template <typename T>
     void Write(const T& value) {
-        WriteReturningPtr(value);
+        WriteReturningRef(value);
     }
 
     template <typename T>
@@ -191,13 +190,13 @@ class ParcelWriter {
     }
 
     usize GetWrittenSize() const {
-        return sizeof(ParcelHeader) + header->data_size + header->objects_size;
+        return sizeof(ParcelHeader) + header.data_size + header.objects_size;
     }
 
   private:
     io::MemoryStream* stream;
 
-    ParcelHeader* header;
+    ParcelHeader& header;
     std::vector<u32> objects;
 };
 

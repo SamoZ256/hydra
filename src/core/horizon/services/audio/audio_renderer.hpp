@@ -2,29 +2,26 @@
 
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/services/audio/const.hpp"
-#include "core/horizon/services/audio/internal/mempool.hpp"
+#include "core/horizon/services/audio/internal/renderer.hpp"
 #include "core/horizon/services/const.hpp"
 
 namespace hydra::horizon::services::audio {
 
 class IAudioRenderer : public IService {
   public:
-    IAudioRenderer(const AudioRendererParameters& params_,
-                   std::span<u8> work_buffer_);
+    IAudioRenderer(const AudioRendererParameters& params,
+                   std::span<u8> work_buffer);
 
   protected:
     result_t RequestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
-    AudioRendererParameters params;
-    std::span<u8> work_buffer;
+    internal::Renderer renderer;
 
     kernel::Event* event;
 
     u32 rendering_time_limit{0x1000}; // TODO: what should this be?
-
-    std::vector<internal::MemPool> mempools;
 
     // Commands
     result_t RequestUpdate(kernel::Process* process,

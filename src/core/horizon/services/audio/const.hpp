@@ -41,4 +41,20 @@ inline bool IsAudioRendererFeatureSupported(const AudioFeature feature,
     }
 }
 
+struct UpdateDataHeader {
+    u32 revision;
+    u32 behavior_size;
+    u32 mempools_size;
+    u32 voices_size;
+    u32 channels_size;
+    u32 effects_size;
+    u32 mixes_size;
+    u32 sinks_size;
+    u32 performance_manager_size;
+    u32 _unknown;
+    u32 render_info_size;
+    u32 _reserved[4];
+    u32 total_size;
+};
+
 } // namespace hydra::horizon::services::audio

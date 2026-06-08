@@ -317,6 +317,8 @@ add_library(hydra-core
     horizon/services/audio/audio_renderer_manager.cpp
     horizon/services/audio/audio_renderer_manager.hpp
     horizon/services/audio/internal/mempool.hpp
+    horizon/services/audio/internal/renderer.cpp
+    horizon/services/audio/internal/renderer.hpp
     horizon/services/ssl/sf/const.hpp
     horizon/services/ssl/sf/ssl_context.cpp
     horizon/services/ssl/sf/ssl_context.hpp
