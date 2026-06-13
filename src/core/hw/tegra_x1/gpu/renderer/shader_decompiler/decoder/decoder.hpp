@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stack>
+
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/const.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder {

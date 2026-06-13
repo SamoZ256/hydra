@@ -73,8 +73,8 @@ result_t ITimeZoneService::ToCalendarTimeImpl(
     i64 posix_time, const TimeZoneRule& rule, CalendarTime& out_time,
     CalendarAdditionalInfo& out_additional_info) {
     // Find the type
-    i32 type_idx = rule.default_type;
-    for (i32 i = 0; i < rule.time_len; ++i) {
+    u32 type_idx = rule.default_type;
+    for (u32 i = 0; i < rule.time_count; ++i) {
         if (posix_time >= rule.ats[i]) {
             type_idx = rule.type_indices[i];
         } else {

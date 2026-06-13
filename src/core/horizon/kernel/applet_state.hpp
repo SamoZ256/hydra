@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stack>
+
 #include "core/horizon/kernel/applet_resource.hpp"
 #include "core/horizon/kernel/event.hpp"
 
