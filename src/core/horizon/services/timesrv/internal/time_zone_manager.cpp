@@ -70,12 +70,14 @@ TimeZoneManager::TimeZoneManager(filesystem::Filesystem& filesystem_)
 }
 
 std::string_view TimeZoneManager::GetDeviceLocationName() {
+    const auto& system_location = CONFIG_INSTANCE.GetSystemLocation();
+
     std::string_view name;
-    if (true) { // TODO: if auto location
+    if (system_location == "auto") {
         const auto* tz = date::current_zone();
         name = tz->name();
     } else {
-        // TODO
+        name = system_location;
     }
 
     // Verify that the location is available

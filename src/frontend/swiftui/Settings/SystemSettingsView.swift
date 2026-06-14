@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SystemSettingsView: View {
     @State private var systemLanguage = HydraSystemLanguage(rawValue: hydraConfigGetSystemLanguage().pointee)
+    @State private var systemLocation = hydraConfigGetSystemLocation()
     #if os(macOS)
         @State private var firmwarePath = hydraConfigGetFirmwarePath()
         @State private var sdCardPath = hydraConfigGetSdCardPath()
@@ -10,6 +11,8 @@ struct SystemSettingsView: View {
     #else
         @State private var handheldMode = hydraConfigGetHandheldMode().pointee
     #endif
+
+    @State private var systemLocations: [String] = []
 
     var body: some View {
         Spacer()
@@ -39,6 +42,27 @@ struct SystemSettingsView: View {
                 .onChange(of: self.systemLanguage.rawValue) { _, newValue in
                     hydraConfigGetSystemLanguage().pointee = newValue
                     // TODO: reload titles and icons
+                }
+
+                Picker("System location", selection: self.$systemLocation) {
+                    Text("auto").tag("auto")
+
+                    Divider()
+
+                    ForEach(self.systemLocations, id: \.self) { location in
+                        Text(location)
+                    }
+                }
+                .onChange(of: self.systemLocation) { _, newValue in
+                    hydraConfigSetSystemLocation(newValue)
+                }
+                .onAppear {
+                    let filesystem = HydraFilesystem()
+                    let timeZoneManager = HydraTimeZoneManager(filesystem: filesystem)
+                    self.systemLocations.reserveCapacity(timeZoneManager.locationCount)
+                    for i in 0..<timeZoneManager.locationCount {
+                        self.systemLocations.append(timeZoneManager.getLocation(at: i))
+                    }
                 }
 
                 #if os(macOS)

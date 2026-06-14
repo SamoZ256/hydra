@@ -25,6 +25,7 @@ class TimeZoneManager {
     TimeZoneRule my_time_zone_rule;
 
   public:
+    CONST_REF_GETTER(locations, GetLocations);
     CONST_REF_GETTER(my_time_zone_rule, GetMyTimeZoneRule);
 };
 

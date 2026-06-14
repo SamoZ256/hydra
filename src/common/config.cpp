@@ -138,6 +138,7 @@ void Config::LoadDefaults() {
     audio_backend = GetDefaultAudioBackend();
     user_id = GetDefaultUserID();
     system_language = GetDefaultSystemLanguage();
+    system_location = GetDefaultSystemLocation();
     firmware_path = GetDefaultFirmwarePath();
     sd_card_path = GetDefaultSdCardPath();
     save_path = GetDefaultSavePath();
@@ -215,6 +216,7 @@ void Config::Serialize() {
     {
         auto& system = data.at("System");
         system["system_language"] = system_language;
+        system["system_location"] = system_location;
         system["firmware_path"] = firmware_path;
         if (sd_card_path != GetDefaultSdCardPath())
             system["sd_card_path"] = sd_card_path;
@@ -310,6 +312,8 @@ void Config::Deserialize() {
             toml::find_or<std::optional<SystemLanguage>>(
                 system, "system_language", GetDefaultSystemLanguage())
                 .value_or(GetDefaultSystemLanguage());
+        system_location = toml::find_or<std::string>(
+            system, "system_location", GetDefaultSystemLocation());
         firmware_path = toml::find_or<std::string>(system, "firmware_path",
                                                    GetDefaultFirmwarePath());
         sd_card_path = toml::find_or<std::string>(system, "sd_card_path",
@@ -357,6 +361,7 @@ void Config::Log() {
     LOG_INFO(Other, "Audio backend: {}", audio_backend);
     LOG_INFO(Other, "User ID: {:032x}", user_id);
     LOG_INFO(Other, "System language: {}", system_language);
+    LOG_INFO(Other, "System location: {}", system_location);
     LOG_INFO(Other, "Firmware path: {}", firmware_path);
     LOG_INFO(Other, "SD card path: {}", sd_card_path);
     LOG_INFO(Other, "Save path: {}", save_path);

@@ -5,6 +5,7 @@
 #include "core/horizon/filesystem/disk_file.hpp"
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/plugins/manager.hpp"
+#include "core/horizon/services/timesrv/internal/time_zone_manager.hpp"
 #include "core/horizon/ui/handler_base.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture.hpp"
@@ -246,6 +247,16 @@ HYDRA_EXPORT uint32_t* hydra_config_get_system_language() {
         &hydra::CONFIG_INSTANCE.GetSystemLanguage());
 }
 
+HYDRA_EXPORT hydra_string hydra_config_get_system_location() {
+    return hydra_string_from_string_view(
+        hydra::CONFIG_INSTANCE.GetSystemLocation());
+}
+
+HYDRA_EXPORT void hydra_config_set_system_location(hydra_string value) {
+    hydra::CONFIG_INSTANCE.GetSystemLocation() =
+        string_view_from_hydra_string(value);
+}
+
 HYDRA_EXPORT hydra_string hydra_config_get_firmware_path() {
     return hydra_string_from_string_view(
         hydra::CONFIG_INSTANCE.GetFirmwarePath());
@@ -411,6 +422,40 @@ hydra_content_archive_get_content_type(void* content_archive) {
         reinterpret_cast<hydra::horizon::filesystem::ContentArchive*>(
             content_archive)
             ->GetContentType());
+}
+
+// Time zone manager
+HYDRA_EXPORT void* hydra_create_time_zone_manager(void* filesystem) {
+    return new hydra::horizon::services::timesrv::internal::TimeZoneManager(
+        *static_cast<hydra::horizon::filesystem::Filesystem*>(filesystem));
+}
+
+HYDRA_EXPORT void hydra_time_zone_manager_destroy(void* manager) {
+    delete static_cast<
+        hydra::horizon::services::timesrv::internal::TimeZoneManager*>(manager);
+}
+
+HYDRA_EXPORT uint32_t
+hydra_time_zone_manager_get_location_count(void* manager) {
+    return static_cast<uint32_t>(
+        static_cast<
+            hydra::horizon::services::timesrv::internal::TimeZoneManager*>(
+            manager)
+            ->GetLocations()
+            .size());
+}
+
+HYDRA_EXPORT hydra_string hydra_time_zone_manager_get_location(void* manager,
+                                                               uint32_t index) {
+    // HACK
+    auto it =
+        static_cast<
+            hydra::horizon::services::timesrv::internal::TimeZoneManager*>(
+            manager)
+            ->GetLocations()
+            .begin();
+    std::advance(it, index);
+    return hydra_string_from_string_view(*it);
 }
 
 // Loader
