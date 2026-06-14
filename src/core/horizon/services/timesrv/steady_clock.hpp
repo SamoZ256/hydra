@@ -1,15 +1,9 @@
 #pragma once
 
 #include "core/horizon/services/const.hpp"
+#include "core/horizon/services/timesrv/const.hpp"
 
 namespace hydra::horizon::services::timesrv {
-
-#pragma pack(push, 1)
-struct SteadyClockTimePoint {
-    u64 time_point;
-    uuid_t clock_source_id;
-};
-#pragma pack(pop)
 
 class ISteadyClock : public IService {
   protected:
@@ -18,7 +12,8 @@ class ISteadyClock : public IService {
 
   private:
     // Commands
-    result_t GetCurrentTimePoint(SteadyClockTimePoint* out_time_point);
+    result_t GetCurrentTimePoint(RequestContext* ctx,
+                                 SteadyClockTimePoint* out_time_point);
 };
 
 } // namespace hydra::horizon::services::timesrv

@@ -146,6 +146,7 @@ class Config {
     static SystemLanguage GetDefaultSystemLanguage() {
         return SystemLanguage::AmericanEnglish;
     }
+    static std::string GetDefaultSystemLocation() { return "auto"; }
     static std::string GetDefaultFirmwarePath() { return ""; }
     std::string GetDefaultSdCardPath() const {
         return fmt::format("{}/sdmc", app_data_path);
@@ -186,6 +187,7 @@ class Config {
     uuid_t user_id;
     std::string device_nickname;
     SystemLanguage system_language;
+    std::string system_location;
     std::string firmware_path;
     std::string sd_card_path;
     std::string save_path;
@@ -215,6 +217,7 @@ class Config {
     REF_GETTER(user_id, GetUserId);
     REF_GETTER(device_nickname, GetDeviceNickname);
     REF_GETTER(system_language, GetSystemLanguage);
+    REF_GETTER(system_location, GetSystemLocation);
     REF_GETTER(firmware_path, GetFirmwarePath);
     REF_GETTER(sd_card_path, GetSdCardPath);
     REF_GETTER(save_path, GetSavePath);

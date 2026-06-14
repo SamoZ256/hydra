@@ -1,15 +1,12 @@
 #pragma once
 
 #include "core/horizon/services/const.hpp"
+#include "core/horizon/services/timesrv/const.hpp"
 
 namespace hydra::horizon::services::timesrv {
 
 struct LocationName {
     char name[0x24];
-};
-
-struct TimeZoneRule {
-    u8 data[0x4000];
 };
 
 struct CalendarTime {
@@ -46,20 +43,21 @@ class ITimeZoneService : public IService {
 
   private:
     // Commands
-    result_t GetDeviceLocationName(LocationName* out_name);
-    result_t LoadTimeZoneRule(LocationName location_name,
+    result_t GetDeviceLocationName(RequestContext* ctx, LocationName* out_name);
+    result_t LoadTimeZoneRule(RequestContext* ctx, LocationName location_name,
                               OutBuffer<BufferAttr::MapAlias> out_rule_buffer);
     result_t ToCalendarTime(i64 posix_time,
                             InBuffer<BufferAttr::MapAlias> in_rule_buffer,
                             ToCalendarTimeWithMyRuleOut* out);
-    result_t ToCalendarTimeWithMyRule(i64 posix_time,
+    result_t ToCalendarTimeWithMyRule(RequestContext* ctx, i64 posix_time,
                                       ToCalendarTimeWithMyRuleOut* out);
     result_t ToPosixTime(CalendarTime calendar_time,
                          InBuffer<BufferAttr::MapAlias> in_rule_buffer,
                          i32* out_count,
                          OutBuffer<BufferAttr::HipcPointer> out_buffer);
     result_t
-    ToPosixTimeWithMyRule(CalendarTime calendar_time, i32* out_count,
+    ToPosixTimeWithMyRule(RequestContext* ctx, CalendarTime calendar_time,
+                          i32* out_count,
                           OutBuffer<BufferAttr::HipcPointer> out_buffer);
 
     // Impl

@@ -1,20 +1,20 @@
 #include "core/horizon/services/timesrv/steady_clock.hpp"
 
+#include "core/system.hpp"
+
 namespace hydra::horizon::services::timesrv {
 
 DEFINE_SERVICE_COMMAND_TABLE(ISteadyClock, 0, GetCurrentTimePoint)
 
 result_t
-ISteadyClock::GetCurrentTimePoint(SteadyClockTimePoint* out_time_point) {
-    LOG_FUNC_STUBBED(Services);
-
-    // TODO: what units?
-    // TODO: should this be since the
-    // clock was created?
+ISteadyClock::GetCurrentTimePoint(RequestContext* ctx,
+                                  SteadyClockTimePoint* out_time_point) {
     *out_time_point = {
-        .time_point =
-            u64(std::chrono::steady_clock::now().time_since_epoch().count()),
-        .clock_source_id = 0xcccccccccccccccc,
+        .time_point = ctx->system.GetOS()
+                          .GetTimeManager()
+                          .GetSteadyClock()
+                          .GetTimePoint(),
+        .clock_source_id = CLOCK_SOURCE_ID,
     };
     return RESULT_SUCCESS;
 }

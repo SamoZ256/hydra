@@ -1,7 +1,5 @@
 add_library(hydra-core
     horizon/const.hpp
-    horizon/firmware.cpp
-    horizon/firmware.hpp
     horizon/os.cpp
     horizon/os.hpp
     horizon/kernel/const.hpp
@@ -133,8 +131,7 @@ add_library(hydra-core
     horizon/services/fssrv/save_data_info_reader.hpp
     horizon/services/fssrv/filesystem_proxy.cpp
     horizon/services/fssrv/filesystem_proxy.hpp
-    horizon/services/timesrv/internal/time_manager.cpp
-    horizon/services/timesrv/internal/time_manager.hpp
+    horizon/services/timesrv/const.hpp
     horizon/services/timesrv/static_service.cpp
     horizon/services/timesrv/static_service.hpp
     horizon/services/timesrv/system_clock.cpp
@@ -143,6 +140,16 @@ add_library(hydra-core
     horizon/services/timesrv/steady_clock.hpp
     horizon/services/timesrv/time_zone_service.cpp
     horizon/services/timesrv/time_zone_service.hpp
+    horizon/services/timesrv/internal/steady_clock.cpp
+    horizon/services/timesrv/internal/steady_clock.hpp
+    horizon/services/timesrv/internal/system_clock.cpp
+    horizon/services/timesrv/internal/system_clock.hpp
+    horizon/services/timesrv/internal/time_zone_manager.cpp
+    horizon/services/timesrv/internal/time_zone_manager.hpp
+    horizon/services/timesrv/internal/time_manager.cpp
+    horizon/services/timesrv/internal/time_manager.hpp
+    horizon/services/timesrv/internal/tzif.cpp
+    horizon/services/timesrv/internal/tzif.hpp
     horizon/services/nvdrv/const.hpp
     horizon/services/nvdrv/nvdrv_services.cpp
     horizon/services/nvdrv/nvdrv_services.hpp
@@ -696,7 +703,7 @@ endif ()
 
 target_include_directories(hydra-core PRIVATE ${CMAKE_SOURCE_DIR}/externals/libyaz0/include)
 # TODO: only link Apple frameworks if Apple
-target_link_libraries(hydra-core PRIVATE hydra_warnings "-framework Foundation" "-framework Metal" "-framework QuartzCore" "-framework GameController" dynarmic hatch libyaz0 nx2elf hydra-common)
+target_link_libraries(hydra-core PRIVATE hydra_warnings "-framework Foundation" "-framework Metal" "-framework QuartzCore" "-framework GameController" dynarmic hatch libyaz0 nx2elf date::date date::date-tz hydra-common)
 
 if (HYPERVISOR_ENABLED)
     target_link_libraries(hydra-core PRIVATE "-framework Hypervisor")

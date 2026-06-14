@@ -2,7 +2,6 @@
 
 #include "core/horizon/filesystem/content_archive.hpp"
 #include "core/horizon/filesystem/disk_file.hpp"
-#include "core/horizon/firmware.hpp"
 #include "core/horizon/kernel/hipc/client_port.hpp"
 #include "core/horizon/kernel/hipc/port.hpp"
 #include "core/horizon/kernel/hipc/server_port.hpp"
@@ -129,9 +128,6 @@ OS::OS(System& system_)
       others_server(system), display_driver(system),
       hid_resource_manager(system), shared_font_manager(system),
       time_manager(system), ir_sensor_manager(system) {
-    // Firmware
-    try_install_firmware_to_filesystem(filesystem);
-
     // Sysmodules
     const auto& sysmodules_path = CONFIG_INSTANCE.GetSysmodulesPath();
     if (std::filesystem::exists(sysmodules_path)) {

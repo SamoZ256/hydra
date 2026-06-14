@@ -432,6 +432,16 @@ func hydraConfigGetSystemLanguage() -> UnsafeMutablePointer<UInt32> {
     hydra_config_get_system_language()
 }
 
+func hydraConfigGetSystemLocation() -> String {
+    String.init(withHydraString: hydra_config_get_system_location())
+}
+
+func hydraConfigSetSystemLocation(_ value: String) {
+    value.withHydraString { hydraString in
+        hydra_config_set_system_location(hydraString)
+    }
+}
+
 func hydraConfigGetFirmwarePath() -> String {
     String.init(withHydraString: hydra_config_get_firmware_path())
 }
@@ -517,10 +527,6 @@ class HydraFilesystem: MutableHandleClass {
     deinit {
         hydra_filesystem_destroy(self.handle)
     }
-
-    func tryInstallFirmware() {
-        hydra_try_install_firmware_to_filesystem(self.handle)
-    }
 }
 
 class HydraFile: MutableHandleClass {
@@ -549,6 +555,25 @@ class HydraContentArchive: MutableHandleClass {
 
     var contentType: HydraContentArchiveContentType {
         hydra_content_archive_get_content_type(self.handle)
+    }
+}
+
+// Time zone manager
+class HydraTimeZoneManager: MutableHandleClass {
+    init(filesystem: HydraFilesystem) {
+        super.init(handle: hydra_create_time_zone_manager(filesystem.handle))
+    }
+
+    deinit {
+        hydra_time_zone_manager_destroy(self.handle)
+    }
+
+    var locationCount: Int {
+        Int(hydra_time_zone_manager_get_location_count(self.handle))
+    }
+
+    func getLocation(at index: Int) -> String {
+        String.init(withHydraString: hydra_time_zone_manager_get_location(self.handle, UInt32(index)))
     }
 }
 

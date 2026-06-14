@@ -5,7 +5,6 @@ class UserSettingsState: ObservableObject {
     var userManager = HydraUserManager()
 
     init() {
-        self.filesystem.tryInstallFirmware()
         self.userManager.loadSystemAvatars(filesystem: self.filesystem)
     }
 }

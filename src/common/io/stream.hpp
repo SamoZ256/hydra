@@ -20,6 +20,7 @@ class IStream {
     virtual void SeekBy(u64 offset) = 0;
 
     virtual u64 GetSize() const = 0;
+    u64 GetRemainingSize() const { return GetSize() - GetSeek(); }
 
     virtual void Flush() {}
 

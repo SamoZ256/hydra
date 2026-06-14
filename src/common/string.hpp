@@ -4,6 +4,19 @@
 
 namespace hydra {
 
+// TODO: make sure the string's length doesn't exceed 8 characters
+inline constexpr u64 ToU64String(std::string_view str) {
+    u64 res = 0;
+    for (u32 i = 0; i < str.size(); i++)
+        res |= static_cast<u64>(str[i]) << (i * 8);
+
+    return res;
+}
+
+inline constexpr u64 operator"" _u64(const char* str, unsigned long len) {
+    return ToU64String(std::string_view(str, len));
+}
+
 constexpr usize size_of_string(char value) {
     (void)value;
     return 1;

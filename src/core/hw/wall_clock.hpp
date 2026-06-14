@@ -9,10 +9,12 @@ class WallClock {
   public:
     WallClock();
 
+    u64 GetTimeNs() const;
     u64 GetCntpct() const;
     u64 GetGpuTick() const;
 
   private:
+    u128 ns_factor;
     u128 guest_factor;
     u128 gpu_tick_factor;
 };

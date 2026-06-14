@@ -1,5 +1,7 @@
 #include "core/horizon/services/timesrv/time_zone_service.hpp"
 
+#include "core/system.hpp"
+
 namespace hydra::horizon::services::timesrv {
 
 DEFINE_SERVICE_COMMAND_TABLE(ITimeZoneService, 0, GetDeviceLocationName, 4,
@@ -7,21 +9,25 @@ DEFINE_SERVICE_COMMAND_TABLE(ITimeZoneService, 0, GetDeviceLocationName, 4,
                              ToCalendarTimeWithMyRule, 201, ToPosixTime, 202,
                              ToPosixTimeWithMyRule)
 
-result_t ITimeZoneService::GetDeviceLocationName(LocationName* out_name) {
-    LOG_FUNC_STUBBED(Services);
-
-    // HACK
-    std::memcpy(out_name, "UTC\0", 4);
+result_t ITimeZoneService::GetDeviceLocationName(RequestContext* ctx,
+                                                 LocationName* out_name) {
+    const auto name = ctx->system.GetOS()
+                          .GetTimeManager()
+                          .GetTimeZoneManager()
+                          .GetDeviceLocationName();
+    std::memcpy(out_name->name, name.data(), name.size());
+    out_name->name[name.size()] = '\0';
     return RESULT_SUCCESS;
 }
 
 result_t ITimeZoneService::LoadTimeZoneRule(
-    LocationName location_name,
+    RequestContext* ctx, LocationName location_name,
     OutBuffer<BufferAttr::MapAlias> out_rule_buffer) {
-    LOG_FUNC_WITH_ARGS_STUBBED(Services, "location: {}", location_name.name);
+    TimeZoneRule rule;
+    ctx->system.GetOS().GetTimeManager().GetTimeZoneManager().LoadRule(
+        location_name.name, rule);
 
-    // HACK
-    out_rule_buffer.stream->Write(TimeZoneRule{});
+    out_rule_buffer.stream->Write(rule);
     return RESULT_SUCCESS;
 }
 
@@ -35,10 +41,12 @@ ITimeZoneService::ToCalendarTime(i64 posix_time,
 }
 
 result_t
-ITimeZoneService::ToCalendarTimeWithMyRule(i64 posix_time,
+ITimeZoneService::ToCalendarTimeWithMyRule(RequestContext* ctx, i64 posix_time,
                                            ToCalendarTimeWithMyRuleOut* out) {
-    // TODO: my rule (probably the current timezone rule?)
-    return ToCalendarTimeImpl(posix_time, {}, out->time, out->additional_info);
+    return ToCalendarTimeImpl(
+        posix_time,
+        ctx->system.GetOS().GetTimeManager().GetTimeZoneManager().GetMyRule(),
+        out->time, out->additional_info);
 }
 
 result_t ITimeZoneService::ToPosixTime(
@@ -54,11 +62,13 @@ result_t ITimeZoneService::ToPosixTime(
 }
 
 result_t ITimeZoneService::ToPosixTimeWithMyRule(
-    CalendarTime calendar_time, i32* out_count,
+    RequestContext* ctx, CalendarTime calendar_time, i32* out_count,
     OutBuffer<BufferAttr::HipcPointer> out_buffer) {
     i64 time;
-    // TODO: my rule (probably the current timezone rule?)
-    const auto res = ToPosixTimeImpl(calendar_time, {}, time);
+    const auto res = ToPosixTimeImpl(
+        calendar_time,
+        ctx->system.GetOS().GetTimeManager().GetTimeZoneManager().GetMyRule(),
+        time);
 
     out_buffer.stream->Write(time);
     *out_count = static_cast<i32>(out_buffer.stream->GetSeek() / sizeof(i64));
@@ -68,27 +78,48 @@ result_t ITimeZoneService::ToPosixTimeWithMyRule(
 result_t ITimeZoneService::ToCalendarTimeImpl(
     i64 posix_time, const TimeZoneRule& rule, CalendarTime& out_time,
     CalendarAdditionalInfo& out_additional_info) {
-    (void)rule;
+    // Find the type
+    u32 type_idx = rule.default_type;
+    for (u32 i = 0; i < rule.time_count; ++i) {
+        if (posix_time >= rule.ats[i]) {
+            type_idx = rule.type_indices[i];
+        } else {
+            break;
+        }
+    }
 
-    LOG_FUNC_WITH_ARGS_STUBBED(Services, "posix time: {}", posix_time);
+    const auto& info = rule.type_infos[type_idx];
 
-    // Time
+    // Adjust by GMT offset
+    auto adjusted_tp = std::chrono::sys_seconds{
+        std::chrono::seconds{posix_time + info.gmt_offset}};
+    auto days = std::chrono::floor<std::chrono::days>(adjusted_tp);
+    std::chrono::year_month_day ymd{days};
+    std::chrono::hh_mm_ss hms{adjusted_tp - days};
+
+    // Get time zone name
+    const char* tz_name = rule.chars + info.abbreviation_list_index;
+
+    // Output
     out_time = {
-        .year = 0,   // TODO
-        .month = 0,  // TODO
-        .day = 0,    // TODO
-        .hour = 0,   // TODO
-        .minute = 0, // TODO
-        .second = 0, // TODO
+        .year = static_cast<u16>(static_cast<int>(ymd.year())),
+        .month = static_cast<u8>(ymd.month().operator unsigned()),
+        .day = static_cast<u8>(ymd.day().operator unsigned()),
+        .hour = static_cast<u8>(hms.hours().count()),
+        .minute = static_cast<u8>(hms.minutes().count()),
+        .second = static_cast<u8>(hms.seconds().count()),
     };
 
-    // Additional info
     out_additional_info = {
-        .day_of_week = 0,           // TODO
-        .day_of_year = 0,           // TODO
-        .timezone_name = "UTC"_u64, // HACK
-        .dst = 0,                   // TODO
-        .seconds_rel_to_utc = 0,    // TODO
+        .day_of_week = static_cast<u8>(
+            std::chrono::year_month_weekday{ymd}.weekday().c_encoding()),
+        .day_of_year =
+            static_cast<u32>((std::chrono::sys_days{ymd} -
+                              std::chrono::sys_days{ymd.year() / 1 / 0})
+                                 .count()),
+        .timezone_name = ToU64String(tz_name),
+        .dst = info.is_day_saving_time ? 1u : 0u,
+        .seconds_rel_to_utc = info.gmt_offset,
     };
 
     return RESULT_SUCCESS;

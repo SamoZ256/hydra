@@ -28,3 +28,6 @@
 [submodule "externals/ios-cmake"]
 	path = externals/ios-cmake
 	url = https://github.com/leetal/ios-cmake.git
+[submodule "externals/date"]
+	path = externals/date
+	url = https://github.com/HowardHinnant/date.git

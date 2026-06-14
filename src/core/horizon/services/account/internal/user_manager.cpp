@@ -109,11 +109,11 @@ void UserManager::LoadSystemAvatars(filesystem::Filesystem& fs) {
         return;
     }
 
-    auto content_archive = new filesystem::ContentArchive(file);
+    filesystem::ContentArchive content_archive(file);
 
     // Data
     filesystem::IFile* data_file;
-    res = content_archive->GetFile("data", data_file);
+    res = content_archive.GetFile("data", data_file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Services, "Failed to get avatars data: {}", res);
         return;

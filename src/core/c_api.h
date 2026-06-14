@@ -201,6 +201,8 @@ hydra_u128* hydra_config_get_user_id();
 hydra_string hydra_config_get_device_nickname();
 void hydra_config_set_device_nickname(hydra_string value);
 uint32_t* hydra_config_get_system_language();
+hydra_string hydra_config_get_system_location();
+void hydra_config_set_system_location(hydra_string value);
 hydra_string hydra_config_get_firmware_path();
 void hydra_config_set_firmware_path(hydra_string value);
 hydra_string hydra_config_get_sd_card_path();
@@ -244,7 +246,6 @@ hydra_loader_plugin_option_config_get_path_content_types(const void* config);
 // Filesystem
 void* hydra_create_filesystem();
 void hydra_filesystem_destroy(void* fs);
-void hydra_try_install_firmware_to_filesystem(void* fs);
 
 void* hydra_open_file(hydra_string path);
 void hydra_file_close(void* file);
@@ -253,6 +254,12 @@ void* hydra_create_content_archive(void* file);
 void hydra_content_archive_destroy(void* content_archive);
 HydraContentArchiveContentType
 hydra_content_archive_get_content_type(void* content_archive);
+
+// Time zone manager
+void* hydra_create_time_zone_manager(void* filesystem);
+void hydra_time_zone_manager_destroy(void* manager);
+uint32_t hydra_time_zone_manager_get_location_count(void* manager);
+hydra_string hydra_time_zone_manager_get_location(void* manager, uint32_t index);
 
 // Loader
 void* hydra_create_loader_from_path(hydra_string path, void* plugin_manager);

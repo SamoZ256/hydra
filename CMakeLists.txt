@@ -42,7 +42,7 @@ else ()
     set(MACOS_BUNDLE OFF)
 endif ()
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -126,6 +126,10 @@ add_subdirectory(externals/libyaz0)
 
 # nx2elf
 add_subdirectory(externals/nx2elf)
+
+# date
+set(BUILD_TZ_LIB ON)
+add_subdirectory(externals/date)
 
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 add_library(hydra_warnings INTERFACE)

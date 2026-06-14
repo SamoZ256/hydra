@@ -2,6 +2,8 @@
 
 #include "core/system.hpp"
 
+// TODO: update contexts after waking from sleep
+
 namespace hydra::horizon::services::timesrv::internal {
 
 namespace {
@@ -16,58 +18,83 @@ constexpr u32 CONTINUOUS_ADJUSTMENT_TIME_POINT_OFFSET = 0xd0;
 
 } // namespace
 
-TimeManager::TimeManager(System& system)
-    : shared_memory{
+TimeManager::TimeManager(System& system_)
+    : system{system_}, steady_clock(system.GetWallClock()),
+      system_clock(steady_clock),
+      time_zone_manager(system.GetOS().GetFilesystem()),
+      shared_memory{
           new kernel::SharedMemory(system.GetCpu(), SHARED_MEMORY_SIZE)} {
-    std::memset(reinterpret_cast<void*>(shared_memory->GetPtr()), 0,
-                SHARED_MEMORY_SIZE);
+    // Clock
+    UpdateSteadyClockContext();
+    UpdateSystemClockContext();
 
-    (void)STEADY_CLOCK_CONTEXT_OFFSET;
-    (void)LOCAL_SYSTEM_CLOCK_CONTEXT_OFFSET;
-    (void)NETWORK_SYSTEM_CLOCK_CONTEXT_OFFSET;
-    (void)AUTOMATIC_CORRECTION_ENABLED_OFFSET;
-    (void)CONTINUOUS_ADJUSTMENT_TIME_POINT_OFFSET;
+    // TODO: implement
+    WriteAutomaticCorrectionEnabled(false);
+    WriteContinuousAdjustmentTimePoint(
+        {.clock_offset = 0,
+         .multiplier = 1,
+         .divisor_log2 = 0,
+         .context = {
+             .offset = 0,
+             .steady_time_point =
+                 {
+                     .time_point = 0,
+                     .clock_source_id = CLOCK_SOURCE_ID,
+                 },
+         }});
 
-    // HACK: initialize shared memory
-    /*
-    WriteObjectToSharedMemory(STEADY_CLOCK_CONTEXT_OFFSET, 0x4,
-                              SteadyClockContext{
-                                  .internal_offset = 0,
-                                  .clock_source_id = 0x1,
-                              });
-    WriteObjectToSharedMemory(LOCAL_SYSTEM_CLOCK_CONTEXT_OFFSET, 0x4,
-                              SystemClockContext{
-                                  .offset = 0,
-                                  .steady_time_point =
-                                      {
-                                          .time_point = 0,
-                                          .clock_source_id = 0x1,
-                                      },
-                              });
+    // Time zone
+    time_zone_manager.LoadMyRule();
+}
+
+void TimeManager::UpdateSteadyClockContext() {
+    WriteSteadyClockContext({
+        .internal_offset = steady_clock.GetOffsetNs(),
+        .clock_source_id = CLOCK_SOURCE_ID,
+    });
+}
+
+void TimeManager::UpdateSystemClockContext() {
+    // TODO: handle local and network separately?
+    WriteSystemClockContext({
+        .offset = static_cast<i64>(system_clock.GetOffsetS()),
+        .steady_time_point =
+            {
+                .time_point = system_clock.GetSteadyTimePoint(),
+                .clock_source_id = CLOCK_SOURCE_ID,
+            },
+    });
+}
+
+void TimeManager::WriteSteadyClockContext(const SteadyClockContext& context) {
+    WriteObjectToSharedMemory(STEADY_CLOCK_CONTEXT_OFFSET, 0x4, context);
+}
+
+void TimeManager::WriteLocalSystemClockContext(
+    const SystemClockContext& context) {
+    WriteObjectToSharedMemory(LOCAL_SYSTEM_CLOCK_CONTEXT_OFFSET, 0x4, context);
+}
+
+void TimeManager::WriteNetworkSystemClockContext(
+    const SystemClockContext& context) {
     WriteObjectToSharedMemory(NETWORK_SYSTEM_CLOCK_CONTEXT_OFFSET, 0x4,
-                              SystemClockContext{
-                                  .offset = 0,
-                                  .steady_time_point =
-                                      {
-                                          .time_point = 0,
-                                          .clock_source_id = 0x1,
-                                      },
-                              });
-    WriteObjectToSharedMemory(AUTOMATIC_CORRECTION_ENABLED_OFFSET, 0x0, false);
-    WriteObjectToSharedMemory(
-        CONTINUOUS_ADJUSTMENT_TIME_POINT_OFFSET, 0x4,
-        ContinuousAdjustmentTimePoint{.clock_offset = 0,
-                                      .multiplier = 1,
-                                      .divisor_log2 = 0,
-                                      .context = {
-                                          .offset = 0,
-                                          .steady_time_point =
-                                              {
-                                                  .time_point = 0,
-                                                  .clock_source_id = 0x1,
-                                              },
-                                      }});
-                                      */
+                              context);
+}
+
+void TimeManager::WriteSystemClockContext(const SystemClockContext& context) {
+    WriteLocalSystemClockContext(context);
+    WriteNetworkSystemClockContext(context);
+}
+
+void TimeManager::WriteAutomaticCorrectionEnabled(bool enabled) {
+    WriteObjectToSharedMemory(AUTOMATIC_CORRECTION_ENABLED_OFFSET, 0x0,
+                              enabled);
+}
+
+void TimeManager::WriteContinuousAdjustmentTimePoint(
+    const ContinuousAdjustmentTimePoint& time_point) {
+    WriteObjectToSharedMemory(CONTINUOUS_ADJUSTMENT_TIME_POINT_OFFSET, 0x4,
+                              time_point);
 }
 
 } // namespace hydra::horizon::services::timesrv::internal
