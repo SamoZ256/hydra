@@ -1,11 +1,5 @@
 #include "core/horizon/services/timesrv/internal/time_manager.hpp"
 
-#include "date/tz.h"
-
-#include "core/horizon/filesystem/content_archive.hpp"
-#include "core/horizon/filesystem/file.hpp"
-#include "core/horizon/filesystem/romfs/romfs.hpp"
-#include "core/horizon/services/timesrv/internal/tzif.hpp"
 #include "core/system.hpp"
 
 // TODO: update contexts after waking from sleep
@@ -26,8 +20,10 @@ constexpr u32 CONTINUOUS_ADJUSTMENT_TIME_POINT_OFFSET = 0xd0;
 
 TimeManager::TimeManager(System& system_)
     : system{system_}, steady_clock(system.GetWallClock()),
-      system_clock(steady_clock), shared_memory{new kernel::SharedMemory(
-                                      system.GetCpu(), SHARED_MEMORY_SIZE)} {
+      system_clock(steady_clock),
+      time_zone_manager(system.GetOS().GetFilesystem()),
+      shared_memory{
+          new kernel::SharedMemory(system.GetCpu(), SHARED_MEMORY_SIZE)} {
     // Clock
     UpdateSteadyClockContext();
     UpdateSystemClockContext();
@@ -46,56 +42,6 @@ TimeManager::TimeManager(System& system_)
                      .clock_source_id = CLOCK_SOURCE_ID,
                  },
          }});
-
-    // Time zone
-    LoadTimeZoneRule(GetDeviceLocationName(), my_time_zone_rule);
-}
-
-std::string_view TimeManager::GetDeviceLocationName() {
-    // TODO: make this configurable
-    const auto* tz = date::current_zone();
-    return tz->name();
-}
-
-void TimeManager::LoadTimeZoneRule(std::string_view location_name,
-                                   TimeZoneRule& out_rule) {
-    LOG_DEBUG(Services, "Location name: {}", location_name);
-
-    // NCA
-    filesystem::IFile* time_zone_archive_file;
-    auto res = system.GetOS().GetFilesystem().GetFile(
-        FS_FIRMWARE_PATH "/TimeZoneBinary", time_zone_archive_file);
-    if (res != filesystem::FsResult::Success) {
-        // TODO: return error?
-        LOG_ERROR(Services, "Failed to get time zone binary archive: {}", res);
-        return;
-    }
-
-    filesystem::ContentArchive time_zone_archive(time_zone_archive_file);
-
-    // Data
-    filesystem::IFile* data_file;
-    res = time_zone_archive.GetFile("data", data_file);
-    if (res != filesystem::FsResult::Success) {
-        // TODO: return error?
-        LOG_ERROR(Services, "Failed to get time zone data: {}", res);
-        return;
-    }
-
-    filesystem::romfs::RomFS romfs(data_file);
-
-    // Info file
-    filesystem::IFile* info_file;
-    res = romfs.GetFile(fmt::format("zoneinfo/{}", location_name), info_file);
-    if (res != filesystem::FsResult::Success) {
-        // TODO: return error?
-        LOG_ERROR(Services, "Failed to get time zone info: {}", res);
-        return;
-    }
-
-    const auto stream = info_file->Open(filesystem::FileOpenFlags::Read);
-    internal::ParseTimeZoneBinary(stream, out_rule);
-    delete stream;
 }
 
 void TimeManager::UpdateSteadyClockContext() {

@@ -144,6 +144,8 @@ add_library(hydra-core
     horizon/services/timesrv/internal/steady_clock.hpp
     horizon/services/timesrv/internal/system_clock.cpp
     horizon/services/timesrv/internal/system_clock.hpp
+    horizon/services/timesrv/internal/time_zone_manager.cpp
+    horizon/services/timesrv/internal/time_zone_manager.hpp
     horizon/services/timesrv/internal/time_manager.cpp
     horizon/services/timesrv/internal/time_manager.hpp
     horizon/services/timesrv/internal/tzif.cpp

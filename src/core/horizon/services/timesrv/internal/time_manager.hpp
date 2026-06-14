@@ -1,9 +1,9 @@
 #pragma once
 
 #include "core/horizon/kernel/shared_memory.hpp"
-#include "core/horizon/services/timesrv/const.hpp"
 #include "core/horizon/services/timesrv/internal/steady_clock.hpp"
 #include "core/horizon/services/timesrv/internal/system_clock.hpp"
+#include "core/horizon/services/timesrv/internal/time_zone_manager.hpp"
 
 namespace hydra {
 class System;
@@ -15,19 +15,14 @@ class TimeManager {
   public:
     TimeManager(System& system_);
 
-    // Time zone
-    static std::string_view GetDeviceLocationName();
-    void LoadTimeZoneRule(std::string_view location_name,
-                          TimeZoneRule& out_rule);
-
   private:
     System& system;
 
     SteadyClock steady_clock;
     SystemClock system_clock;
+    TimeZoneManager time_zone_manager;
 
     kernel::SharedMemory* shared_memory;
-    TimeZoneRule my_time_zone_rule;
 
     // Helpers
 
@@ -63,8 +58,8 @@ class TimeManager {
   public:
     REF_GETTER(steady_clock, GetSteadyClock);
     REF_GETTER(system_clock, GetSystemClock);
+    REF_GETTER(time_zone_manager, GetTimeZoneManager);
     GETTER(shared_memory, GetSharedMemory);
-    CONST_REF_GETTER(my_time_zone_rule, GetMyTimeZoneRule);
 };
 
 } // namespace hydra::horizon::services::timesrv::internal

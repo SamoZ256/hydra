@@ -43,7 +43,7 @@ class ITimeZoneService : public IService {
 
   private:
     // Commands
-    result_t GetDeviceLocationName(LocationName* out_name);
+    result_t GetDeviceLocationName(RequestContext* ctx, LocationName* out_name);
     result_t LoadTimeZoneRule(RequestContext* ctx, LocationName location_name,
                               OutBuffer<BufferAttr::MapAlias> out_rule_buffer);
     result_t ToCalendarTime(i64 posix_time,
