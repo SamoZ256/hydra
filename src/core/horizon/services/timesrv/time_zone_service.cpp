@@ -24,7 +24,7 @@ result_t ITimeZoneService::LoadTimeZoneRule(
     RequestContext* ctx, LocationName location_name,
     OutBuffer<BufferAttr::MapAlias> out_rule_buffer) {
     TimeZoneRule rule;
-    ctx->system.GetOS().GetTimeManager().GetTimeZoneManager().LoadTimeZoneRule(
+    ctx->system.GetOS().GetTimeManager().GetTimeZoneManager().LoadRule(
         location_name.name, rule);
 
     out_rule_buffer.stream->Write(rule);
@@ -43,12 +43,10 @@ ITimeZoneService::ToCalendarTime(i64 posix_time,
 result_t
 ITimeZoneService::ToCalendarTimeWithMyRule(RequestContext* ctx, i64 posix_time,
                                            ToCalendarTimeWithMyRuleOut* out) {
-    return ToCalendarTimeImpl(posix_time,
-                              ctx->system.GetOS()
-                                  .GetTimeManager()
-                                  .GetTimeZoneManager()
-                                  .GetMyTimeZoneRule(),
-                              out->time, out->additional_info);
+    return ToCalendarTimeImpl(
+        posix_time,
+        ctx->system.GetOS().GetTimeManager().GetTimeZoneManager().GetMyRule(),
+        out->time, out->additional_info);
 }
 
 result_t ITimeZoneService::ToPosixTime(
@@ -67,12 +65,10 @@ result_t ITimeZoneService::ToPosixTimeWithMyRule(
     RequestContext* ctx, CalendarTime calendar_time, i32* out_count,
     OutBuffer<BufferAttr::HipcPointer> out_buffer) {
     i64 time;
-    const auto res = ToPosixTimeImpl(calendar_time,
-                                     ctx->system.GetOS()
-                                         .GetTimeManager()
-                                         .GetTimeZoneManager()
-                                         .GetMyTimeZoneRule(),
-                                     time);
+    const auto res = ToPosixTimeImpl(
+        calendar_time,
+        ctx->system.GetOS().GetTimeManager().GetTimeZoneManager().GetMyRule(),
+        time);
 
     out_buffer.stream->Write(time);
     *out_count = static_cast<i32>(out_buffer.stream->GetSeek() / sizeof(i64));

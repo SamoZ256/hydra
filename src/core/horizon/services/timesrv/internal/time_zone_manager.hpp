@@ -15,18 +15,18 @@ class TimeZoneManager {
     TimeZoneManager(filesystem::Filesystem& filesystem_);
 
     std::string_view GetDeviceLocationName();
-    void LoadTimeZoneRule(std::string_view location_name,
-                          TimeZoneRule& out_rule);
+    void LoadRule(std::string_view location_name, TimeZoneRule& out_rule) const;
+    void LoadMyRule();
 
   private:
     filesystem::Filesystem& filesystem;
 
     std::set<std::string, std::less<>> locations;
-    TimeZoneRule my_time_zone_rule;
+    TimeZoneRule my_rule;
 
   public:
     CONST_REF_GETTER(locations, GetLocations);
-    CONST_REF_GETTER(my_time_zone_rule, GetMyTimeZoneRule);
+    CONST_REF_GETTER(my_rule, GetMyRule);
 };
 
 } // namespace hydra::horizon::services::timesrv::internal

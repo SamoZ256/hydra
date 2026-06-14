@@ -64,9 +64,6 @@ TimeZoneManager::TimeZoneManager(filesystem::Filesystem& filesystem_)
         }
     }
     delete stream;
-
-    // Load my rule
-    LoadTimeZoneRule(GetDeviceLocationName(), my_time_zone_rule);
 }
 
 std::string_view TimeZoneManager::GetDeviceLocationName() {
@@ -91,8 +88,8 @@ std::string_view TimeZoneManager::GetDeviceLocationName() {
     return name;
 }
 
-void TimeZoneManager::LoadTimeZoneRule(std::string_view location_name,
-                                       TimeZoneRule& out_rule) {
+void TimeZoneManager::LoadRule(std::string_view location_name,
+                               TimeZoneRule& out_rule) const {
     LOG_DEBUG(Services, "Location name: {}", location_name);
 
     // NCA
@@ -130,6 +127,10 @@ void TimeZoneManager::LoadTimeZoneRule(std::string_view location_name,
     const auto stream = info_file->Open(filesystem::FileOpenFlags::Read);
     internal::ParseTimeZoneBinary(stream, out_rule);
     delete stream;
+}
+
+void TimeZoneManager::LoadMyRule() {
+    LoadRule(GetDeviceLocationName(), my_rule);
 }
 
 } // namespace hydra::horizon::services::timesrv::internal

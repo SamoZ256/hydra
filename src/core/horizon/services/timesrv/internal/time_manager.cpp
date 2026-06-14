@@ -42,6 +42,9 @@ TimeManager::TimeManager(System& system_)
                      .clock_source_id = CLOCK_SOURCE_ID,
                  },
          }});
+
+    // Time zone
+    time_zone_manager.LoadMyRule();
 }
 
 void TimeManager::UpdateSteadyClockContext() {
