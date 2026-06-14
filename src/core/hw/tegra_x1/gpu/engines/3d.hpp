@@ -544,7 +544,7 @@ struct Regs3D {
 
     // 0xd00
     u32 mme_scratch[0x80];
-} PACKED;
+};
 
 class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
   public:

@@ -5,7 +5,7 @@
 namespace hydra::horizon::display {
 
 Driver::Driver(System& system_) : system{system_} {
-    display_pool.Add(new Display());
+    display_pool.Insert(new Display());
 }
 
 bool Driver::AcquirePresentTextures(

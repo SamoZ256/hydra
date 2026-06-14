@@ -115,7 +115,7 @@ class Process : public SynchronizationObject {
         if (!obj) [[unlikely]]
             return INVALID_HANDLE_ID;
 
-        return handle_pool.Add(obj);
+        return handle_pool.Insert(obj);
     }
 
     handle_id_t AddHandle(AutoObject* obj) {
@@ -123,7 +123,7 @@ class Process : public SynchronizationObject {
             return INVALID_HANDLE_ID;
 
         obj->Retain();
-        return handle_pool.Add(obj);
+        return handle_pool.Insert(obj);
     }
 
     void FreeHandle(handle_id_t handle_id) {

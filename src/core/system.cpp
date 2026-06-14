@@ -103,9 +103,7 @@ System::~System() {
 
 void System::LoadAndStart(horizon::loader::LoaderBase* loader) {
     // Process
-    ASSERT_THROWING(main_process == nullptr, Other,
-                    LoadAndStartError::ProcessAlreadyExists,
-                    "Process already exists");
+    ASSERT(main_process == nullptr, Other, "Process already exists");
     main_process =
         os.GetKernel().GetProcessManager().CreateProcess("Guest process");
     loader->LoadProcess(*this, main_process);

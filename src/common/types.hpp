@@ -230,6 +230,8 @@ using IntRect2D = Rect2D<i32, i32>;
 using UIntRect2D = Rect2D<u32, u32>;
 using FloatRect2D = Rect2D<f32, f32>;
 
+// TODO: handle this better
+#pragma pack(push, 1)
 template <typename T, usize alignment>
 class aligned {
   public:
@@ -250,7 +252,8 @@ class aligned {
 
   public:
     CONST_REF_GETTER(value, Get);
-} PACKED;
+};
+#pragma pack(pop)
 
 template <typename T>
 class strong_typedef {

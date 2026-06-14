@@ -471,15 +471,16 @@ HYDRA_EXPORT hydra_string hydra_time_zone_manager_get_location(void* manager,
 // Loader
 HYDRA_EXPORT void* hydra_create_loader_from_path(hydra_string path,
                                                  void* plugin_manager) {
-    try {
-        return hydra::horizon::loader::LoaderBase::CreateFromPath(
-            string_view_from_hydra_string(path),
-            reinterpret_cast<hydra::horizon::loader::plugins::Manager*>(
-                plugin_manager));
-    } catch (...) {
-        // TODO: return an error
-        return nullptr;
-    }
+    // TODO: return the error
+    return hydra::horizon::loader::LoaderBase::CreateFromPath(
+               string_view_from_hydra_string(path),
+               plugin_manager
+                   ? std::make_optional(
+                         reinterpret_cast<
+                             hydra::horizon::loader::plugins::Manager*>(
+                             plugin_manager))
+                   : std::nullopt)
+        .value_or(nullptr);
 }
 
 HYDRA_EXPORT void hydra_loader_destroy(void* loader) {
@@ -566,13 +567,18 @@ HYDRA_EXPORT void hydra_loader_plugin_manager_refresh(void* manager) {
 
 // Plugin
 HYDRA_EXPORT void* hydra_create_loader_plugin(hydra_string path) {
-    try {
-        return new hydra::horizon::loader::plugins::Plugin(
-            std::string(string_view_from_hydra_string(path)));
-    } catch (...) {
-        // TODO: return an error
-        return nullptr;
-    }
+    // TODO: return the error
+    return hydra::horizon::loader::plugins::Plugin::Create(
+               std::string(string_view_from_hydra_string(path)))
+        .transform([](hydra::horizon::loader::plugins::Plugin plugin) {
+            // HACK
+            auto ptr =
+                reinterpret_cast<hydra::horizon::loader::plugins::Plugin*>(
+                    malloc(sizeof(hydra::horizon::loader::plugins::Plugin)));
+            *ptr = std::move(plugin);
+            return ptr;
+        })
+        .value_or(nullptr);
 }
 
 HYDRA_EXPORT void hydra_loader_plugin_destroy(void* plugin) {

@@ -115,12 +115,8 @@ class SmallCache {
         slow_cache.clear();
     }
 
-    enum class AddError {
-        AlreadyPresent,
-    };
-
     template <typename... Args>
-    T& Add(KeyT key, Args&&... args) {
+    T& Insert(KeyT key, Args&&... args) {
         // Insert into fast cache if possible
         for (auto& entry : fast_cache) {
             if (!entry.has_value()) {
@@ -129,9 +125,8 @@ class SmallCache {
                     std::forward_as_tuple(std::forward<Args>(args)...));
                 return entry.value().second;
             } else {
-                ASSERT_THROWING(entry.value().first != key, Common,
-                                AddError::AlreadyPresent,
-                                "Entry already present");
+                ASSERT_DEBUG(entry.value().first != key, Common,
+                             "Entry already present");
             }
         }
 
@@ -139,8 +134,7 @@ class SmallCache {
         auto res = slow_cache.emplace(
             std::piecewise_construct, std::forward_as_tuple(key),
             std::forward_as_tuple(std::forward<Args>(args)...));
-        ASSERT_THROWING(res.second, Common, AddError::AlreadyPresent,
-                        "Entry already present");
+        ASSERT_DEBUG(res.second, Common, "Entry already present");
         return res.first->second;
     }
 

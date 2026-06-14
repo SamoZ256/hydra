@@ -53,18 +53,12 @@ enum class ApFlags : u64 {
 constexpr u64 AP_FLAGS_MASK =
     (1ull << PNX_SHIFT) | (1ull << UXN_SHIFT) | (3ull << AP_SHIFT);
 
-enum class AllocateVmMemoryError {
-    AllocationFailed,
-};
-
 inline uptr AllocateVmMemory(u64 size) {
     ASSERT_ALIGNMENT(size, APPLE_PAGE_SIZE, Hypervisor, "size")
 
     void* ptr;
     const auto res = posix_memalign(&ptr, APPLE_PAGE_SIZE, size);
-    ASSERT_THROWING(res == 0, Hypervisor,
-                    AllocateVmMemoryError::AllocationFailed,
-                    "Failed to allocate memory: {:#x}", res);
+    ASSERT(res == 0, Hypervisor, "Failed to allocate memory: {:#x}", res);
 
     return reinterpret_cast<uptr>(ptr);
 }

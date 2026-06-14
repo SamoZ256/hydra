@@ -384,8 +384,8 @@ u32 GetTextureFormatSliceStride(const TextureFormat format, u32 width,
 
 u32 get_texture_format_bpp(const TextureFormat format) {
     const auto& info = GetTextureFormatInfo(format);
-    if (info.block_width != 1 || info.block_height != 1)
-        throw GetTextureFormatBppError::UnsupportedFormatForBpp;
+    ASSERT_DEBUG(info.block_width == 1 && info.block_height == 1, Gpu,
+                 "BPP not supported for format {}", format);
 
     return info.bytes_per_block;
 }

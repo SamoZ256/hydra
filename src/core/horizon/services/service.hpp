@@ -50,7 +50,7 @@ class IService {
         if (!service)
             return INVALID_HANDLE_ID;
 
-        return parent->subservice_pool->Add(service);
+        return parent->subservice_pool->Insert(service);
     }
 
     void FreeSubservice(handle_id_t handle_id) {

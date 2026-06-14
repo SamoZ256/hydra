@@ -7,6 +7,7 @@ namespace hydra::horizon::services::audio {
 
 namespace {
 
+#pragma pack(push, 1)
 struct UpdateDataHeader {
     u32 revision;
     u32 behavior_size;
@@ -21,7 +22,7 @@ struct UpdateDataHeader {
     u32 render_info_size;
     u32 _reserved[4];
     u32 total_size;
-} PACKED;
+};
 
 enum class MemPoolState : u32 {
     Invalid,
@@ -38,12 +39,12 @@ struct MemPoolInfoIn {
     u64 size;
     MemPoolState state;
     u32 _padding[3];
-} PACKED;
+};
 
 struct MemPoolInfoOut {
     MemPoolState new_state;
     u32 _padding[3];
-} PACKED;
+};
 
 enum class VoicePlayState : u8 {
     Started = 0,
@@ -56,7 +57,7 @@ struct BiquadFilter {
     u8 _padding;
     i16 numerator[3];
     i16 denominator[2];
-} PACKED;
+};
 
 struct WaveBuffer {
     vaddr_t address;
@@ -70,7 +71,7 @@ struct WaveBuffer {
     vaddr_t context_addr;
     u64 context_sz;
     u64 _padding2;
-} PACKED;
+};
 
 struct VoiceInfoIn {
     u32 id;
@@ -97,7 +98,7 @@ struct VoiceInfoIn {
     WaveBuffer wave_buffers[4];
     u32 channel_ids[6];
     u8 _padding3[24];
-} PACKED;
+};
 
 enum class EffectState : u8 {
     Enabled = 3,
@@ -107,35 +108,36 @@ enum class EffectState : u8 {
 struct EffectInfoOutV1 {
     EffectState state;
     u8 _reserved[15];
-} PACKED;
+};
 
 struct SinkInfoOut {
     u32 last_written_offset;
     u32 _padding;
     u64 _reserved[3];
-} PACKED;
+};
 
 struct ErrorInfo {
     result_t result;
     u32 _padding;
     u64 extra_error_info;
-} PACKED;
+};
 
 struct BehaviorInfoOut {
     ErrorInfo error_infos[10];
     u32 error_info_count;
     u32 _reserved[3];
-} PACKED;
+};
 
 struct RenderInfoOut {
     u64 elapsed_frame_count;
     u64 _reserved;
-} PACKED;
+};
 
 struct PerformanceInfoOut {
     u32 history_size;
     u32 _reserved[3];
-} PACKED;
+};
+#pragma pack(pop)
 
 } // namespace
 

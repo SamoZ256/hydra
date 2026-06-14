@@ -27,10 +27,15 @@ result_t Applet::Run(System& system) {
         // Text input
         std::string output_text_utf8;
         result = system.GetUIHandler().ShowSoftwareKeyboard(
-            utf16_to_utf8(std::u16string(config.header_text)),
-            utf16_to_utf8(std::u16string(config.sub_text)),
-            utf16_to_utf8(std::u16string(config.guide_text)), output_text_utf8);
-        output_text = utf8_to_utf16(output_text_utf8);
+            Utf16ToUtf8(std::u16string(config.header_text)).value_or(""),
+            Utf16ToUtf8(std::u16string(config.sub_text)).value_or(""),
+            Utf16ToUtf8(std::u16string(config.guide_text)).value_or(""),
+            output_text_utf8);
+        const auto output_text_opt = Utf8ToUtf16(output_text_utf8);
+        ASSERT(output_text_opt.has_value(), Applets,
+               "Failed to convert UTF-8 to UTF-16: {}", output_text_utf8)
+        output_text = output_text_opt.value();
+
         if (!config.text_check_enabled)
             break;
 
@@ -55,7 +60,7 @@ result_t Applet::Run(System& system) {
                  ? ui::MessageDialogType::Error
                  : ui::MessageDialogType::Info),
             "Text input", // TODO: better text
-            utf16_to_utf8(msg));
+            Utf16ToUtf8(msg).value_or(""));
     }
 
     // Output

@@ -11,10 +11,6 @@ namespace hydra::horizon::loader {
 
 class NxLoader : public LoaderBase {
   public:
-    enum class Error {
-        InvalidNpdmMagic,
-    };
-
     NxLoader(const filesystem::Directory& dir_);
 
     u64 GetTitleID() const override { return title_id; }

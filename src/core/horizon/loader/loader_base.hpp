@@ -20,22 +20,15 @@ class Manager;
 
 class LoaderBase {
   public:
-    enum class CreateFromPathError {
-        DoesNotExist,
-        UnsupportedExtension,
-    };
-    static LoaderBase*
-    CreateFromPath(std::string_view path,
-                   plugins::Manager* plugin_manager = nullptr);
+    static std::optional<LoaderBase*> CreateFromPath(
+        std::string_view path,
+        std::optional<plugins::Manager*> plugin_manager_opt = std::nullopt);
 
     virtual ~LoaderBase() = default;
 
     virtual u64 GetTitleID() const { return invalid<u64>(); }
 
     virtual void LoadProcess(System& system, kernel::Process* process) = 0;
-    enum class LoadNacpError {
-        InvalidSize,
-    };
     horizon::services::ns::ApplicationControlProperty* LoadNacp();
     uchar4* LoadIcon(u32& out_width, u32& out_height);
     uchar4* LoadNintendoLogo(u32& out_width, u32& out_height);

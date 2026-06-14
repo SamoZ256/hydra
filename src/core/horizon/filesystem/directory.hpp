@@ -8,10 +8,6 @@ class IFile;
 
 class Directory : public IEntry {
   public:
-    enum class InitError {
-        NotADirectory,
-    };
-
     Directory() = default;
     Directory(const std::string_view host_path);
     ~Directory() override;

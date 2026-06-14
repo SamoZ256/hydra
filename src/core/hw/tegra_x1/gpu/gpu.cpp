@@ -79,7 +79,11 @@ void Gpu::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
         return;
     }
 
-    GetEngineAtSubchannel(subchannel)->Method(method, arg);
+    const auto engine = GetEngineAtSubchannel(subchannel);
+    if (!engine)
+        LOG_FATAL(Gpu, "Invalid subchannel {}", subchannel);
+
+    (*engine)->Method(method, arg);
 }
 
 renderer::ITextureView*

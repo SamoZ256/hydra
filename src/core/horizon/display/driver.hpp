@@ -29,7 +29,7 @@ class Driver {
     // Layers
     u32 CreateLayer(kernel::Process* process, u32 binder_id) {
         std::lock_guard lock(layer_mutex);
-        return layer_pool.Add(new Layer(system, process, binder_id));
+        return layer_pool.Insert(new Layer(system, process, binder_id));
     }
 
     void DestroyLayer(u32 id) {
@@ -46,7 +46,7 @@ class Driver {
     // Binders
     u32 CreateBinder() {
         std::lock_guard lock(binder_mutex);
-        return binder_pool.Add(new Binder());
+        return binder_pool.Insert(new Binder());
     }
 
     void DestroyBinder(u32 id) {

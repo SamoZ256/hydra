@@ -12,10 +12,6 @@ namespace hydra::horizon::services::hid::internal {
 
 class Npad {
   public:
-    enum class Error {
-        InvalidStyleSet,
-    };
-
     Npad(NpadInternalState& state_);
     ~Npad();
 

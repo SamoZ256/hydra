@@ -9,9 +9,8 @@
 namespace hydra::horizon::filesystem {
 
 Directory::Directory(const std::string_view host_path) {
-    ASSERT_THROWING(std::filesystem::is_directory(host_path), Filesystem,
-                    InitError::NotADirectory, "\"{}\" is not a directory",
-                    host_path);
+    ASSERT(std::filesystem::is_directory(host_path), Filesystem,
+           "\"{}\" is not a directory", host_path);
 
     for (const auto& entry : std::filesystem::directory_iterator(host_path)) {
         const auto& entry_path = entry.path().string();

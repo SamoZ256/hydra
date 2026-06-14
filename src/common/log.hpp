@@ -59,11 +59,6 @@
     if (!(condition)) {                                                        \
         LOG_FATAL(c, __VA_ARGS__);                                             \
     }
-#define ASSERT_THROWING(condition, c, err, ...)                                \
-    if (!(condition)) {                                                        \
-        LOG_ERROR_ON_DEBUG(c, __VA_ARGS__);                                    \
-        throw err;                                                             \
-    }
 
 #define ASSERT_ALIGNMENT(value, alignment, c, name)                            \
     ASSERT(is_aligned<decltype(value)>(value, alignment), c,                   \
@@ -72,16 +67,11 @@
 
 #ifdef HYDRA_DEBUG
 #define ASSERT_DEBUG(condition, c, ...) ASSERT(condition, c, __VA_ARGS__)
-#define ASSERT_THROWING_DEBUG(condition, c, err, ...)                          \
-    ASSERT_THROWING(condition, c, err, __VA_ARGS__)
 #define ASSERT_ALIGNMENT_DEBUG(value, alignment, c, name)                      \
     ASSERT_ALIGNMENT(value, alignment, c, name)
 #else
 // TODO: should the condition be evaluated?
 #define ASSERT_DEBUG(condition, c, ...)                                        \
-    if (condition) {                                                           \
-    }
-#define ASSERT_THROWING_DEBUG(condition, c, err, ...)                          \
     if (condition) {                                                           \
     }
 #define ASSERT_ALIGNMENT_DEBUG(value, alignment, c, name)
@@ -271,9 +261,6 @@ class Logger {
 
                 break;
             }
-            default:
-                throw std::runtime_error("Invalid logging output");
-                break;
             }
         }
 

@@ -682,6 +682,7 @@ enum class DepthSurfaceFormat : u32 {
     Z32S8C8X16Float = 0x1F,
 };
 
+#pragma pack(push, 1)
 struct NvSurface {
     u32 width;
     u32 height;
@@ -698,7 +699,7 @@ struct NvSurface {
     u64 flags;
     u64 size;
     u32 unk[6]; // compression related
-} PACKED;
+};
 
 struct NvGraphicsBuffer {
     i32 unk0;       // -1
@@ -718,7 +719,8 @@ struct NvGraphicsBuffer {
     u64 unused; // official sw writes a pointer to bookkeeping data here, but
                 // it's otherwise completely unused/overwritten during
                 // marshalling
-} PACKED;
+};
+#pragma pack(pop)
 
 struct Fence {
     u32 id;

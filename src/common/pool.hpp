@@ -8,17 +8,13 @@ namespace hydra {
 template <typename Subclass, typename T, bool allow_zero_handle>
 class Pool {
   public:
-    enum class Error {
-        InvalidHandle,
-    };
-
     handle_id_t AllocateHandle() {
         return IndexToHandle(THIS->_AllocateIndex());
     }
 
     T& Allocate() { return THIS->_GetByIndex(THIS->_AllocateIndex()); }
 
-    handle_id_t Add(const T& object) {
+    handle_id_t Insert(const T& object) {
         const auto index = THIS->_AllocateIndex();
         THIS->_GetByIndex(index) = object;
         return IndexToHandle(index);
@@ -45,8 +41,8 @@ class Pool {
   private:
     // Helpers
     void AssertHandle(handle_id_t handle_id) const {
-        ASSERT_THROWING_DEBUG(IsValid(handle_id), Common, Error::InvalidHandle,
-                              "Invalid handle {}", handle_id);
+        ASSERT_DEBUG(IsValid(handle_id), Common, "Invalid handle {}",
+                     handle_id);
     }
 
     static handle_id_t IndexToHandle(u32 index) {
@@ -60,8 +56,8 @@ class Pool {
         if constexpr (allow_zero_handle) {
             return handle_id;
         } else {
-            ASSERT_THROWING_DEBUG(handle_id != INVALID_HANDLE_ID, Common,
-                                  Error::InvalidHandle, "Invalid handle");
+            ASSERT_DEBUG(handle_id != INVALID_HANDLE_ID, Common,
+                         "Invalid handle");
             return handle_id - 1;
         }
     }

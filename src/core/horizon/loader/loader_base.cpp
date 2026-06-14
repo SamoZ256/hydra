@@ -74,52 +74,46 @@ uchar4* LoadGIF(filesystem::IFile* file,
 
 } // namespace
 
-LoaderBase* LoaderBase::CreateFromPath(std::string_view path,
-                                       plugins::Manager* plugin_manager) {
+std::optional<LoaderBase*>
+LoaderBase::CreateFromPath(std::string_view path,
+                           std::optional<plugins::Manager*> plugin_manager_opt) {
     while (path.back() == '/') {
         path.remove_suffix(1);
     }
 
     // Check if the path exists
-    ASSERT_THROWING(std::filesystem::exists(path), Loader,
-                    CreateFromPathError::DoesNotExist,
-                    "Path \"{}\" does not exist", path);
+    ASSERT_RETURNING(std::filesystem::exists(path), std::nullopt);
 
     // Create loader
     const auto ext = std::string_view(path).substr(path.find_last_of("."));
-    horizon::loader::LoaderBase* loader{nullptr};
     if (ext == ".nx") {
+        ASSERT_RETURNING(std::filesystem::is_directory(path), std::nullopt);
         const auto dir = new horizon::filesystem::Directory(path);
-        loader = new horizon::loader::NxLoader(*dir);
+        return new horizon::loader::NxLoader(*dir);
     } else {
+        ASSERT_RETURNING(std::filesystem::is_regular_file(path), std::nullopt);
         const auto file = new horizon::filesystem::DiskFile(path);
         if (ext == ".nro") {
             // Assumes that all NROs are Homebrew
-            loader = new horizon::loader::HomebrewLoader(file);
+            return new horizon::loader::HomebrewLoader(file);
         } else if (ext == ".nso") {
-            loader = new horizon::loader::NsoLoader(file);
+            return new horizon::loader::NsoLoader(file);
         } else if (ext == ".nca") {
-            loader = new horizon::loader::NcaLoader(file);
+            return new horizon::loader::NcaLoader(file);
         } else {
             // Check if we need to create a temporary plugin manager
-            bool has_plugin_manager = (plugin_manager != nullptr);
-            if (!has_plugin_manager)
-                plugin_manager = new plugins::Manager();
+            std::unique_ptr<plugins::Manager> tmp_plugin_manager;
+            if (!plugin_manager_opt)
+                tmp_plugin_manager = std::make_unique<plugins::Manager>();
+            auto& plugin_manager = (plugin_manager_opt ? *plugin_manager_opt.value() : *tmp_plugin_manager.get());
 
             // First, check if any of the loader plugins supports this format
-            auto plugin = plugin_manager->FindPluginForFormat(ext.substr(1));
-            ASSERT_THROWING(
-                plugin, Loader, CreateFromPathError::UnsupportedExtension,
-                "Unsupported extension \"{}\" (path: \"{}\")", ext, path);
+            auto plugin = plugin_manager.FindPluginForFormat(ext.substr(1));
+            ASSERT_RETURNING(plugin, std::nullopt);
 
-            loader = plugin->Load(path);
-
-            if (!has_plugin_manager)
-                delete plugin_manager;
+            return plugin->Load(path);
         }
     }
-
-    return loader;
 }
 
 horizon::services::ns::ApplicationControlProperty* LoaderBase::LoadNacp() {
@@ -128,11 +122,9 @@ horizon::services::ns::ApplicationControlProperty* LoaderBase::LoadNacp() {
 
     auto stream = nacp_file->Open(filesystem::FileOpenFlags::Read);
 
-    ASSERT_THROWING(
-        stream->GetSize() ==
-            sizeof(horizon::services::ns::ApplicationControlProperty),
-        Loader, LoadNacpError::InvalidSize, "Invalid NACP file size 0x{:x}",
-        stream->GetSize());
+    ASSERT(stream->GetSize() ==
+               sizeof(horizon::services::ns::ApplicationControlProperty),
+           Loader, "Invalid NACP file size 0x{:x}", stream->GetSize());
     auto nacp = new horizon::services::ns::ApplicationControlProperty();
     stream->ReadToRef(*nacp);
 

@@ -6,20 +6,16 @@ namespace hydra::horizon::filesystem {
 
 class FileView : public IFile {
   public:
-    enum class InitError {
-        SizeTooLarge,
-    };
-
     FileView(IFile* base_, u64 offset_, u64 size_ = invalid<u64>())
         : base{base_}, offset{offset_}, size{size_} {
-        if (size == invalid<u64>())
+        if (size == invalid<u64>()) {
             size = base->GetSize() - offset;
-        else
-            ASSERT_THROWING(size <= base->GetSize() - offset, Filesystem,
-                            InitError::SizeTooLarge,
-                            "File view size (0x{:08x}) is too large "
-                            "(max size: 0x{:08x})",
-                            size, base->GetSize() - offset);
+        } else {
+            ASSERT(size <= base->GetSize() - offset, Filesystem,
+                   "File view size (0x{:08x}) is too large "
+                   "(max size: 0x{:08x})",
+                   size, base->GetSize() - offset);
+        }
     }
 
     io::IStream* Open(FileOpenFlags flags) override {

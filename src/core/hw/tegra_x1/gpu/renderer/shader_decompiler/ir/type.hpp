@@ -23,16 +23,6 @@ enum class ScalarType {
     F32,
 };
 
-enum class TypeError {
-    NotAScalar,
-    NotAVector,
-    NotABoolean,
-    NotAnInteger,
-    NotAFloatingPoint,
-    NotSigned,
-    NotUnsigned,
-};
-
 inline bool ScalarIsInteger(ScalarType scalar) {
     switch (scalar) {
     case ScalarType::U8:

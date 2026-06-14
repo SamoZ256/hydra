@@ -11,10 +11,6 @@ struct NroSection {
 
 class NroLoader : public LoaderBase {
   public:
-    enum class Error {
-        InvalidMagic,
-    };
-
     NroLoader(filesystem::IFile* file_, const bool is_entry_point_);
 
     void LoadProcess(System& system, kernel::Process* process) override;

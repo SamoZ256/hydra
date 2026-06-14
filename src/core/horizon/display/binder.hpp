@@ -34,12 +34,13 @@ struct Buffer {
 struct NvFence {
     u32 id;
     u32 value;
-} PACKED;
+};
 
+#pragma pack(push, 1)
 struct NvMultiFence {
     u32 num_fences;
     NvFence fences[4];
-} PACKED;
+};
 
 enum class TransformFlags : u32 {
     None = 0,
@@ -67,14 +68,15 @@ struct BqBufferInput {
     u32 _unknown;
     u32 swap_interval; // TODO: float?
     NvMultiFence fence;
-} PACKED;
+};
 
 struct BqBufferOutput {
     u32 width;
     u32 height;
     u32 transform_hint;
     u32 num_pending_buffers;
-} PACKED;
+};
+#pragma pack(pop)
 
 constexpr usize MAX_BINDER_BUFFER_COUNT = 8; // TODO: what should this be?
 

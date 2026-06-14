@@ -111,9 +111,9 @@ void TextureCache::MergeMemories(TextureMem& mem, TextureMem& other) {
     for (auto& [group_key, other_group] : other.cache) {
         auto group_opt = mem.cache.Find(group_key);
         auto& group =
-            (group_opt.has_value() ? **group_opt : mem.cache.Add(group_key));
+            (group_opt.has_value() ? **group_opt : mem.cache.Insert(group_key));
         for (auto& [storage_key, storage] : other_group.cache) {
-            group.cache.Add(storage_key, std::move(storage));
+            group.cache.Insert(storage_key, std::move(storage));
         }
     }
 }
@@ -239,8 +239,8 @@ TextureCache::AddToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
     // Check if it is a new entry
     auto group_opt = mem.cache.Find(group_hash);
     if (!group_opt.has_value()) {
-        auto& group = mem.cache.Add(group_hash);
-        auto& storage = group.cache.Add(storage_hash);
+        auto& group = mem.cache.Insert(group_hash);
+        auto& storage = group.cache.Insert(storage_hash);
         return GetTexture(command_buffer, storage, mem, descriptor,
                           view_descriptor, usage);
     }
@@ -281,7 +281,7 @@ TextureCache::AddToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
                 auto new_descriptor = other_descriptor;
                 new_descriptor.level_count = min_levels;
                 auto& new_storage =
-                    group.cache.Add(new_descriptor.GetStorageHash());
+                    group.cache.Insert(new_descriptor.GetStorageHash());
                 UpdateStorage(command_buffer, new_storage, mem, new_descriptor,
                               usage);
 
@@ -367,7 +367,7 @@ TextureCache::AddToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
     new_descriptor.layer_count = layer_count;
 
     // Create a new storage
-    auto& storage = group.cache.Add(storage_hash);
+    auto& storage = group.cache.Insert(storage_hash);
     UpdateStorage(command_buffer, storage, mem, new_descriptor, usage);
 
     // Copy overlapping storages
@@ -405,7 +405,7 @@ TextureCache::GetTextureView(TextureStorage& storage,
         return **view_opt;
 
     auto view = storage.base->CreateView(view_descriptor);
-    storage.view_cache.Add(view_descriptor.GetHash(), view);
+    storage.view_cache.Insert(view_descriptor.GetHash(), view);
     return view;
 }
 

@@ -10,6 +10,7 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
+#pragma pack(push, 1)
 struct ShaderHeader {
     // CommonWord0
     u32 sph_type : 5;
@@ -63,7 +64,7 @@ struct ShaderHeader {
             u16 omap_sysvals_c;
             u8 omap_fixed_fnc_tex[5];
             u8 omap_extra;
-        } PACKED vtg;
+        } vtg;
 
         struct {
             u8 imap_generic_vector[32];
@@ -78,6 +79,7 @@ struct ShaderHeader {
         } ps;
     };
 };
+#pragma pack(pop)
 
 void Decompiler::Decompile(io::MemoryStream& code_stream, const ShaderType type,
                            const GuestShaderState& state,
@@ -105,23 +107,6 @@ void Decompiler::Decompile(io::MemoryStream& code_stream, const ShaderType type,
             };
         }
     }
-
-#define DUMP_SHADERS 0
-#if DUMP_SHADERS
-    {
-        auto tmp_stream = code_stream;
-        const auto code = tmp_stream.ReadSpanWhole<u8>();
-        LOG_INFO(ShaderDecompiler, "Dumping shader 0x{}",
-                 (void*)code_stream.GetPtr());
-        std::ofstream out(
-            fmt::format("/Users/samuliak/Downloads/extracted/0x{}.bin",
-                        (void*)code_stream.GetPtr()),
-            std::ios::binary);
-
-        out.write(reinterpret_cast<const char*>(code.data()),
-                  static_cast<i64>(code.size()));
-    }
-#endif
 
     // Build IR
     ir::Module modul;

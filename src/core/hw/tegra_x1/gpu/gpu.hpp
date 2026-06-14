@@ -64,27 +64,19 @@ class Gpu {
     }
 
     // Engines
-    enum class GetEngineAtSubchannelError {
-        InvalidSubchannel,
-        NoEngineBound,
-    };
-    engines::EngineBase* GetEngineAtSubchannel(u32 subchannel) {
-        ASSERT_THROWING_DEBUG(subchannel <= SUBCHANNEL_COUNT, Gpu,
-                              GetEngineAtSubchannelError::InvalidSubchannel,
-                              "Invalid subchannel {}", subchannel);
-
-        auto engine = subchannels[subchannel];
-        ASSERT_THROWING_DEBUG(
-            engine, Gpu, GetEngineAtSubchannelError::NoEngineBound,
-            "Subchannel {} does not have a bound engine", subchannel);
-
-        return engine;
+    std::optional<engines::EngineBase*> GetEngineAtSubchannel(u32 subchannel) {
+        ASSERT_RETURNING(subchannel <= SUBCHANNEL_COUNT, std::nullopt);
+        return subchannels[subchannel];
     }
 
     void SubchannelMethod(u32 subchannel, u32 method, u32 arg);
 
     void SubchannelFlushMacro(u32 subchannel) {
-        GetEngineAtSubchannel(subchannel)->FlushMacro();
+        const auto engine = GetEngineAtSubchannel(subchannel);
+        if (!engine)
+            LOG_FATAL(Gpu, "Invalid subchannel {}", subchannel);
+
+        (*engine)->FlushMacro();
     }
 
     // Texture
@@ -106,7 +98,7 @@ class Gpu {
     engines::Inline inline_engine;
     engines::TwoD two_d_engine;
     engines::Copy copy_engine;
-    engines::EngineBase* subchannels[SUBCHANNEL_COUNT] = {nullptr};
+    std::optional<engines::EngineBase*> subchannels[SUBCHANNEL_COUNT] = {};
 
     // Renderer
     std::unique_ptr<renderer::IRenderer> renderer;

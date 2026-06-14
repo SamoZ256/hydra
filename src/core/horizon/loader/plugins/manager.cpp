@@ -17,13 +17,10 @@ void Manager::Refresh() {
             continue;
         }
 
-        try {
-            plugins.emplace_back(plugin_config.path, plugin_config.options);
-        } catch (Plugin::Error err) {
-            // TODO: error popup?
-        } catch (Plugin::ContextError err) {
-            // TODO: error popup?
-        }
+        Plugin::Create(plugin_config.path, plugin_config.options)
+            .transform([this](Plugin plugin) {
+                plugins.emplace_back(std::move(plugin));
+            });
     }
 }
 

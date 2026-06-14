@@ -176,11 +176,6 @@ TextureFormat to_texture_format(const ImageFormatWord image_format_word,
 TextureFormat to_texture_format(ColorSurfaceFormat color_surface_format);
 TextureFormat to_texture_format(DepthSurfaceFormat depth_surface_format);
 
-enum class GetTextureFormatBppError {
-    InvalidFormat,
-    UnsupportedFormatForBpp,
-};
-
 u32 GetTextureFormatStride(const TextureFormat format, u32 width);
 u32 GetTextureFormatRows(const TextureFormat format, u32 height);
 u32 GetTextureFormatSliceStride(const TextureFormat format, u32 width,

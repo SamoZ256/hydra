@@ -622,3 +622,11 @@ ENABLE_ENUM_FORMATTING(hydra::horizon::services::hid::NpadIdType, No1,
                        "Number 4", No5, "Number 5", No6, "Number 6", No7,
                        "Number 7", No8, "Number 8", Other, "Other", Handheld,
                        "Handheld")
+
+ENABLE_ENUM_FLAGS_FORMATTING(hydra::horizon::services::hid::NpadStyleSet,
+                             FullKey, "full key", Handheld, "handheld", JoyDual,
+                             "joy dual", JoyLeft, "joy left", JoyRight,
+                             "joy right", Gc, "GC", Palma, "palma", Lark,
+                             "lark", HandheldLark, "handheld lark", Lucia,
+                             "lucia", Lagon, "lagon", Lager, "lager", SystemExt,
+                             "system ext", System, "system")

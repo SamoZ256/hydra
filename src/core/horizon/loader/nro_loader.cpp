@@ -50,9 +50,8 @@ NroLoader::NroLoader(filesystem::IFile* file_, const bool is_entry_point_)
     const auto header = stream->Read<NroHeader>();
 
     // Validate
-    ASSERT_THROWING(header.magic == make_magic4('N', 'R', 'O', '0'), Loader,
-                    Error::InvalidMagic, "Invalid NRO magic \"{}\"",
-                    header.magic);
+    ASSERT(header.magic == make_magic4('N', 'R', 'O', '0'), Loader,
+           "Invalid NRO magic \"{}\"", header.magic);
 
     size = header.size;
     sections[0] = header.GetSection(NroSectionType::Text);

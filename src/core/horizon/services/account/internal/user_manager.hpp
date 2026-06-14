@@ -13,12 +13,6 @@ struct Avatar {
 
 class UserManager {
   public:
-    enum class Error {
-        InvalidHusrMagic,
-        InvalidHusrVersion,
-        InvalidHusrHeaderSize,
-    };
-
     UserManager();
     ~UserManager() { Flush(); }
 
