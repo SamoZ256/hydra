@@ -69,8 +69,8 @@ result_t INvDrvServices::Ioctl(System* system, kernel::Process* process,
                                NvResult* out_result,
                                OutBuffer<BufferAttr::AutoSelect> out_buffer) {
     return IoctlImpl(&ioctl::FdBase::Ioctl, *system, process, fd_id, code,
-                     in_buffer.stream, nullptr, out_buffer.stream, nullptr,
-                     out_result);
+                     in_buffer.stream, std::nullopt, out_buffer.stream,
+                     std::nullopt, out_result);
 }
 
 result_t INvDrvServices::Close(u32 fd_id, u32* out_err) {
@@ -123,7 +123,7 @@ result_t INvDrvServices::Ioctl2(System* system, kernel::Process* process,
                                 OutBuffer<BufferAttr::AutoSelect> out_buffer) {
     return IoctlImpl(&ioctl::FdBase::Ioctl2, *system, process, fd_id, code,
                      in_buffer1.stream, in_buffer2.stream, out_buffer.stream,
-                     nullptr, out_result);
+                     std::nullopt, out_result);
 }
 
 result_t INvDrvServices::Ioctl3(System* system, kernel::Process* process,
@@ -133,7 +133,7 @@ result_t INvDrvServices::Ioctl3(System* system, kernel::Process* process,
                                 OutBuffer<BufferAttr::AutoSelect> out_buffer1,
                                 OutBuffer<BufferAttr::AutoSelect> out_buffer2) {
     return IoctlImpl(&ioctl::FdBase::Ioctl3, *system, process, fd_id, code,
-                     in_buffer.stream, nullptr, out_buffer1.stream,
+                     in_buffer.stream, std::nullopt, out_buffer1.stream,
                      out_buffer2.stream, out_result);
 }
 
@@ -141,9 +141,10 @@ result_t INvDrvServices::IoctlImpl(
     NvResult (ioctl::FdBase::*func)(ioctl::IoctlContext& context, u32 type,
                                     u32 nr),
     System& system, kernel::Process* process, handle_id_t fd_id, u32 code,
-    io::MemoryStream* in_stream, io::MemoryStream* in_buffer_stream,
-    io::MemoryStream* out_stream, io::MemoryStream* out_buffer_stream,
-    NvResult* out_result) {
+    std::optional<io::MemoryStream> in_stream,
+    std::optional<io::MemoryStream> in_buffer_stream,
+    std::optional<io::MemoryStream> out_stream,
+    std::optional<io::MemoryStream> out_buffer_stream, NvResult* out_result) {
     auto fd = fd_pool.Get(fd_id);
 
     // Dispatch

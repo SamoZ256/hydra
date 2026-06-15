@@ -47,9 +47,9 @@ class IAudioRenderer : public IService {
                       OutBuffer<BufferAttr::AutoSelect> out_perf_buffer);
 
     // Impl
-    result_t RequestUpdateImpl(io::MemoryStream* in_stream,
-                               io::MemoryStream* out_stream,
-                               io::MemoryStream* out_perf_stream);
+    result_t RequestUpdateImpl(std::optional<io::MemoryStream> in_stream,
+                               std::optional<io::MemoryStream> out_stream,
+                               std::optional<io::MemoryStream> out_perf_stream);
 };
 
 } // namespace hydra::horizon::services::audio

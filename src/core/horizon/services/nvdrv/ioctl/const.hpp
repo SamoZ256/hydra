@@ -54,10 +54,10 @@ namespace hydra::horizon::services::nvdrv::ioctl {
 struct IoctlContext {
     System& system;
     kernel::Process* process;
-    io::MemoryStream* in_stream;
-    io::MemoryStream* in_buffer_stream;
-    io::MemoryStream* out_stream;
-    io::MemoryStream* out_buffer_stream;
+    std::optional<io::MemoryStream> in_stream;
+    std::optional<io::MemoryStream> in_buffer_stream;
+    std::optional<io::MemoryStream> out_stream;
+    std::optional<io::MemoryStream> out_buffer_stream;
 };
 
 template <typename In, typename Out>

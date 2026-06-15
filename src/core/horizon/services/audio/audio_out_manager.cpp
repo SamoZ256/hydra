@@ -44,8 +44,8 @@ result_t IAudioOutManager::OpenAudioOutAuto(
                             out_device_name_buffer.stream);
 }
 
-result_t IAudioOutManager::ListAudioOutsImpl(u32* out_count,
-                                             io::MemoryStream* out_stream) {
+result_t IAudioOutManager::ListAudioOutsImpl(
+    u32* out_count, std::optional<io::MemoryStream> out_stream) {
     (void)out_stream;
 
     LOG_FUNC_STUBBED(Services);
@@ -57,9 +57,9 @@ result_t IAudioOutManager::ListAudioOutsImpl(u32* out_count,
 
 result_t IAudioOutManager::OpenAudioOutImpl(
     RequestContext* ctx, u32 sample_rate, u16 channel_count, u64 aruid,
-    io::MemoryStream* in_device_name_stream, u32* out_sample_rate,
+    std::optional<io::MemoryStream> in_device_name_stream, u32* out_sample_rate,
     u32* out_channel_count, PcmFormat* out_format, AudioOutState* out_state,
-    io::MemoryStream* out_device_name_stream) {
+    std::optional<io::MemoryStream> out_device_name_stream) {
     (void)aruid;
 
     [[maybe_unused]] const auto device_name_in =

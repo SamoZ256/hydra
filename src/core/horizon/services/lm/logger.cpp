@@ -47,14 +47,14 @@ enum class LogDataChunkKey {
 };
 
 // From Ryujinx
-bool TryReadUleb128(io::MemoryStream* stream, u32& result) {
+bool TryReadUleb128(io::MemoryStream& stream, u32& result) {
     result = 0;
     int count = 0;
     u8 encoded;
 
     do {
         // TODO: check if enough space
-        encoded = stream->Read<u8>();
+        encoded = stream.Read<u8>();
 
         result += static_cast<u32>(encoded & 0x7F) << (7 * count);
 
@@ -81,15 +81,16 @@ namespace hydra::horizon::services::lm {
 DEFINE_SERVICE_COMMAND_TABLE(ILogger, 0, Log)
 
 result_t ILogger::Log(InBuffer<BufferAttr::AutoSelect> buffer) {
-    auto stream = buffer.stream;
-    const auto header = stream->Read<LogPacketHeader>();
+    ASSIGN_OR_RETURN(auto stream, buffer.stream,
+                     RESULT_SUCCESS); // TODO: return error on failure?
+    const auto header = stream.Read<LogPacketHeader>();
 
     // From Ryujinx
     [[maybe_unused]] bool is_head_packet =
         any(header.flags & PacketFlags::Head);
     bool is_tail_packet = any(header.flags & PacketFlags::Tail);
 
-    while (stream->GetSeek() - sizeof(LogPacketHeader) <
+    while (stream.GetSeek() - sizeof(LogPacketHeader) <
            header.payload_size) { // TODO: correct?
         u32 key;
         u32 size;
@@ -97,7 +98,7 @@ result_t ILogger::Log(InBuffer<BufferAttr::AutoSelect> buffer) {
             return MAKE_RESULT(
                 Svc, kernel::Error::InvalidCombination); // TODO: module
 
-        const auto data = stream->ReadSpan<u8>(size);
+        const auto data = stream.ReadSpan<u8>(size);
 
 #define GET_DATA(type) *reinterpret_cast<const type*>(data.data())
 #define GET_STRING()                                                           \
@@ -105,7 +106,7 @@ result_t ILogger::Log(InBuffer<BufferAttr::AutoSelect> buffer) {
 
         switch (static_cast<LogDataChunkKey>(key)) {
         case LogDataChunkKey::Begin:
-            stream->SeekBy(size);
+            stream.SeekBy(size);
             continue;
         case LogDataChunkKey::End:
             break;
@@ -137,7 +138,7 @@ result_t ILogger::Log(InBuffer<BufferAttr::AutoSelect> buffer) {
             packet.time = GET_DATA(u64);
             break;
         case LogDataChunkKey::ProcessName:
-            LOG_NOT_IMPLEMENTED(Services, "ProcessName");
+            packet.process = GET_STRING();
             break;
         }
 
@@ -153,6 +154,9 @@ result_t ILogger::Log(InBuffer<BufferAttr::AutoSelect> buffer) {
             msg += fmt::format("- {} -> {}:{}, function {} in {}\n",
                                packet.program_name, packet.filename,
                                packet.line, packet.function, packet.module);
+        }
+        if (!packet.process.empty()) {
+            msg += fmt::format("- Process: {}\n", packet.process);
         }
         if (!packet.thread.empty()) {
             msg += fmt::format("- Thread: {}\n", packet.thread);

@@ -49,12 +49,12 @@ class InBuffer {
   public:
     static constexpr BufferAttr attr = attr_;
 
-    io::MemoryStream* stream;
+    std::optional<io::MemoryStream> stream;
 
-    InBuffer() : stream{nullptr} {}
-    InBuffer(io::MemoryStream* stream_) : stream{stream_} {}
+    InBuffer() : stream{std::nullopt} {}
+    InBuffer(std::optional<io::MemoryStream> stream_) : stream{stream_} {}
 
-    bool IsValid() const { return stream != nullptr; }
+    bool IsValid() const { return stream; }
 };
 
 template <BufferAttr attr_>
@@ -62,12 +62,12 @@ class OutBuffer {
   public:
     static constexpr BufferAttr attr = attr_;
 
-    io::MemoryStream* stream;
+    std::optional<io::MemoryStream> stream;
 
-    OutBuffer() : stream{nullptr} {}
-    OutBuffer(io::MemoryStream* stream_) : stream{stream_} {}
+    OutBuffer() : stream{std::nullopt} {}
+    OutBuffer(std::optional<io::MemoryStream> stream_) : stream{stream_} {}
 
-    bool IsValid() const { return stream != nullptr; }
+    bool IsValid() const { return stream; }
 };
 
 enum class HandleAttr {
@@ -227,22 +227,20 @@ void read_arg(RequestContext& context, Class& instance,
                      arg_index + 1>(context, instance, args);
             return;
         } else if constexpr (traits::type == ArgumentType::InBuffer) {
-            io::MemoryStream* stream = nullptr;
+            std::optional<io::MemoryStream> stream;
             if constexpr (Arg::attr == BufferAttr::AutoSelect) {
                 if (in_buffer_index <
                     context.streams.send_buffers_streams.size())
-                    stream = unwrap_or_null(
-                        context.streams.send_buffers_streams[in_buffer_index]);
+                    stream =
+                        context.streams.send_buffers_streams[in_buffer_index];
                 if (!stream && in_buffer_index <
                                    context.streams.send_statics_streams.size())
-                    stream = unwrap_or_null(
-                        context.streams.send_statics_streams[in_buffer_index]);
+                    stream =
+                        context.streams.send_statics_streams[in_buffer_index];
             } else if constexpr (Arg::attr == BufferAttr::MapAlias) {
-                stream = unwrap_or_null(
-                    context.streams.send_buffers_streams[in_buffer_index]);
+                stream = context.streams.send_buffers_streams[in_buffer_index];
             } else if constexpr (Arg::attr == BufferAttr::HipcPointer) {
-                stream = unwrap_or_null(
-                    context.streams.send_statics_streams[in_buffer_index]);
+                stream = context.streams.send_statics_streams[in_buffer_index];
             } else {
                 LOG_FATAL(Services, "Invalid in buffer args");
             }
@@ -254,22 +252,20 @@ void read_arg(RequestContext& context, Class& instance,
                      out_buffer_index, arg_index + 1>(context, instance, args);
             return;
         } else if constexpr (traits::type == ArgumentType::OutBuffer) {
-            io::MemoryStream* stream = nullptr;
+            std::optional<io::MemoryStream> stream;
             if constexpr (Arg::attr == BufferAttr::AutoSelect) {
                 if (out_buffer_index <
                     context.streams.recv_buffers_streams.size())
-                    stream = unwrap_or_null(
-                        context.streams.recv_buffers_streams[out_buffer_index]);
+                    stream =
+                        context.streams.recv_buffers_streams[out_buffer_index];
                 if (!stream &&
                     out_buffer_index < context.streams.recv_list_streams.size())
-                    stream = unwrap_or_null(
-                        context.streams.recv_list_streams[out_buffer_index]);
+                    stream =
+                        context.streams.recv_list_streams[out_buffer_index];
             } else if constexpr (Arg::attr == BufferAttr::MapAlias) {
-                stream = unwrap_or_null(
-                    context.streams.recv_buffers_streams[out_buffer_index]);
+                stream = context.streams.recv_buffers_streams[out_buffer_index];
             } else if constexpr (Arg::attr == BufferAttr::HipcPointer) {
-                stream = unwrap_or_null(
-                    context.streams.recv_list_streams[out_buffer_index]);
+                stream = context.streams.recv_list_streams[out_buffer_index];
             } else {
                 LOG_FATAL(Services, "Invalid out buffer args");
             }

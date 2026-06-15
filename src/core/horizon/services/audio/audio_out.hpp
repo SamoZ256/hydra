@@ -52,12 +52,11 @@ class IAudioOut : public IService {
         u32* out_count, OutBuffer<BufferAttr::AutoSelect> out_buffers_buffer);
 
     // Impl
-    result_t AppendAudioOutBufferImpl(kernel::Process* process,
-                                      u64 buffer_client_ptr,
-                                      io::MemoryStream* in_buffer_stream);
     result_t
-    GetReleasedAudioOutBuffersImpl(u32* out_count,
-                                   io::MemoryStream* out_buffers_stream);
+    AppendAudioOutBufferImpl(kernel::Process* process, u64 buffer_client_ptr,
+                             std::optional<io::MemoryStream> in_buffer_stream);
+    result_t GetReleasedAudioOutBuffersImpl(
+        u32* out_count, std::optional<io::MemoryStream> out_buffers_stream);
 };
 
 } // namespace hydra::horizon::services::audio

@@ -23,7 +23,6 @@
 #include "common/literals.hpp"
 #include "common/log.hpp"
 #include "common/objc.hpp"
-#include "common/optional_helper.hpp"
 #include "common/platform.hpp"
 #include "common/range.hpp"
 #include "common/small_cache.hpp"

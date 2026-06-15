@@ -205,9 +205,10 @@ result_t IAudioRenderer::RequestUpdateAuto(
                              out_perf_buffer.stream);
 }
 
-result_t IAudioRenderer::RequestUpdateImpl(io::MemoryStream* in_stream,
-                                           io::MemoryStream* out_stream,
-                                           io::MemoryStream* out_perf_stream) {
+result_t IAudioRenderer::RequestUpdateImpl(
+    std::optional<io::MemoryStream> in_stream,
+    std::optional<io::MemoryStream> out_stream,
+    std::optional<io::MemoryStream> out_perf_stream) {
     ONCE(LOG_FUNC_STUBBED(Services));
 
     // Header

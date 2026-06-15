@@ -58,7 +58,7 @@ constexpr u32 D3D11_BLEND_OP_MAX = 5;
 
 renderer::BlendOperation get_blend_operation(u32 blend_op) {
     switch (blend_op) {
-        // GL
+    // GL
     case GL_MIN:
         return renderer::BlendOperation::Min;
     case GL_MAX:

@@ -8,7 +8,6 @@ add_library(hydra-common
     functions.hpp
     atomic.hpp
     literals.hpp
-    optional_helper.hpp
     string.hpp
     time.hpp
     hash.hpp

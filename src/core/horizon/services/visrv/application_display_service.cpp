@@ -140,7 +140,7 @@ result_t IApplicationDisplayService::OpenLayer(
     layer.Open();
 
     // Parcel
-    hosbinder::ParcelWriter parcel_writer(parcel_buffer.stream);
+    hosbinder::ParcelWriter parcel_writer(parcel_buffer.stream.value());
     parcel_writer.WriteObject(layer.GetBinderID(), "dispdrv"_u64);
     parcel_writer.Finish();
 
