@@ -56,15 +56,13 @@ FsResult Directory::Delete(bool recursive) {
             continue;
 
         if (entry.second->IsDirectory()) {
-            auto dir = dynamic_cast<Directory*>(entry.second);
-            ASSERT_DEBUG(dir, Filesystem, "This should not happen");
+            auto dir = static_cast<Directory*>(entry.second);
             const auto res = dir->Delete(true);
             if (res != FsResult::Success)
                 return res;
             delete dir;
         } else {
-            auto file = dynamic_cast<IFile*>(entry.second);
-            ASSERT_DEBUG(file, Filesystem, "This should not happen");
+            auto file = static_cast<IFile*>(entry.second);
             const auto res = file->Delete();
             if (res != FsResult::Success)
                 return res;
@@ -132,9 +130,9 @@ FsResult Directory::GetFile(const std::string_view path,
     if (res != FsResult::Success)
         return res;
 
-    out_file = dynamic_cast<IFile*>(entry);
-    if (!out_file)
+    if (!entry->IsFile())
         return FsResult::NotAFile;
+    out_file = static_cast<IFile*>(entry);
 
     return FsResult::Success;
 }
@@ -146,9 +144,9 @@ FsResult Directory::GetDirectory(const std::string_view path,
     if (res != FsResult::Success)
         return res;
 
-    out_directory = dynamic_cast<Directory*>(entry);
-    if (!out_directory)
+    if (!entry->IsDirectory())
         return FsResult::NotADirectory;
+    out_directory = static_cast<Directory*>(entry);
 
     return FsResult::Success;
 }
@@ -174,9 +172,9 @@ FsResult Directory::AddEntryImpl(const std::span<std::string_view> path,
             }
         }
 
-        auto sub_dir = dynamic_cast<Directory*>(e);
-        if (!sub_dir)
+        if (!e->IsDirectory())
             return FsResult::NotADirectory;
+        auto sub_dir = static_cast<Directory*>(e);
 
         return sub_dir->AddEntryImpl(path.subspan(1), entry, add_intermediate);
     }
@@ -202,9 +200,9 @@ FsResult Directory::DeleteEntryImpl(const std::span<std::string_view> path,
         if (it == entries.end())
             return FsResult::DoesNotExist;
 
-        auto sub_dir = dynamic_cast<Directory*>(it->second);
-        if (!sub_dir)
+        if (!it->second->IsDirectory())
             return FsResult::NotADirectory;
+        auto sub_dir = static_cast<Directory*>(it->second);
 
         return sub_dir->DeleteEntryImpl(path.subspan(1), recursive);
     }
@@ -224,9 +222,9 @@ FsResult Directory::GetEntryImpl(const std::span<std::string_view> path,
         if (it == entries.end())
             return FsResult::DoesNotExist;
 
-        auto sub_dir = dynamic_cast<Directory*>(it->second);
-        if (!sub_dir)
+        if (!it->second->IsDirectory())
             return FsResult::NotADirectory;
+        auto sub_dir = static_cast<Directory*>(it->second);
 
         return sub_dir->GetEntryImpl(path.subspan(1), out_entry);
     }

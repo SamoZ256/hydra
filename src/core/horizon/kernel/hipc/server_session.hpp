@@ -20,8 +20,10 @@ struct SessionRequest {
 // TODO: should maintain a reference to the parent session
 class ServerSession : public SynchronizationObject {
   public:
+    static constexpr AutoObjectTypeId TYPE_ID = AutoObjectTypeId::ServerSession;
+
     ServerSession(const std::string_view debug_name = "Server session")
-        : SynchronizationObject(false, debug_name) {}
+        : SynchronizationObject(TYPE_ID, false, debug_name) {}
     ~ServerSession() override;
 
     void OnClientClose();

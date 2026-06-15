@@ -10,6 +10,8 @@ class ClientPort;
 // TODO: implement same lifetime management logic as sessions
 class Port : public AutoObject {
   public:
+    static constexpr AutoObjectTypeId TYPE_ID = AutoObjectTypeId::Port;
+
     Port(ServerPort* server_side_, ClientPort* client_side_,
          const std::string_view debug_name = "Port");
 

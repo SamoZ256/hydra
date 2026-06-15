@@ -132,8 +132,16 @@ set(BUILD_TZ_LIB ON)
 add_subdirectory(externals/date)
 
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
-add_library(hydra_warnings INTERFACE)
-target_compile_options(hydra_warnings INTERFACE
+add_library(hydra_compile_options INTERFACE)
+target_compile_options(hydra_compile_options INTERFACE
+    # TODO: uncomment
+    #-fno-exceptions
+    #-fno-asynchronous-unwind-tables
+    -fno-rtti
+    # TODO: uncomment
+    #-fno-threadsafe-statics
+    -fvisibility=hidden
+
     # Warnings
     -Wall
     -Wextra

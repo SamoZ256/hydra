@@ -23,9 +23,7 @@ result_t ILibraryAppletSelfAccessor::PopInData(RequestContext* ctx,
 
 result_t ILibraryAppletSelfAccessor::PushOutData(System* system,
                                                  IService* storage_) {
-    auto storage = dynamic_cast<IStorage*>(storage_);
-    ASSERT_DEBUG(storage, Services, "Storage is not of type IStorage");
-
+    auto storage = static_cast<IStorage*>(storage_);
     CONTROLLER->PushOutData(storage);
     return RESULT_SUCCESS;
 }
@@ -39,9 +37,7 @@ result_t ILibraryAppletSelfAccessor::PopInteractiveInData(RequestContext* ctx,
 result_t
 ILibraryAppletSelfAccessor::PushInteractiveOutData(System* system,
                                                    IService* storage_) {
-    auto storage = dynamic_cast<IStorage*>(storage_);
-    ASSERT_DEBUG(storage, Services, "Storage is not of type IStorage");
-
+    auto storage = static_cast<IStorage*>(storage_);
     CONTROLLER->PushInteractiveOutData(storage);
     return RESULT_SUCCESS;
 }

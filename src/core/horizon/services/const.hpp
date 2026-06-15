@@ -318,8 +318,7 @@ void read_arg(RequestContext& context, Class& instance,
                          "Objects stream is null");
             auto service_handle_id =
                 context.streams.in_objects_stream->Read<handle_id_t>();
-            arg = dynamic_cast<Arg>(
-                instance.GetService(context, service_handle_id));
+            arg = instance.GetService(context, service_handle_id);
             ASSERT_DEBUG(arg, Services, "Invalid service");
 
             // Next

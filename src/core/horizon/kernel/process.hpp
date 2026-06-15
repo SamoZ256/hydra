@@ -38,6 +38,8 @@ struct CodeSet {
 
 class Process : public SynchronizationObject {
   public:
+    static constexpr AutoObjectTypeId TYPE_ID = AutoObjectTypeId::Process;
+
     Process(System& system_, const std::string_view debug_name = "Process");
     ~Process() override;
 
@@ -105,10 +107,7 @@ class Process : public SynchronizationObject {
             obj = handle_pool.Get(handle_id);
         }
 
-        auto cast_obj = dynamic_cast<T*>(obj);
-        ASSERT_DEBUG(cast_obj != nullptr, Kernel, "Invalid handle type");
-
-        return cast_obj;
+        return static_cast<T*>(obj);
     }
 
     handle_id_t AddHandleNoRetain(AutoObject* obj) {

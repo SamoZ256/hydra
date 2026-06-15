@@ -9,8 +9,8 @@ namespace hydra::horizon::kernel::hipc {
 
 Session::Session(ServerSession* server_side_, ClientSession* client_side_,
                  const std::string_view debug_name)
-    : AutoObject(debug_name), server_side{server_side_}, client_side{
-                                                             client_side_} {
+    : AutoObject(TYPE_ID, debug_name), server_side{server_side_},
+      client_side{client_side_} {
     server_side->SetParent(this);
     client_side->SetParent(this);
 }

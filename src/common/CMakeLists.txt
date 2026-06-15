@@ -35,7 +35,7 @@ add_library(hydra-common
     io/sparse_stream.hpp
 )
 
-target_link_libraries(hydra-common PRIVATE hydra_warnings)
+target_link_libraries(hydra-common PRIVATE hydra_compile_options)
 target_link_libraries(hydra-common PUBLIC fmt::fmt toml11::toml11)
 
 target_precompile_headers(hydra-common PUBLIC common.hpp)

@@ -1267,7 +1267,8 @@ result_t Kernel::ReplyAndReceive(IThread* crnt_thread,
         return res;
 
     auto sync_obj = sync_objs[static_cast<usize>(out_signalled_index)];
-    if (auto server_session = dynamic_cast<hipc::ServerSession*>(sync_obj)) {
+    if (sync_obj->IsOfType<hipc::ServerSession>()) {
+        auto server_session = static_cast<hipc::ServerSession*>(sync_obj);
         if (server_session->IsClientOpen()) {
             // Receive
             server_session->Receive(crnt_thread);

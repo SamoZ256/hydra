@@ -13,6 +13,8 @@ namespace hydra::horizon::kernel {
 
 class SharedMemory : public AutoObject {
   public:
+    static constexpr AutoObjectTypeId TYPE_ID = AutoObjectTypeId::SharedMemory;
+
     SharedMemory(hw::tegra_x1::cpu::ICpu& cpu, u64 size,
                  const std::string_view debug_name = "SharedMemory");
     ~SharedMemory() override;

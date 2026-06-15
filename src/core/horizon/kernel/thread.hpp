@@ -41,9 +41,11 @@ class IThread : public SynchronizationObject {
     friend class Kernel;
 
   public:
+    static constexpr AutoObjectTypeId TYPE_ID = AutoObjectTypeId::Thread;
+
     IThread(Process* process_, i32 priority_,
             const std::string_view debug_name = "Thread")
-        : SynchronizationObject(false, debug_name), process{process_},
+        : SynchronizationObject(TYPE_ID, false, debug_name), process{process_},
           priority{priority_} {}
     virtual ~IThread() override;
 

@@ -99,8 +99,8 @@ void NcaLoader::LoadCode(System& system, kernel::Process* process,
         entry_point = "main";
 
     for (const auto& [filename, entry] : dir->GetEntries()) {
-        auto file = dynamic_cast<filesystem::IFile*>(entry);
-        ASSERT(file, Loader, "Code entry is not a file");
+        ASSERT(entry->IsFile(), Loader, "Code entry is not a file");
+        auto file = static_cast<filesystem::IFile*>(entry);
         if (filename == "main.npdm") {
             // Do nothing
         } else {

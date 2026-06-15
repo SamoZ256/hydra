@@ -13,6 +13,8 @@ class ClientSession;
 
 class Session : public AutoObject {
   public:
+    static constexpr AutoObjectTypeId TYPE_ID = AutoObjectTypeId::Session;
+
     Session(ServerSession* server_side_, ClientSession* client_side_,
             const std::string_view debug_name = "Session");
 

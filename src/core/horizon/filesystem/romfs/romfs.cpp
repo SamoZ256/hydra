@@ -29,8 +29,8 @@ RomFS::RomFS(IFile* file) {
     ASSERT(res == FsResult::Success, Filesystem,
            "Failed to get root romFS directory: {}", res);
 
-    auto root_dir = dynamic_cast<Directory*>(root);
-    ASSERT(root_dir != nullptr, Filesystem, "Root entry is not a directory");
+    ASSERT(root->IsDirectory(), Filesystem, "Root entry is not a directory");
+    auto root_dir = static_cast<Directory*>(root);
 
     for (const auto& [name, entry] : root_dir->GetEntries()) {
         res = AddEntry(name, entry);

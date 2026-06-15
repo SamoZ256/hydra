@@ -9,8 +9,10 @@ class Session;
 // TODO: should maintain a reference to the parent session
 class ClientSession : public AutoObject {
   public:
+    static constexpr AutoObjectTypeId TYPE_ID = AutoObjectTypeId::ClientSession;
+
     ClientSession(const std::string_view debug_name = "Client session")
-        : AutoObject(debug_name) {}
+        : AutoObject(TYPE_ID, debug_name) {}
     ~ClientSession() override;
 
     void OnServerClose() { server_open = false; }

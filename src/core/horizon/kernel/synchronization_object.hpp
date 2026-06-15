@@ -11,9 +11,9 @@ typedef std::function<void()> signal_callback_fn_t;
 class SynchronizationObject : public AutoObject {
   public:
     SynchronizationObject(
-        bool signalled_ = false,
+        AutoObjectTypeId type_id, bool signalled_ = false,
         const std::string_view debug_name = "SynchronizationObject")
-        : AutoObject(debug_name), signalled{signalled_} {}
+        : AutoObject(type_id, debug_name), signalled{signalled_} {}
 
     void AddWaitingThread(IThread* thread);
     void RemoveWaitingThread(IThread* thread);
