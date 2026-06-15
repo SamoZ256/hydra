@@ -77,7 +77,8 @@ std::expected<Plugin, Plugin::Error> Plugin::Create(const std::string& path) {
     Plugin plugin;
 
     plugin.library = dlopen(path.data(), RTLD_LAZY);
-    ASSERT_RETURNING(plugin.library, std::unexpected(Error::LoadFailed));
+    if (!plugin.library)
+        return std::unexpected(Error::LoadFailed);
 
     // Functions
     plugin.get_api_version = plugin.LoadFunction<api::Function::GetApiVersion,
@@ -114,8 +115,8 @@ std::expected<Plugin, Plugin::Error> Plugin::Create(const std::string& path) {
                                                  api::StreamReadRawFnT>();
 
     // API version
-    ASSERT_RETURNING(plugin.GetApiVersion() == 1,
-                     std::unexpected(Error::UnsupportedApiVersion));
+    if (plugin.GetApiVersion() != 1)
+        return std::unexpected(Error::UnsupportedApiVersion);
 
     // Info
     plugin.name = plugin.QueryString(api::QueryType::Name);
@@ -169,16 +170,14 @@ Plugin::Create(const std::string& path,
             // Verify that all required options are present
             for (const auto& config : plugin.option_configs) {
                 if (config.is_required) {
-                    ASSERT_RETURNING(options.contains(std::string(config.name)),
-                                     std::unexpected(Error::InvalidOptions));
+                    if (!options.contains(std::string(config.name)))
+                        return std::unexpected(Error::InvalidOptions);
                 }
             }
 
             // Create context
-            const auto context = plugin.CreateContext(options);
-            ASSERT_RETURNING(context.has_value(),
-                             std::unexpected(context.error()));
-            plugin.context = context.value();
+            ASSIGN_OR_RETURN_ERROR(plugin.context,
+                                   plugin.CreateContext(options));
 
             return plugin;
         });
@@ -220,8 +219,9 @@ Plugin::CreateContext(const std::map<std::string, std::string>& options) {
     }
     const auto ret =
         create_context(api::Slice(std::span<const api::Option>(options_vec)));
-    ASSERT_RETURNING(ret.res == api::CreateContextResult::Success && ret.value,
-                     std::unexpected(Error::ContextCreationFailed));
+    if (ret.res != api::CreateContextResult::Success || !ret.value)
+        return std::unexpected(Error::ContextCreationFailed);
+
     return ret.value;
 }
 

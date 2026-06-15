@@ -134,6 +134,7 @@ add_subdirectory(externals/date)
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 add_library(hydra_warnings INTERFACE)
 target_compile_options(hydra_warnings INTERFACE
+    # Warnings
     -Wall
     -Wextra
     -Wpedantic

@@ -65,7 +65,8 @@ class Gpu {
 
     // Engines
     std::optional<engines::EngineBase*> GetEngineAtSubchannel(u32 subchannel) {
-        ASSERT_RETURNING(subchannel <= SUBCHANNEL_COUNT, std::nullopt);
+        if (subchannel > SUBCHANNEL_COUNT)
+            return std::nullopt;
         return subchannels[subchannel];
     }
 

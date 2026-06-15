@@ -33,7 +33,7 @@ result_t Applet::Run(System& system) {
             output_text_utf8);
         const auto output_text_opt = Utf8ToUtf16(output_text_utf8);
         ASSERT(output_text_opt.has_value(), Applets,
-               "Failed to convert UTF-8 to UTF-16: {}", output_text_utf8)
+               "Failed to convert UTF-8 to UTF-16: {}", output_text_utf8);
         output_text = output_text_opt.value();
 
         if (!config.text_check_enabled)

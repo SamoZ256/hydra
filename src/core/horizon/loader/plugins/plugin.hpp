@@ -41,7 +41,7 @@ class Plugin {
     };
 
     // HACK: need to accept const std::string& instead of std::string_view, as
-    // dlopen need a null-terminated string
+    // dlopen needs a null-terminated string
     static std::expected<Plugin, Error> Create(const std::string& path);
     static std::expected<Plugin, Error>
     Create(const std::string& path,
@@ -49,56 +49,23 @@ class Plugin {
 
     Plugin() = default;
     ~Plugin();
-    Plugin(Plugin&& other)
-        : library{std::exchange(other.library, nullptr)},
-          get_api_version{other.get_api_version}, query{other.query},
-          create_context{other.create_context},
-          destroy_context{other.destroy_context},
-          create_loader_from_file{other.create_loader_from_file},
-          loader_destroy{other.loader_destroy},
-          file_destroy{other.file_destroy}, file_open{other.file_open},
-          file_get_size{other.file_get_size},
-          stream_destroy{other.stream_destroy},
-          stream_get_seek{other.stream_get_seek},
-          stream_seek_to{other.stream_seek_to},
-          stream_seek_by{other.stream_seek_by},
-          stream_get_size{other.stream_get_size},
-          stream_read_raw{other.stream_read_raw}, name{other.name},
-          display_version{other.display_version}, supported_formats{std::move(
-                                                      other.supported_formats)},
-          option_configs{std::move(other.option_configs)},
-          context{std::exchange(other.context, nullptr)} {}
-    Plugin& operator=(Plugin&& other) {
-        if (this != &other) {
-            Plugin temp(std::move(other));
-            swap(*this, temp);
-        }
-        return *this;
-    }
 
-    friend void swap(Plugin& a, Plugin& b) {
-        std::swap(a.library, b.library);
-        std::swap(a.get_api_version, b.get_api_version);
-        std::swap(a.query, b.query);
-        std::swap(a.create_context, b.create_context);
-        std::swap(a.destroy_context, b.destroy_context);
-        std::swap(a.create_loader_from_file, b.create_loader_from_file);
-        std::swap(a.loader_destroy, b.loader_destroy);
-        std::swap(a.file_destroy, b.file_destroy);
-        std::swap(a.file_open, b.file_open);
-        std::swap(a.file_get_size, b.file_get_size);
-        std::swap(a.stream_destroy, b.stream_destroy);
-        std::swap(a.stream_get_seek, b.stream_get_seek);
-        std::swap(a.stream_seek_to, b.stream_seek_to);
-        std::swap(a.stream_seek_by, b.stream_seek_by);
-        std::swap(a.stream_get_size, b.stream_get_size);
-        std::swap(a.stream_read_raw, b.stream_read_raw);
-        std::swap(a.name, b.name);
-        std::swap(a.display_version, b.display_version);
-        std::swap(a.supported_formats, b.supported_formats);
-        std::swap(a.option_configs, b.option_configs);
-        std::swap(a.context, b.context);
-    }
+    MAKE_NON_COPYABLE(Plugin);
+    MAKE_MOVABLE(Plugin, library, std::exchange(other.library, nullptr),
+                 get_api_version, other.get_api_version, query, other.query,
+                 create_context, other.create_context, destroy_context,
+                 other.destroy_context, create_loader_from_file,
+                 other.create_loader_from_file, loader_destroy,
+                 other.loader_destroy, file_destroy, other.file_destroy,
+                 file_open, other.file_open, file_get_size, other.file_get_size,
+                 stream_destroy, other.stream_destroy, stream_get_seek,
+                 other.stream_get_seek, stream_seek_to, other.stream_seek_to,
+                 stream_seek_by, other.stream_seek_by, stream_get_size,
+                 other.stream_get_size, stream_read_raw, other.stream_read_raw,
+                 name, other.name, display_version, other.display_version,
+                 supported_formats, std::move(other.supported_formats),
+                 option_configs, std::move(other.option_configs), context,
+                 std::exchange(other.context, nullptr));
 
     std::optional<NxLoader*> Load(std::string_view path);
 

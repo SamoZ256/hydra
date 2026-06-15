@@ -4,10 +4,19 @@
 
 #define sizeof_array(array) (sizeof(array) / sizeof(array[0]))
 
-#define ASSERT_RETURNING(condition, ret)                                       \
-    if (!(condition)) {                                                        \
+#define CONCAT_IMPL(a, b) a##b
+#define CONCAT(a, b) CONCAT_IMPL(a, b)
+
+#define UNIQUE_SUFFIX(var) CONCAT(var, __LINE__)
+
+#define ASSIGN_OR_RETURN(var, expected, ret)                                   \
+    const auto UNIQUE_SUFFIX(_) = expected;                                    \
+    if (!UNIQUE_SUFFIX(_).has_value())                                         \
         return ret;                                                            \
-    }
+    var = UNIQUE_SUFFIX(_).value();
+
+#define ASSIGN_OR_RETURN_ERROR(var, expected)                                  \
+    ASSIGN_OR_RETURN(var, expected, std::unexpected(expected.error()))
 
 #define ONCE(code)                                                             \
     {                                                                          \
@@ -27,61 +36,70 @@
 #define BIT(n) (1u << (n))
 #define BITL(n) (1ul << (n))
 
-#define UNDERLYING(t) std::underlying_type_t<t>
-
 #define ENABLE_ENUM_ARITHMETIC_OPERATORS(type)                                 \
     [[maybe_unused]] inline type operator+(type a, type b) {                   \
-        return static_cast<type>(static_cast<UNDERLYING(type)>(a) +            \
-                                 static_cast<UNDERLYING(type)>(b));            \
+        return static_cast<type>(                                              \
+            static_cast<std::underlying_type_t<type>>(a) +                     \
+            static_cast<std::underlying_type_t<type>>(b));                     \
     }                                                                          \
     [[maybe_unused]] inline type operator-(type a, type b) {                   \
-        return static_cast<type>(static_cast<UNDERLYING(type)>(a) -            \
-                                 static_cast<UNDERLYING(type)>(b));            \
+        return static_cast<type>(                                              \
+            static_cast<std::underlying_type_t<type>>(a) -                     \
+            static_cast<std::underlying_type_t<type>>(b));                     \
     }                                                                          \
     [[maybe_unused]] inline type operator*(type a, type b) {                   \
-        return static_cast<type>(static_cast<UNDERLYING(type)>(a) *            \
-                                 static_cast<UNDERLYING(type)>(b));            \
+        return static_cast<type>(                                              \
+            static_cast<std::underlying_type_t<type>>(a) *                     \
+            static_cast<std::underlying_type_t<type>>(b));                     \
     }                                                                          \
     [[maybe_unused]] inline type operator/(type a, type b) {                   \
-        return static_cast<type>(static_cast<UNDERLYING(type)>(a) /            \
-                                 static_cast<UNDERLYING(type)>(b));            \
+        return static_cast<type>(                                              \
+            static_cast<std::underlying_type_t<type>>(a) /                     \
+            static_cast<std::underlying_type_t<type>>(b));                     \
     }                                                                          \
     [[maybe_unused]] inline type operator++(type& x, i32) {                    \
         const auto tmp = x;                                                    \
-        x = static_cast<type>(static_cast<UNDERLYING(type)>(x) + 1);           \
+        x = static_cast<type>(static_cast<std::underlying_type_t<type>>(x) +   \
+                              1);                                              \
         return tmp;                                                            \
     }                                                                          \
     [[maybe_unused]] inline type operator--(type& x, i32) {                    \
         const auto tmp = x;                                                    \
-        x = static_cast<type>(static_cast<UNDERLYING(type)>(x) - 1);           \
+        x = static_cast<type>(static_cast<std::underlying_type_t<type>>(x) -   \
+                              1);                                              \
         return tmp;                                                            \
     }                                                                          \
     [[maybe_unused]] inline type& operator++(type& x) {                        \
-        x = static_cast<type>(static_cast<UNDERLYING(type)>(x) + 1);           \
+        x = static_cast<type>(static_cast<std::underlying_type_t<type>>(x) +   \
+                              1);                                              \
         return x;                                                              \
     }                                                                          \
     [[maybe_unused]] inline type& operator--(type& x) {                        \
-        x = static_cast<type>(static_cast<UNDERLYING(type)>(x) - 1);           \
+        x = static_cast<type>(static_cast<std::underlying_type_t<type>>(x) -   \
+                              1);                                              \
         return x;                                                              \
     }
 
 #define ENABLE_ENUM_BITWISE_OPERATORS(type)                                    \
     [[maybe_unused]] inline type operator|(type a, type b) {                   \
-        return static_cast<type>(static_cast<UNDERLYING(type)>(a) |            \
-                                 static_cast<UNDERLYING(type)>(b));            \
+        return static_cast<type>(                                              \
+            static_cast<std::underlying_type_t<type>>(a) |                     \
+            static_cast<std::underlying_type_t<type>>(b));                     \
     }                                                                          \
     [[maybe_unused]] inline type& operator|=(type& a, type b) {                \
         return a = a | b;                                                      \
     }                                                                          \
     [[maybe_unused]] inline type operator&(type a, type b) {                   \
-        return static_cast<type>(static_cast<UNDERLYING(type)>(a) &            \
-                                 static_cast<UNDERLYING(type)>(b));            \
+        return static_cast<type>(                                              \
+            static_cast<std::underlying_type_t<type>>(a) &                     \
+            static_cast<std::underlying_type_t<type>>(b));                     \
     }                                                                          \
     [[maybe_unused]] inline type& operator&=(type& a, type b) {                \
         return a = a & b;                                                      \
     }                                                                          \
     [[maybe_unused]] inline type operator~(type a) {                           \
-        return static_cast<type>(~static_cast<UNDERLYING(type)>(a));           \
+        return static_cast<type>(                                              \
+            ~static_cast<std::underlying_type_t<type>>(a));                    \
     }                                                                          \
     [[maybe_unused]] inline bool any(type a) { return a != type::None; }
 
@@ -264,3 +282,32 @@
             return formatter<string_view>::format(name, ctx);                  \
         }                                                                      \
     };
+
+#define MAKE_NON_COPYABLE(type)                                                \
+    type(const type&) = delete;                                                \
+    type& operator=(const type&) = delete;
+
+#define SWAP_CASE(member) std::swap(a.member, b.member);
+
+#define MAKE_MOVE_ASSIGNABLE(type, ...)                                        \
+    type& operator=(type&& other) {                                            \
+        if (this != &other) {                                                  \
+            type temp(std::move(other));                                       \
+            swap(*this, temp);                                                 \
+        }                                                                      \
+        return *this;                                                          \
+    }                                                                          \
+    friend void swap(type& a, type& b) { FOR_EACH_0_1(SWAP_CASE, __VA_ARGS__) }
+
+#define MOVE_CASE(member, value)                                               \
+    , member { value }
+#define MOVE_MEMBERS(member1, value1, ...)                                     \
+    member1{value1} FOR_EACH_0_2(MOVE_CASE, __VA_ARGS__)
+
+#define PASS_TO_MAKE_MOVE_ASSIGNABLE_CASE(member, value) , member
+#define PASS_TO_MAKE_MOVE_ASSIGNABLE(member1, value1, ...)                     \
+    member1 FOR_EACH_0_2(PASS_TO_MAKE_MOVE_ASSIGNABLE_CASE, __VA_ARGS__)
+
+#define MAKE_MOVABLE(type, ...)                                                \
+    type(type&& other) : MOVE_MEMBERS(__VA_ARGS__) {}                          \
+    MAKE_MOVE_ASSIGNABLE(type, PASS_TO_MAKE_MOVE_ASSIGNABLE(__VA_ARGS__))

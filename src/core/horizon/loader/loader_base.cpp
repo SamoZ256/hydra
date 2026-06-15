@@ -74,24 +74,27 @@ uchar4* LoadGIF(filesystem::IFile* file,
 
 } // namespace
 
-std::optional<LoaderBase*>
-LoaderBase::CreateFromPath(std::string_view path,
-                           std::optional<plugins::Manager*> plugin_manager_opt) {
+std::optional<LoaderBase*> LoaderBase::CreateFromPath(
+    std::string_view path,
+    std::optional<plugins::Manager*> plugin_manager_opt) {
     while (path.back() == '/') {
         path.remove_suffix(1);
     }
 
     // Check if the path exists
-    ASSERT_RETURNING(std::filesystem::exists(path), std::nullopt);
+    if (!std::filesystem::exists(path))
+        return std::nullopt;
 
     // Create loader
     const auto ext = std::string_view(path).substr(path.find_last_of("."));
     if (ext == ".nx") {
-        ASSERT_RETURNING(std::filesystem::is_directory(path), std::nullopt);
+        if (!std::filesystem::is_directory(path))
+            return std::nullopt;
         const auto dir = new horizon::filesystem::Directory(path);
         return new horizon::loader::NxLoader(*dir);
     } else {
-        ASSERT_RETURNING(std::filesystem::is_regular_file(path), std::nullopt);
+        if (!std::filesystem::is_regular_file(path))
+            return std::nullopt;
         const auto file = new horizon::filesystem::DiskFile(path);
         if (ext == ".nro") {
             // Assumes that all NROs are Homebrew
@@ -105,11 +108,14 @@ LoaderBase::CreateFromPath(std::string_view path,
             std::unique_ptr<plugins::Manager> tmp_plugin_manager;
             if (!plugin_manager_opt)
                 tmp_plugin_manager = std::make_unique<plugins::Manager>();
-            auto& plugin_manager = (plugin_manager_opt ? *plugin_manager_opt.value() : *tmp_plugin_manager.get());
+            auto& plugin_manager =
+                (plugin_manager_opt ? *plugin_manager_opt.value()
+                                    : *tmp_plugin_manager.get());
 
             // First, check if any of the loader plugins supports this format
             auto plugin = plugin_manager.FindPluginForFormat(ext.substr(1));
-            ASSERT_RETURNING(plugin, std::nullopt);
+            if (!plugin)
+                return std::nullopt;
 
             return plugin->Load(path);
         }
