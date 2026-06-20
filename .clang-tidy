@@ -11,6 +11,8 @@ Checks: >
   -cppcoreguidelines-macro-usage,
   -cppcoreguidelines-pro-type-vararg,
   -cppcoreguidelines-pro-type-reinterpret-cast,
+  -cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,
+  -cppcoreguidelines-avoid-do-while,
   -modernize-use-trailing-return-type,
   -readability-magic-numbers,
   -readability-uppercase-literal-suffix,

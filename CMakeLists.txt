@@ -3,6 +3,35 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.15)
 
 include(FetchContent)
 
+# Use LLVM clang instead of the system default one on Apple
+# TODO: test with Xcode
+if (APPLE AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
+    # Find LLVM
+    execute_process(
+        COMMAND brew --prefix llvm
+        OUTPUT_VARIABLE LLVM_ROOT
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+
+    if (LLVM_ROOT)
+        message(STATUS "Using Homebrew LLVM: ${LLVM_ROOT}")
+        set(CMAKE_C_COMPILER "${LLVM_ROOT}/bin/clang")
+        set(CMAKE_CXX_COMPILER "${LLVM_ROOT}/bin/clang++")
+
+        # Manually set sysroot
+        execute_process(
+            COMMAND xcrun --show-sdk-path
+            OUTPUT_VARIABLE SDK_PATH
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        set(CMAKE_OSX_SYSROOT "${SDK_PATH}" CACHE PATH "Sysroot")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isysroot ${SDK_PATH}" CACHE STRING "Flags")
+    else ()
+        message(WARNING "LLVM not found via brew. Falling back to default system compiler.")
+    endif ()
+endif ()
+
 project(hydra VERSION 0.4.2 LANGUAGES CXX)
 
 set(IOS_DEPLOYMENT_TARGET 17.4.0)
