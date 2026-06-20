@@ -10,7 +10,7 @@ DEFINE_SERVICE_COMMAND_TABLE(IAudioRendererManager, 0, OpenAudioRenderer, 1,
                              GetAudioDeviceServiceWithRevisionInfo)
 
 result_t IAudioRendererManager::OpenAudioRenderer(
-    RequestContext* ctx, aligned<AudioRendererParameters, 56> params,
+    RequestContext* ctx, Aligned<AudioRendererParameters, 56> params,
     u64 work_buffer_size, u64 aruid) {
     (void)aruid;
 

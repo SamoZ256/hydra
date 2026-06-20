@@ -90,7 +90,7 @@ void RegisterServiceToPort(services::Server* server,
     if constexpr (std::is_same_v<Key, std::string>)
         debug_name = port_name;
     else
-        debug_name = u64_to_str(port_name);
+        debug_name = U64AsString(port_name);
 
     // Session
     auto server_port = new kernel::hipc::ServerPort(

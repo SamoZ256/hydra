@@ -23,7 +23,7 @@ NvResult NvMap::FromId(u32 id, handle_id_t* out_handle_id) {
 // TODO: heap mask, kind
 NvResult NvMap::Alloc(System* system, handle_id_t handle_id, u32 heap_mask,
                       u32 flags, InOutSingle<u32> inout_alignment,
-                      aligned<u8, 8> kind, gpu_vaddr_t addr) {
+                      Aligned<u8, 8> kind, gpu_vaddr_t addr) {
     (void)heap_mask;
     (void)kind;
 
@@ -33,7 +33,7 @@ NvResult NvMap::Alloc(System* system, handle_id_t handle_id, u32 heap_mask,
     return NvResult::Success;
 }
 
-NvResult NvMap::Free(System* system, aligned<handle_id_t, 8> handle_id,
+NvResult NvMap::Free(System* system, Aligned<handle_id_t, 8> handle_id,
                      gpu_vaddr_t* out_addr, u64* out_size, u32* out_flags) {
     auto map = system->GetGpu().GetMap(handle_id);
     system->GetGpu().FreeMap(handle_id);

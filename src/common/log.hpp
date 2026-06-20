@@ -15,7 +15,7 @@
 
 #define LOG(level, c, ...)                                                     \
     LOGGER_INSTANCE.Log(LogLevel::level, LogClass::c,                          \
-                        trim_source_path(__FILE__), __LINE__, __func__,        \
+                        TrimSourcePath(__FILE__), __LINE__, __func__,          \
                         __VA_ARGS__)
 
 #ifdef HYDRA_DEBUG
@@ -83,9 +83,9 @@
 namespace hydra {
 
 // From yuzu
-constexpr const char* trim_source_path(std::string_view source) {
+constexpr const char* TrimSourcePath(std::string_view source) {
     const auto rfind = [source](const std::string_view match) {
-        return source.rfind(match) == source.npos
+        return source.rfind(match) == std::string_view::npos
                    ? 0
                    : (source.rfind(match) + match.size());
     };
@@ -160,7 +160,7 @@ struct LogMessage {
     std::string str;
 };
 
-typedef std::function<void(const LogMessage&)> log_callback_fn_t;
+using log_callback_fn_t = std::function<void(const LogMessage&)>;
 
 class Logger {
   public:
@@ -169,9 +169,13 @@ class Logger {
         return instance;
     }
 
-    ~Logger();
+    Logger() noexcept = default;
+    ~Logger() noexcept = default;
 
-    void InstallCallback(log_callback_fn_t callback_) {
+    MAKE_NON_COPYABLE(Logger);
+    MAKE_NON_MOVABLE(Logger);
+
+    void InstallCallback(const log_callback_fn_t& callback_) {
         std::lock_guard lock(mutex);
         callback = callback_;
     }
@@ -278,10 +282,10 @@ class Logger {
     }
 
   private:
-    typedef std::chrono::high_resolution_clock clock_t;
+    using clock_t = std::chrono::high_resolution_clock;
 
     std::mutex mutex;
-    std::ofstream* ofs{nullptr};
+    std::optional<std::ofstream> ofs{};
 
     std::optional<log_callback_fn_t> callback{};
     LogOutput output{LogOutput::StdOut};

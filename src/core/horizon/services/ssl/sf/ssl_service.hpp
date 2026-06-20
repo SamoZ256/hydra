@@ -12,7 +12,7 @@ class ISslService : public IService {
 
   private:
     // Commands
-    result_t CreateContext(RequestContext* ctx, aligned<SslVersion, 8> version,
+    result_t CreateContext(RequestContext* ctx, Aligned<SslVersion, 8> version,
                            u64 pid_placeholder);
     result_t SetInterfaceVersion(SystemVersion version);
 };

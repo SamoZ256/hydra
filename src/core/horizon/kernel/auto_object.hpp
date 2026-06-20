@@ -51,7 +51,7 @@ class AutoObject {
     std::string_view GetDebugName() const { return debug_name; }
 
   protected:
-    virtual ~AutoObject() {}
+    virtual ~AutoObject() noexcept = default;
 
   private:
     AutoObjectTypeId type_id;

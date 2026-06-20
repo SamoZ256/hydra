@@ -11,7 +11,7 @@ class ClientPort : public SynchronizationObject {
   public:
     static constexpr AutoObjectTypeId TYPE_ID = AutoObjectTypeId::ClientPort;
 
-    ClientPort(const std::string_view debug_name = "Client port")
+    ClientPort(std::string_view debug_name = "Client port")
         : SynchronizationObject(TYPE_ID, true, debug_name) {}
 
     ClientSession* Connect();

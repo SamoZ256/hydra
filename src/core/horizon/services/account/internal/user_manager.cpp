@@ -95,7 +95,7 @@ uuid_t UserManager::CreateUser() {
 void UserManager::LoadSystemAvatars(filesystem::Filesystem& fs) {
     // Default avatar
     const auto default_image_path =
-        get_bundle_resource_path("default_avatar_image.png");
+        GetBundleResourcePath("default_avatar_image.png");
     avatars[DEFAULT_AVATAR_IMAGE_PATH] = {
         new filesystem::DiskFile(default_image_path)};
 

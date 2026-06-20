@@ -16,11 +16,11 @@ result_t
 IUserInterface::GetServiceHandle(System* system, kernel::Process* process,
                                  u64 name,
                                  OutHandle<HandleAttr::Move> out_handle) {
-    LOG_DEBUG(Services, "Service name: \"{}\"", u64_to_str(name));
+    LOG_DEBUG(Services, "Service name: \"{}\"", U64AsString(name));
 
     auto client_port = system->GetOS().GetServiceManager().GetPort(name);
     if (!client_port) {
-        LOG_WARN(Services, "Unknown service name \"{}\"", u64_to_str(name));
+        LOG_WARN(Services, "Unknown service name \"{}\"", U64AsString(name));
         return MAKE_RESULT(Svc, kernel::Error::NotFound); // TODO: module
     }
 
@@ -40,10 +40,10 @@ IUserInterface::RegisterService(System* system, kernel::Process* process,
     (void)is_light;
     (void)max_sessions;
 
-    LOG_DEBUG(Services, "Service name: \"{}\"", u64_to_str(name));
+    LOG_DEBUG(Services, "Service name: \"{}\"", U64AsString(name));
 
     // Debug
-    std::string debug_name = u64_to_str(name);
+    std::string debug_name = U64AsString(name);
 
     // Session
     auto server_port = new kernel::hipc::ServerPort(
@@ -64,7 +64,7 @@ IUserInterface::RegisterService(System* system, kernel::Process* process,
 
 result_t IUserInterface::AtmosphereHasService(System* system, u64 name,
                                               bool* out_has_service) {
-    LOG_DEBUG(Services, "Service name: \"{}\"", u64_to_str(name));
+    LOG_DEBUG(Services, "Service name: \"{}\"", U64AsString(name));
 
     auto client_port = system->GetOS().GetServiceManager().GetPort(name);
     *out_has_service = (client_port != nullptr);
@@ -73,7 +73,7 @@ result_t IUserInterface::AtmosphereHasService(System* system, u64 name,
 
 result_t IUserInterface::AtmosphereWaitService(u64 name) {
     // TODO: does this wait for the service to start?
-    LOG_FUNC_WITH_ARGS_STUBBED(Services, "name: {}", u64_to_str(name));
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "name: {}", U64AsString(name));
     return RESULT_SUCCESS;
 }
 

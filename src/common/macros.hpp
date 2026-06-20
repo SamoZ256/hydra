@@ -9,14 +9,22 @@
 
 #define UNIQUE_SUFFIX(var) CONCAT(var, __LINE__)
 
-#define ASSIGN_OR_RETURN(var, expected, ret)                                   \
+#define ASSIGN_OR(var, expected, fail_statement)                               \
     const auto UNIQUE_SUFFIX(_) = expected;                                    \
     if (!UNIQUE_SUFFIX(_).has_value())                                         \
-        return ret;                                                            \
+        fail_statement;                                                        \
     var = UNIQUE_SUFFIX(_).value();
 
+#define ASSIGN_OR_RETURN_VALUE(var, expected, ret)                             \
+    ASSIGN_OR(var, expected, return ret)
+#define ASSIGN_OR_RETURN(var, expected) ASSIGN_OR_RETURN_VALUE(var, expected, )
 #define ASSIGN_OR_RETURN_ERROR(var, expected)                                  \
-    ASSIGN_OR_RETURN(var, expected, std::unexpected(expected.error()))
+    ASSIGN_OR_RETURN_VALUE(var, expected, std::unexpected(expected.error()))
+
+#define ASSIGN_OR_CONTINUE(var, expected, ret)                                 \
+    ASSIGN_OR(var, expected, continue)
+
+#define ASSIGN_OR_BREAK(var, expected, ret) ASSIGN_OR(var, expected, break)
 
 #define ONCE(code)                                                             \
     {                                                                          \
@@ -283,14 +291,26 @@
         }                                                                      \
     };
 
+#define MAKE_DEFAULT_COPYABLE(type)                                            \
+    type(const type&) noexcept = default;                                      \
+    type& operator=(const type&) noexcept = default;
+
 #define MAKE_NON_COPYABLE(type)                                                \
     type(const type&) = delete;                                                \
     type& operator=(const type&) = delete;
 
+#define MAKE_DEFAULT_MOVABLE(type)                                             \
+    type(type&&) noexcept = default;                                           \
+    type& operator=(type&&) noexcept = default;
+
+#define MAKE_NON_MOVABLE(type)                                                 \
+    type(type&&) = delete;                                                     \
+    type& operator=(type&&) = delete;
+
 #define SWAP_CASE(member) std::swap(a.member, b.member);
 
 #define MAKE_MOVE_ASSIGNABLE(type, ...)                                        \
-    type& operator=(type&& other) {                                            \
+    type& operator=(type&& other) noexcept {                                   \
         if (this != &other) {                                                  \
             type temp(std::move(other));                                       \
             swap(*this, temp);                                                 \
@@ -309,5 +329,5 @@
     member1 FOR_EACH_0_2(PASS_TO_MAKE_MOVE_ASSIGNABLE_CASE, __VA_ARGS__)
 
 #define MAKE_MOVABLE(type, ...)                                                \
-    type(type&& other) : MOVE_MEMBERS(__VA_ARGS__) {}                          \
+    type(type&& other) noexcept : MOVE_MEMBERS(__VA_ARGS__) {}                 \
     MAKE_MOVE_ASSIGNABLE(type, PASS_TO_MAKE_MOVE_ASSIGNABLE(__VA_ARGS__))

@@ -13,8 +13,8 @@ class ITexture;
 class ITextureView;
 class IRenderer;
 
-typedef std::chrono::steady_clock TextureCacheClock;
-typedef TextureCacheClock::time_point TextureCacheTimePoint;
+using TextureCacheClock = std::chrono::steady_clock;
+using TextureCacheTimePoint = TextureCacheClock::time_point;
 
 struct TextureStorage {
     ITexture* base{nullptr};

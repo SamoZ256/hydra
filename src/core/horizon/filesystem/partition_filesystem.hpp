@@ -21,7 +21,7 @@ struct HfsEntry {
     u32 string_offset;
     u32 hashed_region_size;
     u64 _reserved_x18;
-    u8 hash[0x20];
+    std::array<u8, 0x20> hash;
 };
 
 struct PfsHeader {

@@ -13,10 +13,10 @@ constexpr u32 GOB_HEIGHT = 1 << GOB_HEIGHT_LOG2;
 
 constexpr u32 GOB_SIZE = 512;
 
-typedef std::function<void(u32 gob_x, u32 gob_y, u32 gob_z, u8* out_gob)>
-    ReadGobFn;
-typedef std::function<void(const u8* in_gob, u32 gob_x, u32 gob_y, u32 gob_z)>
-    WriteGobFn;
+using ReadGobFn =
+    std::function<void(u32 gob_x, u32 gob_y, u32 gob_z, u8* out_gob)>;
+using WriteGobFn =
+    std::function<void(const u8* in_gob, u32 gob_x, u32 gob_y, u32 gob_z)>;
 
 void ConvertBlockLinearToLinear(u32 stride, u32 rows, u32 depth,
                                 u32 block_height_gobs_log2,

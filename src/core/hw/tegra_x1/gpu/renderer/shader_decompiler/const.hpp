@@ -5,7 +5,7 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
-typedef u64 instruction_t;
+using instruction_t = u64;
 STRONG_NUMBER_TYPEDEF(reg_t, u8);
 STRONG_NUMBER_TYPEDEF(pred_t, u8);
 STRONG_NUMBER_TYPEDEF(label_t, u32);

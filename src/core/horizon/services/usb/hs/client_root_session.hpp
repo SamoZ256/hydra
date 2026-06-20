@@ -38,7 +38,7 @@ class IClientRootSession : public IService {
     // Commands
     result_t BindClientProcess(); // 2.0.0+
     result_t CreateInterfaceAvailableEvent(
-        kernel::Process* process, aligned<u8, 2> index,
+        kernel::Process* process, Aligned<u8, 2> index,
         DeviceFilter device_filter, OutHandle<HandleAttr::Copy> out_handle);
     result_t
     GetInterfaceStateChangeEvent(kernel::Process* process,

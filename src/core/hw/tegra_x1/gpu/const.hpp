@@ -251,7 +251,6 @@ enum class NvKind : u32 {
     Invalid = 0xff,
 };
 
-// TODO: why do some formats have "_" in them?
 enum class NvColorFormat : u64 {
     Unspecified = 0x0000000000UL,
     NonColor8 = 0x0009200408UL,

@@ -10,16 +10,8 @@ constexpr usize MAX_LOG_FILES = 3;
 
 }
 
-// TODO: will the destructor ever get called?
-Logger::~Logger() {
-    if (ofs) {
-        ofs->close();
-        delete ofs;
-    }
-}
-
 void Logger::EnsureOutputStream() {
-    if (ofs)
+    if (ofs.has_value())
         return;
 
     const auto logs_path = CONFIG_INSTANCE.GetLogsPath();
@@ -47,7 +39,7 @@ void Logger::EnsureOutputStream() {
     // TODO: version
     const auto path = fmt::format("{}/" APP_NAME "_{:%Y-%m-%d_%H-%M-%S}.log",
                                   logs_path, std::chrono::system_clock::now());
-    ofs = new std::ofstream(path);
+    ofs = std::ofstream(path);
 
     // Get start time
     start_time = clock_t::now();

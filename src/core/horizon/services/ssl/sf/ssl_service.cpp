@@ -8,7 +8,7 @@ DEFINE_SERVICE_COMMAND_TABLE(ISslService, 0, CreateContext, 5,
                              SetInterfaceVersion)
 
 result_t ISslService::CreateContext(RequestContext* ctx,
-                                    aligned<SslVersion, 8> version,
+                                    Aligned<SslVersion, 8> version,
                                     u64 pid_placeholder) {
     (void)pid_placeholder;
 

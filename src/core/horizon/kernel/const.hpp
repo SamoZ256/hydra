@@ -281,7 +281,7 @@ enum class Error {
     NotDebugged = 520,
 };
 
-typedef u32 result_t;
+using result_t = u32;
 
 #define MAKE_RESULT(module, description)                                       \
     (((static_cast<u32>(::hydra::horizon::kernel::Module::module) & 0x1ff)) |  \
@@ -359,9 +359,9 @@ struct MemoryInfo {
     u64 addr;
     u64 size;
     MemoryState state;
-    u32 ipc_ref_count;    // TODO: what
-    u32 device_ref_count; // TODO: what
-    u32 padding = 0;
+    u32 ipc_ref_count;
+    u32 device_ref_count;
+    u32 _padding = 0;
 };
 
 enum class BreakReasonType {
@@ -379,10 +379,9 @@ struct BreakReason {
     BreakReasonType type;
     bool notification_only;
 
-    BreakReason(u64 reg) {
-        notification_only = reg & 0x80000000;
-        type = static_cast<BreakReasonType>(reg & 0x7FFFFFFF);
-    }
+    BreakReason(u64 reg)
+        : type{static_cast<BreakReasonType>(reg & 0x7FFFFFFF)},
+          notification_only{static_cast<bool>(reg & 0x80000000)} {}
 };
 
 // From https://github.com/switchbrew/libnx
@@ -456,14 +455,14 @@ union FpuRegister {
 };
 
 struct ThreadContext {
-    CpuRegister cpu_gprs[29];
+    std::array<CpuRegister, 29> cpu_gprs;
     u64 fp;
     u64 lr;
     u64 sp;
     CpuRegister pc;
     u32 psr;
 
-    FpuRegister fpu_gprs[32];
+    std::array<FpuRegister, 32> fpu_gprs;
     u32 fpcr;
     u32 fpsr;
 
@@ -535,7 +534,7 @@ enum class LaunchParameterKind : u32 {
     Unknown0 = 3,
 };
 
-typedef u32 UserId;
+using UserId = u32;
 
 enum class CodeMemoryOperation {
     MapOwner = 0,

@@ -23,7 +23,7 @@ NvResult NvHostAsGpu::BindChannel(u32 fd_id) {
 
 NvResult NvHostAsGpu::AllocSpace(kernel::Process* process, u32 pages,
                                  u32 page_size,
-                                 aligned<AllocSpaceFlags, 8> flags,
+                                 Aligned<AllocSpaceFlags, 8> flags,
                                  InOut<u64, gpu_vaddr_t> align_and_offset) {
     uptr gpu_addr = invalid<uptr>();
     if (any(flags & AllocSpaceFlags::FixedOffset))

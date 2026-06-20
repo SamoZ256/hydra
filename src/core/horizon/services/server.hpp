@@ -18,7 +18,7 @@ class ServerSession;
 
 namespace hydra::horizon::services {
 
-typedef std::function<IService*()> create_service_fn_t;
+using create_service_fn_t = std::function<IService*()>;
 
 class Server {
   public:

@@ -16,7 +16,7 @@ class SharedMemory : public AutoObject {
     static constexpr AutoObjectTypeId TYPE_ID = AutoObjectTypeId::SharedMemory;
 
     SharedMemory(hw::tegra_x1::cpu::ICpu& cpu, u64 size,
-                 const std::string_view debug_name = "SharedMemory");
+                 std::string_view debug_name = "SharedMemory");
     ~SharedMemory() override;
 
     void MapToRange(hw::tegra_x1::cpu::IMmu* mmu, const Range<uptr> range_,

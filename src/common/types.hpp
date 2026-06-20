@@ -216,7 +216,7 @@ struct Rect2D {
     vec<Origin, 2> origin;
     vec<Size, 2> size;
 
-    Rect2D() {}
+    Rect2D() = default;
 
     Rect2D(vec<Origin, 2> origin_, vec<Size, 2> size_)
         : origin{origin_}, size{size_} {}
@@ -233,22 +233,25 @@ using FloatRect2D = Rect2D<f32, f32>;
 // TODO: handle this better
 #pragma pack(push, 1)
 template <typename T, usize alignment>
-class aligned {
+class Aligned {
   public:
     static_assert(sizeof(T) <= alignment);
 
-    aligned() {}
-    aligned(const T& value_) : value{value_} {}
-    void operator=(const T& new_value) { value = new_value; }
+    Aligned() = default;
+    Aligned(const T& value_) : value{value_} {}
+    Aligned& operator=(const T& new_value) {
+        value = new_value;
+        return *this;
+    }
 
     operator T&() { return value; }
     operator const T&() const { return value; }
 
-    void ZeroOutPadding() { std::memset(_padding, 0, sizeof_array(_padding)); }
+    void ZeroOutPadding() { std::fill(padding.begin(), padding.end(), 0); }
 
   private:
     T value;
-    u8 _padding[alignment - sizeof(T)];
+    std::array<u8, alignment - sizeof(T)> padding;
 
   public:
     CONST_REF_GETTER(value, Get);
@@ -261,7 +264,10 @@ class strong_typedef {
     strong_typedef() : value{} {}
     strong_typedef(const T& value_) : value{value_} {}
 
-    void operator=(const T& new_value) { value = new_value; }
+    strong_typedef<T>& operator=(const T& new_value) {
+        value = new_value;
+        return *this;
+    }
 
     operator T&() { return value; }
     operator const T&() const { return value; }
@@ -288,7 +294,10 @@ class strong_number_typedef {
         requires std::is_signed_v<T>
         : value{static_cast<T>(value_)} {}
 
-    void operator=(const T& new_value) { value = new_value; }
+    strong_number_typedef<T>& operator=(const T& new_value) {
+        value = new_value;
+        return *this;
+    }
     void operator+=(const T& other) { value += other; }
     void operator-=(const T& other) { value -= other; }
     void operator*=(const T& other) { value *= other; }
@@ -316,13 +325,16 @@ class strong_number_typedef {
 template <typename Subclass, typename T, typename DescriptorT>
 class CacheBase {
   public:
-    ~CacheBase() {
+    CacheBase() noexcept = default;
+    ~CacheBase() noexcept {
         for (auto& [key, value] : cache) {
             THIS->DestroyElement(value);
         }
 
         THIS->Destroy();
     }
+
+    MAKE_NON_COPYABLE(CacheBase);
 
     T& Find(const DescriptorT& descriptor) {
         u32 hash = THIS->Hash(descriptor);
@@ -345,7 +357,7 @@ class CacheBase {
 } // namespace hydra
 
 template <typename T, hydra::usize alignment>
-struct fmt::formatter<hydra::aligned<T, alignment>> : formatter<string_view> {
+struct fmt::formatter<hydra::Aligned<T, alignment>> : formatter<string_view> {
     fmt::formatter<T> value_formatter;
 
     constexpr auto parse(fmt::format_parse_context& ctx) {
@@ -353,7 +365,7 @@ struct fmt::formatter<hydra::aligned<T, alignment>> : formatter<string_view> {
     }
 
     template <typename FormatContext>
-    auto format(const hydra::aligned<T, alignment>& value,
+    auto format(const hydra::Aligned<T, alignment>& value,
                 FormatContext& ctx) const {
         return value_formatter.format(value.Get(), ctx);
     }

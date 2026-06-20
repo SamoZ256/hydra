@@ -103,33 +103,33 @@ endif ()
 # Externals
 
 # toml11
-#add_subdirectory(externals/toml11) # Hatch already uses toml11
+#add_subdirectory(externals/toml11 SYSTEM) # Hatch already uses toml11
 
 # dynarmic
-add_subdirectory(externals/dynarmic)
+add_subdirectory(externals/dynarmic SYSTEM)
 
 # cubeb
 if (CUBEB_ENABLED)
     set(BUILD_TESTS OFF)
     set(BUILD_TOOLS OFF)
-    add_subdirectory(externals/cubeb)
+    add_subdirectory(externals/cubeb SYSTEM)
 endif ()
 
 # luft
-#add_subdirectory(externals/luft)
+#add_subdirectory(externals/luft SYSTEM)
 
 # hatch
-add_subdirectory(externals/hatch)
+add_subdirectory(externals/hatch SYSTEM)
 
 # libyaz0
-add_subdirectory(externals/libyaz0)
+add_subdirectory(externals/libyaz0 SYSTEM)
 
 # nx2elf
-add_subdirectory(externals/nx2elf)
+add_subdirectory(externals/nx2elf SYSTEM)
 
 # date
 set(BUILD_TZ_LIB ON)
-add_subdirectory(externals/date)
+add_subdirectory(externals/date SYSTEM)
 
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 add_library(hydra_compile_options INTERFACE)
@@ -155,6 +155,9 @@ target_compile_options(hydra_compile_options INTERFACE
     -Wnon-virtual-dtor
     -Wold-style-cast
 
+    # Disabled warnings
+    -Wno-missing-designated-field-initializers
+
     # Extensions
     -Wno-c99-extensions
     -Wno-gnu-anonymous-struct
@@ -165,7 +168,7 @@ target_compile_options(hydra_compile_options INTERFACE
     -Wno-gnu-zero-variadic-macro-arguments
 )
 
-include_directories(externals/metal-cpp externals/dynarmic externals/stb)
+include_directories(SYSTEM externals/metal-cpp externals/dynarmic externals/stb)
 
 if (HYPERVISOR_ENABLED)
     add_compile_definitions(HYDRA_HYPERVISOR_ENABLED)

@@ -49,7 +49,7 @@ class NvHostAsGpu : public FdBase {
     // Ioctls
     NvResult BindChannel(u32 fd_id);
     NvResult AllocSpace(kernel::Process* process, u32 pages, u32 page_size,
-                        aligned<AllocSpaceFlags, 8> flags,
+                        Aligned<AllocSpaceFlags, 8> flags,
                         InOut<u64, gpu_vaddr_t> align_and_offset);
     NvResult FreeSpace(vaddr_t offset, u32 pages, u32 page_size);
     NvResult UnmapBuffer(gpu_vaddr_t addr);

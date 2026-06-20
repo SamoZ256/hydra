@@ -701,7 +701,7 @@ if (SDL_ENABLED)
     )
 endif ()
 
-target_include_directories(hydra-core PRIVATE ${CMAKE_SOURCE_DIR}/externals/libyaz0/include)
+target_include_directories(hydra-core SYSTEM PRIVATE ${CMAKE_SOURCE_DIR}/externals/libyaz0/include)
 # TODO: only link Apple frameworks if Apple
 target_link_libraries(hydra-core PRIVATE hydra_compile_options "-framework Foundation" "-framework Metal" "-framework QuartzCore" "-framework GameController" dynarmic hatch libyaz0 nx2elf date::date date::date-tz hydra-common)
 

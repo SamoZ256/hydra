@@ -81,8 +81,8 @@ namespace hydra::horizon::services::lm {
 DEFINE_SERVICE_COMMAND_TABLE(ILogger, 0, Log)
 
 result_t ILogger::Log(InBuffer<BufferAttr::AutoSelect> buffer) {
-    ASSIGN_OR_RETURN(auto stream, buffer.stream,
-                     RESULT_SUCCESS); // TODO: return error on failure?
+    ASSIGN_OR_RETURN_VALUE(auto stream, buffer.stream,
+                           RESULT_SUCCESS); // TODO: return error on failure?
     const auto header = stream.Read<LogPacketHeader>();
 
     // From Ryujinx

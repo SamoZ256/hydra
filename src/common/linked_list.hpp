@@ -11,7 +11,7 @@ class LinkedListNode {
     friend class LinkedList;
 
   public:
-    LinkedListNode(const T& value_) : value{value_}, next{nullptr} {}
+    LinkedListNode(const T& value_) : value{value_} {}
 
     operator const T&() const { return value; }
     const T* operator->() const { return &value; }
@@ -19,7 +19,7 @@ class LinkedListNode {
 
   private:
     T value;
-    LinkedListNode* next;
+    LinkedListNode* next{nullptr};
 
   public:
     CONST_REF_GETTER(value, Get);
@@ -32,8 +32,7 @@ class LinkedListNode<T, true> {
     friend class LinkedList;
 
   public:
-    LinkedListNode(const T& value_)
-        : value{value_}, next{nullptr}, prev{nullptr} {}
+    LinkedListNode(const T& value_) : value{value_} {}
 
     operator const T&() const { return value; }
     const T* operator->() const { return &value; }
@@ -41,8 +40,8 @@ class LinkedListNode<T, true> {
 
   private:
     T value;
-    LinkedListNode* next;
-    LinkedListNode* prev;
+    LinkedListNode* next{nullptr};
+    LinkedListNode* prev{nullptr};
 
   public:
     CONST_REF_GETTER(value, Get);
@@ -52,16 +51,16 @@ class LinkedListNode<T, true> {
 
 template <typename T, bool is_doubly_linked>
 class LinkedList {
+    using Node = LinkedListNode<T, is_doubly_linked>;
+
   public:
     enum class Error {
         Empty,
         InvalidNode,
     };
 
-    LinkedList() : head{nullptr}, tail{nullptr}, size{0} {}
-
     void AddFirst(const T& value) {
-        auto node = new LinkedListNode<T, is_doubly_linked>(value);
+        auto node = new Node(value);
         if (!head) {
             head = tail = node;
         } else {
@@ -74,7 +73,7 @@ class LinkedList {
     }
 
     void AddLast(const T& value) {
-        auto node = new LinkedListNode<T, is_doubly_linked>(value);
+        auto node = new Node(value);
         if (!head) {
             head = tail = node;
         } else {
@@ -114,8 +113,7 @@ class LinkedList {
         size--;
     }
 
-    LinkedListNode<T, is_doubly_linked>*
-    Remove(LinkedListNode<T, is_doubly_linked>* target) {
+    Node* Remove(Node* target) {
         ASSERT_DEBUG(target, Common, "Invalid node");
         ASSERT_DEBUG(head, Common, "List is empty");
 
@@ -188,9 +186,9 @@ class LinkedList {
     }
 
   private:
-    LinkedListNode<T, is_doubly_linked>* head;
-    LinkedListNode<T, is_doubly_linked>* tail;
-    usize size;
+    Node* head{nullptr};
+    Node* tail{nullptr};
+    usize size{0};
 
   public:
     GETTER(head, GetHead);

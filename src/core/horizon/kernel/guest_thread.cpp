@@ -12,7 +12,7 @@ namespace hydra::horizon::kernel {
 
 GuestThread::GuestThread(System& system_, Process* process,
                          vaddr_t stack_top_addr_, i32 priority,
-                         const std::string_view debug_name)
+                         std::string_view debug_name)
     : IThread(process, priority, debug_name), system{system_},
       stack_top_addr{stack_top_addr_} {
     tls_mem = process->CreateTlsMemory(tls_addr);

@@ -1,11 +1,13 @@
 #include "common/lz4.hpp"
 
+#include <cstring>
+
 namespace hydra {
 
 namespace {
 
 u32 GetLength(std::span<const u8> src, u32& cmp_pos, u32 length) {
-    u8 sum;
+    u8 sum = 0;
     if (length == 0xf) {
         do {
             length += sum = src[cmp_pos++];
@@ -30,7 +32,7 @@ void DecompressLZ4(std::span<const u8> src, std::span<u8> dst) {
         // Copy literal chunk
         lit_count = GetLength(src, cmp_pos, lit_count);
 
-        memcpy(dst.data() + dec_pos, src.data() + cmp_pos, lit_count);
+        std::memcpy(dst.data() + dec_pos, src.data() + cmp_pos, lit_count);
 
         cmp_pos += lit_count;
         dec_pos += lit_count;
@@ -48,7 +50,7 @@ void DecompressLZ4(std::span<const u8> src, std::span<u8> dst) {
         u32 enc_pos = dec_pos - back;
 
         if (enc_count <= back) {
-            memcpy(dst.data() + dec_pos, dst.data() + enc_pos, enc_count);
+            std::memcpy(dst.data() + dec_pos, dst.data() + enc_pos, enc_count);
 
             dec_pos += enc_count;
         } else {

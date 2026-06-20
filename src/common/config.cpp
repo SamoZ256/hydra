@@ -45,7 +45,7 @@ struct from<CustomResolution> {
         if (!str_to_num(std::string_view(str).substr(x_pos + 1), res.y()))
             LOG_FATAL(Other, "Invalid custom display resolution {}", str);
 
-        return CustomResolution(res);
+        return {res};
     }
 };
 

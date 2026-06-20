@@ -17,7 +17,7 @@ void Manager::Refresh() {
             continue;
         }
 
-        Plugin::Create(plugin_config.path, plugin_config.options)
+        (void)Plugin::Create(plugin_config.path, plugin_config.options)
             .transform([this](Plugin plugin) {
                 plugins.emplace_back(std::move(plugin));
             });

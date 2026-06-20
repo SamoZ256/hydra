@@ -10,7 +10,10 @@ class IStream {
     friend class SparseStream;
 
   public:
-    virtual ~IStream() = default;
+    IStream() = default;
+    virtual ~IStream() noexcept = default;
+
+    MAKE_DEFAULT_COPYABLE(IStream);
 
     virtual u64 GetSeek() const = 0;
     virtual void SeekTo(u64 seek) {
@@ -26,7 +29,7 @@ class IStream {
 
     // Read
     template <typename T>
-    const T Read() {
+    T Read() {
         T result;
         ReadRaw(std::span(reinterpret_cast<u8*>(&result), sizeof(T)));
         return result;
@@ -62,7 +65,7 @@ class IStream {
 
     std::string_view ReadString(usize size) {
         const auto ptr = ReadPtr<char>();
-        return std::string_view(ptr, size);
+        return {ptr, size};
     }
 
     std::string_view ReadNullTerminatedString() {
@@ -73,7 +76,7 @@ class IStream {
             size++;
         }
 
-        return std::string_view(ptr, size);
+        return {ptr, size};
     }
 
     // Write

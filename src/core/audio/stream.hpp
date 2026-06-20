@@ -6,7 +6,7 @@ namespace hydra::audio {
 
 using buffer_id_t = u64;
 
-typedef std::function<void(buffer_id_t)> buffer_finished_callback_fn_t;
+using buffer_finished_callback_fn_t = std::function<void(buffer_id_t)>;
 
 class IStream {
   public:

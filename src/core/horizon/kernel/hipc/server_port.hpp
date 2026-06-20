@@ -10,7 +10,7 @@ class ServerPort : public SynchronizationObject {
   public:
     static constexpr AutoObjectTypeId TYPE_ID = AutoObjectTypeId::ServerPort;
 
-    ServerPort(const std::string_view debug_name = "Server port")
+    ServerPort(std::string_view debug_name = "Server port")
         : SynchronizationObject(TYPE_ID, false, debug_name) {}
 
     // Server

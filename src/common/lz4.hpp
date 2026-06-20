@@ -1,5 +1,7 @@
 #pragma once
 
+#include <span>
+
 #include "common/type_aliases.hpp"
 
 namespace hydra {

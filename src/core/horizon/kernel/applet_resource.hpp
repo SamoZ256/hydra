@@ -26,7 +26,7 @@ inline usize ToIndex(AppletResourceUserId aruid) {
 
 template <typename T>
 class AppletResourcePool {
-    typedef std::array<std::optional<T>, MAX_APPLET_RESOURCES> ResourceArray;
+    using ResourceArray = std::array<std::optional<T>, MAX_APPLET_RESOURCES>;
 
   public:
     AppletResourcePool(System& system_) : system{system_} {}

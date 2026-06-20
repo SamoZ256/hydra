@@ -19,7 +19,7 @@ struct ThreadCallbacks {
     std::function<void()> breakpoint_hit;
 };
 
-typedef std::function<void(vaddr_t)> stack_frame_callback_fn_t;
+using stack_frame_callback_fn_t = std::function<void(vaddr_t)>;
 
 struct ThreadState {
     u64 r[29];

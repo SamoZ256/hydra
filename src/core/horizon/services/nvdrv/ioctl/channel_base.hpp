@@ -30,10 +30,10 @@ class ChannelBase : public FdBase {
     NvResult GetWaitBase(u32 module_id, u32* out_value);
     NvResult SetSubmitTimeout(u32 timeout);
     NvResult MapCmdBuffer(u32 num_handles, [[maybe_unused]] u32 _reserved_x4,
-                          aligned<bool, 4> is_compressed,
+                          Aligned<bool, 4> is_compressed,
                           const MapCmdBufferHandle* handles);
     NvResult UnmapCmdBuffer(u32 num_handles, [[maybe_unused]] u32 _reserved_x4,
-                            aligned<bool, 4> is_compressed,
+                            Aligned<bool, 4> is_compressed,
                             const UnmapCmdBufferHandle* handles);
     NvResult SetUserData(u64 data);
     NvResult GetUserData(u64* out_data);

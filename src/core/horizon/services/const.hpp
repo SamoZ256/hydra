@@ -54,7 +54,7 @@ class InBuffer {
     InBuffer() : stream{std::nullopt} {}
     InBuffer(std::optional<io::MemoryStream> stream_) : stream{stream_} {}
 
-    bool IsValid() const { return stream; }
+    bool IsValid() const { return stream.has_value(); }
 };
 
 template <BufferAttr attr_>
@@ -67,7 +67,7 @@ class OutBuffer {
     OutBuffer() : stream{std::nullopt} {}
     OutBuffer(std::optional<io::MemoryStream> stream_) : stream{stream_} {}
 
-    bool IsValid() const { return stream; }
+    bool IsValid() const { return stream.has_value(); }
 };
 
 enum class HandleAttr {

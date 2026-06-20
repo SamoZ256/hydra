@@ -10,7 +10,7 @@
 
 namespace hydra::horizon::kernel {
 
-Process::Process(System& system_, const std::string_view debug_name)
+Process::Process(System& system_, std::string_view debug_name)
     : SynchronizationObject(TYPE_ID, false, debug_name), system{system_},
       mmu{system.GetCpu().CreateMmu(system)}, gmmu{new hw::tegra_x1::gpu::GMmu(
                                                   mmu)},

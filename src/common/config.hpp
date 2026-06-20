@@ -91,9 +91,9 @@ class Config {
     void Log();
 
     // Paths
-    const std::string_view GetAppDataPath() const { return app_data_path; }
-    const std::string_view GetLogsPath() const { return logs_path; }
-    const std::string_view GetPicturesPath() const { return pictures_path; }
+    std::string_view GetAppDataPath() const { return app_data_path; }
+    std::string_view GetLogsPath() const { return logs_path; }
+    std::string_view GetPicturesPath() const { return pictures_path; }
 
     std::string GetConfigPath() const {
         return fmt::format("{}/config.toml", app_data_path);

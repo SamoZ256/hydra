@@ -10,7 +10,7 @@ class TransferMemory : public AutoObject {
         AutoObjectTypeId::TransferMemory;
 
     TransferMemory(vaddr_t addr_, u64 size_, MemoryPermission perm_,
-                   const std::string_view debug_name = "TransferMemory")
+                   std::string_view debug_name = "TransferMemory")
         : AutoObject(TYPE_ID, debug_name), addr{addr_}, size{size_},
           perm{perm_} {}
 

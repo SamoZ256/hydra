@@ -81,7 +81,7 @@ class SparseFile : public IFile {
     }
 
     io::IStream* Open(FileOpenFlags flags) override {
-        std::vector<io::SparseStreamEntry> streams;
+        std::vector<io::SparseStream::Entry> streams;
         streams.reserve(entries.size());
         for (const auto& entry : entries) {
             streams.push_back(

@@ -5,7 +5,7 @@
 namespace hydra {
 
 // TODO: make sure the string's length doesn't exceed 8 characters
-inline constexpr u64 ToU64String(std::string_view str) {
+inline constexpr u64 StringAsU64(std::string_view str) {
     u64 res = 0;
     for (u32 i = 0; i < str.size(); i++)
         res |= static_cast<u64>(str[i]) << (i * 8);
@@ -13,8 +13,14 @@ inline constexpr u64 ToU64String(std::string_view str) {
     return res;
 }
 
+// TODO: rework?
+inline std::string U64AsString(u64 value) {
+    char* str = reinterpret_cast<char*>(&value);
+    return {str, std::min<usize>(strlen(str), 8)};
+}
+
 inline constexpr u64 operator"" _u64(const char* str, unsigned long len) {
-    return ToU64String(std::string_view(str, len));
+    return StringAsU64(std::string_view(str, len));
 }
 
 constexpr usize SizeOfString(char value) {
@@ -96,7 +102,7 @@ inline std::optional<std::u16string> Utf8ToUtf16(const std::string& utf8_str) {
 
     for (usize i = 0; i < utf8_str.size();) {
         char32_t codepoint = 0;
-        unsigned char byte = static_cast<unsigned char>(utf8_str[i]);
+        const auto byte = static_cast<unsigned char>(utf8_str[i]);
 
         // Determine the number of bytes in this UTF-8 character
         if (byte <= 0x7F) {
@@ -107,7 +113,7 @@ inline std::optional<std::u16string> Utf8ToUtf16(const std::string& utf8_str) {
             // 2-byte character
             if (i + 1 >= utf8_str.size())
                 return std::nullopt;
-            unsigned char byte2 = static_cast<unsigned char>(utf8_str[i + 1]);
+            const auto byte2 = static_cast<unsigned char>(utf8_str[i + 1]);
             if ((byte2 & 0xC0) != 0x80)
                 return std::nullopt;
             codepoint = ((byte & 0x1fu) << 6) | (byte2 & 0x3fu);
@@ -118,8 +124,8 @@ inline std::optional<std::u16string> Utf8ToUtf16(const std::string& utf8_str) {
             // 3-byte character
             if (i + 2 >= utf8_str.size())
                 return std::nullopt;
-            unsigned char byte2 = static_cast<unsigned char>(utf8_str[i + 1]);
-            unsigned char byte3 = static_cast<unsigned char>(utf8_str[i + 2]);
+            const auto byte2 = static_cast<unsigned char>(utf8_str[i + 1]);
+            const auto byte3 = static_cast<unsigned char>(utf8_str[i + 2]);
             if ((byte2 & 0xc0) != 0x80 || (byte3 & 0xc0) != 0x80)
                 return std::nullopt;
             codepoint = ((byte & 0x0fu) << 12) | ((byte2 & 0x3fu) << 6) |
@@ -134,9 +140,9 @@ inline std::optional<std::u16string> Utf8ToUtf16(const std::string& utf8_str) {
             // 4-byte character
             if (i + 3 >= utf8_str.size())
                 return std::nullopt;
-            unsigned char byte2 = static_cast<unsigned char>(utf8_str[i + 1]);
-            unsigned char byte3 = static_cast<unsigned char>(utf8_str[i + 2]);
-            unsigned char byte4 = static_cast<unsigned char>(utf8_str[i + 3]);
+            const auto byte2 = static_cast<unsigned char>(utf8_str[i + 1]);
+            const auto byte3 = static_cast<unsigned char>(utf8_str[i + 2]);
+            const auto byte4 = static_cast<unsigned char>(utf8_str[i + 3]);
             if ((byte2 & 0xc0) != 0x80 || (byte3 & 0xc0) != 0x80 ||
                 (byte4 & 0xc0) != 0x80)
                 return std::nullopt;
@@ -158,9 +164,9 @@ inline std::optional<std::u16string> Utf8ToUtf16(const std::string& utf8_str) {
         } else {
             // Needs a surrogate pair
             codepoint -= 0x10000;
-            char16_t high_surrogate =
+            const auto high_surrogate =
                 static_cast<char16_t>(0xd800 + (codepoint >> 10));
-            char16_t low_surrogate =
+            const auto low_surrogate =
                 static_cast<char16_t>(0xdc00 + (codepoint & 0x3ff));
             utf16_str.push_back(high_surrogate);
             utf16_str.push_back(low_surrogate);

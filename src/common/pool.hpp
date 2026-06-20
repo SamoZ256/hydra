@@ -9,33 +9,33 @@ template <typename Subclass, typename T, bool allow_zero_handle>
 class Pool {
   public:
     handle_id_t AllocateHandle() {
-        return IndexToHandle(THIS->_AllocateIndex());
+        return IndexToHandle(THIS->AllocateIndex_());
     }
 
-    T& Allocate() { return THIS->_GetByIndex(THIS->_AllocateIndex()); }
+    T& Allocate() { return THIS->GetByIndex_(THIS->AllocateIndex_()); }
 
     handle_id_t Insert(const T& object) {
-        const auto index = THIS->_AllocateIndex();
-        THIS->_GetByIndex(index) = object;
+        const auto index = THIS->AllocateIndex_();
+        THIS->GetByIndex_(index) = object;
         return IndexToHandle(index);
     }
 
     void Free(handle_id_t handle_id) {
-        THIS->_FreeByIndex(HandleToIndex(handle_id));
+        THIS->FreeByIndex_(HandleToIndex(handle_id));
     }
 
     bool IsValid(handle_id_t handle_id) const {
-        return CONST_THIS->_IsValidByIndex(HandleToIndex(handle_id));
+        return CONST_THIS->IsValidByIndex_(HandleToIndex(handle_id));
     }
 
     T& Get(handle_id_t handle_id) {
         AssertHandle(handle_id);
-        return THIS->_GetByIndex(HandleToIndex(handle_id));
+        return THIS->GetByIndex_(HandleToIndex(handle_id));
     }
 
     const T& Get(handle_id_t handle_id) const {
         AssertHandle(handle_id);
-        return CONST_THIS->_GetByIndex(HandleToIndex(handle_id));
+        return CONST_THIS->GetByIndex_(HandleToIndex(handle_id));
     }
 
   private:

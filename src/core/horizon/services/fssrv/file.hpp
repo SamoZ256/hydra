@@ -15,10 +15,10 @@ class IFile : public IService {
                          u32 id) override;
 
     // Commands
-    result_t Read(aligned<u32, 8> option, u64 offset, u64 size,
+    result_t Read(Aligned<u32, 8> option, u64 offset, u64 size,
                   u64* out_written_size,
                   OutBuffer<BufferAttr::MapAlias> out_buffer);
-    result_t Write(aligned<u32, 8> option, u64 offset, u64 size,
+    result_t Write(Aligned<u32, 8> option, u64 offset, u64 size,
                    InBuffer<BufferAttr::MapAlias> in_buffer);
     result_t Flush();
     result_t SetSize(u64 size);
