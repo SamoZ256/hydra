@@ -42,6 +42,7 @@ else ()
     set(TARGET_ARCHS "${CMAKE_HOST_SYSTEM_PROCESSOR}")
 endif ()
 
+option(CLANG_TIDY_ENABLED "Enable clang-tidy" ON)
 option(CUBEB_ENABLED "Enable the cubeb audio backend" ON)
 option(SDL_ENABLED "Enable building SDL files" ON)
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")

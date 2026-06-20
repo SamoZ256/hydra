@@ -1,6 +1,8 @@
 include_directories(.)
 
-set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-extra-arg-before=-Wno-unknown-warning-option;-use-color")
+if (CLANG_TIDY_ENABLED)
+    set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-use-color;-extra-arg-before=-Wno-unknown-warning-option")
+endif ()
 
 add_subdirectory(common)
 add_subdirectory(core)
