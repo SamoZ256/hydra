@@ -29,7 +29,7 @@ class Memory : public IMemory {
         ptr = AllocateVmMemory(size);
 
         // Map
-        // TODO: Why does this fail occasionally?
+        // TODO: if AllocateVmMemory passes a pointer greater than 0x8000000000, this will fail
         HV_ASSERT_SUCCESS(
             hv_vm_map(reinterpret_cast<void*>(ptr), ptr, size,
                       HV_MEMORY_READ | HV_MEMORY_WRITE | HV_MEMORY_EXEC));
@@ -40,7 +40,7 @@ class Memory : public IMemory {
         HV_ASSERT_SUCCESS(
             hv_vm_unmap(ptr, align(GetSizeAligned(), APPLE_PAGE_SIZE)));
 
-        free(reinterpret_cast<void*>(ptr));
+        munmap(reinterpret_cast<void*>(ptr), GetSizeAligned());
     }
 };
 
