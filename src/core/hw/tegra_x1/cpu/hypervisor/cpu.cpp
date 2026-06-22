@@ -39,15 +39,13 @@ VirtualMachine::VirtualMachine() {
     // HACK: since we're mapping our address space to the HV's "physical"
     // space 1:1, we have to extend their space to include all of ours
     // (or as close as possible as we can, which is 39 bits)
-    config = hv_vm_config_create();
+    auto config = hv_vm_config_create();
     HV_ASSERT_SUCCESS(hv_vm_config_set_ipa_size(config, 39));
     HV_ASSERT_SUCCESS(hv_vm_create(config));
+    os_release(config);
 }
 
-VirtualMachine::~VirtualMachine() {
-    HV_ASSERT_SUCCESS(hv_vm_destroy());
-    os_release(&config);
-}
+VirtualMachine::~VirtualMachine() { HV_ASSERT_SUCCESS(hv_vm_destroy()); }
 
 Cpu::Cpu()
     : kernel_mem(align(KERNEL_MEM_SIZE, APPLE_PAGE_SIZE)),

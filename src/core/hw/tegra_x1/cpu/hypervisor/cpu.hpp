@@ -21,8 +21,6 @@ class VirtualMachine {
   public:
     VirtualMachine();
     ~VirtualMachine();
-  private:
-    hv_vm_config_t config;
 };
 
 class Cpu : public ICpu {
