@@ -244,8 +244,8 @@ struct TextureDescriptor {
           depth{depth_}, level_count{level_count_}, layer_count{layer_count_},
           block_width_gobs_log2{block_width_gobs_log2_},
           block_height_gobs_log2{block_height_gobs_log2_},
-          block_depth_gobs_log2{block_depth_gobs_log2_}, layer_size{
-                                                             layer_size_} {
+          block_depth_gobs_log2{block_depth_gobs_log2_},
+          layer_size{layer_size_} {
         CalculateSize();
     }
 
@@ -384,8 +384,8 @@ struct ResourceMapping {
     // TODO: images
 
     ResourceMapping() {
-        for (u32 i = 0; i < CONST_BUFFER_BINDING_COUNT; i++)
-            uniform_buffers[i] = invalid<u32>();
+        for (auto& uniform_buffer : uniform_buffers)
+            uniform_buffer = invalid<u32>();
         // TODO: storage buffers
         // TODO: images
     }
@@ -423,7 +423,7 @@ struct ColorTargetState {
 };
 
 struct PipelineDescriptor {
-    ShaderBase* shaders[usize(ShaderType::Count)];
+    ShaderBase* shaders[static_cast<usize>(ShaderType::Count)];
     VertexState vertex_state;
     ColorTargetState color_target_states[COLOR_TARGET_COUNT];
 };

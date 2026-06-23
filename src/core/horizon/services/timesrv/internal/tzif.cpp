@@ -23,7 +23,7 @@ struct TzifHeader {
 };
 
 template <typename T>
-static T Decode(T value) {
+T Decode(T value) {
     if constexpr (std::endian::native == std::endian::little) {
         return std::byteswap(value);
     } else {
@@ -31,11 +31,9 @@ static T Decode(T value) {
     }
 }
 
-static bool DifferByRepeat(i64 t1, i64 t0) {
-    return (t1 - t0) == SECONDS_PER_REPEAT;
-}
+bool DifferByRepeat(i64 t1, i64 t0) { return (t1 - t0) == SECONDS_PER_REPEAT; }
 
-static bool TimeTypeEquals(const TimeZoneRule& rule, u8 a_index, u8 b_index) {
+bool TimeTypeEquals(const TimeZoneRule& rule, u8 a_index, u8 b_index) {
     if (a_index < 0 || a_index >= rule.type_count || b_index < 0 ||
         b_index >= rule.type_count) {
         return false;
@@ -56,7 +54,7 @@ static bool TimeTypeEquals(const TimeZoneRule& rule, u8 a_index, u8 b_index) {
 
 // From Ryujinx
 void ParseTimeZoneBinary(io::IStream* stream, TimeZoneRule& out_rule) {
-    TzifHeader header = stream->Read<TzifHeader>();
+    const auto header = stream->Read<TzifHeader>();
     ASSERT(header.magic == make_magic4('T', 'Z', 'i', 'f'), Services,
            "Invalid TZif magic {:#x}", header.magic);
 
@@ -232,7 +230,7 @@ void ParseTimeZoneBinary(io::IStream* stream, TimeZoneRule& out_rule) {
             }
         }
 
-        out_rule.default_type = static_cast<u32>(default_type);
+        out_rule.default_type = default_type;
     } else {
         out_rule.default_type = 0;
     }

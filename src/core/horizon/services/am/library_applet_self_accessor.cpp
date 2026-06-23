@@ -17,20 +17,20 @@ DEFINE_SERVICE_COMMAND_TABLE(ILibraryAppletSelfAccessor, 0, PopInData, 1,
 
 result_t ILibraryAppletSelfAccessor::PopInData(RequestContext* ctx,
                                                System* system) {
-    AddService(*ctx, CONTROLLER->PopInData()->Retain());
+    AddService(*ctx, CONTROLLER.PopInData()->Retain());
     return RESULT_SUCCESS;
 }
 
 result_t ILibraryAppletSelfAccessor::PushOutData(System* system,
                                                  IService* storage_) {
     auto storage = static_cast<IStorage*>(storage_);
-    CONTROLLER->PushOutData(storage);
+    CONTROLLER.PushOutData(storage);
     return RESULT_SUCCESS;
 }
 
 result_t ILibraryAppletSelfAccessor::PopInteractiveInData(RequestContext* ctx,
                                                           System* system) {
-    AddService(*ctx, CONTROLLER->PopInteractiveInData()->Retain());
+    AddService(*ctx, CONTROLLER.PopInteractiveInData()->Retain());
     return RESULT_SUCCESS;
 }
 
@@ -38,7 +38,7 @@ result_t
 ILibraryAppletSelfAccessor::PushInteractiveOutData(System* system,
                                                    IService* storage_) {
     auto storage = static_cast<IStorage*>(storage_);
-    CONTROLLER->PushInteractiveOutData(storage);
+    CONTROLLER.PushInteractiveOutData(storage);
     return RESULT_SUCCESS;
 }
 

@@ -73,11 +73,11 @@ void EmitRroR(DecoderContext& context, InstRroR inst) {
 }
 
 void EmitRroC(DecoderContext& context, InstRroC inst) {
-    EmitRro(
-        context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               ir::ScalarType::F32),
-        inst.base.abs, inst.base.neg);
+    EmitRro(context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
+            ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ,
+                                        static_cast<u64>(inst.cbuf_offset * 4)),
+                                   ir::ScalarType::F32),
+            inst.base.abs, inst.base.neg);
 }
 
 void EmitRroI(DecoderContext& context, InstRroI inst) {

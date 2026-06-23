@@ -18,18 +18,23 @@ namespace plugins {
 class Manager;
 }
 
-class LoaderBase {
+class ILoader {
   public:
-    static std::optional<LoaderBase*> CreateFromPath(
+    static std::optional<ILoader*> CreateFromPath(
         std::string_view path,
         std::optional<plugins::Manager*> plugin_manager_opt = std::nullopt);
 
-    virtual ~LoaderBase() = default;
+    ILoader() noexcept = default;
+    virtual ~ILoader() noexcept = default;
+
+    MAKE_NON_COPYABLE(ILoader);
+    MAKE_DEFAULT_MOVABLE(ILoader);
 
     virtual u64 GetTitleID() const { return invalid<u64>(); }
 
     virtual void LoadProcess(System& system, kernel::Process* process) = 0;
     horizon::services::ns::ApplicationControlProperty* LoadNacp();
+    // TODO: return a vector
     uchar4* LoadIcon(u32& out_width, u32& out_height);
     uchar4* LoadNintendoLogo(u32& out_width, u32& out_height);
     uchar4* LoadStartupMovie(std::vector<std::chrono::milliseconds>& out_delays,

@@ -48,7 +48,7 @@ bool DriverBase::ParseInstruction(u32 pc) {
 #define GET_SIZE(shift) GET_DATA_U32(shift, 5)
 
     // Operation
-    Operation op = static_cast<Operation>(instruction & 0x7);
+    const auto op = static_cast<Operation>(instruction & 0x7);
     u32 value;
     bool branched = false;
     switch (op) {
@@ -107,15 +107,14 @@ bool DriverBase::ParseInstruction(u32 pc) {
 
     // result_t operation
     if (op != Operation::Branch) {
-        ResultOperation result_op =
-            static_cast<ResultOperation>(GET_DATA_U32(4, 3));
+        const auto result_op = static_cast<ResultOperation>(GET_DATA_U32(4, 3));
         u8 rD = GET_REG(8);
         InstResult(result_op, rD, value);
     }
 
     // Check if exit
     // TODO: why is this so weird?
-    if (instruction & EXIT_BIT && !branched)
+    if ((instruction & EXIT_BIT) != 0u && !branched)
         exit_after = pc + 1;
 
     return pc == exit_after;

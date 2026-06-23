@@ -40,13 +40,14 @@ result_t Applet::Run(System& system) {
             break;
 
         // Verify
-        usize size = sizeof(u64) + (output_text.size() + 1) * sizeof(char16_t);
-        auto ptr = reinterpret_cast<u8*>(malloc(size));
-        io::MemoryStream stream(std::span(ptr, size));
+        const usize size =
+            sizeof(u64) + ((output_text.size() + 1) * sizeof(char16_t));
+        std::vector<u8> bytes(size);
+        io::MemoryStream stream(bytes);
         stream.Write<u64>(size);
         stream.WriteSpan(std::span<const char16_t>(output_text));
         stream.Write(u'\0');
-        PushInteractiveOutDataRaw({ptr, size});
+        PushInteractiveOutDataRaw(std::move(bytes));
 
         auto reader = PopInteractiveInDataRaw();
         auto res = reader.Read<TextCheckResult>();
@@ -65,14 +66,14 @@ result_t Applet::Run(System& system) {
 
     // Output
     {
-        usize size = sizeof(SoftwareKeyboardResult) +
-                     (output_text.size() + 1) * sizeof(char16_t);
-        auto ptr = reinterpret_cast<u8*>(std::malloc(size));
-        io::MemoryStream stream(std::span(ptr, size));
+        const usize size = sizeof(SoftwareKeyboardResult) +
+                           ((output_text.size() + 1) * sizeof(char16_t));
+        std::vector<u8> bytes(size);
+        io::MemoryStream stream(bytes);
         stream.Write(result);
         stream.WriteSpan(std::span<const char16_t>(output_text));
         stream.Write(u'\0');
-        PushOutDataRaw({ptr, size});
+        PushOutDataRaw(std::move(bytes));
     }
 
     return RESULT_SUCCESS;

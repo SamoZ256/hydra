@@ -12,7 +12,7 @@ class AppletResource;
 class IAppletResource : public IService {
   public:
     IAppletResource(System& system_, kernel::AppletResourceUserId aruid_);
-    ~IAppletResource();
+    ~IAppletResource() override;
 
   protected:
     result_t RequestImpl([[maybe_unused]] RequestContext& context,

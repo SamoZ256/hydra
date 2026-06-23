@@ -25,13 +25,13 @@ IAudioRendererManager::GetWorkBufferSize(AudioRendererParameters params,
     LOG_FUNC_STUBBED(Services);
 
     u64 buffer_sz = align(4 * params.mix_buffer_count, 0x40u);
-    buffer_sz += params.submix_count * 1024;
-    buffer_sz += 0x940 * (params.submix_count + 1);
-    buffer_sz += 0x3F0 * params.voice_count;
+    buffer_sz += static_cast<u64>(params.submix_count * 1024);
+    buffer_sz += static_cast<u64>(0x940 * (params.submix_count + 1));
+    buffer_sz += static_cast<u64>(0x3F0 * params.voice_count);
     buffer_sz += align(8 * (params.submix_count + 1), 0x10u);
     buffer_sz += align(8 * params.voice_count, 0x10u);
-    buffer_sz += align((0x3C0 * (params.sink_count + params.submix_count) +
-                        4 * params.sample_count) *
+    buffer_sz += align(((0x3C0 * (params.sink_count + params.submix_count)) +
+                        (4 * params.sample_count)) *
                            (params.mix_buffer_count + 6),
                        0x40u);
 
@@ -39,8 +39,8 @@ IAudioRendererManager::GetWorkBufferSize(AudioRendererParameters params,
                                         params.revision)) {
         u32 count = params.submix_count + 1;
         u64 node_count = align(count, 0x40u);
-        u64 node_state_buffer_sz = 4 * (node_count * node_count) +
-                                   0xC * node_count + 2 * (node_count / 8);
+        u64 node_state_buffer_sz = (4 * (node_count * node_count)) +
+                                   (0xC * node_count) + (2 * (node_count / 8));
         u64 edge_matrix_buffer_sz = 0;
         node_count = align(count * count, 0x40u);
         if (node_count >> 31 != 0) {
@@ -52,26 +52,29 @@ IAudioRendererManager::GetWorkBufferSize(AudioRendererParameters params,
             align(node_state_buffer_sz + edge_matrix_buffer_sz, 0x10ull);
     }
 
-    buffer_sz += 0x20 * (params.effect_count + 4 * params.voice_count) + 0x50;
+    buffer_sz +=
+        (0x20 * (params.effect_count + (4 * params.voice_count))) + 0x50;
     if (IsAudioRendererFeatureSupported(AudioFeature::Splitter,
                                         params.revision)) {
-        buffer_sz += 0xE0 * params._unknown_x2c;
-        buffer_sz += 0x20 * params.splitter_count;
+        buffer_sz += static_cast<u64>(0xE0 * params._unknown_x2c);
+        buffer_sz += static_cast<u64>(0x20 * params.splitter_count);
         buffer_sz += align(4 * params._unknown_x2c, 0x10u);
     }
-    buffer_sz = align(buffer_sz, 0x40ull) + 0x170 * params.sink_count;
-    u64 output_sz = buffer_sz + 0x280 * params.sink_count +
-                    0x4B0 * params.effect_count +
+    buffer_sz = align(buffer_sz, 0x40ull) +
+                (static_cast<unsigned long long>(0x170 * params.sink_count));
+    u64 output_sz = buffer_sz + (static_cast<u64>(0x280 * params.sink_count)) +
+                    (static_cast<u64>(0x4B0 * params.effect_count)) +
                     ((params.voice_count * 256) | 0x40);
 
     if (params.unknown_x1c >= 1) {
-        output_sz = align(((16 * params.sink_count + 16 * params.effect_count +
-                            16 * params.voice_count + 16) +
-                           0x658) *
-                                  (params.unknown_x1c + 1) +
-                              0xc0,
-                          0x40u) +
-                    output_sz;
+        output_sz =
+            align(((((16 * params.sink_count) + (16 * params.effect_count) +
+                     (16 * params.voice_count) + 16) +
+                    0x658) *
+                   (params.unknown_x1c + 1)) +
+                      0xc0,
+                  0x40u) +
+            output_sz;
     }
     output_sz = align(output_sz + 0x1807e, 0x1000ull);
 

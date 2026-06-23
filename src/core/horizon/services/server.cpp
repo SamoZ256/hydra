@@ -13,7 +13,9 @@ void Server::Start() {
     // Thread
     thread = new kernel::HostThread(
         nullptr, 0x20,
-        [this](kernel::should_stop_fn_t should_stop) { MainLoop(should_stop); },
+        [this](const kernel::should_stop_fn_t& should_stop) {
+            MainLoop(should_stop);
+        },
         "Service server thread");
     thread->Start();
 }
@@ -27,7 +29,7 @@ void Server::Stop() {
 void Server::RegisterPort(kernel::hipc::ServerPort* port,
                           create_service_fn_t service_creator) {
     ports.push_back(port);
-    port_service_creators.insert({port, service_creator});
+    port_service_creators.insert({port, std::move(service_creator)});
 }
 
 void Server::RegisterSession(kernel::hipc::ServerSession* session,
@@ -36,7 +38,7 @@ void Server::RegisterSession(kernel::hipc::ServerSession* session,
     session_services.insert({session, service});
 }
 
-void Server::MainLoop(kernel::should_stop_fn_t should_stop) {
+void Server::MainLoop(const kernel::should_stop_fn_t& should_stop) {
     kernel::hipc::ServerSession* reply_target_session = nullptr;
     while (true) {
         // Wait for incoming requests

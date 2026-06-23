@@ -6,7 +6,7 @@ namespace hydra::input::sdl {
 
 class Keyboard : public IKeyboard {
   public:
-    Keyboard() {}
+    Keyboard() = default;
 
   protected:
     bool IsPressedImpl(Key key) override;

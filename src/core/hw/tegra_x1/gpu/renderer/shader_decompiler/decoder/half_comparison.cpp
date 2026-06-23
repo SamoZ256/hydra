@@ -57,8 +57,9 @@ void EmitHsetp2C(DecoderContext& context, InstHsetp2C inst) {
         context, inst.base.pred, inst.base.pred_inv, inst.op, inst.base.b_op,
         inst.h_and, inst.base.dst_pred, inst.base.dst_inv_pred, inst.base.src_a,
         inst.base.swizzle_a, inst.base.abs_a, inst.base.neg_a,
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               ir::VectorType(ir::ScalarType::F16, 2)),
+        ir::Value::ConstMemory(
+            CMem(inst.cbuf_slot, RZ, static_cast<u64>(inst.cbuf_offset * 4)),
+            ir::VectorType(ir::ScalarType::F16, 2)),
         inst.abs_b, inst.neg_b, inst.base.src_pred, inst.base.src_pred_inv);
 }
 

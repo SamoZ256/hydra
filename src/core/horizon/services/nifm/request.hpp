@@ -31,7 +31,7 @@ class IRequest : public IService {
                          u32 id) override;
 
   private:
-    kernel::Event* events[2];
+    std::array<std::unique_ptr<kernel::Event>, 2> events;
 
     // Commands
     result_t GetRequestState(RequestState* out_state);

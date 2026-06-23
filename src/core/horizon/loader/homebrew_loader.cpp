@@ -154,8 +154,8 @@ class HomebrewThread : public kernel::GuestThread {
     ADD_ENTRY(t, IsMandatory, value0, value1)
 
                 // Entries
-                ConfigEntry* entry = reinterpret_cast<ConfigEntry*>(
-                    executable_ptr + config_offset);
+                auto entry = reinterpret_cast<ConfigEntry*>(executable_ptr +
+                                                            config_offset);
 
                 ADD_ENTRY_OPTIONAL(MainThreadHandle, self_handle, 0);
                 ADD_ENTRY_OPTIONAL(ProcessHandle, self_process_handle, 0);
@@ -245,7 +245,7 @@ void HomebrewLoader::LoadProcess(System& system, kernel::Process* process) {
     const auto nacp = stream->Read<services::ns::ApplicationControlProperty>();
     std::string title_name =
         nacp.GetApplicationTitle(SystemLanguage::AmericanEnglish).name;
-    std::replace(title_name.begin(), title_name.end(), ' ', '_');
+    std::ranges::replace(title_name, ' ', '_');
 
     delete stream;
 

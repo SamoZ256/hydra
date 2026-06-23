@@ -74,7 +74,8 @@ void EmitLopC(DecoderContext& context, InstLopC inst) {
         context, inst.base.pred, inst.base.pred_inv, inst.base.op,
         inst.base.pred_op, inst.base.dst, inst.base.dst_pred, inst.base.src_a,
         inst.base.inv_a,
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4)),
+        ir::Value::ConstMemory(
+            CMem(inst.cbuf_slot, RZ, static_cast<u64>(inst.cbuf_offset * 4))),
         inst.base.inv_b);
 }
 

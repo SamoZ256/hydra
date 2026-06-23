@@ -53,7 +53,7 @@ DebuggerManager::GetDebugger(hydra::horizon::kernel::Process* process) {
         return hydra_debugger;
 
     {
-        std::lock_guard lock(mutex);
+        std::scoped_lock lock(mutex);
         auto it = debuggers.find(process);
         ASSERT_DEBUG(it != debuggers.end(), Debugger,
                      "Process \"{}\" not found", process->GetDebugName());
@@ -64,7 +64,7 @@ DebuggerManager::GetDebugger(hydra::horizon::kernel::Process* process) {
 Debugger& DebuggerManager::GetDebuggerForCurrentProcess() {
     // Get the corresponding process
     auto process = HYDRA_PROCESS;
-    if (horizon::kernel::tls_current_thread)
+    if (horizon::kernel::tls_current_thread != nullptr)
         process = horizon::kernel::tls_current_thread->GetProcess();
 
     return GetDebugger(process);

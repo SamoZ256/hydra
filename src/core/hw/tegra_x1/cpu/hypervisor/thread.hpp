@@ -54,14 +54,14 @@ class Thread : public IThread {
 
     // Debug
     void InsertBreakpoint(vaddr_t addr) override {
-        SendMessage({ThreadMessageType::InsertBreakpoint,
-                     {.insert_breakpoint = {addr}}});
+        SendMessage({.type=ThreadMessageType::InsertBreakpoint,
+                     .payload={.insert_breakpoint = {addr}}});
     }
     void RemoveBreakpoint(vaddr_t addr) override {
-        SendMessage({ThreadMessageType::RemoveBreakpoint,
-                     {.remove_breakpoint = {addr}}});
+        SendMessage({.type=ThreadMessageType::RemoveBreakpoint,
+                     .payload={.remove_breakpoint = {addr}}});
     }
-    void SingleStep() override { SendMessage({ThreadMessageType::SingleStep}); }
+    void SingleStep() override { SendMessage({.type=ThreadMessageType::SingleStep}); }
 
   private:
     Cpu& cpu;
@@ -93,7 +93,7 @@ class Thread : public IThread {
         return value;
     }
 
-    void SetReg(hv_reg_t reg, u64 value) {
+    void SetReg(hv_reg_t reg, u64 value) const {
         HV_ASSERT_SUCCESS(hv_vcpu_set_reg(vcpu, reg, value));
     }
 
@@ -107,7 +107,7 @@ class Thread : public IThread {
         return std::bit_cast<u128>(value);
     }
 
-    void SetSimdFpReg(u8 reg, u128 value) {
+    void SetSimdFpReg(u8 reg, u128 value) const {
         // TODO: correct?
         HV_ASSERT_SUCCESS(hv_vcpu_set_simd_fp_reg(
             vcpu, static_cast<hv_simd_fp_reg_t>(HV_SIMD_FP_REG_Q0 + reg),
@@ -121,13 +121,13 @@ class Thread : public IThread {
         return value;
     }
 
-    void SetSysReg(hv_sys_reg_t reg, u64 value) {
+    void SetSysReg(hv_sys_reg_t reg, u64 value) const {
         HV_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(vcpu, reg, value));
     }
 
     // Messages
     void SendMessage(const ThreadMessage& message) {
-        std::lock_guard<std::mutex> lock(msg_mutex);
+        std::scoped_lock lock(msg_mutex);
         msg_queue.push(message);
     }
 

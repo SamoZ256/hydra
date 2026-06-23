@@ -1,5 +1,7 @@
 #include "common/log.hpp"
 
+#include <algorithm>
+
 #include "common/config.hpp"
 
 namespace hydra {
@@ -25,7 +27,7 @@ void Logger::EnsureOutputStream() {
 
     // Delete oldest logs if needed
     if (logs.size() >= MAX_LOG_FILES) {
-        std::sort(logs.begin(), logs.end(), [](const auto& a, const auto& b) {
+        std::ranges::sort(logs, [](const auto& a, const auto& b) {
             return std::filesystem::last_write_time(a) <
                    std::filesystem::last_write_time(b);
         });

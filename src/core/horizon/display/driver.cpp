@@ -12,7 +12,7 @@ bool Driver::AcquirePresentTextures(
     hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer) {
     bool acquired = false;
     {
-        std::lock_guard lock(layer_mutex);
+        std::scoped_lock lock(layer_mutex);
         for (u32 layer_id = 1; layer_id < layer_pool.GetCapacity() + 1;
              layer_id++) {
             if (!layer_pool.IsValid(layer_id))
@@ -29,7 +29,7 @@ void Driver::Present(
     hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer,
     hw::tegra_x1::gpu::renderer::ISurfaceCompositor* compositor, u32 width,
     u32 height) {
-    std::lock_guard lock(layer_mutex);
+    std::scoped_lock lock(layer_mutex);
     std::vector<Layer*> sorted_layers;
     for (u32 layer_id = 1; layer_id < layer_pool.GetCapacity() + 1;
          layer_id++) {
@@ -78,7 +78,7 @@ void Driver::Present(
 
 void Driver::SignalVSync() {
     // NOTE: we signal all displays at once for simplicity
-    std::lock_guard lock(display_mutex);
+    std::scoped_lock lock(display_mutex);
     for (u32 display_id = 1; display_id < layer_pool.GetCapacity() + 1;
          display_id++) {
         if (!display_pool.IsValid(display_id))
@@ -88,7 +88,7 @@ void Driver::SignalVSync() {
 }
 
 Layer* Driver::GetFirstLayerForProcess(kernel::Process* process) {
-    std::lock_guard lock(layer_mutex);
+    std::scoped_lock lock(layer_mutex);
     for (u32 layer_id = 1; layer_id < layer_pool.GetCapacity() + 1;
          layer_id++) {
         if (!layer_pool.IsValid(layer_id))

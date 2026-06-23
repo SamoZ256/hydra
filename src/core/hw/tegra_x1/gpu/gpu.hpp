@@ -87,7 +87,7 @@ class Gpu {
 
     // Getters
     Pfifo& GetPfifo() { return pfifo; }
-    renderer::IRenderer& GetRenderer() const { return *renderer.get(); }
+    renderer::IRenderer& GetRenderer() const { return *renderer; }
 
   private:
     // Pfifo

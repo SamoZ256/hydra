@@ -1,6 +1,6 @@
 #include "frontend/sdl3/window.hpp"
 
-#include "core/horizon/loader/loader_base.hpp"
+#include "core/horizon/loader/loader.hpp"
 #include "core/input/device_manager.hpp"
 
 namespace hydra::frontend::sdl3 {
@@ -130,7 +130,7 @@ void Window::BeginEmulation(const std::string& path) {
 
     system.SetSurface(SDL_GetRenderMetalLayer(renderer));
     // TODO: support loading applets from firmware
-    auto loader = horizon::loader::LoaderBase::CreateFromPath(path);
+    auto loader = horizon::loader::ILoader::CreateFromPath(path);
     system.LoadAndStart(loader);
     title_id = loader->GetTitleID();
     delete loader;

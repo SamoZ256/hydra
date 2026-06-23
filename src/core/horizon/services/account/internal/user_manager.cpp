@@ -28,8 +28,8 @@ struct HusrHeader {
 constexpr u64 AVATAR_UNCOMPRESSED_IMAGE_SIZE = 0x40000;
 constexpr u32 AVATAR_IMAGE_DIMENSIONS = 256;
 
-static void jpg_to_memory(void* context, void* data, int len) {
-    std::vector<u8>* jpg_image = static_cast<std::vector<u8>*>(context);
+void jpg_to_memory(void* context, void* data, int len) {
+    auto jpg_image = static_cast<std::vector<u8>*>(context);
     u8* jpg = static_cast<u8*>(data);
     jpg_image->insert(jpg_image->end(), jpg, jpg + len);
 }
@@ -97,7 +97,7 @@ void UserManager::LoadSystemAvatars(filesystem::Filesystem& fs) {
     const auto default_image_path =
         GetBundleResourcePath("default_avatar_image.png");
     avatars[DEFAULT_AVATAR_IMAGE_PATH] = {
-        new filesystem::DiskFile(default_image_path)};
+        .file = new filesystem::DiskFile(default_image_path)};
 
     // NCA
     filesystem::IFile* file;
@@ -133,7 +133,7 @@ void UserManager::LoadSystemAvatars(filesystem::Filesystem& fs) {
     for (const auto& [name, entry] : character_dir->GetEntries()) {
         if (name.ends_with(".szs"))
             avatars[fmt::format(SYSTEM_AVATARS_PATH "/{}", name)] = {
-                static_cast<filesystem::IFile*>(entry)};
+                .file = static_cast<filesystem::IFile*>(entry)};
     }
 }
 
@@ -144,8 +144,8 @@ const std::vector<uchar4>& UserManager::LoadAvatarImage(std::string_view path,
     if (it == avatars.end()) {
         if (path[0] != '$') {
             it = avatars
-                     .insert(
-                         {std::string(path), {new filesystem::DiskFile(path)}})
+                     .insert({std::string(path),
+                              {.file = new filesystem::DiskFile(path)}})
                      .first;
         } else {
             LOG_WARN(
@@ -309,11 +309,12 @@ void UserManager::PreloadAvatar(Avatar& avatar, bool is_compressed) {
         avatar.dimensions = AVATAR_IMAGE_DIMENSIONS;
     } else {
         // Load with STB image
-        i32 width, height;
+        i32 width;
+        i32 height;
         auto pixels =
             stbi_load_from_memory(raw.data(), static_cast<i32>(raw.size()),
                                   &width, &height, nullptr, 4);
-        if (!pixels) {
+        if (pixels == nullptr) {
             LOG_ERROR(Services, "Failed to load avatar image");
             return;
         }
@@ -324,7 +325,7 @@ void UserManager::PreloadAvatar(Avatar& avatar, bool is_compressed) {
         avatar.dimensions = static_cast<u32>(width);
 
         // TODO: avoid intermediate copy
-        u64 size = avatar.dimensions * avatar.dimensions * 4;
+        u64 size = static_cast<u64>(avatar.dimensions * avatar.dimensions * 4);
         avatar.data.resize(size);
         std::memcpy(avatar.data.data(), pixels, size);
         stbi_image_free(pixels);

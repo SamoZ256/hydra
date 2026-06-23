@@ -67,7 +67,10 @@ struct InOut {
     Out* out;
 
     operator In() const { return in; }
-    void operator=(const Out& other) { *out = other; }
+    InOut& operator=(const Out& other) {
+        *out = other;
+        return *this;
+    }
 
     In Get() const { return in; }
 };
@@ -77,7 +80,10 @@ struct InOutSingle {
     T* data;
 
     operator T() const { return *data; }
-    void operator=(const T& other) { *data = other; }
+    InOutSingle& operator=(const T& other) {
+        *data = other;
+        return *this;
+    }
 
     T Get() const { return *data; }
 };
@@ -213,7 +219,8 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
             arg = context.in_stream->ReadPtr<typename traits::BaseType>();
 
             // Next
-            static_assert(arg_index == std::tuple_size_v<CommandArguments> - 1,
+            static_assert(arg_index ==
+                              std::tuple_size_v < CommandArguments > -1,
                           "InArray must be the last argument");
             return;
         }
@@ -223,7 +230,7 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
 template <typename Class, typename... Args, usize... Is>
 NvResult invoke_command_with_args(IoctlContext& context, Class& instance,
                                   NvResult (Class::*func)(Args...),
-                                  std::index_sequence<Is...>) {
+                                  std::index_sequence<Is...> /*unused*/) {
     using traits = function_traits<decltype(func)>;
 
     auto args = std::tuple<typename traits::template arg<Is>::type...>();

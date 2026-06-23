@@ -50,7 +50,7 @@ inline ApFlags ToApFlags(horizon::kernel::MemoryPermission perm) {
 }
 
 // TODO: this is a horrible way to handle this
-static bool page_table_regions[16] = {false};
+bool page_table_regions[16] = {false};
 
 paddr_t FindFreePageTableRegion() {
     for (u32 i = 0; i < 16; i++) {
@@ -125,16 +125,6 @@ void Mmu::Protect(Range<vaddr_t> range,
     ASSERT_ALIGNMENT(range.GetBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
     ASSERT_ALIGNMENT(range.GetEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
     user_page_table.SetMemoryPermission(range, perm, ToApFlags(perm));
-}
-
-// TODO: just improve this...
-void Mmu::ResizeHeap(IMemory* heap_mem, vaddr_t va, u64 size) {
-    (void)heap_mem;
-
-    const auto region = user_page_table.QueryRegion(va);
-    paddr_t pa = region.UnmapAddr(va);
-    user_page_table.Map(va, Range<uptr>::FromSize(pa, size), region.state,
-                        ToApFlags(region.state.perm));
 }
 
 uptr Mmu::UnmapAddr(vaddr_t va) const { return user_page_table.UnmapAddr(va); }

@@ -11,6 +11,9 @@ class IFile : public IService {
     ~IFile() override;
 
   private:
+    filesystem::IFile* file;
+    io::IStream* stream;
+
     result_t RequestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
@@ -23,10 +26,6 @@ class IFile : public IService {
     result_t Flush();
     result_t SetSize(u64 size);
     result_t GetSize(u64* out_size);
-
-  private:
-    filesystem::IFile* file;
-    io::IStream* stream;
 };
 
 } // namespace hydra::horizon::services::fssrv

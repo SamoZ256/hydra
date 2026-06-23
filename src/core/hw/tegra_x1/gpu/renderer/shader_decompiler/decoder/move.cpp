@@ -38,9 +38,9 @@ void EmitMovR(DecoderContext& context, InstMovR inst) {
 }
 
 void EmitMovC(DecoderContext& context, InstMovC inst) {
-    EmitMove(
-        context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4)));
+    EmitMove(context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
+             ir::Value::ConstMemory(CMem(
+                 inst.cbuf_slot, RZ, static_cast<u64>(inst.cbuf_offset * 4))));
 }
 
 void EmitMovI(DecoderContext& context, InstMovI inst) {
@@ -64,7 +64,8 @@ void EmitSelC(DecoderContext& context, InstSelC inst) {
     EmitSelect(
         context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
         inst.base.src_pred, inst.base.src_pred_inv, inst.base.src_a,
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4)));
+        ir::Value::ConstMemory(
+            CMem(inst.cbuf_slot, RZ, static_cast<u64>(inst.cbuf_offset * 4))));
 }
 
 void EmitSelI(DecoderContext& context, InstSelI inst) {

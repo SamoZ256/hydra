@@ -207,7 +207,7 @@ void NxLoader::FindIcon() {
 }
 
 void NxLoader::LoadCode(System& system, kernel::Process* process,
-                        filesystem::Directory* exefs_dir) {
+                        filesystem::Directory* exefs_dir) const {
     // HACK: if rtld is not present, use main as the entry point
     std::string entry_point = "rtld";
     filesystem::IEntry* e;

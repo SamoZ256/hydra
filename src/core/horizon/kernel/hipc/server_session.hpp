@@ -29,7 +29,7 @@ class ServerSession : public SynchronizationObject {
     void OnClientClose();
 
     bool IsClientOpen() {
-        std::lock_guard lock(mutex);
+        std::scoped_lock lock(mutex);
         return client_open;
     }
 
@@ -38,13 +38,13 @@ class ServerSession : public SynchronizationObject {
     void Reply(uptr ptr);
 
     bool HasRequests() {
-        std::lock_guard lock(mutex);
+        std::scoped_lock lock(mutex);
         return !requests.empty();
     }
 
     // HACK
     kernel::Process* GetActiveRequestClientProcess() {
-        std::lock_guard lock(mutex);
+        std::scoped_lock lock(mutex);
         return active_request->client_process;
     }
 

@@ -20,9 +20,8 @@ u32 PipelineCache::Hash(const PipelineDescriptor& descriptor) {
     // Vertex state
 
     // Vertex attributes
-    for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
-        const auto& vertex_attrib_state =
-            descriptor.vertex_state.vertex_attrib_states[i];
+    for (const auto& vertex_attrib_state :
+         descriptor.vertex_state.vertex_attrib_states) {
         hash.Add(vertex_attrib_state.buffer_id);
         // is_fixed is in vertex shader hash
         hash.Add(vertex_attrib_state.offset);
@@ -31,8 +30,7 @@ u32 PipelineCache::Hash(const PipelineDescriptor& descriptor) {
     }
 
     // Vertex arrays
-    for (u32 i = 0; i < VERTEX_ARRAY_COUNT; i++) {
-        const auto& vertex_array = descriptor.vertex_state.vertex_arrays[i];
+    for (const auto& vertex_array : descriptor.vertex_state.vertex_arrays) {
         hash.Add(vertex_array.enable);
         hash.Add(vertex_array.stride);
         hash.Add(vertex_array.is_per_instance);
@@ -42,8 +40,7 @@ u32 PipelineCache::Hash(const PipelineDescriptor& descriptor) {
     // Color state
 
     // Color targets
-    for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
-        const auto& color_target_state = descriptor.color_target_states[i];
+    for (const auto& color_target_state : descriptor.color_target_states) {
         hash.Add(color_target_state.format);
         hash.Add(color_target_state.blend_enabled);
         if (color_target_state.blend_enabled) {

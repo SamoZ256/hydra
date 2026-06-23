@@ -34,7 +34,7 @@ template <>
 struct from<CustomResolution> {
     template <typename TC>
     static CustomResolution from_toml(const basic_value<TC>& v) {
-        const auto str = v.as_string();
+        const auto& str = v.as_string();
         const auto x_pos = str.find('x');
         if (x_pos == std::string::npos)
             LOG_FATAL(Other, "Invalid custom display resolution {}", str);
@@ -72,7 +72,7 @@ Config::Config() {
     } else {
         LOG_FATAL(Other, "Failed to find HOME path");
     }
-#elif defined(PLATFORM_WINDOWS)
+#elifdef PLATFORM_WINDOWS
     if (const char* app_data = std::getenv("APPDATA")) {
         app_data_path = fmt::format("{}/" APP_NAME, app_data);
         logs_path = fmt::format("{}/logs", app_data_path); // TODO

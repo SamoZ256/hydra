@@ -27,20 +27,20 @@ void GuestThread::Run() {
     ASSERT(entry_point != invalid<vaddr_t>(), Kernel, "Invalid entry point");
     thread = system.GetCpu().CreateThread(
         system.GetWallClock(), process->GetMmu(),
-        {[this](hw::tegra_x1::cpu::IThread* hw_thread, u64 id) {
+        {.svc_handler=[this](hw::tegra_x1::cpu::IThread* hw_thread, u64 id) {
              system.GetOS().GetKernel().SupervisorCall(process, this, hw_thread,
                                                        id);
          },
-         [this]() {
+         .stop_requested=[this]() {
              ProcessMessages();
              return GetState() == ThreadState::Stopping;
          },
-         [this]() {
+         .supervisor_pause=[this]() {
              SupervisorPause();
              DEBUGGER_MANAGER_INSTANCE.GetDebugger(process)
                  .NotifySupervisorPaused(this, debugger::Signal::SigTrap);
          },
-         [this]() {
+         .breakpoint_hit=[this]() {
              DEBUGGER_MANAGER_INSTANCE.GetDebugger(process).BreakpointHit(this);
          }},
         tls_mem, tls_addr);

@@ -49,7 +49,7 @@ class Loader : public NxLoader {
   public:
     Loader(Plugin& extension_, void* handle_, const filesystem::Directory& dir)
         : NxLoader(dir), plugin{extension_}, handle{handle_} {}
-    ~Loader() {
+    ~Loader() override {
         // HACK
         (void)plugin;
         (void)handle;
@@ -77,7 +77,7 @@ std::expected<Plugin, Plugin::Error> Plugin::Create(const std::string& path) {
     Plugin plugin;
 
     plugin.library = dlopen(path.data(), RTLD_LAZY);
-    if (!plugin.library)
+    if (plugin.library == nullptr)
         return std::unexpected(Error::LoadFailed);
 
     // Functions
@@ -184,16 +184,16 @@ Plugin::Create(const std::string& path,
 }
 
 Plugin::~Plugin() {
-    if (context)
+    if (context != nullptr)
         DestroyContext();
-    if (library)
+    if (library != nullptr)
         dlclose(library);
 }
 
 std::optional<NxLoader*> Plugin::Load(std::string_view path) {
     const auto root_dir = new filesystem::Directory();
     return CreateLoaderFromFile(root_dir, path)
-        .transform([=, this](void* handle) {
+        .transform([root_dir, this](void* handle) {
             return new Loader(*this, handle, *root_dir);
         });
 }
@@ -204,8 +204,7 @@ std::span<const u8> Plugin::Query(api::QueryType what) { return query(what); }
 
 std::string_view Plugin::QueryString(api::QueryType what) {
     const auto buffer = Query(what);
-    return std::string_view(reinterpret_cast<const char*>(buffer.data()),
-                            buffer.size());
+    return {reinterpret_cast<const char*>(buffer.data()), buffer.size()};
 }
 
 std::expected<void*, Plugin::Error>
@@ -219,7 +218,7 @@ Plugin::CreateContext(const std::map<std::string, std::string>& options) {
     }
     const auto ret =
         create_context(api::Slice(std::span<const api::Option>(options_vec)));
-    if (ret.res != api::CreateContextResult::Success || !ret.value)
+    if (ret.res != api::CreateContextResult::Success || ret.value == nullptr)
         return std::unexpected(Error::ContextCreationFailed);
 
     return ret.value;

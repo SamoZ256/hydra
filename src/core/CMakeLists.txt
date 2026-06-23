@@ -67,8 +67,8 @@ add_library(hydra-core
     horizon/filesystem/romfs/builder.hpp
     horizon/filesystem/romfs/romfs.cpp
     horizon/filesystem/romfs/romfs.hpp
-    horizon/loader/loader_base.cpp
-    horizon/loader/loader_base.hpp
+    horizon/loader/loader.cpp
+    horizon/loader/loader.hpp
     horizon/loader/nro_loader.cpp
     horizon/loader/nro_loader.hpp
     horizon/loader/nso_loader.cpp

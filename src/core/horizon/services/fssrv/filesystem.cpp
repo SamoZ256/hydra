@@ -17,7 +17,7 @@ DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 0, CreateFile, 1, DeleteFile, 2,
                              GetTotalSpaceSize, 14, GetFileTimeStampRaw)
 
 #define READ_PATH_IMPL(path_var, debug_name)                                   \
-    const auto path_var =                                                      \
+    [[maybe_unused]] const auto path_var =                                     \
         mount +                                                                \
         std::string(                                                           \
             in_##path_var##_buffer.stream->ReadNullTerminatedString());        \
@@ -40,9 +40,9 @@ IFileSystem::CreateFile(System* system, CreateOption flags, u64 size,
 
     const auto res = system->GetOS().GetFilesystem().CreateFile(
         path, size, true); // TODO: should create_intermediate be true?
-    if (res == filesystem::FsResult::AlreadyExists)
+    if (res == filesystem::FsResult::AlreadyExists) {
         LOG_WARN(Services, "File \"{}\" already exists", path);
-    else
+    } else
         ASSERT(res == filesystem::FsResult::Success, Services,
                "Failed to create file \"{}\": {}", path, res);
 
@@ -70,9 +70,9 @@ IFileSystem::CreateDirectory(System* system,
 
     const auto res = system->GetOS().GetFilesystem().CreateDirectory(
         path, true); // TODO: should create_intermediate be true?
-    if (res == filesystem::FsResult::AlreadyExists)
+    if (res == filesystem::FsResult::AlreadyExists) {
         LOG_WARN(Services, "Directory \"{}\" already exists", path);
-    else
+    } else
         ASSERT(res == filesystem::FsResult::Success, Services,
                "Failed to create directory \"{}\": {}", path, res);
 

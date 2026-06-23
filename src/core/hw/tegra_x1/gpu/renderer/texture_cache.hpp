@@ -19,7 +19,7 @@ using TextureCacheTimePoint = TextureCacheClock::time_point;
 struct TextureStorage {
     ITexture* base{nullptr};
     SmallCache<u32, ITextureView*> view_cache;
-    TextureCacheTimePoint update_timestamp{};
+    TextureCacheTimePoint update_timestamp;
 
     void MarkUpdated() { update_timestamp = TextureCacheClock::now(); }
 };
@@ -39,9 +39,9 @@ struct TextureGroup {
 };
 
 struct TextureMemInfo {
-    TextureCacheTimePoint modified_timestamp{};
-    TextureCacheTimePoint read_timestamp{};
-    TextureCacheTimePoint written_timestamp{};
+    TextureCacheTimePoint modified_timestamp;
+    TextureCacheTimePoint read_timestamp;
+    TextureCacheTimePoint written_timestamp;
 
     void MarkModified() { modified_timestamp = TextureCacheClock::now(); }
     void MarkRead() { read_timestamp = TextureCacheClock::now(); }
@@ -95,7 +95,7 @@ class TextureCache {
     std::mutex mutex;
     std::map<uptr, TextureMem> entries;
 
-    void MergeMemories(TextureMem& mem, TextureMem& other);
+    static void MergeMemories(TextureMem& mem, TextureMem& other);
     ITextureView* AddToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
                               const TextureDescriptor& descriptor,
                               const TextureViewDescriptor& view_descriptor,
@@ -103,7 +103,7 @@ class TextureCache {
     void UpdateStorage(ICommandBuffer* command_buffer, TextureStorage& storage,
                        TextureMem& mem, const TextureDescriptor& descriptor,
                        TextureUsage usage);
-    ITextureView* GetTextureView(TextureStorage& storage,
+    static ITextureView* GetTextureView(TextureStorage& storage,
                                  const TextureViewDescriptor& view_descriptor);
     ITextureView* GetTextureView(ICommandBuffer* command_buffer,
                                  TextureStorage& storage, TextureMem& mem,
@@ -118,15 +118,15 @@ class TextureCache {
                 TextureMem& mem, TextureUsage usage);
 
     // Data synchronization
-    void Synchronize2DWith2D(ICommandBuffer* command_buffer,
+    static void Synchronize2DWith2D(ICommandBuffer* command_buffer,
                              TextureStorage& storage,
                              TextureStorage& other_storage);
-    void Synchronize3DWith3D(ICommandBuffer* command_buffer,
+    static void Synchronize3DWith3D(ICommandBuffer* command_buffer,
                              TextureStorage& storage,
                              TextureStorage& other_storage);
 
     // Helpers
-    u32 GetDataHash(const ITexture* texture);
+    static u32 GetDataHash(const ITexture* texture);
     void DecodeTexture(ICommandBuffer* command_buffer, TextureStorage& storage);
     // TODO: encode texture
 

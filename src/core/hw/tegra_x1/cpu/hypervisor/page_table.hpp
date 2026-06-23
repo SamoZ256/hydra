@@ -34,13 +34,8 @@ struct PageTableLevel {
         return static_cast<u32>((va - base_va) >> GET_BLOCK_SHIFT(level));
     }
 
-    u64& GetEntry(u32 index) {
+    u64& GetEntry(u32 index) const {
         u64* table = reinterpret_cast<u64*>(page.ptr);
-        return table[index];
-    }
-
-    const u64& GetEntry(u32 index) const {
-        const u64* table = reinterpret_cast<const u64*>(page.ptr);
         return table[index];
     }
 
@@ -134,16 +129,15 @@ class PageTable {
                       const horizon::kernel::MemoryState state,
                       ApFlags ap_flags);
 
-    void IterateRange(
-        Range<vaddr_t> range,
-        std::function<void(Range<vaddr_t>, u64,
-                           const horizon::kernel::MemoryState&, PageFlags)>
-            callback) const;
     void
-    ModifyRange(Range<vaddr_t> range,
-                std::function<void(Range<vaddr_t>, u64&,
-                                   horizon::kernel::MemoryState&, PageFlags&)>
-                    callback);
+    IterateRange(Range<vaddr_t> range,
+                 const std::function<void(Range<vaddr_t>, u64,
+                                          const horizon::kernel::MemoryState&,
+                                          PageFlags)>& callback) const;
+    void ModifyRange(Range<vaddr_t> range,
+                     const std::function<void(Range<vaddr_t>, u64&,
+                                              horizon::kernel::MemoryState&,
+                                              PageFlags&)>& callback);
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor

@@ -6,7 +6,8 @@ namespace hydra::hw::tegra_x1::gpu::renderer {
 
 class ShaderBase {
   public:
-    ShaderBase(const ShaderDescriptor& descriptor_) : descriptor(descriptor_) {}
+    ShaderBase(ShaderDescriptor descriptor_)
+        : descriptor(std::move(descriptor_)) {}
     virtual ~ShaderBase() = default;
 
     // Getters

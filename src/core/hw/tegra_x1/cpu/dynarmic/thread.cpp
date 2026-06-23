@@ -28,8 +28,7 @@ static Dynarmic::ExclusiveMonitor
 Thread::Thread(WallClock& wall_clock, IMmu* mmu,
                const ThreadCallbacks& callbacks, IMemory* tls_mem,
                vaddr_t tls_mem_base)
-    : IThread(wall_clock, mmu, callbacks, tls_mem) {
-    tpidrro_el0 = tls_mem_base;
+    : IThread(wall_clock, mmu, callbacks, tls_mem), tpidrro_el0{tls_mem_base} {
     // TODO: tpidr_el0?
 
     // Create JIT
@@ -56,7 +55,7 @@ Thread::Thread(WallClock& wall_clock, IMmu* mmu,
     config.enable_cycle_counting = false;
 
     // Code cache size
-    config.code_cache_size = 128 * 1024 * 1024; // 128_MiB;
+    config.code_cache_size = static_cast<usize>(128 * 1024 * 1024); // 128_MiB;
 
     // TODO: make this configurable
     // config.optimizations = Dyn::no_optimizations;
@@ -112,17 +111,17 @@ void Thread::MemoryWrite128(u64 addr, Dynarmic::A64::Vector value) {
     MMU->Write(addr, value);
 }
 
-bool Thread::MemoryWriteExclusive8(u64 addr, u8 value, u8) {
+bool Thread::MemoryWriteExclusive8(u64 addr, u8 value, u8 /*unused*/) {
     MMU->WriteExclusive(addr, value);
     return true;
 }
 
-bool Thread::MemoryWriteExclusive16(u64 addr, u16 value, u16) {
+bool Thread::MemoryWriteExclusive16(u64 addr, u16 value, u16 /*unused*/) {
     MMU->WriteExclusive(addr, value);
     return true;
 }
 
-bool Thread::MemoryWriteExclusive32(u64 addr, u32 value, u32) {
+bool Thread::MemoryWriteExclusive32(u64 addr, u32 value, u32 /*unused*/) {
     MMU->WriteExclusive(addr, value);
     return true;
 }

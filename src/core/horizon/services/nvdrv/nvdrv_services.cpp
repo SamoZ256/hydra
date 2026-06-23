@@ -152,8 +152,12 @@ result_t INvDrvServices::IoctlImpl(
     u32 nr = code & 0xff;
 
     ioctl::IoctlContext context{
-        system,           process,    in_stream,
-        in_buffer_stream, out_stream, out_buffer_stream,
+        .system = system,
+        .process = process,
+        .in_stream = std::move(in_stream),
+        .in_buffer_stream = std::move(in_buffer_stream),
+        .out_stream = std::move(out_stream),
+        .out_buffer_stream = std::move(out_buffer_stream),
     };
     NvResult result = (fd->*func)(context, type, nr);
 

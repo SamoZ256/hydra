@@ -9,7 +9,7 @@ class Stream final : public IStream {
     Stream(PcmFormat format, u32 sample_rate, u16 channel_count,
            buffer_finished_callback_fn_t buffer_finished_callback)
         : IStream(format, sample_rate, channel_count,
-                  buffer_finished_callback) {}
+                  std::move(buffer_finished_callback)) {}
 
     void Start() override { state = StreamState::Started; }
     void Stop() override { state = StreamState::Stopped; }

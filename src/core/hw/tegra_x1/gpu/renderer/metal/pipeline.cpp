@@ -12,10 +12,10 @@ Pipeline::Pipeline(MTL::Device* device, const PipelineDescriptor& descriptor)
         MTL::RenderPipelineDescriptor::alloc()->init();
 
     // Shaders
-    const auto vertex_shader =
-        static_cast<Shader*>(descriptor.shaders[u32(ShaderType::Vertex)]);
-    const auto fragment_shader =
-        static_cast<Shader*>(descriptor.shaders[u32(ShaderType::Fragment)]);
+    const auto vertex_shader = static_cast<Shader*>(
+        descriptor.shaders[static_cast<u32>(ShaderType::Vertex)]);
+    const auto fragment_shader = static_cast<Shader*>(
+        descriptor.shaders[static_cast<u32>(ShaderType::Fragment)]);
     pipeline_descriptor->setVertexFunction(vertex_shader->GetFunction());
     pipeline_descriptor->setFragmentFunction(fragment_shader->GetFunction());
 
@@ -139,7 +139,7 @@ Pipeline::Pipeline(MTL::Device* device, const PipelineDescriptor& descriptor)
     NS::Error* error;
     pipeline = device->newRenderPipelineState(pipeline_descriptor, &error);
     pipeline_descriptor->release();
-    if (error) {
+    if (error != nullptr) {
         LOG_ERROR(MetalRenderer, "Failed to create pipeline: {}",
                   error->localizedDescription()->utf8String());
         error->release(); // TODO: release?

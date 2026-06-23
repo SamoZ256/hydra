@@ -31,21 +31,21 @@ class AppletResourcePool {
   public:
     AppletResourcePool(System& system_) : system{system_} {}
 
-    typename ResourceArray::iterator begin() { return resources.begin(); }
+    ResourceArray::iterator begin() { return resources.begin(); }
 
-    typename ResourceArray::const_iterator begin() const {
+    ResourceArray::const_iterator begin() const {
         return resources.begin();
     }
 
-    typename ResourceArray::const_iterator cbegin() const { return begin(); }
+    ResourceArray::const_iterator cbegin() const { return begin(); }
 
-    typename ResourceArray::iterator end() { return resources.end(); }
+    ResourceArray::iterator end() { return resources.end(); }
 
-    typename ResourceArray::const_iterator end() const {
+    ResourceArray::const_iterator end() const {
         return resources.end();
     }
 
-    typename ResourceArray::const_iterator cend() const { return end(); }
+    ResourceArray::const_iterator cend() const { return end(); }
 
     T& CreateResource(kernel::AppletResourceUserId aruid) {
         auto& resource = GetResourceOpt(aruid);

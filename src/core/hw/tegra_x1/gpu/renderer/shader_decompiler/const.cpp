@@ -2,7 +2,7 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
-const SvAccess get_sv_access_from_addr(u64 addr) {
+SvAccess get_sv_access_from_addr(u64 addr) {
     ASSERT_ALIGNMENT_DEBUG(addr, 4, ShaderDecompiler, "Address");
 
     struct SvBase {
@@ -11,10 +11,10 @@ const SvAccess get_sv_access_from_addr(u64 addr) {
     };
 
     static constexpr SvBase bases[] = {
-        {SvSemantic::VertexID, SV_VERTEX_ID_BASE},
-        {SvSemantic::InstanceID, SV_INSTANCE_ID_BASE},
-        {SvSemantic::UserInOut, SV_USER_IN_OUT_BASE},
-        {SvSemantic::Position, SV_POSITION_BASE},
+        {.semantic=SvSemantic::VertexID, .base_addr=SV_VERTEX_ID_BASE},
+        {.semantic=SvSemantic::InstanceID, .base_addr=SV_INSTANCE_ID_BASE},
+        {.semantic=SvSemantic::UserInOut, .base_addr=SV_USER_IN_OUT_BASE},
+        {.semantic=SvSemantic::Position, .base_addr=SV_POSITION_BASE},
     };
 
     for (const auto& base : bases) {

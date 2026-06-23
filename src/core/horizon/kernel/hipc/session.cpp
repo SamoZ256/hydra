@@ -17,13 +17,13 @@ Session::Session(ServerSession* server_side_, ClientSession* client_side_,
 
 void Session::OnServerClose() {
     server_side = nullptr;
-    if (client_side)
+    if (client_side != nullptr)
         client_side->OnServerClose();
 }
 
 void Session::OnClientClose() {
     client_side = nullptr;
-    if (server_side)
+    if (server_side != nullptr)
         server_side->OnClientClose();
 }
 

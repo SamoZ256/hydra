@@ -12,7 +12,7 @@ BufferCache::~BufferCache() {
 
 BufferView BufferCache::Get(ICommandBuffer* command_buffer, Range<uptr> range) {
     auto& entry = Find(range);
-    if (entry.buffer) {
+    if (entry.buffer != nullptr) {
         // Check for memory invalidation
         if (entry.invalidation_range.has_value() &&
             entry.invalidation_range->Intersects(range)) {
@@ -29,8 +29,8 @@ BufferView BufferCache::Get(ICommandBuffer* command_buffer, Range<uptr> range) {
         UpdateRange(command_buffer, entry, entry.range);
     }
 
-    return BufferView(entry.buffer, range.GetBegin() - entry.range.GetBegin(),
-                      range.GetSize());
+    return {entry.buffer, range.GetBegin() - entry.range.GetBegin(),
+                      range.GetSize()};
 }
 
 void BufferCache::InvalidateMemory(Range<uptr> range) {

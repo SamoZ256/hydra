@@ -2,29 +2,8 @@
 
 namespace hydra::horizon::loader {
 
-NspLoader::NspLoader(const filesystem::PartitionFilesystem& pfs_) : pfs(pfs_) {
-    /*
-    // TODO: ticket file
-
-    // NCAs
-    // HACK: find the largest one
-    struct {
-        filesystem::IFile* file;
-        u64 size;
-    } largest_entry{nullptr, 0};
-    for (const auto& [filename, entry] : pfs.GetEntries()) {
-        auto file = dynamic_cast<filesystem::IFile*>(entry);
-        if (!file)
-            continue;
-
-        if (file->GetSize() > largest_entry.size)
-            largest_entry = {file, file->GetSize()};
-    }
-
-    // TODO: check for encryption
-    program_nca_loader = new NcaLoader(largest_entry.file);
-    */
-
+NspLoader::NspLoader(filesystem::PartitionFilesystem pfs_)
+    : pfs(std::move(pfs_)) {
     filesystem::IFile* main_file;
     const auto res = pfs.GetFile("main", main_file);
     if (res != filesystem::FsResult::Success) {

@@ -24,7 +24,7 @@ class SharedFontManager {
 
     kernel::SharedMemory* shared_memory;
     u32 shared_memory_offset{0};
-    FontState states[u32(SharedFontType::Total)]{};
+    FontState states[6]{};
 
     // Helpers
     void LoadFont(const SharedFontType type);
@@ -32,7 +32,7 @@ class SharedFontManager {
   public:
     GETTER(shared_memory, GetSharedMemory);
     const FontState& GetState(SharedFontType type) const {
-        return states[u32(type)];
+        return states[static_cast<u32>(type)];
     }
 };
 

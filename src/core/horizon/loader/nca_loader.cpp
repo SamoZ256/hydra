@@ -11,8 +11,8 @@
 
 namespace hydra::horizon::loader {
 
-NcaLoader::NcaLoader(const filesystem::ContentArchive& content_archive_)
-    : content_archive{content_archive_} {
+NcaLoader::NcaLoader(filesystem::ContentArchive content_archive_)
+    : content_archive{std::move(content_archive_)} {
     // Nintendo logo
     auto res = content_archive.GetFile(NINTENDO_LOGO_PATH, nintendo_logo_file);
     if (res != filesystem::FsResult::Success)
@@ -91,7 +91,7 @@ void NcaLoader::LoadProcess(System& system, kernel::Process* process) {
 }
 
 void NcaLoader::LoadCode(System& system, kernel::Process* process,
-                         filesystem::Directory* dir) {
+                         filesystem::Directory* dir) const {
     // HACK: if rtld is not present, use main as the entry point
     std::string entry_point = "rtld";
     filesystem::IEntry* e;

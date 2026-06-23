@@ -2,8 +2,8 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::null {
 
-SurfaceCompositor::SurfaceCompositor() {}
-SurfaceCompositor::~SurfaceCompositor() {}
+SurfaceCompositor::SurfaceCompositor() = default;
+SurfaceCompositor::~SurfaceCompositor() = default;
 
 void SurfaceCompositor::DrawTexture(
     [[maybe_unused]] ICommandBuffer* command_buffer,

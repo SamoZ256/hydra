@@ -10,8 +10,9 @@ DEFINE_SERVICE_COMMAND_TABLE(IRequest, 0, GetRequestState, 1, GetResult, 2,
                              SetConnectionConfirmationOption)
 
 IRequest::IRequest()
-    : events{new kernel::Event(false, "IRequest system event 0"),
-             new kernel::Event(false, "IRequest system event 1")} {}
+    : events{
+          std::make_unique<kernel::Event>(false, "IRequest system event 0"),
+          std::make_unique<kernel::Event>(false, "IRequest system event 1")} {}
 
 result_t IRequest::GetRequestState(RequestState* out_state) {
     LOG_FUNC_STUBBED(Services);
@@ -25,8 +26,8 @@ result_t IRequest::GetRequestState(RequestState* out_state) {
 result_t IRequest::GetSystemEventReadableHandles(
     kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle0,
     OutHandle<HandleAttr::Copy> out_handle1) {
-    out_handle0 = process->AddHandle(events[0]);
-    out_handle1 = process->AddHandle(events[1]);
+    out_handle0 = process->AddHandle(events[0].get());
+    out_handle1 = process->AddHandle(events[1].get());
     return RESULT_SUCCESS;
 }
 

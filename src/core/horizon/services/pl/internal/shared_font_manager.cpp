@@ -19,9 +19,8 @@ struct SharedFontName {
 };
 
 #define SHARED_FONT_ENTRY(type, name, filename)                                \
-    [static_cast<u32>(SharedFontType::type)] = SharedFontName {                \
-        name, filename ".bfttf"                                                \
-    }
+    [static_cast<u32>(SharedFontType::type)] =                                 \
+        SharedFontName{name, filename ".bfttf"}
 
 constexpr SharedFontName shared_font_names[] = {
     SHARED_FONT_ENTRY(JapanUsEurope, "FontStandard", "nintendo_udsg-r_std_003"),
@@ -108,14 +107,14 @@ SharedFontManager::SharedFontManager(System& system_)
 SharedFontManager::~SharedFontManager() { delete shared_memory; }
 
 void SharedFontManager::LoadFonts() {
-    for (SharedFontType type = SharedFontType(0); type < SharedFontType::Total;
-         type++)
+    for (auto type = SharedFontType::JapanUsEurope;
+         type <= SharedFontType::NintendoExtended; type++)
         LoadFont(type);
 }
 
 void SharedFontManager::LoadFont(const SharedFontType type) {
     auto file = GetSharedFontFile(system.GetOS().GetFilesystem(), type);
-    if (!file)
+    if (file == nullptr)
         return;
 
     // Load
@@ -131,7 +130,7 @@ void SharedFontManager::LoadFont(const SharedFontType type) {
         return;
 
     // Set state
-    auto& state = states[u32(type)];
+    auto& state = states[static_cast<u32>(type)];
     state.shared_memory_offset = shared_memory_offset;
     state.size = file->GetSize();
     shared_memory_offset += file->GetSize();

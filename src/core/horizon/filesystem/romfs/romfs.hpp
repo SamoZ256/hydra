@@ -9,7 +9,7 @@ class RomFS final : public Directory {
   public:
     RomFS(IFile* file);
     RomFS(const Directory& dir);
-    ~RomFS() override {}
+    ~RomFS() override = default;
 
     SparseFile* Build();
 };

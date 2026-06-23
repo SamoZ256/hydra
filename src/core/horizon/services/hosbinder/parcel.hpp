@@ -25,13 +25,13 @@ struct ParcelFlattenedBinder {
 
 class ParcelReader {
   public:
-    ParcelReader(io::MemoryStream stream_) : stream{stream_} {
+    ParcelReader(io::MemoryStream stream_) : stream{std::move(stream_)} {
         auto header = Read<ParcelHeader>();
         stream.SeekTo(header.data_offset);
     }
 
     template <typename T>
-    const std::span<const T> ReadSpan(usize count) {
+    std::span<const T> ReadSpan(usize count) {
         const auto span = stream.ReadSpan<T>(count);
 
         // Align
@@ -75,7 +75,7 @@ class ParcelReader {
 
     // TODO: check this
     std::string ReadString16() {
-        usize length = static_cast<usize>(Read<i32>());
+        auto length = static_cast<usize>(Read<i32>());
         auto data = ReadSpan<u16>(length + 1);
 
         std::string str(length, '\0');
@@ -99,7 +99,7 @@ class ParcelReader {
 
 class ParcelWriter {
   public:
-    ParcelWriter(io::MemoryStream stream_) : stream{stream_} {
+    ParcelWriter(io::MemoryStream stream_) : stream{std::move(stream_)} {
         header = stream.WriteReturningPtr<ParcelHeader>({
             .data_size = 0x0,
             .data_offset = sizeof(ParcelHeader),
@@ -176,7 +176,7 @@ class ParcelWriter {
 
     // TODO: check this
     void WriteString16(const std::string_view str) {
-        ASSERT_DEBUG(str.size() != 0, Services, "Invalid string size");
+        ASSERT_DEBUG(!str.empty(), Services, "Invalid string size");
         Write(static_cast<i32>(str.size()));
         auto span = WriteReturningSpan<u16>(str.size() + 1);
 

@@ -47,7 +47,7 @@ NvResult NvHostGpu::SubmitGpfifo(
     (void)gpfifo;
 
     system->GetGpu().GetPfifo().SubmitEntries(
-        *process->GetGMmu(),
+        process->GetGMmu(),
         std::span<const hw::tegra_x1::gpu::GpfifoEntry>(entries, num_entries),
         inout_flags_and_detailed_error);
 

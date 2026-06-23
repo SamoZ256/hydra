@@ -31,16 +31,16 @@ using BitField64 = BitField<u64, T, b, count>;
 template <typename T, u32 component_count>
 class vec {
   public:
-    vec() = default;
-    vec(const T& value) {
+    constexpr vec() = default;
+    constexpr vec(const T& value) {
         for (u32 i = 0; i < component_count; i++)
             components[i] = value;
     }
-    vec(const std::initializer_list<T>& values) {
+    constexpr vec(const std::initializer_list<T>& values) {
         std::copy(values.begin(), values.end(), components.begin());
     }
     template <typename OtherT, u32 other_component_count>
-    vec(const vec<OtherT, other_component_count>& other) {
+    constexpr vec(const vec<OtherT, other_component_count>& other) {
         for (u32 i = 0; i < component_count; i++)
             components[i] = static_cast<T>(other[i]);
     }

@@ -50,8 +50,8 @@ class GdbServer {
     void ServerLoop();
     void Poll();
 
-    void SendPacket(std::string_view data);
-    void SendStatus(char status);
+    void SendPacket(std::string_view data) const;
+    void SendStatus(char status) const;
 
     void ProcessPackets();
     void HandleCommand(std::string_view command);
@@ -66,15 +66,15 @@ class GdbServer {
     void HandleInsertBreakpoint(std::string_view command);
     void HandleRemoveBreakpoint(std::string_view command);
 
-    void HandleRcmd(std::string_view command);
+    void HandleRcmd(std::string_view cmd);
     void HandleGetExecutables();
 
     // Helpers
-    void SetNonBlocking(i32 socket);
+    static void SetNonBlocking(i32 socket);
     std::string ReadReg(u32 id);
-    std::string GetThreadStatus(horizon::kernel::GuestThread* thread,
+    static std::string GetThreadStatus(horizon::kernel::GuestThread* thread,
                                 Signal signal);
-    std::string PageFromBuffer(std::string_view buffer, std::string_view page);
+    static std::string PageFromBuffer(std::string_view buffer, std::string_view page);
 
     void NotifySupervisorPausedImpl(horizon::kernel::GuestThread* thread,
                                     Signal signal);

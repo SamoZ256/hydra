@@ -9,13 +9,7 @@ class AppletBase {
   public:
     AppletBase(services::am::internal::LibraryAppletController& controller_)
         : controller{controller_} {}
-    virtual ~AppletBase() {
-        if (thread) {
-            // TODO: join?
-            thread->join();
-            delete thread;
-        }
-    }
+    virtual ~AppletBase() noexcept = default;
 
     void Start(System& system);
 
@@ -29,7 +23,7 @@ class AppletBase {
     // Data
     io::MemoryStream PopInDataRaw() {
         auto data = controller.PopInData()->GetData();
-        return io::MemoryStream(data);
+        return {data};
     }
 
     template <typename T>
@@ -41,23 +35,23 @@ class AppletBase {
         return stream.Read<T>();
     }
 
-    void PushOutDataRaw(std::span<u8> data) {
-        controller.PushOutData(new services::am::IStorage(data));
+    void PushOutDataRaw(std::vector<u8> data) {
+        controller.PushOutData(new services::am::IStorage(std::move(data)));
     }
 
     template <typename T>
     void PushOutData(const T& data) {
-        auto ptr = reinterpret_cast<u8*>(malloc(sizeof(T)));
-        memcpy(ptr, &data, sizeof(T));
-        PushOutDataRaw(std::span{ptr, sizeof(T)});
+        std::vector<u8> bytes(sizeof(T));
+        std::memcpy(bytes.data(), &data, sizeof(T));
+        PushOutDataRaw(std::move(bytes));
     }
 
     // Interactive data
     io::MemoryStream PopInteractiveInDataRaw() {
         // TODO: wait
-        // controller.GetInteractiveInDataEvent()->Wait();
+        // controller.GetInteractiveInDataEvent().Wait();
         auto data = controller.PopInteractiveInData()->GetData();
-        return io::MemoryStream(data);
+        return {data};
     }
 
     template <typename T>
@@ -69,21 +63,22 @@ class AppletBase {
         return stream.Read<T>();
     }
 
-    void PushInteractiveOutDataRaw(std::span<u8> data) {
-        controller.PushInteractiveOutData(new services::am::IStorage(data));
+    void PushInteractiveOutDataRaw(std::vector<u8> data) {
+        controller.PushInteractiveOutData(
+            new services::am::IStorage(std::move(data)));
     }
 
     template <typename T>
     void PushInteractiveOutData(const T& data) {
-        auto ptr = reinterpret_cast<u8*>(malloc(sizeof(T)));
-        memcpy(ptr, &data, sizeof(T));
-        PushInteractiveOutDataRaw(std::span{ptr, sizeof(T)});
+        std::vector<u8> bytes(sizeof(T));
+        std::memcpy(bytes.data(), &data, sizeof(T));
+        PushInteractiveOutDataRaw(std::move(bytes));
     }
 
   private:
     services::am::internal::LibraryAppletController& controller;
 
-    std::thread* thread{nullptr};
+    std::optional<std::jthread> thread;
     result_t result{RESULT_SUCCESS};
 };
 

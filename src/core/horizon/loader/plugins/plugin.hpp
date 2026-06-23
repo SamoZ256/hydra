@@ -121,7 +121,7 @@ class Plugin {
     // Helpers
     template <api::Function api_func, typename T>
     T LoadFunction() {
-        std::string_view symbol_name;
+        std::string symbol_name;
         switch (api_func) {
         case api::Function::GetApiVersion:
             symbol_name = "hydra_ext_get_api_version";
@@ -170,7 +170,7 @@ class Plugin {
             break;
         }
 
-        const auto func = dlsym(library, symbol_name.data());
+        const auto func = dlsym(library, symbol_name.c_str());
         ASSERT(func != nullptr, Loader, "Failed to load symbol \"{}\"",
                symbol_name);
 

@@ -19,7 +19,7 @@ IUserInterface::GetServiceHandle(System* system, kernel::Process* process,
     LOG_DEBUG(Services, "Service name: \"{}\"", U64AsString(name));
 
     auto client_port = system->GetOS().GetServiceManager().GetPort(name);
-    if (!client_port) {
+    if (client_port == nullptr) {
         LOG_WARN(Services, "Unknown service name \"{}\"", U64AsString(name));
         return MAKE_RESULT(Svc, kernel::Error::NotFound); // TODO: module
     }

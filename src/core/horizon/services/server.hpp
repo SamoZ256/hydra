@@ -29,7 +29,7 @@ class Server {
     void Stop();
 
     void RegisterPort(kernel::hipc::ServerPort* port,
-                      create_service_fn_t service_creator);
+                       create_service_fn_t service_creator);
     void RegisterSession(kernel::hipc::ServerSession* session,
                          IService* service);
 
@@ -49,7 +49,7 @@ class Server {
     std::vector<kernel::hipc::ServerPort*> ports;
     std::vector<kernel::hipc::ServerSession*> sessions;
 
-    void MainLoop(kernel::should_stop_fn_t should_stop);
+    void MainLoop(const kernel::should_stop_fn_t& should_stop);
 
   public:
     GETTER(thread, GetThread);

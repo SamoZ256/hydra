@@ -12,8 +12,7 @@ namespace hydra::horizon::display {
 
 class Driver;
 
-#define LAYER_SIZE_AUTO                                                        \
-    uint2 { 0, 0 }
+#define LAYER_SIZE_AUTO uint2{0, 0}
 
 class Layer {
   public:
@@ -43,7 +42,7 @@ class Layer {
     i64 z{0};
 
     // Present
-    hw::tegra_x1::gpu::renderer::ITextureView* present_texture{nullptr};
+    std::optional<hw::tegra_x1::gpu::renderer::ITextureView*> present_texture;
     IntRect2D src_rect;
 
   public:

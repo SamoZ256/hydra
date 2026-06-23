@@ -20,18 +20,19 @@ class Value {
   public:
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-    static Value Undefined() { return Value{ValueKind::Undefined}; }
+    static Value Undefined() { return Value{.kind = ValueKind::Undefined}; }
 #pragma GCC diagnostic pop
     template <typename T>
     static Value RawValue(const T raw_value) {
-        return Value{ValueKind::RawValue,
+        return Value{.kind = ValueKind::RawValue,
                      .raw_value = static_cast<u64>(raw_value)};
     }
     static Value Constant(const u32 constant, const ScalarType type) {
-        return Value{ValueKind::Constant, type, .constant = constant};
+        return Value{
+            .kind = ValueKind::Constant, .type = type, .constant = constant};
     }
     static Value ConstantB(const bool constant) {
-        return Constant(constant, ScalarType::Bool);
+        return Constant(static_cast<u32>(constant), ScalarType::Bool);
     }
     static Value ConstantU(const u32 constant,
                            const ScalarType type = ScalarType::U32) {
@@ -67,24 +68,27 @@ class Value {
             static_assert(always_false<T>::value, "Unsupported type");
     }
     static Value Local(const local_t local, const Type type = ScalarType::U32) {
-        return Value{ValueKind::Local, type, .local = local};
+        return Value{.kind = ValueKind::Local, .type = type, .local = local};
     }
     static Value Register(const reg_t reg, const Type type = ScalarType::U32) {
-        return Value{ValueKind::Register, type, .reg = reg};
+        return Value{.kind = ValueKind::Register, .type = type, .reg = reg};
     }
     static Value Predicate(const pred_t pred) {
-        return Value{ValueKind::Predicate, ScalarType::Bool, .pred = pred};
+        return Value{.kind = ValueKind::Predicate,
+                     .type = ScalarType::Bool,
+                     .pred = pred};
     }
     static Value AttrMemory(const AMem& amem,
                             const Type type = ScalarType::U32) {
-        return Value{ValueKind::AttrMemory, type, .amem = amem};
+        return Value{.kind = ValueKind::AttrMemory, .type = type, .amem = amem};
     }
     static Value ConstMemory(const CMem& cmem,
                              const Type type = ScalarType::U32) {
-        return Value{ValueKind::ConstMemory, type, .cmem = cmem};
+        return Value{
+            .kind = ValueKind::ConstMemory, .type = type, .cmem = cmem};
     }
     static Value Label(const label_t label) {
-        return Value{ValueKind::Label, .label = label};
+        return Value{.kind = ValueKind::Label, .label = label};
     }
 
     bool operator==(const Value& other) const {

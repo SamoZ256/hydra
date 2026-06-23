@@ -101,7 +101,7 @@ void RegisterServiceToPort(services::Server* server,
                            fmt::format("\"{}\" port", debug_name));
 
     // Register server side
-    server->RegisterPort(server_port, service_creator);
+    server->RegisterPort(server_port, std::move(service_creator));
 
     // Register client side
     service_manager.RegisterPort(port_name, client_port);
@@ -109,16 +109,16 @@ void RegisterServiceToPort(services::Server* server,
 
 uint2 RoundUpToNearestStandardResolution(uint2 surface_resolution) {
     // TODO: constexpr
-    static uint2 standard_resolutions[] = {
-        {1280, 720}, {1920, 1080}, {2560, 1440}, {3840, 2160}, {7680, 4320}};
-    for (u32 i = 0; i < sizeof_array(standard_resolutions); i++) {
-        const auto& resolution = standard_resolutions[i];
+    constexpr std::array<uint2, 5> standard_resolutions = {
+        uint2({1280, 720}), uint2({1920, 1080}), uint2({2560, 1440}),
+        uint2({3840, 2160}), uint2({7680, 4320})};
+    for (auto resolution : standard_resolutions) {
         if (surface_resolution.x() <= resolution.x() &&
             surface_resolution.y() <= resolution.y())
             return resolution;
     }
 
-    return standard_resolutions[sizeof_array(standard_resolutions) - 1];
+    return standard_resolutions.back();
 }
 
 } // namespace

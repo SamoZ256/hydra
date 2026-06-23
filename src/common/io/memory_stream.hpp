@@ -9,7 +9,7 @@ class MemoryStream : public IContinuousStream {
     MemoryStream(std::span<u8> data_) : data{data_} {}
 
     MAKE_DEFAULT_COPYABLE(MemoryStream);
-    MAKE_NON_MOVABLE(MemoryStream);
+    MAKE_DEFAULT_MOVABLE(MemoryStream);
 
     u64 GetSize() const override { return data.size(); }
 

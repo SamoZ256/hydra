@@ -3,7 +3,7 @@
 namespace hydra::hw::tegra_x1::gpu::renderer::null {
 
 Texture::Texture(const TextureDescriptor& descriptor) : ITexture(descriptor) {}
-Texture::~Texture() {}
+Texture::~Texture() = default;
 
 ITextureView*
 Texture::CreateView(const TextureViewDescriptor& view_descriptor) {

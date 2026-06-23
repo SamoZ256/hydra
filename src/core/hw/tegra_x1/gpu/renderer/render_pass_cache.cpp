@@ -15,8 +15,8 @@ u32 RenderPassCache::Hash(const RenderPassDescriptor& descriptor) {
 
     // TODO: improve this
     // TODO: also hash metadata about clears
-    for (u32 i = 0; i < COLOR_TARGET_COUNT; i++)
-        hash.Add(descriptor.color_targets[i].texture);
+    for (const auto& color_target : descriptor.color_targets)
+        hash.Add(color_target.texture);
     hash.Add(descriptor.depth_stencil_target.texture);
 
     return hash.ToHashCode();

@@ -16,10 +16,6 @@ class ICore;
 
 namespace hydra::horizon {
 
-namespace services::am {
-class LibraryAppletController;
-}
-
 namespace ui {
 class IHandler;
 }
@@ -32,6 +28,18 @@ class OS {
 
     void SetSurfaceResolution(uint2 resolution);
     uint2 GetDisplayResolution() const;
+
+    services::am::internal::LibraryAppletController&
+    GetLibraryAppletSelfController() {
+        return *library_applet_self_controller;
+    }
+
+    void SetLibraryAppletSelfController(
+        services::am::internal::LibraryAppletController
+            library_applet_self_controller_) {
+        library_applet_self_controller =
+            std::move(library_applet_self_controller_);
+    }
 
   private:
     System& system;
@@ -52,8 +60,8 @@ class OS {
     services::timesrv::internal::TimeManager time_manager;
     services::irsensor::internal::IrSensorManager ir_sensor_manager;
 
-    services::am::internal::LibraryAppletController*
-        library_applet_self_controller{nullptr};
+    std::optional<services::am::internal::LibraryAppletController>
+        library_applet_self_controller;
 
     // Display
     uint2 surface_resolution;
@@ -68,9 +76,6 @@ class OS {
     REF_GETTER(shared_font_manager, GetSharedFontManager);
     REF_GETTER(time_manager, GetTimeManager);
     REF_GETTER(ir_sensor_manager, GetIrSensorManager);
-    GETTER_AND_SETTER(library_applet_self_controller,
-                      GetLibraryAppletSelfController,
-                      SetLibraryAppletSelfController);
 };
 
 } // namespace hydra::horizon

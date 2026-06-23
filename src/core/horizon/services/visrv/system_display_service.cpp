@@ -32,7 +32,7 @@ result_t ISystemDisplayService::SetLayerSize(System* system, u64 layer_id,
     system->GetOS()
         .GetDisplayDriver()
         .GetLayer(static_cast<u32>(layer_id))
-        .SetSize({u32(width), u32(height)});
+        .SetSize({static_cast<u32>(width), static_cast<u32>(height)});
     return RESULT_SUCCESS;
 }
 

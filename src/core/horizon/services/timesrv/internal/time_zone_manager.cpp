@@ -44,7 +44,7 @@ TimeZoneManager::TimeZoneManager(filesystem::Filesystem& filesystem_)
     const auto stream = list_file->Open(filesystem::FileOpenFlags::Read);
     char buffer[256];
     u32 str_size = 0;
-    while (stream->GetRemainingSize()) {
+    while (stream->GetRemainingSize() != 0u) {
         const auto c = stream->Read<char>();
         switch (c) {
         case '\n': {

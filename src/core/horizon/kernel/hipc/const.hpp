@@ -181,7 +181,7 @@ inline ParsedRequest parse_request(void* base) {
     u64 pid = 0;
 
     // Parse recv static mode
-    if (hdr.recv_static_mode) {
+    if (hdr.recv_static_mode != 0u) {
         if (hdr.recv_static_mode == 2u)
             num_recv_statics = HIPC_AUTO_RECV_STATIC;
         else if (hdr.recv_static_mode > 2u)
@@ -223,9 +223,10 @@ inline ParsedRequest parse_request(void* base) {
 
 inline Request make_request(void* base, Metadata meta) {
     // Write message header
-    bool has_special_header =
-        meta.send_pid || meta.num_copy_handles || meta.num_move_handles;
-    Header* hdr = reinterpret_cast<Header*>(base);
+    bool has_special_header = (meta.send_pid != 0u) ||
+                              (meta.num_copy_handles != 0u) ||
+                              (meta.num_move_handles != 0u);
+    auto* hdr = reinterpret_cast<Header*>(base);
     base = hdr + 1;
     *hdr = Header{
         .type = meta.type,
@@ -235,26 +236,26 @@ inline Request make_request(void* base, Metadata meta) {
         .num_exch_buffers = meta.num_exch_buffers,
         .num_data_words = meta.num_data_words,
         .recv_static_mode =
-            meta.num_recv_statics
+            (meta.num_recv_statics != 0u)
                 ? (meta.num_recv_statics != HIPC_AUTO_RECV_STATIC
                        ? 2u + meta.num_recv_statics
                        : 2u)
                 : 0u,
         .padding = 0,
         .recv_list_offset = 0,
-        .has_special_header = has_special_header,
+        .has_special_header = static_cast<u32>(has_special_header),
     };
 
     // Write special header
     if (has_special_header) {
-        SpecialHeader* sphdr = reinterpret_cast<SpecialHeader*>(base);
+        auto sphdr = reinterpret_cast<SpecialHeader*>(base);
         base = sphdr + 1;
         *sphdr = SpecialHeader{
             .send_pid = meta.send_pid,
             .num_copy_handles = meta.num_copy_handles,
             .num_move_handles = meta.num_move_handles,
         };
-        if (meta.send_pid)
+        if (meta.send_pid != 0u)
             base = reinterpret_cast<u8*>(base) + sizeof(u64);
     }
 

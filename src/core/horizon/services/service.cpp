@@ -33,9 +33,9 @@ void IService::HandleRequest(System& system, kernel::Process* caller_process,
                                   scratch_buffer_copy_handles,
                                   scratch_buffer_move_handles);
     RequestContext context{
-        system,
-        caller_process,
-        streams,
+        .system = system,
+        .process = caller_process,
+        .streams = streams,
     };
 
     // Dispatch
@@ -173,9 +173,8 @@ void IService::Request(RequestContext& context) {
             auto objects = context.streams.in_stream.GetPtr() +
                            context.streams.in_stream.GetSeek() +
                            cmif_in.data_size;
-            context.streams.in_objects_stream.emplace(
-                std::span(reinterpret_cast<u8*>(objects),
-                          cmif_in.num_in_objects * sizeof(handle_id_t)));
+            context.streams.in_objects_stream.emplace(std::span(
+                objects, cmif_in.num_in_objects * sizeof(handle_id_t)));
         }
 
         kernel::hipc::cmif::write_domain_out_header(context.streams.out_stream);

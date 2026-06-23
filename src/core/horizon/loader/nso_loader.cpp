@@ -97,19 +97,22 @@ NsoLoader::NsoLoader(filesystem::IFile* file_, const std::string_view name_,
     text_offset = header.text.memory_offset;
 
     // Segments
-    segments[0] = {header.text, header.text_file_size,
-                   any(header.flags & NsoFlags::TextCompressed)};
-    segments[1] = {header.ro, header.ro_file_size,
-                   any(header.flags & NsoFlags::RoCompressed)};
-    segments[2] = {header.data, header.data_file_size,
-                   any(header.flags & NsoFlags::DataCompressed)};
+    segments[0] = {.seg = header.text,
+                   .file_size = header.text_file_size,
+                   .compressed = any(header.flags & NsoFlags::TextCompressed)};
+    segments[1] = {.seg = header.ro,
+                   .file_size = header.ro_file_size,
+                   .compressed = any(header.flags & NsoFlags::RoCompressed)};
+    segments[2] = {.seg = header.data,
+                   .file_size = header.data_file_size,
+                   .compressed = any(header.flags & NsoFlags::DataCompressed)};
     segments[2].seg.size += header.bss_size;
 
     // Determine executable memory size
-    for (u32 i = 0; i < 3; i++) {
+    for (const auto& segment : segments) {
         executable_size = std::max(
-            executable_size, static_cast<u64>(segments[i].seg.memory_offset +
-                                              segments[i].seg.size));
+            executable_size,
+            static_cast<u64>(segment.seg.memory_offset + segment.seg.size));
     }
     LOG_DEBUG(Loader,
               "NSO: 0x{:08x} + 0x{:08x}, 0x{:08x} + 0x{:08x}, 0x{:08x} + "
@@ -135,21 +138,20 @@ void NsoLoader::LoadProcess(System& system, kernel::Process* process) {
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
 
     // Create executable memory
-    const auto set =
-        kernel::CodeSet{executable_size,
-                        Range<u64>::FromSize(segments[0].seg.memory_offset,
-                                             segments[0].seg.size),
-                        Range<u64>::FromSize(segments[1].seg.memory_offset,
-                                             segments[1].seg.size),
-                        Range<u64>::FromSize(segments[2].seg.memory_offset,
-                                             segments[2].seg.size)};
+    const auto set = kernel::CodeSet{
+        .size = executable_size,
+        .code = Range<u64>::FromSize(segments[0].seg.memory_offset,
+                                     segments[0].seg.size),
+        .ro_data = Range<u64>::FromSize(segments[1].seg.memory_offset,
+                                        segments[1].seg.size),
+        .data = Range<u64>::FromSize(segments[2].seg.memory_offset,
+                                     segments[2].seg.size)};
     vaddr_t base;
     auto ptr = process->CreateExecutableMemory(name, set, base);
     LOG_DEBUG(Loader, "Base: 0x{:08x}, size: 0x{:08x}", base, executable_size);
 
     // Segments
-    for (u32 i = 0; i < 3; i++) {
-        const auto& segment = segments[i];
+    for (const auto& segment : segments) {
         read_segment(stream, ptr, segment.seg, segment.file_size,
                      segment.compressed);
     }
@@ -207,10 +209,10 @@ void NsoLoader::LoadProcess(System& system, kernel::Process* process) {
         if (symbol.st_shndx != 0) {
             DEBUGGER_MANAGER_INSTANCE.GetDebugger(process)
                 .GetFunctionTable()
-                .RegisterSymbol(
-                    {demangle(std::string(symbol_name)),
-                     Range<vaddr_t>(base + symbol.st_value,
-                                    base + symbol.st_value + symbol.st_size)});
+                .RegisterSymbol({.name = demangle(std::string(symbol_name)),
+                                 .guest_mem_range = Range<vaddr_t>(
+                                     base + symbol.st_value,
+                                     base + symbol.st_value + symbol.st_size)});
         }
     }
 

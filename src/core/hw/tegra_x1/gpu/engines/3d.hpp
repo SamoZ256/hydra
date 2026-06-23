@@ -523,7 +523,7 @@ struct Regs3D {
         u32 padding1;
         u32 num_registers;
         u32 padding2[0xc];
-    } shader_programs[u32(ShaderStage::Count)];
+    } shader_programs[static_cast<u32>(ShaderStage::Count)];
 
     u32 padding_0x860[0x80];
 

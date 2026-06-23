@@ -37,7 +37,7 @@ result_t IDirectory::Read(u64* out_entry_count,
         if (i < entry_index)
             continue;
 
-        if (!entry)
+        if (entry == nullptr)
             continue;
 
         // Filter

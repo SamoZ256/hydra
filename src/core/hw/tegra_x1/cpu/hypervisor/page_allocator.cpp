@@ -37,7 +37,7 @@ void PageAllocator::Allocate(usize page_count) {
     HV_ASSERT_SUCCESS(
         hv_vm_map(reinterpret_cast<void*>(ptr), pa, size, HV_MEMORY_READ));
 
-    allocations.push_back({ptr, page_count});
+    allocations.push_back({.ptr = ptr, .page_count = page_count});
 }
 
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor

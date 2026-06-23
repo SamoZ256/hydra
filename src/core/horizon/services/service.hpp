@@ -26,6 +26,7 @@ struct RequestContext {
 class IService {
   public:
     IService() noexcept = default;
+    virtual ~IService() noexcept = default;
 
     MAKE_NON_COPYABLE(IService);
 
@@ -46,12 +47,10 @@ class IService {
     }
 
   protected:
-    virtual ~IService() noexcept = default;
-
     virtual result_t RequestImpl(RequestContext& context, u32 id) = 0;
 
     u32 AddSubservice(IService* service) {
-        if (!service)
+        if (service == nullptr)
             return INVALID_HANDLE_ID;
 
         return parent->subservice_pool->Insert(service);

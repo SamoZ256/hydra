@@ -44,10 +44,9 @@ class IThread : public SynchronizationObject {
     static constexpr AutoObjectTypeId TYPE_ID = AutoObjectTypeId::Thread;
 
     IThread(Process* process_, i32 priority_,
-            std::string_view debug_name = "Thread")
+            std::string_view debug_name = "Thread") noexcept
         : SynchronizationObject(TYPE_ID, false, debug_name), process{process_},
           priority{priority_} {}
-    virtual ~IThread() override;
 
     void Start();
 
@@ -121,7 +120,7 @@ class IThread : public SynchronizationObject {
   private:
     i32 priority;
 
-    std::thread* thread{nullptr};
+    std::jthread thread;
 
     ThreadState state{ThreadState::Created}; // TODO: atomic?
 

@@ -21,9 +21,9 @@ class ClearColorPipelineCache
     MTL::RenderPipelineState*
     Create(const ClearColorPipelineDescriptor& descriptor);
     void Update([[maybe_unused]] MTL::RenderPipelineState* pipeline) {}
-    u32 Hash(const ClearColorPipelineDescriptor& descriptor);
+    static u32 Hash(const ClearColorPipelineDescriptor& descriptor);
 
-    void DestroyElement(MTL::RenderPipelineState* pipeline);
+    static void DestroyElement(MTL::RenderPipelineState* pipeline);
 
   private:
     MTL::Device* device;

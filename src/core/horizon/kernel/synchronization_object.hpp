@@ -16,7 +16,7 @@ class SynchronizationObject : public AutoObject {
 
     void AddWaitingThread(IThread* thread);
     void RemoveWaitingThread(IThread* thread);
-    void AddSignalCallback(signal_callback_fn_t callback);
+    void AddSignalCallback(const signal_callback_fn_t& callback);
 
     void Signal();
     bool Clear();

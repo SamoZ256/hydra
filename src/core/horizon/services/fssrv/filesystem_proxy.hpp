@@ -18,7 +18,7 @@ enum class FileSystemProxyType {
     RegisteredUpdate,
 };
 
-enum BisPartitionId : u32 {
+enum class BisPartitionId : u32 {
     BootPartition1Root = 0,
 
     BootPartition2Root = 10,

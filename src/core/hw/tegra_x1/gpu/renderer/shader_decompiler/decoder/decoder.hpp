@@ -33,7 +33,7 @@ class Decoder {
     void ParseNextInstruction();
 
     // Helpers
-    void Jump(u32 target) {
+    void Jump(u32 target) const {
         context.code_stream->SeekTo(target * sizeof(instruction_t));
     }
     u32 GetPC() const {

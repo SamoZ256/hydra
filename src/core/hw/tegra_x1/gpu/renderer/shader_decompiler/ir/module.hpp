@@ -7,7 +7,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir {
 class Module {
   public:
     // TODO: is validation needed?
-    void Validate() { LOG_FUNC_NOT_IMPLEMENTED(ShaderDecompiler); }
+    static void Validate() { LOG_FUNC_NOT_IMPLEMENTED(ShaderDecompiler); }
 
     Function& GetFunction(const std::string& name) {
         auto it = functions.find(name);

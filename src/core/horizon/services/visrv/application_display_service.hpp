@@ -17,7 +17,6 @@ class IApplicationDisplayService : public DisplayServiceBase {
     result_t RequestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
-  protected:
     // Commands
     result_t GetRelayService(RequestContext* ctx, System* system);
     result_t GetSystemDisplayService(RequestContext* ctx);

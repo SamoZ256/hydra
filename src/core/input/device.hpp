@@ -6,7 +6,7 @@ namespace hydra::input {
 
 class IDevice {
   public:
-    virtual ~IDevice() {}
+    virtual ~IDevice() = default;
 
     virtual bool ActsAsController() const { return false; };
     virtual bool ActsAsTouchScreen() const { return false; };

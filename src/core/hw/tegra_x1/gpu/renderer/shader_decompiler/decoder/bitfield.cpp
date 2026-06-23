@@ -36,7 +36,8 @@ void EmitBfeC(DecoderContext& context, InstBfeC inst) {
     EmitBitfieldExtract(
         context, inst.base.pred, inst.base.pred_inv, inst.base.is_signed,
         inst.base.dst, inst.base.src_a,
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4)));
+        ir::Value::ConstMemory(
+            CMem(inst.cbuf_slot, RZ, static_cast<u64>(inst.cbuf_offset * 4))));
 }
 
 void EmitBfeI(DecoderContext& context, InstBfeI inst) {

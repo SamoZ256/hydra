@@ -94,8 +94,9 @@ void EmitIsetC(DecoderContext& context, InstIsetC inst) {
     EmitIntSet(
         context, inst.base.pred, inst.base.pred_inv, inst.base.op,
         inst.base.b_op, inst.base.is_signed, inst.base.dst, inst.base.src_a,
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               GetDataType(inst.base.is_signed)),
+        ir::Value::ConstMemory(
+            CMem(inst.cbuf_slot, RZ, static_cast<u64>(inst.cbuf_offset * 4)),
+            GetDataType(inst.base.is_signed)),
         inst.base.src_pred, inst.base.src_pred_inv, inst.base.b_float);
 }
 
@@ -122,8 +123,9 @@ void EmitIsetpC(DecoderContext& context, InstIsetpC inst) {
         context, inst.base.pred, inst.base.pred_inv, inst.base.op,
         inst.base.b_op, inst.base.is_signed, inst.base.dst_pred,
         inst.base.dst_inv_pred, inst.base.src_a,
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               GetDataType(inst.base.is_signed)),
+        ir::Value::ConstMemory(
+            CMem(inst.cbuf_slot, RZ, static_cast<u64>(inst.cbuf_offset * 4)),
+            GetDataType(inst.base.is_signed)),
         inst.base.src_pred, inst.base.src_pred_inv);
 }
 

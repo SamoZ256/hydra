@@ -44,7 +44,7 @@ uint2 UnswizzleGobCoords(u32 index) {
 void ConvertBlockLinearToLinear(u32 stride, u32 rows, u32 depth,
                                 u32 block_height_gobs_log2,
                                 u32 block_depth_gobs_log2, const u8* in_data,
-                                WriteGobFn write_fn) {
+                                const WriteGobFn& write_fn) {
     const auto layout = GetMemoryLayout(
         stride, rows, depth, block_height_gobs_log2, block_depth_gobs_log2);
     u32 gob_index = 0;
@@ -106,8 +106,8 @@ void ConvertBlockLinearToLinear(u32 src_stride, u32 dst_stride,
 
 void ConvertLinearToBlockLinear(u32 stride, u32 rows, u32 depth,
                                 u32 block_height_gobs_log2,
-                                u32 block_depth_gobs_log2, ReadGobFn read_fn,
-                                u8* out_data) {
+                                u32 block_depth_gobs_log2,
+                                const ReadGobFn& read_fn, u8* out_data) {
     const auto layout = GetMemoryLayout(
         stride, rows, depth, block_height_gobs_log2, block_depth_gobs_log2);
     u32 gob_index = 0;

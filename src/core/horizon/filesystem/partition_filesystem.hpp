@@ -55,7 +55,7 @@ class PartitionFilesystem final : public Directory {
 
         const u64 entries_offset = sizeof(PfsHeader);
         const u64 string_table_offset =
-            entries_offset + sizeof(EntryType) * header.entry_count;
+            entries_offset + (sizeof(EntryType) * header.entry_count);
         const u64 data_offset = string_table_offset + header.string_table_size;
 
         // String table

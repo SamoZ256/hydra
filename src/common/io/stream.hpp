@@ -14,6 +14,7 @@ class IStream {
     virtual ~IStream() noexcept = default;
 
     MAKE_DEFAULT_COPYABLE(IStream);
+    MAKE_DEFAULT_MOVABLE(IStream);
 
     virtual u64 GetSeek() const = 0;
     virtual void SeekTo(u64 seek) {

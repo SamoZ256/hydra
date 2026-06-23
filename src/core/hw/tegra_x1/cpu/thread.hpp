@@ -35,11 +35,11 @@ struct ThreadState {
 
 class IThread {
   public:
-    IThread(WallClock& wall_clock_, IMmu* mmu_,
-            const ThreadCallbacks& callbacks_, IMemory* tls_mem_)
-        : wall_clock{wall_clock_}, mmu{mmu_}, callbacks{callbacks_},
+    IThread(WallClock& wall_clock_, IMmu* mmu_, ThreadCallbacks callbacks_,
+            IMemory* tls_mem_)
+        : wall_clock{wall_clock_}, mmu{mmu_}, callbacks{std::move(callbacks_)},
           tls_mem{tls_mem_} {}
-    virtual ~IThread() {}
+    virtual ~IThread() noexcept = default;
 
     virtual void Run() = 0;
 
@@ -47,7 +47,7 @@ class IThread {
     NotifyMemoryChanged([[maybe_unused]] Range<vaddr_t> mem_range) {}
 
     // Debug
-    void GetStackTrace(stack_frame_callback_fn_t callback);
+    void GetStackTrace(const stack_frame_callback_fn_t& callback);
 
     virtual void InsertBreakpoint(vaddr_t addr) = 0;
     virtual void RemoveBreakpoint(vaddr_t addr) = 0;

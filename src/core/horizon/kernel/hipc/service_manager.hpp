@@ -10,19 +10,19 @@ template <typename Key>
 class ServiceManager {
   public:
     ~ServiceManager() {
-        std::lock_guard lock(mutex);
+        std::scoped_lock lock(mutex);
         for (auto& [_, port] : ports)
             port->Release();
     }
 
     void RegisterPort(const Key& port_name, ClientPort* client_port) {
-        std::lock_guard lock(mutex);
+        std::scoped_lock lock(mutex);
         client_port->Retain();
         ports.insert({port_name, client_port});
     }
 
     void UnregisterPort(const Key& port_name) {
-        std::lock_guard lock(mutex);
+        std::scoped_lock lock(mutex);
         auto it = ports.find(port_name);
         ASSERT(it != ports.end(), Kernel, "Port not registered");
         it->second->Release();
@@ -30,7 +30,7 @@ class ServiceManager {
     }
 
     ClientPort* GetPort(const Key& port_name) {
-        std::lock_guard lock(mutex);
+        std::scoped_lock lock(mutex);
         auto it = ports.find(port_name);
         if (it == ports.end())
             return nullptr;
