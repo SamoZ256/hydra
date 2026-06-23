@@ -55,23 +55,6 @@ void Mmu::Protect(Range<vaddr_t> range,
     }
 }
 
-void Mmu::ResizeHeap(IMemory* heap_mem, vaddr_t va, u64 size) {
-    auto mem_impl = static_cast<Memory*>(heap_mem);
-
-    mem_impl->Resize(size);
-
-    auto memory_ptr = mem_impl->GetPtr();
-
-    u64 va_page = va / GUEST_PAGE_SIZE;
-    u64 size_page = size / GUEST_PAGE_SIZE;
-    u64 va_page_end = va_page + size_page;
-    for (u64 page = va_page; page < va_page_end; ++page) {
-        auto page_ptr = memory_ptr + ((page - va_page) * GUEST_PAGE_SIZE);
-        pages[page] = page_ptr;
-        states[page] = states[va_page];
-    }
-}
-
 uptr Mmu::UnmapAddr(vaddr_t va) const {
     auto page = va / GUEST_PAGE_SIZE;
     auto page_offset = va % GUEST_PAGE_SIZE;

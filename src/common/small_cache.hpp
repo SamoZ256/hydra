@@ -87,13 +87,11 @@ class SmallCache {
         map_iter slow_it;
     };
 
-    SmallCache() = default;
+    SmallCache() noexcept = default;
+    ~SmallCache() noexcept = default;
 
-    SmallCache(const SmallCache&) = delete;
-    SmallCache& operator=(const SmallCache&) = delete;
-
-    SmallCache(SmallCache&&) = default;
-    SmallCache& operator=(SmallCache&&) = default;
+    MAKE_NON_COPYABLE(SmallCache);
+    MAKE_DEFAULT_MOVABLE(SmallCache);
 
     // TODO: const versions as well
     iterator begin() { return iterator(this, 0); }

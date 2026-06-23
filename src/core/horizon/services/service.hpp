@@ -25,6 +25,11 @@ struct RequestContext {
 
 class IService {
   public:
+    IService() noexcept = default;
+    virtual ~IService() noexcept = default;
+
+    MAKE_NON_COPYABLE(IService);
+
     void HandleRequest(System& system, kernel::Process* caller_process,
                        uptr ptr);
 
@@ -42,12 +47,10 @@ class IService {
     }
 
   protected:
-    virtual ~IService();
-
     virtual result_t RequestImpl(RequestContext& context, u32 id) = 0;
 
     u32 AddSubservice(IService* service) {
-        if (!service)
+        if (service == nullptr)
             return INVALID_HANDLE_ID;
 
         return parent->subservice_pool->Insert(service);
@@ -70,7 +73,7 @@ class IService {
     // Domain
     bool is_domain{false};
     IService* parent{this};
-    DynamicPool<IService*>* subservice_pool{nullptr};
+    std::optional<DynamicPool<IService*>> subservice_pool;
 
     void Close();
     void Request(RequestContext& context);

@@ -89,10 +89,10 @@ class VectorType {
     }
     bool IsFloatingPoint() const { return ScalarIsFloatingPoint(element_type); }
     VectorType SignedEquivalent() const {
-        return VectorType(ScalarSignedEquivalent(element_type), size);
+        return {ScalarSignedEquivalent(element_type), size};
     }
     VectorType UnsignedEquivalent() const {
-        return VectorType(ScalarUnsignedEquivalent(element_type), size);
+        return {ScalarUnsignedEquivalent(element_type), size};
     }
 
   private:
@@ -110,10 +110,10 @@ class Type {
     Type(ScalarType scalar_) : kind{TypeKind::Scalar}, scalar{scalar_} {}
     Type(VectorType vector_) : kind{TypeKind::Vector}, vector{vector_} {}
 
-    static Type Undefined() { return Type(); }
-    static Type Scalar(ScalarType scalar) { return Type(scalar); }
+    static Type Undefined() { return {}; }
+    static Type Scalar(ScalarType scalar) { return {scalar}; }
     static Type Vector(ScalarType element_type, u8 size) {
-        return Type(VectorType(element_type, size));
+        return {VectorType(element_type, size)};
     }
 
     bool operator==(const Type& other) const {

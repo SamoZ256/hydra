@@ -11,7 +11,8 @@ struct NvHostEvent {
 
 class NvHostCtrl : public FdBase {
   public:
-    NvResult Ioctl([[maybe_unused]] IoctlContext& context, u32 type, u32 nr) override;
+    NvResult Ioctl([[maybe_unused]] IoctlContext& context, u32 type,
+                   u32 nr) override;
     NvResult QueryEvent(u32 event_id_u32, kernel::Event*& out_event) override;
 
   private:

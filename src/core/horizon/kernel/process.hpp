@@ -4,6 +4,7 @@
 #include "core/horizon/kernel/synchronization_object.hpp"
 #include "core/horizon/kernel/thread.hpp"
 #include "core/hw/tegra_x1/cpu/memory.hpp"
+#include "core/hw/tegra_x1/gpu/gmmu.hpp"
 
 // TODO: remove dependency
 #include "core/horizon/kernel/guest_thread.hpp"
@@ -11,10 +12,6 @@
 namespace hydra::hw::tegra_x1::cpu {
 class IMmu;
 } // namespace hydra::hw::tegra_x1::cpu
-
-namespace hydra::hw::tegra_x1::gpu {
-class GMmu;
-} // namespace hydra::hw::tegra_x1::gpu
 
 namespace hydra::horizon::kernel {
 
@@ -40,7 +37,7 @@ class Process : public SynchronizationObject {
   public:
     static constexpr AutoObjectTypeId TYPE_ID = AutoObjectTypeId::Process;
 
-    Process(System& system_, const std::string_view debug_name = "Process");
+    Process(System& system_, std::string_view debug_name = "Process");
     ~Process() override;
 
     // Memory
@@ -50,6 +47,7 @@ class Process : public SynchronizationObject {
                                 CodeSet code_set, vaddr_t& out_base);
     hw::tegra_x1::cpu::IMemory* CreateTlsMemory(vaddr_t& base);
     void CreateStackMemory(u64 stack_size);
+    void ResizeHeap(u64 size);
 
     // Thread
     handle_id_t SetMainThread(GuestThread* thread) {
@@ -58,13 +56,12 @@ class Process : public SynchronizationObject {
     }
 
     void RegisterThread(IThread* thread) {
-        std::lock_guard lock(thread_mutex);
+        std::scoped_lock lock(thread_mutex);
         threads.push_back(thread);
     }
     void UnregisterThread(IThread* thread) {
-        std::lock_guard lock(thread_mutex);
-        threads.erase(std::remove(threads.begin(), threads.end(), thread),
-                      threads.end());
+        std::scoped_lock lock(thread_mutex);
+        std::erase(threads, thread);
 
         // Signal
         if (threads.empty())
@@ -78,7 +75,7 @@ class Process : public SynchronizationObject {
     void SupervisorResume();
 
     bool IsRunning() {
-        std::lock_guard lock(thread_mutex);
+        std::scoped_lock lock(thread_mutex);
         return !threads.empty();
     }
 
@@ -89,7 +86,7 @@ class Process : public SynchronizationObject {
     // Handles
     template <typename T>
     T* GetHandle(handle_id_t handle_id) {
-        static_assert(std::is_base_of<AutoObject, T>::value,
+        static_assert(std::is_base_of_v<AutoObject, T>,
                       "T must be derived from AutoObject");
 
         if (handle_id == INVALID_HANDLE_ID)
@@ -111,14 +108,14 @@ class Process : public SynchronizationObject {
     }
 
     handle_id_t AddHandleNoRetain(AutoObject* obj) {
-        if (!obj) [[unlikely]]
+        if (obj == nullptr) [[unlikely]]
             return INVALID_HANDLE_ID;
 
         return handle_pool.Insert(obj);
     }
 
     handle_id_t AddHandle(AutoObject* obj) {
-        if (!obj) [[unlikely]]
+        if (obj == nullptr) [[unlikely]]
             return INVALID_HANDLE_ID;
 
         obj->Retain();
@@ -134,11 +131,14 @@ class Process : public SynchronizationObject {
         handle_pool.Free(handle_id);
     }
 
+    hw::tegra_x1::cpu::IMmu* GetMmu() const { return mmu.get(); }
+    hw::tegra_x1::cpu::IMemory* GetHeapMemory() const { return heap_mem.get(); }
+
   private:
     System& system;
 
-    hw::tegra_x1::cpu::IMmu* mmu;
-    hw::tegra_x1::gpu::GMmu* gmmu;
+    std::unique_ptr<hw::tegra_x1::cpu::IMmu> mmu;
+    hw::tegra_x1::gpu::GMmu gmmu;
 
     AppletState applet_state;
 
@@ -149,9 +149,9 @@ class Process : public SynchronizationObject {
     std::array<u64, 4> random_entropy;
 
     // Memory
-    hw::tegra_x1::cpu::IMemory* heap_mem{nullptr};
-    std::vector<hw::tegra_x1::cpu::IMemory*> executable_mems;
-    hw::tegra_x1::cpu::IMemory* main_thread_stack_mem{nullptr};
+    std::vector<std::unique_ptr<hw::tegra_x1::cpu::IMemory>> executable_mems;
+    std::unique_ptr<hw::tegra_x1::cpu::IMemory> main_thread_stack_mem;
+    std::unique_ptr<hw::tegra_x1::cpu::IMemory> heap_mem;
 
     vaddr_t tls_mem_base{TLS_REGION.GetBegin()};
 
@@ -171,14 +171,12 @@ class Process : public SynchronizationObject {
     void SignalStateChange(ProcessState new_state);
 
   public:
-    GETTER(mmu, GetMmu);
-    GETTER(gmmu, GetGMmu);
+    REF_GETTER(gmmu, GetGMmu);
     REF_GETTER(applet_state, GetAppletState);
     GETTER_AND_SETTER(title_id, GetTitleID, SetTitleID);
     GETTER_AND_SETTER(system_resource_size, GetSystemResourceSize,
                       SetSystemResourceSize);
     CONST_REF_GETTER(random_entropy, GetRandomEntropy);
-    REF_GETTER(heap_mem, GetHeapMemory);
     GETTER(main_thread, GetMainThread);
 };
 

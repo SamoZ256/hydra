@@ -16,7 +16,7 @@
     struct from<std::optional<e>> {                                            \
         template <typename TC>                                                 \
         static std::optional<e> from_toml(const basic_value<TC>& v) {          \
-            const auto str = v.as_string();                                    \
+            const auto& str = v.as_string();                                   \
             FOR_EACH_1_2(TOML11_CONVERSION_TOML_TO_ENUM_CASE, e, __VA_ARGS__)  \
             return std::nullopt;                                               \
         }                                                                      \

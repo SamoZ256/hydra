@@ -9,7 +9,7 @@ class Event : public SynchronizationObject {
   public:
     static constexpr AutoObjectTypeId TYPE_ID = AutoObjectTypeId::Event;
 
-    Event(bool signalled = false, const std::string_view debug_name = "Event")
+    Event(bool signalled = false, std::string_view debug_name = "Event")
         : SynchronizationObject(TYPE_ID, signalled, debug_name) {}
 };
 

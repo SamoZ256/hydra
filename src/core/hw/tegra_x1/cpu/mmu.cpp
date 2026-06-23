@@ -79,7 +79,7 @@ bool IMmu::TrackWrite(Range<vaddr_t> range) {
         Range<uptr>::FromSize(ptr, aligned_range.GetSize()));
 
     {
-        std::lock_guard lock(write_tracking_mutex);
+        std::scoped_lock lock(write_tracking_mutex);
         tracked_pages.push_back(aligned_range);
     }
 
@@ -87,7 +87,7 @@ bool IMmu::TrackWrite(Range<vaddr_t> range) {
 }
 
 void IMmu::FlushTrackedPages() {
-    std::lock_guard lock(write_tracking_mutex);
+    std::scoped_lock lock(write_tracking_mutex);
     for (const auto& range : tracked_pages)
         ResumeWriteTracking(range);
     tracked_pages.clear();

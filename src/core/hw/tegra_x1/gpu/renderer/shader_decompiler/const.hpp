@@ -5,7 +5,7 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
-typedef u64 instruction_t;
+using instruction_t = u64;
 STRONG_NUMBER_TYPEDEF(reg_t, u8);
 STRONG_NUMBER_TYPEDEF(pred_t, u8);
 STRONG_NUMBER_TYPEDEF(label_t, u32);
@@ -100,7 +100,7 @@ struct SvAccess {
         : sv{sv_}, component_index{component_index_} {}
 };
 
-const SvAccess get_sv_access_from_addr(u64 addr);
+SvAccess get_sv_access_from_addr(u64 addr);
 
 enum class TextureType {
     _1D,
@@ -175,7 +175,7 @@ struct fmt::formatter<hydra::hw::tegra_x1::gpu::renderer::shader_decomp::reg_t>
         if (reg == hydra::hw::tegra_x1::gpu::renderer::shader_decomp::RZ)
             return formatter<string_view>::format("0", ctx);
         return formatter<string_view>::format(
-            fmt::format("r{}", hydra::u8(reg)), ctx);
+            fmt::format("r{}", static_cast<hydra::u8>(reg)), ctx);
     }
 };
 
@@ -189,7 +189,7 @@ struct fmt::formatter<hydra::hw::tegra_x1::gpu::renderer::shader_decomp::pred_t>
         if (pred == hydra::hw::tegra_x1::gpu::renderer::shader_decomp::PT)
             return formatter<string_view>::format("true", ctx);
         return formatter<string_view>::format(
-            fmt::format("p{}", hydra::u8(pred)), ctx);
+            fmt::format("p{}", static_cast<hydra::u8>(pred)), ctx);
     }
 };
 
@@ -202,7 +202,7 @@ struct fmt::formatter<
         const hydra::hw::tegra_x1::gpu::renderer::shader_decomp::label_t label,
         FormatContext& ctx) const {
         return formatter<string_view>::format(
-            fmt::format("label0x{:x}", hydra::u32(label)), ctx);
+            fmt::format("label0x{:x}", static_cast<hydra::u32>(label)), ctx);
     }
 };
 
@@ -215,7 +215,9 @@ struct fmt::formatter<
         const hydra::hw::tegra_x1::gpu::renderer::shader_decomp::local_t local,
         FormatContext& ctx) const {
         return formatter<string_view>::format(
-            fmt::format("%0x{:x}_{}", hydra::u32(local.label), local.id), ctx);
+            fmt::format("%0x{:x}_{}", static_cast<hydra::u32>(local.label),
+                        local.id),
+            ctx);
     }
 };
 

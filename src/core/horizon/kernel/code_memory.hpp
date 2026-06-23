@@ -10,7 +10,7 @@ class CodeMemory : public AutoObject {
     static constexpr AutoObjectTypeId TYPE_ID = AutoObjectTypeId::CodeMemory;
 
     CodeMemory(vaddr_t addr_, u64 size_,
-               const std::string_view debug_name = "CodeMemory")
+               std::string_view debug_name = "CodeMemory")
         : AutoObject(TYPE_ID, debug_name), addr{addr_}, size{size_} {}
 
   private:

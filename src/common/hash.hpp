@@ -6,9 +6,7 @@ namespace hydra {
 
 class HashCode {
   public:
-    HashCode()
-        : v1{prime1 + prime2}, v2{prime2}, v3{0}, v4{prime1}, queue1{0},
-          queue2{0}, queue3{0}, length{0} {}
+    HashCode() : v1{prime1 + prime2}, v2{prime2}, v4{prime1} {}
 
     void Add(u32 value) {
         u32 previous_length = length++;
@@ -45,13 +43,15 @@ class HashCode {
     }
 
     template <typename T>
-    void Add(const T& value) requires std::is_trivially_copyable_v<T> {
+    void Add(const T& value)
+        requires std::is_trivially_copyable_v<T>
+    {
         const u8* bytes = reinterpret_cast<const u8*>(&value);
         for (usize i = 0; i < sizeof(T); ++i)
             Add(static_cast<u32>(bytes[i]));
     }
 
-    u32 ToHashCode() {
+    u32 ToHashCode() const {
         u32 hash = length < 4 ? MixEmptyState() : MixState(v1, v2, v3, v4);
         hash += length * 4;
 
@@ -76,9 +76,9 @@ class HashCode {
     static constexpr u32 prime4 = 668265263u;
     static constexpr u32 prime5 = 374761393u;
 
-    u32 v1, v2, v3, v4;
-    u32 queue1, queue2, queue3;
-    u32 length;
+    u32 v1, v2, v3{0}, v4;
+    u32 queue1{0}, queue2{0}, queue3{0};
+    u32 length{0};
 
     static u32 Round(u32 hash, u32 input) {
         return std::rotl(hash + input * prime2, 13) * prime1;

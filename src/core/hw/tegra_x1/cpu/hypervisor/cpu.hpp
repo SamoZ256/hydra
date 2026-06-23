@@ -15,7 +15,6 @@ class IMmu;
 namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 class Mmu;
-class Thread;
 
 class VirtualMachine {
   public:
@@ -26,7 +25,7 @@ class VirtualMachine {
 class Cpu : public ICpu {
   public:
     Cpu();
-    ~Cpu();
+    ~Cpu() noexcept override = default;
 
     IMmu* CreateMmu(System& system) override;
     IThread* CreateThread(WallClock& wall_clock, IMmu* mmu,

@@ -36,9 +36,6 @@ class IMmu {
     virtual void Protect(Range<vaddr_t> range,
                          horizon::kernel::MemoryPermission perm) = 0;
 
-    virtual void ResizeHeap(IMemory* heap_mem, vaddr_t va,
-                            u64 size) = 0; // TODO: remove this
-
     virtual uptr UnmapAddr(vaddr_t va) const = 0;
     virtual MemoryRegion QueryRegion(vaddr_t va) const = 0;
     virtual void SetMemoryAttribute(Range<vaddr_t> range,

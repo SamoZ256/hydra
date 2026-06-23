@@ -117,7 +117,7 @@ result_t ITimeZoneService::ToCalendarTimeImpl(
             static_cast<u32>((std::chrono::sys_days{ymd} -
                               std::chrono::sys_days{ymd.year() / 1 / 0})
                                  .count()),
-        .timezone_name = ToU64String(tz_name),
+        .timezone_name = StringAsU64(tz_name),
         .dst = info.is_day_saving_time ? 1u : 0u,
         .seconds_rel_to_utc = info.gmt_offset,
     };

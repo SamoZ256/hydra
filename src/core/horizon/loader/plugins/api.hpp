@@ -49,7 +49,7 @@ struct Slice {
     }
 };
 
-typedef u32 (*GetApiVersionFnT)();
+using GetApiVersionFnT = u32 (*)();
 
 enum class QueryType : u32 {
     Name = 0,
@@ -77,7 +77,7 @@ struct OptionConfig {
     };
 };
 
-typedef Slice<const u8> (*QueryFnT)(QueryType);
+using QueryFnT = Slice<const u8> (*)(QueryType);
 
 enum class CreateContextResult : u32 {
     Success = 0,
@@ -90,12 +90,12 @@ struct Option {
     Slice<const char> value;
 };
 
-typedef ReturnValue<CreateContextResult, void*> (*CreateContextFnT)(
+using CreateContextFnT = ReturnValue<CreateContextResult, void*> (*)(
     Slice<const Option>);
 
-typedef u32 (*DestroyContextFnT)(void*);
+using DestroyContextFnT = u32 (*)(void*);
 
-typedef void (*add_file)(void*, filesystem::Directory*, Slice<const char>,
+using add_file = void (*)(void*, filesystem::Directory*, Slice<const char>,
                          void*);
 
 enum class CreateLoaderFromFileResult : u32 {
@@ -104,21 +104,21 @@ enum class CreateLoaderFromFileResult : u32 {
     UnsupportedFile = 2,
 };
 
-typedef ReturnValue<CreateLoaderFromFileResult, void*> (
-    *CreateLoaderFromFileFnT)(void*, void*, add_file, void*, Slice<const char>);
+using CreateLoaderFromFileFnT = ReturnValue<CreateLoaderFromFileResult, void*> (
+    *)(void*, void*, add_file, void*, Slice<const char>);
 
-typedef void (*LoaderDestroyFnT)(void*);
+using LoaderDestroyFnT = void (*)(void*);
 
-typedef void (*FileDestroyFnT)(void*);
-typedef void* (*FileOpenFnT)(void*);
-typedef u64 (*FileGetSizeFnT)(void*);
+using FileDestroyFnT = void (*)(void*);
+using FileOpenFnT = void* (*)(void*);
+using FileGetSizeFnT = u64 (*)(void*);
 
-typedef void (*StreamDestroyFnT)(void*);
-typedef u64 (*StreamGetSeekFnT)(void*);
-typedef void (*StreamSeekToFnT)(void*, u64);
-typedef void (*StreamSeekByFnT)(void*, u64);
-typedef u64 (*StreamGetSizeFnT)(void*);
-typedef void (*StreamReadRawFnT)(void*, Slice<u8>);
+using StreamDestroyFnT = void (*)(void*);
+using StreamGetSeekFnT = u64 (*)(void*);
+using StreamSeekToFnT = void (*)(void*, u64);
+using StreamSeekByFnT = void (*)(void*, u64);
+using StreamGetSizeFnT = u64 (*)(void*);
+using StreamReadRawFnT = void (*)(void*, Slice<u8>);
 
 } // namespace hydra::horizon::loader::plugins::api
 

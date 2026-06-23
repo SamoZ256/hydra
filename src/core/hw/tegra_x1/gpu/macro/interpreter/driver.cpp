@@ -30,22 +30,22 @@ u32 Driver::InstAlu(AluOperation op, u8 rA, u8 rB) {
     switch (op) {
     case AluOperation::Add: {
         i32 result = valueA + valueB;
-        carry = result < valueA;
+        carry = static_cast<i8>(result < valueA);
         RET(result);
     }
     case AluOperation::AddWithCarry: {
         i32 result = valueA + valueB + carry;
-        carry = result < valueA;
+        carry = static_cast<i8>(result < valueA);
         RET(result);
     }
     case AluOperation::Subtract: {
         i32 result = valueA - valueB;
-        carry = result < 0;
+        carry = static_cast<i8>(result < 0);
         RET(result);
     }
     case AluOperation::SubtractWithBorrow: {
         i32 result = valueA - valueB - carry;
-        carry = result < 0;
+        carry = static_cast<i8>(result < 0);
         RET(result);
     }
     case AluOperation::Xor:

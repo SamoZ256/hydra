@@ -44,10 +44,10 @@ class IThread : public SynchronizationObject {
     static constexpr AutoObjectTypeId TYPE_ID = AutoObjectTypeId::Thread;
 
     IThread(Process* process_, i32 priority_,
-            const std::string_view debug_name = "Thread")
+            std::string_view debug_name = "Thread") noexcept
         : SynchronizationObject(TYPE_ID, false, debug_name), process{process_},
           priority{priority_} {}
-    virtual ~IThread() override;
+    ~IThread() noexcept override;
 
     void Start();
 
@@ -99,6 +99,10 @@ class IThread : public SynchronizationObject {
         return true;
     }
 
+    bool IsStoppingOrStopped() const {
+        return state == ThreadState::Stopping || state == ThreadState::Stopped;
+    }
+
     virtual uptr GetTlsPtr() const = 0;
 
   protected:
@@ -121,8 +125,6 @@ class IThread : public SynchronizationObject {
   private:
     i32 priority;
 
-    std::thread* thread{nullptr};
-
     ThreadState state{ThreadState::Created}; // TODO: atomic?
 
     std::mutex msg_mutex;
@@ -140,6 +142,8 @@ class IThread : public SynchronizationObject {
     bool supervisor_pause{false};
     bool guest_pause{false};
     std::optional<ThreadSyncInfo> sync_info{std::nullopt};
+
+    std::jthread thread;
 
     // Helpers
 

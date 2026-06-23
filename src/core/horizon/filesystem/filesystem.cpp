@@ -24,8 +24,8 @@
     auto& device = it->second;
 
 #define VERIFY_MOUNT(mount)                                                    \
-    ASSERT(mount.find("/") == std::string::npos, Filesystem,                   \
-           "Invalid mount point \"{}\"", mount);
+    ASSERT(!mount.contains('/'), Filesystem, "Invalid mount point \"{}\"",     \
+           mount);
 
 namespace hydra::horizon::filesystem {
 
@@ -130,7 +130,7 @@ FsResult Filesystem::GetDirectory(const std::string_view path,
 
 void Filesystem::MountImpl(const std::string_view mount, Directory* root) {
     VERIFY_MOUNT(mount);
-    devices.emplace(std::make_pair(mount, root));
+    devices.emplace(mount, root);
     LOG_INFO(Filesystem, "Mounted \"{}\"", mount);
 }
 

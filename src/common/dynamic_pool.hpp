@@ -8,7 +8,7 @@ namespace hydra {
 template <typename T, bool allow_zero_handle = false>
 class DynamicPool : public Pool<DynamicPool<T>, T, allow_zero_handle> {
   public:
-    u32 _AllocateIndex() {
+    u32 AllocateIndex_() {
         // TODO: look for a free index first
 
         const auto index = static_cast<u32>(objects.size());
@@ -17,14 +17,14 @@ class DynamicPool : public Pool<DynamicPool<T>, T, allow_zero_handle> {
         return index;
     }
 
-    void _FreeByIndex(u32 index) {
+    void FreeByIndex_(u32 index) {
         if (index == objects.size() - 1)
             objects.pop_back();
         else
             free_slots.push_back(index);
     }
 
-    bool _IsValidByIndex(u32 index) const {
+    bool IsValidByIndex_(u32 index) const {
         if (index >= objects.size())
             return false;
 
@@ -32,9 +32,9 @@ class DynamicPool : public Pool<DynamicPool<T>, T, allow_zero_handle> {
                free_slots.end();
     }
 
-    T& _GetByIndex(u32 index) { return objects[index]; }
+    T& GetByIndex_(u32 index) { return objects[index]; }
 
-    const T& _GetByIndex(u32 index) const { return objects[index]; }
+    const T& GetByIndex_(u32 index) const { return objects[index]; }
 
     usize GetCapacity() const { return objects.size(); }
 

@@ -6,7 +6,7 @@
 #include "core/input/device_manager.hpp"
 
 namespace hydra::horizon::loader {
-class LoaderBase;
+class ILoader;
 }
 
 namespace hydra {
@@ -27,7 +27,7 @@ class System {
 
     void SetSurface(void* surface) { gpu.GetRenderer().SetSurface(surface); }
 
-    void LoadAndStart(horizon::loader::LoaderBase* loader);
+    void LoadAndStart(horizon::loader::ILoader* loader);
     void RequestStop();
     void ForceStop();
 
@@ -56,7 +56,7 @@ class System {
     horizon::OS os;
 
     // Loading screen assets
-    std::optional<CombinedTextureView> nintendo_logo{};
+    std::optional<CombinedTextureView> nintendo_logo;
     std::vector<CombinedTextureView> startup_movie; // TODO: texture array?
     std::vector<std::chrono::milliseconds> startup_movie_delays;
     clock_t::time_point next_startup_movie_frame_time;
@@ -74,17 +74,17 @@ class System {
     clock_t::time_point last_dt_averaging_time{clock_t::now()};
 
     // Helpers
-    void TryApplyPatch(horizon::kernel::Process* process,
-                       const std::string_view target_filename,
-                       const std::filesystem::path path);
+    static void TryApplyPatch(horizon::kernel::Process* process,
+                              const std::string_view target_filename,
+                              const std::filesystem::path& path);
 
   public:
     GETTER(ui_handler, GetUIHandler);
     REF_GETTER(wall_clock, GetWallClock);
-    hw::tegra_x1::cpu::ICpu& GetCpu() { return *cpu.get(); }
+    hw::tegra_x1::cpu::ICpu& GetCpu() { return *cpu; }
     REF_GETTER(gpu, GetGpu);
     REF_GETTER(input_device_manager, GetInputDeviceManager);
-    audio::ICore& GetAudioCore() { return *audio_core.get(); }
+    audio::ICore& GetAudioCore() { return *audio_core; }
     REF_GETTER(os, GetOS);
 };
 

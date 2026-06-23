@@ -15,10 +15,10 @@ ShaderBase* ShaderCache::Create(const GuestShaderDescriptor& descriptor) {
     io::MemoryStream code_stream(
         std::span(reinterpret_cast<u8*>(descriptor.code_ptr),
                   0x1000)); // TODO: size
-    shader_decomp::Decompiler decompiler;
-    decompiler.Decompile(code_stream, host_descriptor.type, descriptor.state,
-                         host_descriptor.backend, host_descriptor.code,
-                         host_descriptor.resource_mapping);
+    shader_decomp::Decompile(code_stream, host_descriptor.type,
+                             descriptor.state, host_descriptor.backend,
+                             host_descriptor.code,
+                             host_descriptor.resource_mapping);
 
     return renderer.CreateShader(host_descriptor);
 }
@@ -41,9 +41,8 @@ u32 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {
 
     // Vertex state
     if (descriptor.stage == engines::ShaderStage::VertexB) {
-        for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
-            const auto& vertex_attrib_state =
-                descriptor.state.vertex_attrib_states[i];
+        for (const auto& vertex_attrib_state :
+             descriptor.state.vertex_attrib_states) {
             hash.Add(vertex_attrib_state.is_fixed);
             hash.Add(vertex_attrib_state.size);
             hash.Add(vertex_attrib_state.type);
@@ -52,9 +51,8 @@ u32 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {
 
     // Color target data types
     if (descriptor.stage == engines::ShaderStage::Fragment) {
-        for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
-            const auto color_target_data_type =
-                descriptor.state.color_target_data_types[i];
+        for (const auto& color_target_data_type :
+             descriptor.state.color_target_data_types) {
             hash.Add(color_target_data_type);
         }
     }

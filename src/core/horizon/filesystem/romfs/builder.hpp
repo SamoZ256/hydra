@@ -27,7 +27,7 @@ class Builder {
     u64 dir_hash_table_size = 0;
     u64 file_hash_table_size = 0;
 
-    void VisitDirectory(Directory* dir, std::shared_ptr<DirContext> parent);
+    void VisitDirectory(Directory* dir, const std::shared_ptr<DirContext>& parent);
 
     void AddDirectory(std::shared_ptr<DirContext> ctx);
     void AddFile(std::shared_ptr<FileContext> ctx);

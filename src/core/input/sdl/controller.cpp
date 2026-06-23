@@ -22,9 +22,9 @@ bool Controller::IsPressedImpl(ControllerInput input) {
         BUTTON_CASE(L, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER)
         BUTTON_CASE(R, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER)
     case ControllerInput::ZL:
-        return SDL_GetGamepadAxis(handle, SDL_GAMEPAD_AXIS_LEFT_TRIGGER);
+        return SDL_GetGamepadAxis(handle, SDL_GAMEPAD_AXIS_LEFT_TRIGGER) != 0;
     case ControllerInput::ZR:
-        return SDL_GetGamepadAxis(handle, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER);
+        return SDL_GetGamepadAxis(handle, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) != 0;
         BUTTON_CASE(Plus, SDL_GAMEPAD_BUTTON_START);
         BUTTON_CASE(Minus, SDL_GAMEPAD_BUTTON_BACK);
         BUTTON_CASE(Left, SDL_GAMEPAD_BUTTON_DPAD_LEFT);

@@ -14,9 +14,9 @@ class ClearDepthPipelineCache
 
     MTL::RenderPipelineState* Create(MTL::PixelFormat pixel_format);
     void Update([[maybe_unused]] MTL::RenderPipelineState* pipeline) {}
-    u32 Hash(MTL::PixelFormat pixel_format);
+    static u32 Hash(MTL::PixelFormat pixel_format);
 
-    void DestroyElement(MTL::RenderPipelineState* pipeline);
+    static void DestroyElement(MTL::RenderPipelineState* pipeline);
 
   private:
     MTL::Device* device;

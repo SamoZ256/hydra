@@ -41,8 +41,10 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
     if (data.src_memory_layout == MemoryLayout::Pitch) {
         if (data.dst_memory_layout == MemoryLayout::Pitch) {
             for (u32 i = 0; i < regs.line_count; i++)
-                memcpy(reinterpret_cast<void*>(dst_ptr + regs.stride_out * i),
-                       reinterpret_cast<void*>(src_ptr + regs.stride_in * i),
+                memcpy(reinterpret_cast<void*>(
+                           dst_ptr + static_cast<uptr>(regs.stride_out * i)),
+                       reinterpret_cast<void*>(
+                           src_ptr + static_cast<uptr>(regs.stride_in * i)),
                        regs.stride_in);
         } else {
             // TODO: is slice stride correct?
@@ -93,7 +95,8 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
             align(regs.dst.depth, 1u << static_cast<u32>(get_block_size_log2(
                                       regs.dst.block_size.depth)));
         gpu.GetRenderer().InvalidateMemory(
-            Range<uptr>::FromSize(dst_ptr, slices * rows * stride),
+            Range<uptr>::FromSize(dst_ptr,
+                                  static_cast<u32>(slices * rows * stride)),
             renderer::MemoryInvalidationScope::TextureCache);
     }
 }

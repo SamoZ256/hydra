@@ -4,7 +4,7 @@
 
 namespace hydra::hw::tegra_x1::cpu {
 
-void IThread::GetStackTrace(stack_frame_callback_fn_t callback) {
+void IThread::GetStackTrace(const stack_frame_callback_fn_t& callback) {
     u64 fp = state.fp;
     u64 lr = state.lr;
 

@@ -6,6 +6,12 @@ namespace hydra::io {
 
 class IContinuousStream : public IStream {
   public:
+    IContinuousStream() noexcept = default;
+    ~IContinuousStream() noexcept = default;
+
+    MAKE_DEFAULT_COPYABLE(IContinuousStream);
+    MAKE_NON_MOVABLE(IContinuousStream);
+
     u64 GetSeek() const override { return seek; }
     void SeekTo(u64 seek_) override { seek = seek_; }
     void SeekBy(u64 offset) override { seek += offset; }

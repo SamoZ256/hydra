@@ -114,7 +114,7 @@ result_t IFileSystemProxy::CreateSaveDataFileSystem(
 }
 
 result_t IFileSystemProxy::ReadSaveDataFileSystemExtraDataBySaveDataSpaceId(
-    aligned<SaveDataSpaceId, 8> space_id, u64 save_id,
+    Aligned<SaveDataSpaceId, 8> space_id, u64 save_id,
     OutBuffer<BufferAttr::MapAlias> out_buffer) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "space ID: {}, save ID: {}", space_id,
                                save_id);
@@ -129,14 +129,14 @@ result_t IFileSystemProxy::ReadSaveDataFileSystemExtraDataBySaveDataSpaceId(
 
 result_t IFileSystemProxy::OpenSaveDataFileSystem(
     RequestContext* ctx, System* system, kernel::Process* process,
-    aligned<SaveDataSpaceId, 8> space_id, SaveDataAttribute attr) {
+    Aligned<SaveDataSpaceId, 8> space_id, SaveDataAttribute attr) {
     return OpenSaveDataFileSystemImpl(ctx, system, process, space_id, attr,
                                       false);
 }
 
 result_t IFileSystemProxy::OpenReadOnlySaveDataFileSystem(
     RequestContext* ctx, System* system, kernel::Process* process,
-    aligned<SaveDataSpaceId, 8> space_id, SaveDataAttribute attr) {
+    Aligned<SaveDataSpaceId, 8> space_id, SaveDataAttribute attr) {
     return OpenSaveDataFileSystemImpl(ctx, system, process, space_id, attr,
                                       true);
 }
@@ -178,7 +178,7 @@ result_t IFileSystemProxy::OpenDataStorageByProgramId(RequestContext* ctx,
 
 result_t
 IFileSystemProxy::OpenDataStorageByDataId(RequestContext* ctx, System* system,
-                                          aligned<ncm::StorageID, 8> storage_id,
+                                          Aligned<ncm::StorageID, 8> storage_id,
                                           u64 data_id) {
     LOG_FUNC_NOT_IMPLEMENTED(Services);
 

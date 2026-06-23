@@ -243,7 +243,7 @@ void IHOSBinderDriver::TransactParcelImpl(
 
         // Input buffer
         auto buffer = parcel_reader.ReadStrongPointer<display::GraphicBuffer>();
-        if (!buffer) {
+        if (buffer == nullptr) {
             LOG_ERROR(Services, "No graphic buffer");
             break;
         }

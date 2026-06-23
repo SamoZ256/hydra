@@ -5,11 +5,9 @@
 namespace hydra::horizon::kernel {
 
 SharedMemory::SharedMemory(hw::tegra_x1::cpu::ICpu& cpu, u64 size,
-                           const std::string_view debug_name)
-    : AutoObject(TYPE_ID, debug_name) {
-    memory = cpu.AllocateMemory(size);
-
-    // Clear
+                           std::string_view debug_name)
+    : AutoObject(TYPE_ID, debug_name), memory{cpu.AllocateMemory(size)} {
+    // Clear memory
     memset(reinterpret_cast<void*>(GetPtr()), 0, size);
 }
 
@@ -18,7 +16,9 @@ SharedMemory::~SharedMemory() { delete memory; }
 void SharedMemory::MapToRange(hw::tegra_x1::cpu::IMmu* mmu,
                               const Range<uptr> range, MemoryPermission perm) {
     mmu->Map(range.GetBegin(), memory,
-             {MemoryType::Shared, MemoryAttribute::None, perm});
+             {.type = MemoryType::Shared,
+              .attr = MemoryAttribute::None,
+              .perm = perm});
 }
 
 uptr SharedMemory::GetPtr() const { return memory->GetPtr(); }

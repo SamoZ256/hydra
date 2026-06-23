@@ -29,9 +29,9 @@ class ShaderCache
 
     ShaderBase* Create(const GuestShaderDescriptor& descriptor);
     void Update([[maybe_unused]] ShaderBase* shader) {}
-    u32 Hash(const GuestShaderDescriptor& descriptor);
+    static u32 Hash(const GuestShaderDescriptor& descriptor);
 
-    void DestroyElement(ShaderBase* shader);
+    static void DestroyElement(ShaderBase* shader);
 
   private:
     IRenderer& renderer;

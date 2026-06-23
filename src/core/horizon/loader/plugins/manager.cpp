@@ -17,7 +17,7 @@ void Manager::Refresh() {
             continue;
         }
 
-        Plugin::Create(plugin_config.path, plugin_config.options)
+        (void)Plugin::Create(plugin_config.path, plugin_config.options)
             .transform([this](Plugin plugin) {
                 plugins.emplace_back(std::move(plugin));
             });
@@ -26,9 +26,8 @@ void Manager::Refresh() {
 
 Plugin* Manager::FindPluginForFormat(std::string_view format) {
     for (auto& plugin : plugins) {
-        if (std::find(plugin.supported_formats.begin(),
-                      plugin.supported_formats.end(),
-                      format) != plugin.supported_formats.end())
+        if (std::ranges::find(plugin.supported_formats, format) !=
+            plugin.supported_formats.end())
             return &plugin;
     }
 

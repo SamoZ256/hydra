@@ -51,7 +51,7 @@ struct Header {
     u32 recv_static_mode : 4;
     u32 padding : 6;
     u32 recv_list_offset : 11; // Unused.
-    bool has_special_header : 1;
+    u32 has_special_header : 1;
 };
 
 // From https://github.com/switchbrew/libnx
@@ -106,58 +106,59 @@ struct SpecialHeader {
 // From https://github.com/switchbrew/libnx
 inline Request calc_request_layout(Metadata meta, void* base) {
     // Copy handles
-    handle_id_t* copy_handles = NULL;
-    if (meta.num_copy_handles) {
+    handle_id_t* copy_handles = nullptr;
+    if (meta.num_copy_handles != 0) {
         copy_handles = reinterpret_cast<handle_id_t*>(base);
         base = copy_handles + meta.num_copy_handles;
     }
 
     // Move handles
-    handle_id_t* move_handles = NULL;
-    if (meta.num_move_handles) {
+    handle_id_t* move_handles = nullptr;
+    if (meta.num_move_handles != 0) {
         move_handles = reinterpret_cast<handle_id_t*>(base);
         base = move_handles + meta.num_move_handles;
     }
 
     // Send statics
-    StaticDescriptor* send_statics = NULL;
-    if (meta.num_send_statics) {
+    StaticDescriptor* send_statics = nullptr;
+    if (meta.num_send_statics != 0) {
         send_statics = reinterpret_cast<StaticDescriptor*>(base);
         base = send_statics + meta.num_send_statics;
     }
 
     // Send buffers
-    BufferDescriptor* send_buffers = NULL;
-    if (meta.num_send_buffers) {
+    BufferDescriptor* send_buffers = nullptr;
+    if (meta.num_send_buffers != 0) {
         send_buffers = reinterpret_cast<BufferDescriptor*>(base);
         base = send_buffers + meta.num_send_buffers;
     }
 
     // Recv buffers
-    BufferDescriptor* recv_buffers = NULL;
-    if (meta.num_recv_buffers) {
+    BufferDescriptor* recv_buffers = nullptr;
+    if (meta.num_recv_buffers != 0) {
         recv_buffers = reinterpret_cast<BufferDescriptor*>(base);
         base = recv_buffers + meta.num_recv_buffers;
     }
 
     // Exch buffers
-    BufferDescriptor* exch_buffers = NULL;
-    if (meta.num_exch_buffers) {
+    BufferDescriptor* exch_buffers = nullptr;
+    if (meta.num_exch_buffers != 0) {
         exch_buffers = reinterpret_cast<BufferDescriptor*>(base);
         base = exch_buffers + meta.num_exch_buffers;
     }
 
     // Data words
-    u32* data_words = NULL;
-    if (meta.num_data_words) {
+    u32* data_words = nullptr;
+    if (meta.num_data_words != 0) {
         data_words = reinterpret_cast<u32*>(base);
         base = data_words + meta.num_data_words;
     }
 
     // Recv list
-    RecvListEntry* recv_list = NULL;
-    if (meta.num_recv_statics)
+    RecvListEntry* recv_list = nullptr;
+    if (meta.num_recv_statics != 0) {
         recv_list = reinterpret_cast<RecvListEntry*>(base);
+    }
 
     return Request{
         .send_statics = send_statics,
@@ -180,7 +181,7 @@ inline ParsedRequest parse_request(void* base) {
     u64 pid = 0;
 
     // Parse recv static mode
-    if (hdr.recv_static_mode) {
+    if (hdr.recv_static_mode != 0u) {
         if (hdr.recv_static_mode == 2u)
             num_recv_statics = HIPC_AUTO_RECV_STATIC;
         else if (hdr.recv_static_mode > 2u)
@@ -222,9 +223,10 @@ inline ParsedRequest parse_request(void* base) {
 
 inline Request make_request(void* base, Metadata meta) {
     // Write message header
-    bool has_special_header =
-        meta.send_pid || meta.num_copy_handles || meta.num_move_handles;
-    Header* hdr = reinterpret_cast<Header*>(base);
+    bool has_special_header = (meta.send_pid != 0u) ||
+                              (meta.num_copy_handles != 0u) ||
+                              (meta.num_move_handles != 0u);
+    auto* hdr = reinterpret_cast<Header*>(base);
     base = hdr + 1;
     *hdr = Header{
         .type = meta.type,
@@ -234,26 +236,26 @@ inline Request make_request(void* base, Metadata meta) {
         .num_exch_buffers = meta.num_exch_buffers,
         .num_data_words = meta.num_data_words,
         .recv_static_mode =
-            meta.num_recv_statics
+            (meta.num_recv_statics != 0u)
                 ? (meta.num_recv_statics != HIPC_AUTO_RECV_STATIC
                        ? 2u + meta.num_recv_statics
                        : 2u)
                 : 0u,
         .padding = 0,
         .recv_list_offset = 0,
-        .has_special_header = has_special_header,
+        .has_special_header = static_cast<u32>(has_special_header),
     };
 
     // Write special header
     if (has_special_header) {
-        SpecialHeader* sphdr = reinterpret_cast<SpecialHeader*>(base);
+        auto sphdr = reinterpret_cast<SpecialHeader*>(base);
         base = sphdr + 1;
         *sphdr = SpecialHeader{
             .send_pid = meta.send_pid,
             .num_copy_handles = meta.num_copy_handles,
             .num_move_handles = meta.num_move_handles,
         };
-        if (meta.send_pid)
+        if (meta.send_pid != 0u)
             base = reinterpret_cast<u8*>(base) + sizeof(u64);
     }
 
@@ -279,7 +281,8 @@ u8* get_list_entry_ptr(const hw::tegra_x1::cpu::IMmu* mmu,
         u8* ptr = get_##buffer_or_static##_ptr(                                \
             mmu, hipc_in.data.type##_##buffer_or_static##s[i], size);          \
         type##_##buffer_or_static##s_streams.push_back(                        \
-            ptr ? std::make_optional<io::MemoryStream>(std::span(ptr, size))   \
+            ptr != nullptr                                                     \
+                ? std::make_optional<io::MemoryStream>(std::span(ptr, size))   \
                 : std::nullopt);                                               \
     }
 
@@ -326,7 +329,8 @@ struct Streams {
             u8* ptr = get_list_entry_ptr(mmu, hipc_in.data.recv_list[i], size);
             // TODO: should we continue or push std::nullopt in case of nullptr?
             recv_list_streams.push_back(
-                ptr ? std::make_optional<io::MemoryStream>(std::span(ptr, size))
+                ptr != nullptr
+                    ? std::make_optional<io::MemoryStream>(std::span(ptr, size))
                     : std::nullopt);
         }
         CREATE_BUFFER_STREAMS(recv);

@@ -4,7 +4,7 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::null {
 
-Buffer::Buffer(u64 size) : BufferBase(size) { buffer = new u8[size]; }
+Buffer::Buffer(u64 size) : BufferBase(size), buffer(new u8[size]) { }
 Buffer::~Buffer() { delete[] buffer; }
 
 void Buffer::CopyFrom([[maybe_unused]] ICommandBuffer* command_buffer,

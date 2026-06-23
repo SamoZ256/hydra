@@ -20,11 +20,11 @@ ResolvedStackFrame StackFrame::Resolve() const {
     switch (type) {
     case StackFrameType::Host:
         // TODO
-        return {"libhydra.dylib", "", addr};
+        return {.module = "libhydra.dylib", .function = "", .addr = addr};
     case StackFrameType::Guest: {
         const auto& module = debugger->GetModuleTable().FindSymbol(addr);
         const auto& function = debugger->GetFunctionTable().FindSymbol(addr);
-        return {module, function, addr};
+        return {.module = module, .function = function, .addr = addr};
     }
     }
 }
@@ -43,11 +43,6 @@ void Thread::Log(const Message& msg) {
         msg_tail = (msg_tail + 1) % messages.size();
 }
 
-Debugger::~Debugger() {
-    if (gdb_server)
-        delete gdb_server;
-}
-
 void Debugger::RegisterThisThread(const std::string_view thread_name) {
     std::unique_lock lock(mutex);
     ASSERT(threads.try_emplace(std::this_thread::get_id(), thread_name).second,
@@ -64,7 +59,7 @@ void Debugger::RegisterGuestThreadForThisThread(
     GET_THIS_THREAD();
     thread.guest_thread = guest_thread;
 
-    if (gdb_server)
+    if (gdb_server.has_value())
         gdb_server->RegisterThread(thread);
 }
 
@@ -74,17 +69,17 @@ void Debugger::UnregisterGuestThreadForThisThread() {
 }
 
 void Debugger::ActivateGdbServer(System& system) {
-    gdb_server = new GdbServer(system, *this);
+    gdb_server.emplace(system, *this);
 }
 
 void Debugger::NotifySupervisorPaused(horizon::kernel::GuestThread* thread,
                                       Signal signal) {
-    if (gdb_server)
+    if (gdb_server.has_value())
         gdb_server->NotifySupervisorPaused(thread, signal);
 }
 
 void Debugger::BreakpointHit(horizon::kernel::GuestThread* thread) {
-    if (gdb_server)
+    if (gdb_server.has_value())
         gdb_server->BreakpointHit(thread);
 }
 
@@ -93,7 +88,7 @@ void Debugger::LogOnThisThread(const LogMessage& msg) {
     lock.unlock();
     auto stack_trace = GetStackTrace(thread);
     lock.lock();
-    thread.Log({msg, stack_trace});
+    thread.Log({.log = msg, .stack_trace = stack_trace});
 }
 
 void Debugger::BreakOnThisThreadImpl(const std::string_view reason) {

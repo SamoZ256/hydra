@@ -24,8 +24,8 @@ class NvMap : public FdBase {
     NvResult FromId(u32 id, handle_id_t* out_handle_id);
     NvResult Alloc(System* system, handle_id_t handle_id, u32 heap_mask,
                    u32 flags, InOutSingle<u32> inout_alignment,
-                   aligned<u8, 8> kind, gpu_vaddr_t addr);
-    NvResult Free(System* system, aligned<handle_id_t, 8> handle_id,
+                   Aligned<u8, 8> kind, gpu_vaddr_t addr);
+    NvResult Free(System* system, Aligned<handle_id_t, 8> handle_id,
                   gpu_vaddr_t* out_addr, u64* out_size, u32* out_flags);
     NvResult Param(System* system, handle_id_t handle_id, NvMapParamType type,
                    u32* out_value);

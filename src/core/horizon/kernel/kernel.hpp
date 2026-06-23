@@ -91,7 +91,7 @@ class Kernel {
     result_t CloseHandle(Process* crnt_process, handle_id_t handle_id);
     result_t ResetSignal(SynchronizationObject* sync_object);
     result_t WaitSynchronization(IThread* crnt_thread,
-                                 std::span<SynchronizationObject*> sync_objects,
+                                 std::span<SynchronizationObject*> sync_objs,
                                  i64 timeout, u32& out_signalled_index);
     result_t CancelSynchronization(IThread* thread);
     result_t ArbitrateLock(IThread* crnt_thread, IThread* owner_thread,
@@ -166,8 +166,8 @@ class Kernel {
         true};
 
     // Helpers
-    void TryAcquireMutex(Process* crnt_process, IThread* thread);
-    void UnlockMutex(IThread* thread, uptr mutex_addr);
+    static void TryAcquireMutex(Process* crnt_process, IThread* thread);
+    static void UnlockMutex(IThread* thread, uptr mutex_addr);
 
   public:
     REF_GETTER(process_manager, GetProcessManager);

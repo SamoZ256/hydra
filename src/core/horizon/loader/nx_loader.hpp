@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/horizon/filesystem/directory.hpp"
-#include "core/horizon/loader/loader_base.hpp"
+#include "core/horizon/loader/loader.hpp"
 
 namespace hydra {
 class System;
@@ -9,7 +9,7 @@ class System;
 
 namespace hydra::horizon::loader {
 
-class NxLoader : public LoaderBase {
+class NxLoader : public ILoader {
   public:
     NxLoader(const filesystem::Directory& dir_);
 
@@ -35,7 +35,7 @@ class NxLoader : public LoaderBase {
     void ParseNpdm();
     void FindIcon();
     void LoadCode(System& system, kernel::Process* process,
-                  filesystem::Directory* exefs_dir);
+                  filesystem::Directory* exefs_dir) const;
 };
 
 } // namespace hydra::horizon::loader

@@ -15,7 +15,7 @@ DEFINE_IOCTL_TABLE(NvHostCtrl,
 NvResult NvHostCtrl::QueryEvent(u32 event_id_u32, kernel::Event*& out_event) {
     u32 slot;
     u32 syncpoint_id;
-    if (extract_bits(event_id_u32, 28, 1)) { // New format
+    if (extract_bits(event_id_u32, 28, 1) != 0u) { // New format
         slot = extract_bits(event_id_u32, 0, 16);
         syncpoint_id = extract_bits(event_id_u32, 16, 12);
     } else { // Old format
@@ -92,7 +92,7 @@ NvResult NvHostCtrl::SyncptAllocEvent(u32 slot) {
 
     // Check if event is already allocated
     // TODO: correct?
-    if (event.event)
+    if (event.event != nullptr)
         event.event->Release();
 
     event.event = new kernel::Event(false, fmt::format("NvHostEvent {}", slot));

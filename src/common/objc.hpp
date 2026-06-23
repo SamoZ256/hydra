@@ -7,7 +7,7 @@
 namespace hydra {
 
 #ifndef __OBJC__
-typedef void* id;
+using id = void*;
 #endif
 
 } // namespace hydra

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/horizon/filesystem/content_archive.hpp"
-#include "core/horizon/loader/loader_base.hpp"
+#include "core/horizon/loader/loader.hpp"
 
 namespace hydra {
 class System;
@@ -9,11 +9,11 @@ class System;
 
 namespace hydra::horizon::loader {
 
-class NcaLoader : public LoaderBase {
+class NcaLoader : public ILoader {
   public:
     NcaLoader(filesystem::IFile* file)
-        : NcaLoader(std::move(filesystem::ContentArchive(file))) {}
-    NcaLoader(const filesystem::ContentArchive& content_archive_);
+        : NcaLoader(filesystem::ContentArchive(file)) {}
+    NcaLoader(filesystem::ContentArchive content_archive_);
 
     u64 GetTitleID() const override { return content_archive.GetTitleID(); }
 
@@ -32,7 +32,7 @@ class NcaLoader : public LoaderBase {
 
     // Helpers
     void LoadCode(System& system, kernel::Process* process,
-                  filesystem::Directory* dir);
+                  filesystem::Directory* dir) const;
 };
 
 } // namespace hydra::horizon::loader

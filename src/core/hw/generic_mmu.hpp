@@ -7,6 +7,11 @@ namespace hydra::hw {
 // TODO: get rid of this bs
 template <typename Subclass, typename Impl>
 class GenericMmu {
+    friend Subclass;
+
+  private:
+    GenericMmu() noexcept = default;
+
   public:
     void Map(uptr base, Impl impl) {
         mapped_ranges[base] = impl;

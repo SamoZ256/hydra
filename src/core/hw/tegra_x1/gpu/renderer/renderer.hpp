@@ -46,7 +46,7 @@ class IRenderer {
         : buffer_cache(*this), texture_cache(*this), sampler_cache(*this),
           render_pass_cache(*this), shader_cache(*this), pipeline_cache(*this),
           index_cache(*this) {}
-    virtual ~IRenderer() {}
+    virtual ~IRenderer() = default;
 
     void InvalidateMemory(
         Range<uptr> range,

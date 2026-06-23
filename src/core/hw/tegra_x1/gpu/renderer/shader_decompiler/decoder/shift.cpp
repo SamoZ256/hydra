@@ -39,7 +39,8 @@ void EmitShlC(DecoderContext& context, InstShlC inst) {
     EmitShiftLeft(
         context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
         inst.base.src_a,
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4)));
+        ir::Value::ConstMemory(
+            CMem(inst.cbuf_slot, RZ, static_cast<u64>(inst.cbuf_offset * 4))));
 }
 
 void EmitShlI(DecoderContext& context, InstShlI inst) {
@@ -58,7 +59,8 @@ void EmitShrC(DecoderContext& context, InstShrC inst) {
     EmitShiftRight(
         context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
         inst.base.src_a,
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4)));
+        ir::Value::ConstMemory(
+            CMem(inst.cbuf_slot, RZ, static_cast<u64>(inst.cbuf_offset * 4))));
 }
 
 void EmitShrI(DecoderContext& context, InstShrI inst) {

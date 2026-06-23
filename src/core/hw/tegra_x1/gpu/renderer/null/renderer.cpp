@@ -6,26 +6,26 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::null {
 
-CommandBuffer::CommandBuffer() {}
-CommandBuffer::~CommandBuffer() {}
+CommandBuffer::CommandBuffer() = default;
+CommandBuffer::~CommandBuffer() = default;
 
 Sampler::Sampler(const SamplerDescriptor& descriptor)
     : SamplerBase(descriptor) {}
-Sampler::~Sampler() {}
+Sampler::~Sampler() = default;
 
 RenderPass::RenderPass(const RenderPassDescriptor& descriptor)
     : RenderPassBase(descriptor) {}
-RenderPass::~RenderPass() {}
+RenderPass::~RenderPass() = default;
 
 Pipeline::Pipeline(const PipelineDescriptor& descriptor)
     : PipelineBase(descriptor) {}
-Pipeline::~Pipeline() {}
+Pipeline::~Pipeline() = default;
 
 Shader::Shader(const ShaderDescriptor& descriptor) : ShaderBase(descriptor) {}
-Shader::~Shader() {}
+Shader::~Shader() = default;
 
-Renderer::Renderer() {}
-Renderer::~Renderer() {}
+Renderer::Renderer() = default;
+Renderer::~Renderer() = default;
 
 void Renderer::SetSurface([[maybe_unused]] void* surface) {}
 

@@ -339,6 +339,7 @@ class Builder {
     Value OpVectorConstruct(ScalarType element_type,
                             const std::vector<Value>& elements) {
         std::vector<Value> operands;
+        operands.reserve(elements.size());
         for (const auto& element : elements)
             operands.push_back(element);
         return AddInstruction(

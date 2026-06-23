@@ -42,7 +42,7 @@ result_t ISystemSettingsServer::GetSettingsItemValueSize(
     auto name = in_name_buffer.stream->ReadNullTerminatedString();
     auto item_key = in_item_key_buffer.stream->ReadNullTerminatedString();
     const auto* value = GetSettingsValue(name, item_key);
-    if (!value) {
+    if (value == nullptr) {
         // TODO: error
         return RESULT_SUCCESS;
     }
@@ -69,7 +69,7 @@ result_t ISystemSettingsServer::GetSettingsItemValue(
     auto name = in_name_buffer.stream->ReadNullTerminatedString();
     auto item_key = in_item_key_buffer.stream->ReadNullTerminatedString();
     const auto* value = GetSettingsValue(name, item_key);
-    if (!value) {
+    if (value == nullptr) {
         // TODO: error
         return RESULT_SUCCESS;
     }
@@ -111,7 +111,7 @@ result_t ISystemSettingsServer::GetTvSettings(TvSettings* out_settings) {
 
 result_t ISystemSettingsServer::GetDebugModeFlag(bool* out_flag) {
     auto value = GetSettingsValue("settings_debug", "is_debug_mode_enabled");
-    if (!value) {
+    if (value == nullptr) {
         *out_flag = true;
         return RESULT_SUCCESS;
     }

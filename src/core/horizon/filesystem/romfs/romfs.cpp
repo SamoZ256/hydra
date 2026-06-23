@@ -55,7 +55,7 @@ SparseFile* RomFS::Build() {
     u64 size = 0;
     for (const auto& chunk : chunks)
         size = std::max(size, chunk.offset + chunk.file->GetSize());
-    SparseFile* file = new SparseFile(chunks, size);
+    auto file = new SparseFile(chunks, size);
 
     return file;
 }

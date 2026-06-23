@@ -61,7 +61,7 @@ class MslEmitter final : public LangEmitter {
 
   private:
     // Helpers
-    std::string GetSvStr(const Sv& sv);
+    static std::string GetSvStr(const Sv& sv);
     std::string GetSvQualifierStr(const Sv& sv, bool output);
 };
 

@@ -13,7 +13,7 @@ class IAudioRendererManager : public IService {
   private:
     // Commands
     result_t OpenAudioRenderer(RequestContext* ctx,
-                               aligned<AudioRendererParameters, 56> params,
+                               Aligned<AudioRendererParameters, 56> params,
                                u64 work_buffer_size, u64 aruid);
     result_t GetWorkBufferSize(AudioRendererParameters params, u64* out_size);
     result_t GetAudioDeviceService(RequestContext* ctx, u64 aruid);

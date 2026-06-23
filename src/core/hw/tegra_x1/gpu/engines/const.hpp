@@ -8,7 +8,7 @@ struct Iova {
     u32 hi;
     u32 lo;
 
-    operator u64() const { return u64(hi) << 32 | u64(lo); }
+    operator u64() const { return static_cast<u64>(hi) << 32 | static_cast<u64>(lo); }
 };
 
 enum class Winding : u32 {

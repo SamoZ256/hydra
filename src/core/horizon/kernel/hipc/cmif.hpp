@@ -83,8 +83,8 @@ inline void write_domain_out_header(io::MemoryStream& stream) {
 }
 
 template <typename T>
-inline T* align_data_start(T* data_start) {
-    return align_ptr(data_start, 0x10); // align to 16 bytes
+inline T* AlignDataStart(T* data_start) {
+    return AlignPtr(data_start, 0x10); // align to 16 bytes
 }
 
 } // namespace hydra::horizon::kernel::hipc::cmif

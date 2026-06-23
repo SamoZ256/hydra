@@ -27,7 +27,7 @@ DeviceList::DeviceList() {
     // Get initial keyboards
     int kb_count = 0;
     SDL_KeyboardID* keyboards = SDL_GetKeyboards(&kb_count);
-    if (keyboards) {
+    if (keyboards != nullptr) {
         keyboard_count = static_cast<u32>(kb_count);
         if (keyboard_count > 0)
             ConnectGenericKeyboard();
@@ -40,7 +40,7 @@ DeviceList::DeviceList() {
     // Get initial gamepads
     int gp_count = 0;
     SDL_JoystickID* gamepads = SDL_GetGamepads(&gp_count);
-    if (gamepads) {
+    if (gamepads != nullptr) {
         for (int i = 0; i < gp_count; i++)
             ConnectController(gamepads[i]);
 
@@ -96,7 +96,7 @@ void DeviceList::ConnectGenericKeyboard() {
 
 void DeviceList::ConnectController(SDL_JoystickID id) {
     SDL_Gamepad* gp = SDL_OpenGamepad(id);
-    if (gp) {
+    if (gp != nullptr) {
         std::string name = SDL_GetGamepadName(gp);
         AddDevice(name, new Controller(gp));
     } else {

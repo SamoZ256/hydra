@@ -6,9 +6,9 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
-Buffer::Buffer(MTL::Device* device, u64 size) : BufferBase(size) {
-    buffer = device->newBuffer(size, MTL::ResourceStorageModePrivate);
-}
+Buffer::Buffer(MTL::Device* device, u64 size)
+    : BufferBase(size),
+      buffer{device->newBuffer(size, MTL::ResourceStorageModePrivate)} {}
 
 Buffer::Buffer(MTL::Buffer* buffer_)
     : BufferBase(buffer_->allocatedSize()), buffer{buffer_} {}

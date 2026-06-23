@@ -141,10 +141,7 @@ bool CalculateLevelAndLayer(const TextureDescriptor& base_descriptor, uptr ptr,
     }
 
     // Check if level is aligned
-    if (crnt_level_offset != level_offset)
-        return false;
-
-    return true;
+    return crnt_level_offset == level_offset;
 }
 
 bool CalculateLevelAndLayer(const TextureDescriptor& base_descriptor,
@@ -201,10 +198,7 @@ bool CalculateLevelAndSlice(const TextureDescriptor& base_descriptor, uptr ptr,
     out_slice = slice_offset / slice_size;
 
     // Check if slice is aligned
-    if (out_slice * slice_size != slice_offset)
-        return false;
-
-    return true;
+    return out_slice * slice_size == slice_offset;
 }
 
 bool CalculateLevelAndSlice(const TextureDescriptor& base1_descriptor,
@@ -260,7 +254,8 @@ TextureCache::AddToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
         const auto& other_descriptor = storage.base->GetDescriptor();
         const auto other_range = other_descriptor.GetRange();
         if (other_range.Contains(range)) {
-            u32 level, layer;
+            u32 level;
+            u32 layer;
             if (!CalculateLevelAndLayer(other_descriptor, descriptor, level,
                                         layer)) {
                 LOG_DEBUG(Gpu,
@@ -390,7 +385,7 @@ void TextureCache::UpdateStorage(ICommandBuffer* command_buffer,
                                  TextureStorage& storage, TextureMem& mem,
                                  const TextureDescriptor& descriptor,
                                  TextureUsage usage) {
-    if (!storage.base) {
+    if (storage.base == nullptr) {
         storage.base = renderer.CreateTexture(descriptor);
         DecodeTexture(command_buffer, storage);
     }
@@ -500,7 +495,10 @@ void TextureCache::Synchronize2DWith2D(ICommandBuffer* command_buffer,
     const auto copy_range =
         descriptor.GetRange().ClampedTo(other_descriptor.GetRange());
 
-    u32 level, layer, other_level, other_layer;
+    u32 level;
+    u32 layer;
+    u32 other_level;
+    u32 other_layer;
     if (!CalculateLevelAndLayer(descriptor, other_descriptor,
                                 copy_range.GetBegin(), level, layer,
                                 other_level, other_layer)) {
@@ -526,7 +524,10 @@ void TextureCache::Synchronize3DWith3D(ICommandBuffer* command_buffer,
     const auto copy_range =
         descriptor.GetRange().ClampedTo(other_descriptor.GetRange());
 
-    u32 level, slice, other_level, other_slice;
+    u32 level;
+    u32 slice;
+    u32 other_level;
+    u32 other_slice;
     if (!CalculateLevelAndSlice(descriptor, other_descriptor,
                                 copy_range.GetBegin(), level, slice,
                                 other_level, other_slice)) {

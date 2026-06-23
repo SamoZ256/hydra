@@ -7,7 +7,7 @@ namespace hydra::horizon::services::account::internal {
 
 struct Avatar {
     filesystem::IFile* file;
-    std::vector<uchar4> data{};
+    std::vector<uchar4> data;
     u32 dimensions{0};
 };
 
@@ -70,7 +70,7 @@ class UserManager {
         LoadImageFailed,
         ImageNotASquare,
     };
-    void PreloadAvatar(Avatar& avatar, bool is_compressed);
+    static void PreloadAvatar(Avatar& avatar, bool is_compressed);
 
   public:
     CONST_REF_GETTER(avatars, GetAvatars);

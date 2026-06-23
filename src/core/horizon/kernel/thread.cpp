@@ -5,17 +5,14 @@
 
 namespace hydra::horizon::kernel {
 
-IThread::~IThread() {
-    if (thread) {
-        // Request stop
-        state = ThreadState::Stopping;
-        thread->join();
-        delete thread;
+IThread::~IThread() noexcept {
+    if (!IsStoppingOrStopped()) {
+        Stop();
     }
 }
 
 void IThread::Start() {
-    thread = new std::thread([&]() {
+    thread = std::jthread([&]() {
         tls_current_thread = this;
 
         GET_CURRENT_PROCESS_DEBUGGER().RegisterThisThread(GetDebugName());
@@ -64,7 +61,7 @@ bool IThread::ProcessMessages(i64 pause_timeout_ns) {
 }
 
 void IThread::SendMessage(ThreadMessage msg) {
-    std::lock_guard lock(msg_mutex);
+    std::scoped_lock lock(msg_mutex);
     msg_queue.push(msg);
     msg_cv.notify_all(); // TODO: notify one?
 }
@@ -110,17 +107,17 @@ bool IThread::ProcessMessagesImpl() {
 }
 
 void IThread::AddMutexWaiter(IThread* waiter) {
-    std::lock_guard<std::mutex> lock(mutex_wait_mutex);
+    std::scoped_lock lock(mutex_wait_mutex);
     mutex_wait_list.AddLast(waiter);
 }
 
 void IThread::RemoveMutexWaiter(IThread* waiter) {
-    std::lock_guard<std::mutex> lock(mutex_wait_mutex);
+    std::scoped_lock lock(mutex_wait_mutex);
     mutex_wait_list.Remove(waiter);
 }
 
 IThread* IThread::RelinquishMutex(uptr mutex_addr, u32& out_waiter_count) {
-    std::lock_guard<std::mutex> lock(mutex_wait_mutex);
+    std::scoped_lock lock(mutex_wait_mutex);
 
     // Find a new owner
     IThread* new_owner = nullptr;
@@ -134,7 +131,7 @@ IThread* IThread::RelinquishMutex(uptr mutex_addr, u32& out_waiter_count) {
         }
 
         waiter_node = mutex_wait_list.Remove(waiter_node);
-        if (new_owner) {
+        if (new_owner != nullptr) {
             new_owner->AddMutexWaiter(waiter);
             out_waiter_count++;
         } else {

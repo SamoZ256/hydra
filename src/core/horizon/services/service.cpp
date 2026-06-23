@@ -9,11 +9,6 @@
 
 namespace hydra::horizon::services {
 
-IService::~IService() {
-    if (subservice_pool)
-        delete subservice_pool;
-}
-
 void IService::HandleRequest(System& system, kernel::Process* caller_process,
                              uptr ptr) {
     // HIPC header
@@ -24,7 +19,7 @@ void IService::HandleRequest(System& system, kernel::Process* caller_process,
         (command_type >= kernel::hipc::cmif::CommandType::TipcCommandRegion);
     if (!is_tipc)
         hipc_in.data.data_words =
-            kernel::hipc::cmif::align_data_start(hipc_in.data.data_words);
+            kernel::hipc::cmif::AlignDataStart(hipc_in.data.data_words);
 
     // Scratch memory
     u8 scratch_buffer[0x200];
@@ -38,9 +33,9 @@ void IService::HandleRequest(System& system, kernel::Process* caller_process,
                                   scratch_buffer_copy_handles,
                                   scratch_buffer_move_handles);
     RequestContext context{
-        system,
-        caller_process,
-        streams,
+        .system = system,
+        .process = caller_process,
+        .streams = streams,
     };
 
     // Dispatch
@@ -103,14 +98,14 @@ void IService::HandleRequest(System& system, kernel::Process* caller_process,
             kernel::hipc::make_request(reinterpret_cast<void*>(ptr), meta);
         if (!is_tipc)
             response.data_words =
-                kernel::hipc::cmif::align_data_start(response.data_words);
+                kernel::hipc::cmif::AlignDataStart(response.data_words);
 
         u8* data_start = reinterpret_cast<u8*>(response.data_words);
         if (command_type <
             kernel::hipc::cmif::CommandType::TipcCommandRegion) // TODO: is this
                                                                 // really how it
                                                                 // works?
-            data_start = align_ptr(data_start, 0x10);
+            data_start = AlignPtr(data_start, 0x10);
         WRITE_ARRAY(out_stream, data_start);
         if (streams.out_objects_stream.GetSeek() != 0) {
             memcpy(data_start + GET_ARRAY_SIZE(out_stream) * sizeof(u32),
@@ -178,9 +173,8 @@ void IService::Request(RequestContext& context) {
             auto objects = context.streams.in_stream.GetPtr() +
                            context.streams.in_stream.GetSeek() +
                            cmif_in.data_size;
-            context.streams.in_objects_stream = io::MemoryStream(
-                std::span(reinterpret_cast<u8*>(objects),
-                          cmif_in.num_in_objects * sizeof(handle_id_t)));
+            context.streams.in_objects_stream.emplace(std::span(
+                objects, cmif_in.num_in_objects * sizeof(handle_id_t)));
         }
 
         kernel::hipc::cmif::write_domain_out_header(context.streams.out_stream);
@@ -229,7 +223,7 @@ void IService::Control(RequestContext& context) {
     switch (command) {
     case kernel::hipc::cmif::ControlCommandType::ConvertCurrentObjectToDomain: {
         is_domain = true;
-        subservice_pool = new DynamicPool<IService*>();
+        subservice_pool.emplace();
         const auto handle_id = AddSubservice(this->Retain());
         context.streams.out_stream.Write(handle_id);
         *result = RESULT_SUCCESS;
@@ -244,7 +238,7 @@ void IService::Control(RequestContext& context) {
         context.streams.out_stream.Write<u16>(
             0x8000); // The highest known pointer buffer
                      // size (used by nvservices)
-                     // *result = RESULT_SUCCESS;
+        *result = RESULT_SUCCESS;
         break;
     case kernel::hipc::cmif::ControlCommandType::CloneCurrentObjectEx:
         // TODO: u32 tag

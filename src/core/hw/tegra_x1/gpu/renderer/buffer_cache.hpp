@@ -14,7 +14,7 @@ class IRenderer;
 struct BufferEntry {
     BufferBase* buffer{nullptr};
     Range<uptr> range;
-    std::optional<Range<uptr>> invalidation_range{};
+    std::optional<Range<uptr>> invalidation_range;
     bool inline_copy{false}; // TODO: implement
 };
 

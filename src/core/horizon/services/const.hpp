@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/horizon/kernel/hipc/client_session.hpp"
 #include "core/horizon/services/service.hpp"
 
 #define SERVICE_COMMAND_CASE(service, id, func)                                \
@@ -52,9 +53,10 @@ class InBuffer {
     std::optional<io::MemoryStream> stream;
 
     InBuffer() : stream{std::nullopt} {}
-    InBuffer(std::optional<io::MemoryStream> stream_) : stream{stream_} {}
+    InBuffer(std::optional<io::MemoryStream> stream_)
+        : stream{std::move(stream_)} {}
 
-    bool IsValid() const { return stream; }
+    bool IsValid() const { return stream.has_value(); }
 };
 
 template <BufferAttr attr_>
@@ -65,9 +67,10 @@ class OutBuffer {
     std::optional<io::MemoryStream> stream;
 
     OutBuffer() : stream{std::nullopt} {}
-    OutBuffer(std::optional<io::MemoryStream> stream_) : stream{stream_} {}
+    OutBuffer(std::optional<io::MemoryStream> stream_)
+        : stream{std::move(stream_)} {}
 
-    bool IsValid() const { return stream; }
+    bool IsValid() const { return stream.has_value(); }
 };
 
 enum class HandleAttr {
@@ -99,7 +102,10 @@ class OutHandle {
 
     operator handle_id_t&() { return *handle_id; }
 
-    void operator=(handle_id_t other) { *handle_id = other; }
+    OutHandle& operator=(handle_id_t other) {
+        *handle_id = other;
+        return *this;
+    }
 
   private:
     handle_id_t* handle_id;
@@ -342,7 +348,7 @@ void read_arg(RequestContext& context, Class& instance,
 template <typename Class, typename MethodClass, typename... Args, usize... Is>
 result_t invoke_command_with_args(RequestContext& context, Class& instance,
                                   result_t (MethodClass::*func)(Args...),
-                                  std::index_sequence<Is...>) {
+                                  std::index_sequence<Is...> /*unused*/) {
     using traits = function_traits<decltype(func)>;
 
     auto args = std::tuple<typename traits::template arg<Is>::type...>();

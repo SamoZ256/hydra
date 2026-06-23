@@ -8,7 +8,7 @@ class System;
 
 namespace hydra::horizon::loader {
 
-class HomebrewLoader : public LoaderBase {
+class HomebrewLoader : public ILoader {
   public:
     HomebrewLoader(filesystem::IFile* file_);
 

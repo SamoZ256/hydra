@@ -62,10 +62,10 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
         break;
     case 0x8: {
         IThread* thread = nullptr;
-        state.r[0] =
-            CreateThread(crnt_process, state.r[1], state.r[2], state.r[3],
-                         std::bit_cast<i32>(u32(state.r[4])),
-                         std::bit_cast<i32>(u32(state.r[5])), thread);
+        state.r[0] = CreateThread(
+            crnt_process, state.r[1], state.r[2], state.r[3],
+            std::bit_cast<i32>(static_cast<u32>(state.r[4])),
+            std::bit_cast<i32>(static_cast<u32>(state.r[5])), thread);
         state.r[1] = crnt_process->AddHandleNoRetain(thread);
         break;
     }
@@ -361,21 +361,9 @@ result_t Kernel::SetHeapSize(Process* crnt_process, u64 size, uptr& out_base) {
     if ((size % HEAP_MEM_ALIGNMENT) != 0)
         return MAKE_RESULT(Svc, Error::InvalidSize); // TODO: correct?
 
-    // TODO: handle this more cleanly?
-    auto& heap_mem = crnt_process->GetHeapMemory();
-    if (!heap_mem) {
-        heap_mem = system.GetCpu().AllocateMemory(size);
-        crnt_process->GetMmu()->Map(HEAP_REGION.GetBegin(), heap_mem,
-                                    {MemoryType::Normal_1_0_0,
-                                     MemoryAttribute::None,
-                                     MemoryPermission::ReadWrite});
-    } else {
-        crnt_process->GetMmu()->ResizeHeap(heap_mem, HEAP_REGION.GetBegin(),
-                                           size);
-    }
+    crnt_process->ResizeHeap(size);
 
     out_base = HEAP_REGION.GetBegin();
-
     return RESULT_SUCCESS;
 }
 
@@ -588,8 +576,8 @@ result_t Kernel::MapSharedMemory(Process* crnt_process, SharedMemory* shmem,
               "0x{:08x}, perm: {})",
               shmem->GetDebugName(), addr, size, perm);
 
-    shmem->MapToRange(crnt_process->GetMmu(), Range(addr, uptr(addr + size)),
-                      perm);
+    shmem->MapToRange(crnt_process->GetMmu(),
+                      Range(addr, static_cast<uptr>(addr + size)), perm);
 
     return RESULT_SUCCESS;
 }
@@ -622,7 +610,7 @@ result_t Kernel::CreateTransferMemory(uptr addr, u64 size,
 
 result_t Kernel::CloseHandle(Process* crnt_process, handle_id_t handle_id) {
     auto obj = crnt_process->GetHandle<AutoObject>(handle_id);
-    if (!obj) {
+    if (obj == nullptr) {
         LOG_WARN(Kernel, "CloseHandle called (INVALID_HANDLE)");
         return MAKE_RESULT(Svc, Error::InvalidHandle);
     }
@@ -635,7 +623,7 @@ result_t Kernel::CloseHandle(Process* crnt_process, handle_id_t handle_id) {
 
 // TODO: can only be ReadableEvent or Process?
 result_t Kernel::ResetSignal(SynchronizationObject* sync_obj) {
-    if (!sync_obj) {
+    if (sync_obj == nullptr) {
         LOG_WARN(Kernel, "ResetSignal called (INVALID_HANDLE)");
         // HACK
         return RESULT_SUCCESS; // MAKE_RESULT(Svc, Error::InvalidHandle);
@@ -659,8 +647,8 @@ Kernel::WaitSynchronization(IThread* crnt_thread,
               "{})",
               sync_objs.size(), timeout);
 
-    for (u32 i = 0; i < sync_objs.size(); i++) {
-        if (!sync_objs[i]) {
+    for (auto& sync_obj : sync_objs) {
+        if (sync_obj == nullptr) {
             LOG_WARN(Kernel, "Invalid sync object");
             // HACK: Celeste gets stuck in an infinite WaitSynchronization
             // loop if an error is returned
@@ -701,7 +689,7 @@ Kernel::WaitSynchronization(IThread* crnt_thread,
 
     // Find the handle index
     out_signalled_index = 0;
-    if (signalled_obj) {
+    if (signalled_obj != nullptr) {
         for (u32 i = 0; i < sync_objs.size(); i++) {
             if (sync_objs[i] == signalled_obj) {
                 out_signalled_index = i;
@@ -818,7 +806,7 @@ result_t Kernel::WaitProcessWideKeyAtomic(Process* crnt_process,
         // Mutex
         auto owner = GetMutexOwner(
             crnt_process, static_cast<u32>(crnt_thread->mutex_wait_addr));
-        if (owner)
+        if (owner != nullptr)
             owner->RemoveMutexWaiter(crnt_thread);
     }
 
@@ -837,7 +825,7 @@ result_t Kernel::SignalProcessWideKey(Process* crnt_process, uptr addr,
 
     // TODO: sort by priority
     for (auto thread_node = cond_var_waiters.GetHead();
-         thread_node && count > 0;) {
+         (thread_node != nullptr) && count > 0;) {
         const auto thread = thread_node->Get();
         if (thread->cond_var_wait_addr == addr) {
             thread->cond_var_wait_addr = 0x0;
@@ -863,7 +851,7 @@ result_t Kernel::ConnectToNamedPort(const std::string_view name,
     LOG_DEBUG(Kernel, "ConnectToNamedPort called (name: {})", name);
 
     auto port = service_manager.GetPort(std::string(name));
-    if (!port) {
+    if (port == nullptr) {
         LOG_ERROR(Kernel, "Failed to connect to port \"{}\"", name);
         return MAKE_RESULT(Svc, Error::NotFound);
     }
@@ -875,7 +863,7 @@ result_t Kernel::ConnectToNamedPort(const std::string_view name,
 
 result_t Kernel::SendSyncRequest(Process* crnt_process, IThread* crnt_thread,
                                  hipc::ClientSession* client_session) {
-    if (!client_session) {
+    if (client_session == nullptr) {
         LOG_WARN(Kernel, "SendSyncRequest called (INVALID_HANDLE)");
         return MAKE_RESULT(Svc, Error::InvalidHandle);
     }
@@ -916,7 +904,7 @@ result_t Kernel::GetThreadId(IThread* thread, u64& out_thread_id) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK
-    out_thread_id = u64(thread);
+    out_thread_id = std::bit_cast<u64>(thread);
 
     return RESULT_SUCCESS;
 }
@@ -928,7 +916,7 @@ result_t Kernel::Break(BreakReason reason, uptr buffer_ptr, u64 buffer_size) {
               reason.type, buffer_ptr, buffer_size);
 
     // TODO: this should be sent to the debugger instead of being logged
-    if (buffer_ptr) {
+    if (buffer_ptr != 0u) {
         if (buffer_size == sizeof(u32)) {
             const u32 result = *reinterpret_cast<u32*>(buffer_ptr);
             const auto module = GET_RESULT_MODULE(result);
@@ -992,7 +980,7 @@ result_t Kernel::GetInfo(Process* crnt_process, InfoType info_type,
         return RESULT_SUCCESS;
     case InfoType::TotalMemorySize:
         // TODO: what should this be?
-        out_info = 3u * 1024u * 1024u * 1024u;
+        out_info = 3ull * 1024ull * 1024ull * 1024ull;
         return RESULT_SUCCESS;
     case InfoType::UsedMemorySize: {
         // TODO: correct?
@@ -1003,12 +991,12 @@ result_t Kernel::GetInfo(Process* crnt_process, InfoType info_type,
             size += executable_mem->GetSize();
         out_info = size;
         */
-        out_info = 4u * 1024u * 1024u;
+        out_info = 4ull * 1024ull * 1024ull;
         return RESULT_SUCCESS;
     }
     case InfoType::DebuggerAttached:
         // TODO: make this configurable
-        out_info = true;
+        out_info = static_cast<u64>(true);
         return RESULT_SUCCESS;
     case InfoType::RandomEntropy:
         ASSERT_DEBUG(info_sub_type < crnt_process->GetRandomEntropy().size(),
@@ -1034,7 +1022,7 @@ result_t Kernel::GetInfo(Process* crnt_process, InfoType info_type,
     case InfoType::UsedSystemResourceSize:
         LOG_NOT_IMPLEMENTED(Kernel, "UsedSystemResourceSize");
         // HACK
-        out_info = 64 * 1024;
+        out_info = 64ull * 1024ull;
         return RESULT_SUCCESS;
     case InfoType::ProgramId:
         out_info = crnt_process->GetTitleID();
@@ -1047,7 +1035,7 @@ result_t Kernel::GetInfo(Process* crnt_process, InfoType info_type,
     case InfoType::TotalNonSystemMemorySize:
         LOG_NOT_IMPLEMENTED(Kernel, "TotalNonSystemMemorySize");
         // HACK
-        out_info = 2u * 1024u * 1024u * 1024u;
+        out_info = 2ull * 1024ull * 1024ull * 1024ull;
         return RESULT_SUCCESS;
     case InfoType::UsedNonSystemMemorySize:
         LOG_NOT_IMPLEMENTED(Kernel, "UsedNonSystemMemorySize");
@@ -1056,7 +1044,7 @@ result_t Kernel::GetInfo(Process* crnt_process, InfoType info_type,
         return RESULT_SUCCESS;
     case InfoType::IsApplication:
         // TODO: don't always return true
-        out_info = true;
+        out_info = static_cast<u64>(true);
         return RESULT_SUCCESS;
     case InfoType::AliasRegionExtraSize:
         LOG_NOT_IMPLEMENTED(Kernel, "AliasRegionExtraSize");
@@ -1087,8 +1075,9 @@ result_t Kernel::MapPhysicalMemory(Process* crnt_process, vaddr_t addr,
     auto mem = system.GetCpu().AllocateMemory(size);
     // TODO: keep track of the memory
     crnt_process->GetMmu()->Map(addr, mem,
-                                {MemoryType::Alias, MemoryAttribute::None,
-                                 MemoryPermission::ReadWrite});
+                                {.type = MemoryType::Alias,
+                                 .attr = MemoryAttribute::None,
+                                 .perm = MemoryPermission::ReadWrite});
 
     return RESULT_SUCCESS;
 }
@@ -1255,7 +1244,7 @@ result_t Kernel::ReplyAndReceive(IThread* crnt_thread,
     LOG_DEBUG(Kernel, "ReplyAndReceive called (count: {}, timeout: {})",
               sync_objs.size(), timeout);
 
-    if (reply_target_session) {
+    if (reply_target_session != nullptr) {
         // Reply
         reply_target_session->Reply(crnt_thread->GetTlsPtr());
     }
@@ -1420,7 +1409,7 @@ void Kernel::UnlockMutex(IThread* thread, uptr mutex_addr) {
 
     u32 waiter_count;
     auto new_owner = thread->RelinquishMutex(mutex_addr, waiter_count);
-    if (!new_owner) {
+    if (new_owner == nullptr) {
         atomic_store(mutex, 0u);
         return;
     }

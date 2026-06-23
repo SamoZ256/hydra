@@ -11,7 +11,7 @@ class ClientSession : public AutoObject {
   public:
     static constexpr AutoObjectTypeId TYPE_ID = AutoObjectTypeId::ClientSession;
 
-    ClientSession(const std::string_view debug_name = "Client session")
+    ClientSession(std::string_view debug_name = "Client session")
         : AutoObject(TYPE_ID, debug_name) {}
     ~ClientSession() override;
 

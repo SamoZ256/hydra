@@ -22,7 +22,7 @@ class Memory : public IMemory {
 
     // Helpers
     void Allocate() { ptr = reinterpret_cast<uptr>(malloc(GetSize())); }
-    void Free() { free(reinterpret_cast<void*>(ptr)); }
+    void Free() const { free(reinterpret_cast<void*>(ptr)); }
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::dynarmic

@@ -29,7 +29,7 @@ struct State {
     engines::CompareOp depth_compare_op;
     Viewport viewports[VIEWPORT_COUNT];
     Scissor scissors[VIEWPORT_COUNT];
-    BufferView index_buffer{};
+    BufferView index_buffer;
     engines::IndexType index_type{engines::IndexType::None};
     std::array<BufferView, VERTEX_ARRAY_COUNT> vertex_buffers{};
     std::array<std::array<BufferView, CONST_BUFFER_BINDING_COUNT>,
@@ -124,10 +124,10 @@ class Renderer : public IRenderer {
 
     // Helpers
     MTL::RenderCommandEncoder*
-    GetRenderCommandEncoder(CommandBuffer* command_buffer);
+    GetRenderCommandEncoder(CommandBuffer* command_buffer) const;
 
     // Encoder state setting
-    void SetRenderPipelineState(CommandBuffer* command_buffer);
+    void SetRenderPipelineState(CommandBuffer* command_buffer) const;
     void SetDepthStencilState(CommandBuffer* command_buffer);
     void SetVertexBuffer(CommandBuffer* command_buffer, u32 index);
     void SetUniformBuffer(CommandBuffer* command_buffer, ShaderType shader_type,
@@ -170,7 +170,7 @@ class Renderer : public IRenderer {
                         // encoder_state corrupts the state
 
     // Helpers
-    bool CanDraw();
+    bool CanDraw() const;
     void BindDrawState(CommandBuffer* command_buffer);
 
   public:

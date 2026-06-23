@@ -37,11 +37,14 @@ class StreamView : public IStream {
     u64 size;
 };
 
+// TODO: remove
 class OwnedStreamView : public StreamView {
   public:
     using StreamView::StreamView;
 
     ~OwnedStreamView() override { delete base; }
+
+    MAKE_NON_COPYABLE(OwnedStreamView);
 };
 
 } // namespace hydra::io

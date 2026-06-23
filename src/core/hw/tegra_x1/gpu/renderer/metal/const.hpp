@@ -61,7 +61,7 @@ inline MTL::Library* CreateLibraryFromSource(MTL::Device* device,
     // TODO: don't construct a new string?
     MTL::Library* library =
         device->newLibrary(ToNSString(std::string(source)), nullptr, &error);
-    if (error) {
+    if (error != nullptr) {
         LOG_ERROR(Gpu, "Failed to create library: {}",
                   error->localizedDescription()->utf8String());
         // TODO: don't log?

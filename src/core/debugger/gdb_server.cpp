@@ -6,9 +6,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
-
 #include <nx2elf.h>
-
 #pragma GCC diagnostic pop
 
 #include "core/debugger/debugger_manager.hpp"
@@ -250,7 +248,6 @@ GdbServer::GdbServer(System& system_, Debugger& debugger_)
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
-
     if (bind(server_socket, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) ==
         -1) {
         LOG_ERROR(Debugger, "Failed to bind GDB socket");
@@ -286,13 +283,13 @@ GdbServer::~GdbServer() {
 
 void GdbServer::NotifySupervisorPaused(horizon::kernel::GuestThread* thread,
                                        Signal signal) {
-    std::lock_guard<std::mutex> lock(mutex);
+    std::scoped_lock lock(mutex);
     NotifySupervisorPausedImpl(thread, signal);
 }
 
 void GdbServer::RegisterThread(Thread& thread) {
     if (system.GetCpu().GetFeatures().supports_native_breakpoints) {
-        std::lock_guard<std::mutex> lock(mutex);
+        std::scoped_lock lock(mutex);
         for (const auto addr : breakpoint_addresses)
             thread.guest_thread->GetThread()->InsertBreakpoint(addr);
     }
@@ -304,7 +301,7 @@ void GdbServer::BreakpointHit(horizon::kernel::GuestThread* thread) {
 
     // We got the lock
     {
-        std::lock_guard<std::mutex> lock(mutex);
+        std::scoped_lock lock(mutex);
         breakpoint_thread = thread;
 
         debugger.process->SupervisorPause();
@@ -470,7 +467,7 @@ void GdbServer::HandleVCont(std::string_view command) {
     } while (pos != std::string::npos);
 
     // TODO: how does this work?
-    if (thread) {
+    if (thread != nullptr) {
         // TODO: implement
         ASSERT_DEBUG(lock_execution, Debugger,
                      "Non-locked execution not implemented");
@@ -533,7 +530,7 @@ void GdbServer::HandleQuery(std::string_view command) {
 void GdbServer::HandleSetActiveThread(std::string_view command) {
     const auto thread =
         GET_THREAD_FROM_ID(std::stoull(command.substr(1).data(), nullptr, 16));
-    if (thread) {
+    if (thread != nullptr) {
         // TODO: check if thread is valid
         // if (debugger.threads.contains(thread)) {
         //    crnt_thread = thread;
@@ -638,9 +635,9 @@ void GdbServer::HandleRemoveBreakpoint(std::string_view command) {
                      "Invalid software breakpoint size 0x{:x}", size);
 
         if (system.GetCpu().GetFeatures().supports_native_breakpoints) {
-            breakpoint_addresses.erase(std::find(breakpoint_addresses.begin(),
-                                                 breakpoint_addresses.end(),
-                                                 addr));
+            breakpoint_addresses.erase(std::ranges::find(breakpoint_addresses,
+
+                                                         addr));
             for (const auto& [_, thread] : debugger.threads)
                 thread.guest_thread->GetThread()->RemoveBreakpoint(addr);
         } else {
@@ -723,7 +720,7 @@ void GdbServer::HandleGetExecutables() {
     SendPacket(output);
 }
 
-void GdbServer::SendPacket(std::string_view data) {
+void GdbServer::SendPacket(std::string_view data) const {
     ASSERT_DEBUG(client_socket != -1, Debugger, "Client socket is not valid");
 
     u8 checksum = 0;
@@ -736,7 +733,7 @@ void GdbServer::SendPacket(std::string_view data) {
     send(client_socket, packet.data(), packet.size(), 0);
 }
 
-void GdbServer::SendStatus(char status) {
+void GdbServer::SendStatus(char status) const {
     if (!do_ack)
         return;
 

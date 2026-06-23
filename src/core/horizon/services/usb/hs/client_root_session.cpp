@@ -21,7 +21,7 @@ result_t IClientRootSession::BindClientProcess() {
 }
 
 result_t IClientRootSession::CreateInterfaceAvailableEvent(
-    kernel::Process* process, aligned<u8, 2> index, DeviceFilter device_filter,
+    kernel::Process* process, Aligned<u8, 2> index, DeviceFilter device_filter,
     OutHandle<HandleAttr::Copy> out_handle) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "index: {}, device filter: {}", index,
                                device_filter);

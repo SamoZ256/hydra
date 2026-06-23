@@ -22,10 +22,14 @@ enum class AutoObjectTypeId {
 class AutoObject {
   public:
     AutoObject(AutoObjectTypeId type_id_,
-               const std::string_view debug_name_ = "AutoObject")
-        : type_id{type_id_}, debug_name{
-                                 fmt::format("{} {}", debug_name_,
-                                             reinterpret_cast<void*>(this))} {}
+               const std::string_view debug_name_ = "AutoObject") noexcept
+        : type_id{type_id_},
+          debug_name{fmt::format("{} {}", debug_name_,
+                                 reinterpret_cast<void*>(this))} {}
+    virtual ~AutoObject() noexcept = default;
+
+    MAKE_NON_COPYABLE(AutoObject);
+    MAKE_NON_MOVABLE(AutoObject);
 
     void Retain() { ref_count.fetch_add(1, std::memory_order_relaxed); }
 
@@ -49,9 +53,6 @@ class AutoObject {
     }
 
     std::string_view GetDebugName() const { return debug_name; }
-
-  protected:
-    virtual ~AutoObject() {}
 
   private:
     AutoObjectTypeId type_id;

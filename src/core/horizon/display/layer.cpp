@@ -35,13 +35,13 @@ bool Layer::AcquirePresentTexture(
 
     // HACK
     if (src_rect.size.x() == 0) {
-        src_rect.size.x() =
-            static_cast<i32>(present_texture->GetBase()->GetDescriptor().width);
+        src_rect.size.x() = static_cast<i32>(
+            present_texture.value()->GetBase()->GetDescriptor().width);
         ONCE(LOG_WARN(Other, "Invalid src width"));
     }
     if (src_rect.size.y() == 0) {
         src_rect.size.y() = static_cast<i32>(
-            present_texture->GetBase()->GetDescriptor().height);
+            present_texture.value()->GetBase()->GetDescriptor().height);
         ONCE(LOG_WARN(Other, "Invalid src height"));
     }
 
@@ -64,15 +64,14 @@ bool Layer::AcquirePresentTexture(
 void Layer::Present(hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer,
                     hw::tegra_x1::gpu::renderer::ISurfaceCompositor* compositor,
                     FloatRect2D dst_rect, f32 dst_scale, bool transparent) {
-    if (!present_texture)
-        return;
+    ASSIGN_OR_RETURN(auto present_tex, present_texture);
 
     // Size
     if (size != LAYER_SIZE_AUTO)
         dst_rect.size = float2(size) * dst_scale;
 
     // Draw
-    compositor->DrawTexture(command_buffer, present_texture, src_rect, dst_rect,
+    compositor->DrawTexture(command_buffer, present_tex, src_rect, dst_rect,
                             transparent);
 }
 

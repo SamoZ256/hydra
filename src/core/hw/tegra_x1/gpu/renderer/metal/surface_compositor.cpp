@@ -36,12 +36,15 @@ void SurfaceCompositor::DrawTexture(ICommandBuffer* command_buffer,
 
     // Draw
     encoder->setRenderPipelineState(renderer.GetBlitPipelineCache().Find(
-        {drawable->texture()->pixelFormat(), transparent}));
-    encoder->setViewport(MTL::Viewport{static_cast<f64>(dst_rect.origin.x()),
-                                       static_cast<f64>(dst_rect.origin.y()),
-                                       static_cast<f64>(dst_rect.size.x()),
-                                       static_cast<f64>(dst_rect.size.y()), 0.0,
-                                       1.0});
+        {.pixel_format = drawable->texture()->pixelFormat(),
+         .transparent = transparent}));
+    encoder->setViewport(
+        MTL::Viewport{.originX = static_cast<f64>(dst_rect.origin.x()),
+                      .originY = static_cast<f64>(dst_rect.origin.y()),
+                      .width = static_cast<f64>(dst_rect.size.x()),
+                      .height = static_cast<f64>(dst_rect.size.y()),
+                      .znear = 0.0,
+                      .zfar = 1.0});
 
     u32 zero = 0;
     encoder->setVertexBytes(&zero, sizeof(zero), 0);
@@ -59,11 +62,13 @@ void SurfaceCompositor::DrawTexture(ICommandBuffer* command_buffer,
     };
 
     encoder->setFragmentBytes(&params, sizeof(params), 0);
-    encoder->setFragmentTexture(texture_impl->GetTexture(), NS::UInteger(0));
+    encoder->setFragmentTexture(texture_impl->GetTexture(),
+                                static_cast<NS::UInteger>(0));
     encoder->setFragmentSamplerState(renderer.GetLinearSampler(),
-                                     NS::UInteger(0));
-    encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0),
-                            NS::UInteger(3));
+                                     static_cast<NS::UInteger>(0));
+    encoder->drawPrimitives(MTL::PrimitiveTypeTriangle,
+                            static_cast<NS::UInteger>(0),
+                            static_cast<NS::UInteger>(3));
 }
 
 void SurfaceCompositor::Present(ICommandBuffer* command_buffer) {

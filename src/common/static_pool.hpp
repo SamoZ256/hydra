@@ -17,14 +17,14 @@ class StaticPool : public Pool<StaticPool<T, size>, T, allow_zero_handle> {
             free_slots[i] = std::numeric_limits<u8>::max();
     }
 
-    u32 _AllocateIndex() {
+    u32 AllocateIndex_() {
         if (crnt < size) {
             Take(crnt);
             return crnt++;
         }
 
         for (u32 i = 0; i < size; i++) {
-            if (!_IsValidByIndex(i)) {
+            if (!IsValidByIndex_(i)) {
                 Take(i);
                 return i;
             }
@@ -37,9 +37,9 @@ class StaticPool : public Pool<StaticPool<T, size>, T, allow_zero_handle> {
         return invalid<u32>();
     }
 
-    void _FreeByIndex(u32 index) { FREE_SLOT(index) |= MASK(index); }
+    void FreeByIndex_(u32 index) { FREE_SLOT(index) |= MASK(index); }
 
-    bool _IsValidByIndex(u32 index) const {
+    bool IsValidByIndex_(u32 index) const {
         if (index >= crnt)
             return false;
 
@@ -47,15 +47,15 @@ class StaticPool : public Pool<StaticPool<T, size>, T, allow_zero_handle> {
         return !is_free;
     }
 
-    T& _GetByIndex(u32 index) { return objects[index]; }
+    T& GetByIndex_(u32 index) { return objects[index]; }
 
-    const T& _GetByIndex(u32 index) const { return objects[index]; }
+    const T& GetByIndex_(u32 index) const { return objects[index]; }
 
     usize GetCapacity() const { return size; }
 
   private:
-    T objects[size];
-    u8 free_slots[FREE_SIZE];
+    std::array<T, size> objects;
+    std::array<u8, FREE_SIZE> free_slots;
     u32 crnt{0};
 
     void Take(u32 index) { FREE_SLOT(index) &= ~MASK(index); }

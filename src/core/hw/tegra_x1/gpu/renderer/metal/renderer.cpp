@@ -79,11 +79,11 @@ void Renderer::SetSurface(void* surface) {
 
 ISurfaceCompositor* Renderer::AcquireNextSurface() {
     // Drawable
-    if (!ca_layer)
+    if (ca_layer == nullptr)
         return nullptr;
 
     ca_drawable = ca_layer->nextDrawable();
-    if (!ca_drawable)
+    if (ca_drawable == nullptr)
         return nullptr;
 
     return new SurfaceCompositor(*this, ca_drawable);
@@ -143,10 +143,12 @@ void Renderer::BlitTexture(ICommandBuffer* command_buffer, ITextureView* src,
 
     // Draw
     encoder->setRenderPipelineState(blit_pipeline_cache.Find(
-        {src_impl->GetTexture()->pixelFormat(), false}));
-    encoder->setViewport(MTL::Viewport(f64(dst_origin.x()), f64(dst_origin.y()),
-                                       f64(dst_size.x()), f64(dst_size.y()),
-                                       0.0, 1.0));
+        {.pixel_format = src_impl->GetTexture()->pixelFormat(),
+         .transparent = false}));
+    encoder->setViewport(MTL::Viewport(
+        static_cast<f64>(dst_origin.x()), static_cast<f64>(dst_origin.y()),
+        static_cast<f64>(dst_size.x()), static_cast<f64>(dst_size.y()), 0.0,
+        1.0));
     encoder->setVertexBytes(&dst_layer, sizeof(dst_layer), 0);
     BlitParams params = {
         .src_offset = {static_cast<f32>(src_origin.x()) /
@@ -159,12 +161,15 @@ void Renderer::BlitTexture(ICommandBuffer* command_buffer, ITextureView* src,
                     static_cast<f32>(src_impl->GetTexture()->height())}),
     };
     encoder->setFragmentBytes(&params, sizeof(params), 0);
-    encoder->setFragmentTexture(src_impl->GetTexture(), NS::UInteger(0));
+    encoder->setFragmentTexture(src_impl->GetTexture(),
+                                static_cast<NS::UInteger>(0));
     encoder->setFragmentSamplerState(
-        linear_sampler, NS::UInteger(0)); // TODO: use the correct sampler
+        linear_sampler,
+        static_cast<NS::UInteger>(0)); // TODO: use the correct sampler
 
-    encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0),
-                            NS::UInteger(3));
+    encoder->drawPrimitives(MTL::PrimitiveTypeTriangle,
+                            static_cast<NS::UInteger>(0),
+                            static_cast<NS::UInteger>(3));
 }
 
 SamplerBase* Renderer::CreateSampler(const SamplerDescriptor& descriptor) {
@@ -194,7 +199,7 @@ void Renderer::ClearColor(ICommandBuffer* command_buffer, u32 render_target_id,
                                       .texture);
 
     // HACK
-    if (!texture) {
+    if (texture == nullptr) {
         ONCE(LOG_WARN(MetalRenderer, "Invalid color target at index {}",
                       render_target_id));
         return;
@@ -207,13 +212,15 @@ void Renderer::ClearColor(ICommandBuffer* command_buffer, u32 render_target_id,
     auto encoder = GetRenderCommandEncoder(command_buffer_impl);
 
     command_buffer_impl->SetRenderPipelineState(clear_color_pipeline_cache.Find(
-        {to_mtl_pixel_format(texture->GetDescriptor().format), render_target_id,
-         mask}));
+        {.pixel_format = to_mtl_pixel_format(texture->GetDescriptor().format),
+         .render_target_id = render_target_id,
+         .mask = mask}));
     // TODO: set viewport and scissor
     encoder->setVertexBytes(&render_target_id, sizeof(render_target_id), 0);
     encoder->setFragmentBytes(&color, sizeof(color), 0);
-    encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0),
-                            NS::UInteger(3));
+    encoder->drawPrimitives(MTL::PrimitiveTypeTriangle,
+                            static_cast<NS::UInteger>(0),
+                            static_cast<NS::UInteger>(3));
 }
 
 void Renderer::ClearDepth(ICommandBuffer* command_buffer, u32 layer,
@@ -224,7 +231,7 @@ void Renderer::ClearDepth(ICommandBuffer* command_buffer, u32 layer,
         state.render_pass->GetDescriptor().depth_stencil_target.texture);
 
     // HACK
-    if (!texture) {
+    if (texture == nullptr) {
         ONCE(LOG_WARN(MetalRenderer, "Invalid depth target"));
         return;
     }
@@ -247,10 +254,11 @@ void Renderer::ClearDepth(ICommandBuffer* command_buffer, u32 layer,
     struct {
         u32 layer_id;
         float value;
-    } params = {layer, value};
+    } params = {.layer_id = layer, .value = value};
     encoder->setVertexBytes(&params, sizeof(params), 0);
-    encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0),
-                            NS::UInteger(3));
+    encoder->drawPrimitives(MTL::PrimitiveTypeTriangle,
+                            static_cast<NS::UInteger>(0),
+                            static_cast<NS::UInteger>(3));
 }
 
 void Renderer::ClearStencil(ICommandBuffer* command_buffer, u32 layer,
@@ -308,7 +316,7 @@ void Renderer::BindUniformBuffer(const BufferView& buffer,
     if (shader_type == ShaderType::Count)
         return;
 
-    state.uniform_buffers[u32(shader_type)][index] = buffer;
+    state.uniform_buffers[static_cast<u32>(shader_type)][index] = buffer;
 }
 
 void Renderer::BindTexture(ITextureView* texture, SamplerBase* sampler,
@@ -317,8 +325,9 @@ void Renderer::BindTexture(ITextureView* texture, SamplerBase* sampler,
     if (shader_type == ShaderType::Count)
         return;
 
-    state.textures[u32(shader_type)][index] = {
-        static_cast<TextureView*>(texture), static_cast<Sampler*>(sampler)};
+    state.textures[static_cast<u32>(shader_type)][index] = {
+        .texture_view = static_cast<TextureView*>(texture),
+        .sampler = static_cast<Sampler*>(sampler)};
 }
 
 void Renderer::UnbindUniformBuffers(ShaderType shader_type) {
@@ -326,7 +335,7 @@ void Renderer::UnbindUniformBuffers(ShaderType shader_type) {
     if (shader_type == ShaderType::Count)
         return;
 
-    state.uniform_buffers[u32(shader_type)] = {};
+    state.uniform_buffers[static_cast<u32>(shader_type)] = {};
 }
 
 void Renderer::UnbindTextures(ShaderType shader_type) {
@@ -334,7 +343,7 @@ void Renderer::UnbindTextures(ShaderType shader_type) {
     if (shader_type == ShaderType::Count)
         return;
 
-    state.textures[u32(shader_type)] = {};
+    state.textures[static_cast<u32>(shader_type)] = {};
 }
 
 void Renderer::Draw(ICommandBuffer* command_buffer,
@@ -388,12 +397,12 @@ void Renderer::DrawIndexed(ICommandBuffer* command_buffer,
 }
 
 MTL::RenderCommandEncoder*
-Renderer::GetRenderCommandEncoder(CommandBuffer* command_buffer) {
+Renderer::GetRenderCommandEncoder(CommandBuffer* command_buffer) const {
     return command_buffer->GetRenderCommandEncoder(
         state.render_pass->GetRenderPassDescriptor());
 }
 
-void Renderer::SetRenderPipelineState(CommandBuffer* command_buffer) {
+void Renderer::SetRenderPipelineState(CommandBuffer* command_buffer) const {
     command_buffer->SetRenderPipelineState(state.pipeline->GetPipeline());
 }
 
@@ -413,7 +422,7 @@ void Renderer::SetVertexBuffer(CommandBuffer* command_buffer, u32 index) {
                  "Invalid vertex buffer index {}", index);
 
     const auto buffer = state.vertex_buffers[index];
-    if (!buffer.GetBase())
+    if (buffer.GetBase() == nullptr)
         return;
 
     command_buffer->SetBuffer(
@@ -430,7 +439,7 @@ void Renderer::SetUniformBuffer(CommandBuffer* command_buffer,
 
     const auto buffer =
         state.uniform_buffers[static_cast<u32>(shader_type)][index];
-    if (!buffer.GetBase())
+    if (buffer.GetBase() == nullptr)
         return;
 
     command_buffer->SetBuffer(
@@ -440,11 +449,11 @@ void Renderer::SetUniformBuffer(CommandBuffer* command_buffer,
 
 void Renderer::SetTexture(CommandBuffer* command_buffer, ShaderType shader_type,
                           u32 index) {
-    const auto texture = state.textures[u32(shader_type)][index];
-    if (texture.texture_view)
+    const auto texture = state.textures[static_cast<u32>(shader_type)][index];
+    if (texture.texture_view != nullptr)
         command_buffer->SetTexture(texture.texture_view->GetTexture(),
                                    shader_type, index);
-    if (texture.sampler)
+    if (texture.sampler != nullptr)
         command_buffer->SetSampler(texture.sampler->GetSampler(), shader_type,
                                    index);
 }
@@ -492,7 +501,7 @@ void Renderer::BeginCapture() {
 
     NS::Error* error = nullptr;
     capture_manager->startCapture(desc, &error);
-    if (error) {
+    if (error != nullptr) {
         LOG_ERROR(MetalRenderer, "Failed to start GPU capture: {}",
                   error->localizedDescription()->utf8String());
     }
@@ -503,8 +512,8 @@ void Renderer::EndCapture() {
     captureManager->stopCapture();
 }
 
-bool Renderer::CanDraw() {
-    if (!state.pipeline->GetPipeline()) {
+bool Renderer::CanDraw() const {
+    if (state.pipeline->GetPipeline() == nullptr) {
         ONCE(LOG_WARN(MetalRenderer, "Pipeline not present, skipping draw"));
         return false;
     }

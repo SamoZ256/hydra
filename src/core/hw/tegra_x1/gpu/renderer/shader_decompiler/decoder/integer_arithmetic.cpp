@@ -133,8 +133,9 @@ void EmitIaddC(DecoderContext& context, InstIaddC inst) {
     EmitIadd(
         context, inst.base.pred, inst.base.pred_inv, inst.base.avg_mode,
         inst.base.dst, inst.base.src_a,
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               ir::ScalarType::I32));
+        ir::Value::ConstMemory(
+            CMem(inst.cbuf_slot, RZ, static_cast<u64>(inst.cbuf_offset * 4)),
+            ir::ScalarType::I32));
 }
 
 void EmitIaddI(DecoderContext& context, InstIaddI inst) {
@@ -159,8 +160,9 @@ void EmitIscaddC(DecoderContext& context, InstIscaddC inst) {
     EmitIscadd(
         context, inst.base.pred, inst.base.pred_inv, inst.base.avg_mode,
         inst.base.dst, inst.base.src_a, inst.base.shift,
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               ir::ScalarType::I32));
+        ir::Value::ConstMemory(
+            CMem(inst.cbuf_slot, RZ, static_cast<u64>(inst.cbuf_offset * 4)),
+            ir::ScalarType::I32));
 }
 
 void EmitIscaddI(DecoderContext& context, InstIscaddI inst) {
@@ -195,17 +197,18 @@ void EmitXmadRC(DecoderContext& context, InstXmadRC inst) {
                                             ? ir::ScalarType::I32
                                             : ir::ScalarType::U32),
         inst.hilo_b,
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               ir::ScalarType::U32));
+        ir::Value::ConstMemory(
+            CMem(inst.cbuf_slot, RZ, static_cast<u64>(inst.cbuf_offset * 4)),
+            ir::ScalarType::U32));
 }
 
 void EmitXmadC(DecoderContext& context, InstXmadC inst) {
     EmitXmad(
         context, inst.base.pred, inst.base.pred_inv, inst.cop, false, false,
         inst.base.dst, inst.base.src_a, inst.base.a_signed, inst.base.hilo_a,
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               inst.base.b_signed ? ir::ScalarType::I32
-                                                  : ir::ScalarType::U32),
+        ir::Value::ConstMemory(
+            CMem(inst.cbuf_slot, RZ, static_cast<u64>(inst.cbuf_offset * 4)),
+            inst.base.b_signed ? ir::ScalarType::I32 : ir::ScalarType::U32),
         inst.hilo_b, ir::Value::Register(inst.src_c, ir::ScalarType::U32));
 }
 

@@ -14,10 +14,10 @@ class SparseFile : public IFile {
     SparseFile(std::span<SparseFileEntry> entries_, u64 size_) : size{size_} {
         // Sort the entries by offset
         entries.assign(entries_.begin(), entries_.end());
-        std::sort(entries.begin(), entries.end(),
-                  [](const SparseFileEntry& a, const SparseFileEntry& b) {
-                      return a.offset < b.offset;
-                  });
+        std::ranges::sort(
+            entries, [](const SparseFileEntry& a, const SparseFileEntry& b) {
+                return a.offset < b.offset;
+            });
 
         // TODO: revisit this idea
         /*
@@ -81,12 +81,13 @@ class SparseFile : public IFile {
     }
 
     io::IStream* Open(FileOpenFlags flags) override {
-        std::vector<io::SparseStreamEntry> streams;
+        std::vector<io::SparseStream::Entry> streams;
         streams.reserve(entries.size());
         for (const auto& entry : entries) {
             streams.push_back(
-                {Range(entry.offset, entry.offset + entry.file->GetSize()),
-                 entry.file->Open(flags)});
+                {.range =
+                     Range(entry.offset, entry.offset + entry.file->GetSize()),
+                 .stream = entry.file->Open(flags)});
         }
 
         return new io::OwnedSparseStream(std::move(streams), size);

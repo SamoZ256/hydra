@@ -89,7 +89,7 @@ void Gpu::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
 renderer::ITextureView*
 Gpu::GetTexture(renderer::ICommandBuffer* command_buffer, cpu::IMmu* mmu,
                 const NvGraphicsBuffer& buff) {
-    std::lock_guard texture_cache_lock(renderer->GetTextureCache().GetMutex());
+    std::scoped_lock texture_cache_lock(renderer->GetTextureCache().GetMutex());
 
     const auto& plane = buff.planes[0];
 

@@ -5,7 +5,7 @@
 namespace hydra::horizon::kernel {
 
 void SynchronizationObject::AddWaitingThread(IThread* thread) {
-    std::lock_guard lock(mutex);
+    std::scoped_lock lock(mutex);
     if (signalled)
         thread->Resume(this);
     else
@@ -13,12 +13,12 @@ void SynchronizationObject::AddWaitingThread(IThread* thread) {
 }
 
 void SynchronizationObject::RemoveWaitingThread(IThread* thread) {
-    std::lock_guard lock(mutex);
+    std::scoped_lock lock(mutex);
     waiting_threads.Remove(thread);
 }
 
-void SynchronizationObject::AddSignalCallback(signal_callback_fn_t callback) {
-    std::lock_guard lock(mutex);
+void SynchronizationObject::AddSignalCallback(const signal_callback_fn_t& callback) {
+    std::scoped_lock lock(mutex);
     if (signalled)
         callback();
     else
@@ -26,7 +26,7 @@ void SynchronizationObject::AddSignalCallback(signal_callback_fn_t callback) {
 }
 
 void SynchronizationObject::Signal() {
-    std::lock_guard lock(mutex);
+    std::scoped_lock lock(mutex);
     if (signalled)
         return;
 

@@ -54,9 +54,9 @@ Cpu::Cpu()
     // Kernel memory
     kernel_page_table.Map(
         0x0, Range<uptr>::FromSize(kernel_mem.GetPtr(), KERNEL_MEM_SIZE),
-        {horizon::kernel::MemoryType::Kernel,
-         horizon::kernel::MemoryAttribute::None,
-         horizon::kernel::MemoryPermission::Execute},
+        {.type = horizon::kernel::MemoryType::Kernel,
+         .attr = horizon::kernel::MemoryAttribute::None,
+         .perm = horizon::kernel::MemoryPermission::Execute},
         ApFlags::UserNoneKernelReadExecute);
 
     for (u64 offset = 0; offset < 0x780; offset += 0x80) {
@@ -85,8 +85,6 @@ Cpu::Cpu()
     features = {.supports_native_breakpoints = true,
                 .supports_synchronous_single_step = false};
 }
-
-Cpu::~Cpu() {}
 
 IMmu* Cpu::CreateMmu(System& system) { return new Mmu(system); }
 

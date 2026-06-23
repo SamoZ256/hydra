@@ -36,7 +36,7 @@ struct FixedPoint {
     u32 integer;
 
     explicit operator f64() const {
-        return f64(integer) + f64(fractional) / f64(1llu << 32llu);
+        return static_cast<f64>(integer) + (static_cast<f64>(fractional) / static_cast<f64>(1llu << 32llu));
     }
 };
 

@@ -21,7 +21,7 @@ You can download the latest release from [here](https://github.com/SamoZ256/hydr
 You can install Hydra dependencies with a package manager of your choice, like `brew`.
 
 ```sh
-brew install cmake ninja sdl3 fmt
+brew install cmake ninja llvm boost fmt sdl3
 ```
 
 ### Building

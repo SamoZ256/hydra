@@ -37,8 +37,8 @@ result_t IApplicationDisplayService::GetRelayService(RequestContext* ctx,
 
     const auto name = "dispdrv"_u64;
     auto client_port = system->GetOS().GetServiceManager().GetPort(name);
-    if (!client_port) {
-        LOG_WARN(Services, "Unknown service name \"{}\"", u64_to_str(name));
+    if (client_port == nullptr) {
+        LOG_WARN(Services, "Unknown service name \"{}\"", U64AsString(name));
         return MAKE_RESULT(Svc, kernel::Error::NotFound); // TODO: module
     }
 
@@ -155,7 +155,7 @@ result_t IApplicationDisplayService::CloseLayer(System* system, u64 layer_id) {
 }
 
 result_t IApplicationDisplayService::CreateStrayLayer(
-    System* system, kernel::Process* process, aligned<u32, 8> flags,
+    System* system, kernel::Process* process, Aligned<u32, 8> flags,
     u64 display_id, u64* out_layer_id, u64* out_native_window_size,
     OutBuffer<BufferAttr::MapAlias> out_parcel_buffer) {
     return CreateStrayLayerImpl(*system, process, flags, display_id,

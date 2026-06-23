@@ -42,7 +42,7 @@ ILibraryAppletAccessor::~ILibraryAppletAccessor() { delete applet; }
 
 result_t ILibraryAppletAccessor::GetAppletStateChangedEvent(
     kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = process->AddHandle(controller.GetStateChangedEvent());
+    out_handle = process->AddHandle(&controller.GetStateChangedEvent());
     return RESULT_SUCCESS;
 }
 
@@ -77,7 +77,7 @@ result_t ILibraryAppletAccessor::PopInteractiveOutData(RequestContext* ctx) {
 
 result_t ILibraryAppletAccessor::GetPopInteractiveOutDataEvent(
     kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = process->AddHandle(controller.GetInteractiveOutDataEvent());
+    out_handle = process->AddHandle(&controller.GetInteractiveOutDataEvent());
     return RESULT_SUCCESS;
 }
 

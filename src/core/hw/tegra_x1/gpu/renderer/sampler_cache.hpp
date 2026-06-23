@@ -20,9 +20,9 @@ class SamplerCache
 
     SamplerBase* Create(const SamplerDescriptor& descriptor);
     void Update([[maybe_unused]] SamplerBase* sampler) {}
-    u32 Hash(const SamplerDescriptor& descriptor);
+    static u32 Hash(const SamplerDescriptor& descriptor);
 
-    void DestroyElement(SamplerBase* sampler);
+    static void DestroyElement(SamplerBase* sampler);
 
   private:
     IRenderer& renderer;

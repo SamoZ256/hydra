@@ -5,7 +5,7 @@
 namespace hydra::horizon::display {
 
 void Binder::AddBuffer(i32 slot, const GraphicBuffer& buff) {
-    std::lock_guard lock(queue_mutex);
+    std::scoped_lock lock(queue_mutex);
     buffers[slot].initialized = true;
     buffers[slot].buffer = buff;
     buffer_count++;
@@ -44,8 +44,8 @@ i32 Binder::GetAvailableSlot() {
 
 void Binder::QueueBuffer(System& system, i32 slot, const BqBufferInput& input) {
     {
-        std::lock_guard lock(queue_mutex);
-        queued_buffers.push({slot, input});
+        std::scoped_lock lock(queue_mutex);
+        queued_buffers.emplace(slot, input);
         buffers[slot].queued = true;
     }
 
@@ -65,7 +65,7 @@ i32 Binder::ConsumeBuffer(BqBufferInput& out_input) {
     i32 slot;
     {
         // Wait for a buffer to become available
-        std::lock_guard lock(queue_mutex);
+        std::scoped_lock lock(queue_mutex);
         // TODO: should we wait?
         // queue_cv.wait_for(lock, std::chrono::milliseconds(67),
         //                  [&] { return !queued_buffers.empty(); });
@@ -93,7 +93,7 @@ i32 Binder::ConsumeBuffer(BqBufferInput& out_input) {
 void Binder::UnqueueAllBuffers() {
     {
         // Wait for a buffer to become available
-        std::lock_guard lock(queue_mutex);
+        std::scoped_lock lock(queue_mutex);
 
         // Unqueue all
         while (!queued_buffers.empty()) {

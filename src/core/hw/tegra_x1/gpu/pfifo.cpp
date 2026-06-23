@@ -82,7 +82,7 @@ void Pfifo::SubmitEntries(GMmu& gmmu, std::span<const GpfifoEntry> entries,
     LOG_DEBUG(Gpu, "Flags: {}", flags);
 
     {
-        std::lock_guard lock(mutex);
+        std::scoped_lock lock(mutex);
         entry_lists.emplace(
             gmmu, std::vector<GpfifoEntry>(entries.begin(), entries.end()),
             flags);

@@ -3,6 +3,35 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.15)
 
 include(FetchContent)
 
+# Use LLVM clang instead of the system default one on Apple
+# TODO: test with Xcode
+if (APPLE AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
+    # Find LLVM
+    execute_process(
+        COMMAND brew --prefix llvm
+        OUTPUT_VARIABLE LLVM_ROOT
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+
+    if (LLVM_ROOT)
+        message(STATUS "Using Homebrew LLVM: ${LLVM_ROOT}")
+        set(CMAKE_C_COMPILER "${LLVM_ROOT}/bin/clang")
+        set(CMAKE_CXX_COMPILER "${LLVM_ROOT}/bin/clang++")
+
+        # Manually set sysroot
+        execute_process(
+            COMMAND xcrun --show-sdk-path
+            OUTPUT_VARIABLE SDK_PATH
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        set(CMAKE_OSX_SYSROOT "${SDK_PATH}" CACHE PATH "Sysroot")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isysroot ${SDK_PATH}" CACHE STRING "Flags")
+    else ()
+        message(WARNING "LLVM not found via brew. Falling back to default system compiler.")
+    endif ()
+endif ()
+
 project(hydra VERSION 0.4.2 LANGUAGES CXX)
 
 set(IOS_DEPLOYMENT_TARGET 17.4.0)
@@ -13,6 +42,7 @@ else ()
     set(TARGET_ARCHS "${CMAKE_HOST_SYSTEM_PROCESSOR}")
 endif ()
 
+option(CLANG_TIDY_ENABLED "Enable clang-tidy" ON)
 option(CUBEB_ENABLED "Enable the cubeb audio backend" ON)
 option(SDL_ENABLED "Enable building SDL files" ON)
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
@@ -44,7 +74,9 @@ endif ()
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_COLOR_DIAGNOSTICS ON)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     set(GIT_HASH_SHORT "")
@@ -102,34 +134,37 @@ endif ()
 
 # Externals
 
+# elf
+include_directories(SYSTEM externals/elf/include)
+
 # toml11
-#add_subdirectory(externals/toml11) # Hatch already uses toml11
+#add_subdirectory(externals/toml11 SYSTEM) # Hatch already uses toml11
 
 # dynarmic
-add_subdirectory(externals/dynarmic)
+add_subdirectory(externals/dynarmic SYSTEM)
 
 # cubeb
 if (CUBEB_ENABLED)
     set(BUILD_TESTS OFF)
     set(BUILD_TOOLS OFF)
-    add_subdirectory(externals/cubeb)
+    add_subdirectory(externals/cubeb SYSTEM)
 endif ()
 
 # luft
-#add_subdirectory(externals/luft)
+#add_subdirectory(externals/luft SYSTEM)
 
 # hatch
-add_subdirectory(externals/hatch)
+add_subdirectory(externals/hatch SYSTEM)
 
 # libyaz0
-add_subdirectory(externals/libyaz0)
+add_subdirectory(externals/libyaz0 SYSTEM)
 
 # nx2elf
-add_subdirectory(externals/nx2elf)
+add_subdirectory(externals/nx2elf SYSTEM)
 
 # date
 set(BUILD_TZ_LIB ON)
-add_subdirectory(externals/date)
+add_subdirectory(externals/date SYSTEM)
 
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 add_library(hydra_compile_options INTERFACE)
@@ -155,6 +190,9 @@ target_compile_options(hydra_compile_options INTERFACE
     -Wnon-virtual-dtor
     -Wold-style-cast
 
+    # Disabled warnings
+    -Wno-missing-designated-field-initializers
+
     # Extensions
     -Wno-c99-extensions
     -Wno-gnu-anonymous-struct
@@ -165,7 +203,7 @@ target_compile_options(hydra_compile_options INTERFACE
     -Wno-gnu-zero-variadic-macro-arguments
 )
 
-include_directories(externals/metal-cpp externals/dynarmic externals/stb)
+include_directories(SYSTEM externals/metal-cpp externals/dynarmic externals/stb)
 
 if (HYPERVISOR_ENABLED)
     add_compile_definitions(HYDRA_HYPERVISOR_ENABLED)

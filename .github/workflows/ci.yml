@@ -64,13 +64,12 @@ jobs:
                         echo "Installing Intel Homebrew"
                         NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
                       fi
-
-                      brew install boost fmt sdl3 dylibbundler
                     '
                   else
                     echo "Installing arm64 deps"
-                    brew install boost fmt sdl3 dylibbundler
                   fi
+
+                  brew install llvm boost fmt sdl3 dylibbundler
 
             - name: Verify CMake Version
               run: cmake --version
@@ -96,11 +95,12 @@ jobs:
             - name: Build Hydra
               run: |
                   cmake hydra -B build \
-                  -DCMAKE_OSX_ARCHITECTURES=${{ env.ARCH }} \
-                  -DCMAKE_BUILD_TYPE=${{ env.BUILD_MODE }} \
-                  -DFRONTEND=${{ env.FRONTEND_MODE }} \
-                  -DMACOS_BUNDLE=ON \
-                  -GNinja
+                    -DCMAKE_OSX_ARCHITECTURES=${{ env.ARCH }} \
+                    -DCMAKE_BUILD_TYPE=${{ env.BUILD_MODE }} \
+                    -DCLANG_TIDY_ENABLED=OFF \
+                    -DMACOS_BUNDLE=ON \
+                    -DFRONTEND=${{ env.FRONTEND_MODE }} \
+                    -GNinja
                   ninja -C build
                   dylibbundler -of -cd -b -x build/bin/Hydra.app/Contents/MacOS/Hydra -d build/bin/Hydra.app/Contents/libs
                   while install_name_tool -delete_rpath @executable_path/../libs/ build/bin/Hydra.app/Contents/MacOS/Hydra 2>/dev/null; do :; done

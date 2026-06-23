@@ -15,7 +15,7 @@ Directory::Directory(const std::string_view host_path) {
     for (const auto& entry : std::filesystem::directory_iterator(host_path)) {
         const auto& entry_path = entry.path().string();
         const auto entry_name =
-            entry_path.substr(entry_path.find_last_of("/") + 1);
+            entry_path.substr(entry_path.find_last_of('/') + 1);
 
         // Ignore certain entries
         if (entry_name == ".DS_Store")
@@ -36,7 +36,7 @@ Directory::~Directory() {
 void Directory::Save(std::string_view host_path) const {
     std::filesystem::create_directories(host_path);
     for (const auto& entry : entries) {
-        if (!entry.second)
+        if (entry.second == nullptr)
             continue;
 
         entry.second->Save(fmt::format("{}/{}", host_path, entry.first));
@@ -46,13 +46,13 @@ void Directory::Save(std::string_view host_path) const {
 FsResult Directory::Delete(bool recursive) {
     if (!recursive) {
         for (const auto& entry : entries) {
-            if (entry.second && entry.second->IsDirectory())
+            if ((entry.second != nullptr) && entry.second->IsDirectory())
                 return FsResult::DirectoryNotEmpty;
         }
     }
 
     for (const auto& entry : entries) {
-        if (!entry.second)
+        if (entry.second == nullptr)
             continue;
 
         if (entry.second->IsDirectory()) {
@@ -156,14 +156,14 @@ FsResult Directory::AddEntryImpl(const std::span<std::string_view> path,
     const auto entry_name = path[0];
     auto& e = entries[std::string(entry_name)];
     if (path.size() == 1) {
-        if (e)
+        if (e != nullptr)
             return FsResult::AlreadyExists;
 
         entry->SetParent(this);
         e = entry;
         return FsResult::Success;
     } else {
-        if (!e) {
+        if (e == nullptr) {
             if (add_intermediate) {
                 e = new Directory();
                 e->SetParent(this);
@@ -231,7 +231,7 @@ FsResult Directory::GetEntryImpl(const std::span<std::string_view> path,
 }
 
 void Directory::BreakPath(std::string_view path,
-                          std::vector<std::string_view>& out_path) const {
+                          std::vector<std::string_view>& out_path) {
     // Reserve the maximum possible count
     out_path.reserve(
         static_cast<usize>(std::count(path.begin(), path.end(), '/')));

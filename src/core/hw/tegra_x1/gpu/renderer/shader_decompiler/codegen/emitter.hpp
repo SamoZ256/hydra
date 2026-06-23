@@ -26,7 +26,7 @@ class Emitter {
             ResourceMapping& out_resource_mapping_)
         : context{context_}, memory_analyzer{memory_analyzer_}, state{state_},
           out_code{out_code_}, out_resource_mapping{out_resource_mapping_} {}
-    virtual ~Emitter() {}
+    virtual ~Emitter() = default;
 
     void Emit(const ir::Module& modul);
 

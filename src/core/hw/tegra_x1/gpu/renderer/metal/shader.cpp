@@ -24,7 +24,7 @@ Shader::Shader(MTL::Device* device, const ShaderDescriptor& descriptor)
 
         NS::Error* error;
         library = device->newLibrary(ToNSString(source), options, &error);
-        if (error) {
+        if (error != nullptr) {
             LOG_ERROR(MetalRenderer, "Failed to create Metal library: {}",
                       error->localizedDescription()->utf8String());
             error->release(); // TODO: autorelease
@@ -42,7 +42,7 @@ Shader::Shader(MTL::Device* device, const ShaderDescriptor& descriptor)
         NS::Error* error;
         // TODO: options
         library = device->newLibrary(dispatch_data, &error);
-        if (error) {
+        if (error != nullptr) {
             LOG_ERROR(MetalRenderer, "Failed to create Metal library: {}",
                       error->localizedDescription()->utf8String());
             error->release(); // TODO: autorelease

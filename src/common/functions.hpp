@@ -70,7 +70,7 @@ T align_down(T v, T alignment) {
 }
 
 template <typename PtrT, typename AlignmentT>
-PtrT* align_ptr(PtrT* ptr, AlignmentT alignment) {
+PtrT* AlignPtr(PtrT* ptr, AlignmentT alignment) {
     return reinterpret_cast<PtrT*>(
         align(reinterpret_cast<u64>(ptr), static_cast<u64>(alignment)));
 }
@@ -106,21 +106,6 @@ inline std::string to_upper(const std::string_view str) {
                    [](unsigned char c) { return std::toupper(c); });
 
     return result;
-}
-
-/*
-inline constexpr u64 str_to_u64(const char* str, usize idx = 0,
-                                u64 result = 0) {
-    return (str[idx] == '\0' || idx >= 8)
-               ? result
-               : str_to_u64(str, idx + 1,
-                            result | (static_cast<u64>(str[idx]) << (idx * 8)));
-}
-*/
-
-inline std::string u64_to_str(u64 value) {
-    char* str = reinterpret_cast<char*>(&value);
-    return std::string(str, std::min(strlen(str), static_cast<usize>(8)));
 }
 
 inline std::string demangle(const char* mangled_name) {

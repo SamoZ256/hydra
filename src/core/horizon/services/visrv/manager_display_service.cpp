@@ -11,7 +11,7 @@ DEFINE_SERVICE_COMMAND_TABLE(IManagerDisplayService, 2010, CreateManagedLayer,
 // TODO: flags, display ID
 result_t IManagerDisplayService::CreateManagedLayer(System* system,
                                                     kernel::Process* process,
-                                                    aligned<u32, 8> flags,
+                                                    Aligned<u32, 8> flags,
                                                     u64 display_id, u64 aruid,
                                                     u64* out_layer_id) {
     (void)flags;
@@ -35,7 +35,7 @@ result_t IManagerDisplayService::DestroyManagedLayer(System* system,
 }
 
 result_t IManagerDisplayService::CreateStrayLayer(
-    System* system, kernel::Process* process, aligned<u32, 8> flags,
+    System* system, kernel::Process* process, Aligned<u32, 8> flags,
     u64 display_id, u64* out_layer_id, u64* out_native_window_size,
     OutBuffer<BufferAttr::MapAlias> out_parcel_buffer) {
     return CreateStrayLayerImpl(*system, process, flags, display_id,

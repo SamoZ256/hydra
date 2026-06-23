@@ -278,7 +278,7 @@ class CfgBuilder {
     // Helpers
     CfgBasicBlock* GetBlock(label_t label) {
         auto& block = blocks[label];
-        if (!block)
+        if (block == nullptr)
             block = new CfgBasicBlock{.label = label};
         return block;
     }

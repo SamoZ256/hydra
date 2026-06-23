@@ -5,15 +5,15 @@
 
 namespace hydra::io {
 
-struct SparseStreamEntry {
-    Range<u64> range;
-    IStream* stream;
-};
-
 class SparseStream : public IStream {
   public:
+    struct Entry {
+        Range<u64> range;
+        IStream* stream;
+    };
+
     // Entries must be sorted by offset
-    SparseStream(const std::vector<SparseStreamEntry>& entries_, u64 size_)
+    SparseStream(std::vector<Entry> entries_, u64 size_)
         : entries{std::move(entries_)}, size{size_} {}
 
     u64 GetSeek() const override { return seek; }
@@ -37,7 +37,7 @@ class SparseStream : public IStream {
             const auto entry = GetEntry(seek);
             const auto max_read_size = std::min(
                 entry.range.GetEnd() - seek, static_cast<u64>(buffer.size()));
-            if (entry.stream) {
+            if (entry.stream != nullptr) {
                 entry.stream->SeekTo(seek - entry.range.GetBegin());
                 entry.stream->ReadRaw(buffer.subspan(0, max_read_size));
             } else {
@@ -59,7 +59,7 @@ class SparseStream : public IStream {
             const auto entry = GetEntry(seek);
             const auto max_write_size = std::min(
                 entry.range.GetEnd() - seek, static_cast<u64>(buffer.size()));
-            if (entry.stream) {
+            if (entry.stream != nullptr) {
                 entry.stream->SeekTo(seek - entry.range.GetBegin());
                 entry.stream->WriteRaw(buffer.subspan(0, max_write_size));
             }
@@ -70,16 +70,16 @@ class SparseStream : public IStream {
     }
 
   protected:
-    std::vector<SparseStreamEntry> entries;
+    std::vector<Entry> entries;
 
   private:
     u64 size;
 
     u64 seek{0};
-    std::optional<SparseStreamEntry> cached_entry{std::nullopt};
+    std::optional<Entry> cached_entry{std::nullopt};
 
     // Helpers
-    SparseStreamEntry GetEntry(u64 offset) {
+    Entry GetEntry(u64 offset) {
         // First, check if the entry has been cached
         if (cached_entry.has_value()) {
             const auto entry = cached_entry.value();
@@ -90,24 +90,24 @@ class SparseStream : public IStream {
         // Find the entry that contains the offset
         auto next_it =
             std::upper_bound(entries.begin(), entries.end(), offset,
-                             [](u64 offset, const SparseStreamEntry& entry) {
+                             [](u64 offset, const Entry& entry) {
                                  return offset < entry.range.GetBegin();
                              });
 
         // If the offset is before the first entry, return an empty entry
         if (next_it == entries.begin())
-            return {.stream = nullptr, .range = {0, next_it->range.GetBegin()}};
+            return {.range = {0, next_it->range.GetBegin()}, .stream = nullptr};
 
         auto it = std::prev(next_it);
 
         // Check if entry is past the range
         if (!it->range.Contains(offset)) {
             if (next_it == entries.end())
-                return {.stream = nullptr,
-                        .range = {it->range.GetEnd(), size - offset}};
+                return {.range = {it->range.GetEnd(), size - offset},
+                        .stream = nullptr};
 
-            return {.stream = nullptr,
-                    .range = {it->range.GetEnd(), next_it->range.GetBegin()}};
+            return {.range = {it->range.GetEnd(), next_it->range.GetBegin()},
+                    .stream = nullptr};
         }
 
         // Cache the entry and return it
@@ -116,6 +116,7 @@ class SparseStream : public IStream {
     }
 };
 
+// TODO: remove
 class OwnedSparseStream : public SparseStream {
   public:
     using SparseStream::SparseStream;
@@ -124,6 +125,8 @@ class OwnedSparseStream : public SparseStream {
         for (auto entry : entries)
             delete entry.stream;
     }
+
+    MAKE_NON_COPYABLE(OwnedSparseStream);
 };
 
 } // namespace hydra::io

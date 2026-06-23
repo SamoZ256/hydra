@@ -179,8 +179,9 @@ void EmitF2fC(DecoderContext& context, InstF2fC inst) {
     EmitFloatToFloat(
         context, inst.base.pred, inst.base.pred_inv, inst.base.GetRoundMode(),
         inst.base.sat, inst.base.dst, inst.base.dst_fmt,
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               ToType(inst.base.src_fmt)),
+        ir::Value::ConstMemory(
+            CMem(inst.cbuf_slot, RZ, static_cast<u64>(inst.cbuf_offset * 4)),
+            ToType(inst.base.src_fmt)),
         inst.base.abs, inst.base.neg);
 }
 
@@ -204,8 +205,9 @@ void EmitF2iC(DecoderContext& context, InstF2iC inst) {
     EmitFloatToInt(
         context, inst.base.pred, inst.base.pred_inv, inst.base.round_mode,
         inst.base.dst, inst.base.GetDstFmt(),
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               ToType(inst.base.src_fmt)),
+        ir::Value::ConstMemory(
+            CMem(inst.cbuf_slot, RZ, static_cast<u64>(inst.cbuf_offset * 4)),
+            ToType(inst.base.src_fmt)),
         inst.base.abs, inst.base.neg);
 }
 
@@ -230,8 +232,9 @@ void EmitI2iC(DecoderContext& context, InstI2iC inst) {
     EmitIntToInt(
         context, inst.base.pred, inst.base.pred_inv, inst.base.byte_sel,
         inst.base.sat, inst.base.dst, inst.base.GetDstFmt(),
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               ToType(inst.base.GetSrcFmt())),
+        ir::Value::ConstMemory(
+            CMem(inst.cbuf_slot, RZ, static_cast<u64>(inst.cbuf_offset * 4)),
+            ToType(inst.base.GetSrcFmt())),
         inst.base.abs, inst.base.neg);
 }
 
@@ -255,8 +258,9 @@ void EmitI2fC(DecoderContext& context, InstI2fC inst) {
     EmitIntToFloat(
         context, inst.base.pred, inst.base.pred_inv, inst.base.byte_sel,
         inst.base.dst, inst.base.dst_fmt,
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               ToType(inst.base.GetSrcFmt())),
+        ir::Value::ConstMemory(
+            CMem(inst.cbuf_slot, RZ, static_cast<u64>(inst.cbuf_offset * 4)),
+            ToType(inst.base.GetSrcFmt())),
         inst.base.abs, inst.base.neg);
 }
 

@@ -87,9 +87,9 @@ struct AccumulatedTime {
     explicit operator bool() const { return sample_count != 0; }
 
     explicit operator f32() const {
-        return f32(std::chrono::duration_cast<std::chrono::duration<f32>>(value)
+        return static_cast<f32>(std::chrono::duration_cast<std::chrono::duration<f32>>(value)
                        .count()) /
-               f32(sample_count);
+               static_cast<f32>(sample_count);
     }
 
     AccumulatedTime& operator+=(const std::chrono::nanoseconds other) {
@@ -123,7 +123,7 @@ struct Binder {
     void UnqueueAllBuffers();
 
     const GraphicBuffer& GetBuffer(i32 slot) {
-        std::lock_guard lock(queue_mutex);
+        std::scoped_lock lock(queue_mutex);
         return buffers[slot].buffer;
     }
 

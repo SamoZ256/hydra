@@ -54,7 +54,7 @@ void LangEmitter::Finish() {
 
     // TODO: avoid copying
     out_code.resize(code_str.size());
-    std::copy(code_str.begin(), code_str.end(), out_code.begin());
+    std::ranges::copy(code_str, out_code.begin());
 
     // Debug
     LOG_DEBUG(ShaderDecompiler, "decompiled: \"\n{}\"", code_str);
@@ -160,9 +160,9 @@ void LangEmitter::EmitFunction(const ir::Function& func) {
     // Function
     // TODO: function name
     std::string name = "main";
-    if (name == "main")
+    if (name == "main") {
         EmitMainPrototype();
-    else
+    } else
         LOG_FATAL(ShaderDecompiler,
                   "Custom functions not implemented (name: {})", name);
 
