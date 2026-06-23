@@ -1,8 +1,6 @@
 #pragma once
 
-#include "core/horizon/kernel/hipc/client_session.hpp"
 #include "core/horizon/kernel/hipc/server_session.hpp"
-#include "core/horizon/kernel/hipc/service_manager.hpp"
 #include "core/horizon/kernel/hipc/session.hpp"
 #include "core/horizon/kernel/host_thread.hpp"
 #include "core/horizon/services/service.hpp"
@@ -25,11 +23,14 @@ class Server {
     Server(System& system_) : system{system_} {}
     ~Server() { Stop(); }
 
+    MAKE_NON_COPYABLE(Server);
+    MAKE_NON_MOVABLE(Server);
+
     void Start();
     void Stop();
 
     void RegisterPort(kernel::hipc::ServerPort* port,
-                       create_service_fn_t service_creator);
+                      create_service_fn_t service_creator);
     void RegisterSession(kernel::hipc::ServerSession* session,
                          IService* service);
 
@@ -40,7 +41,7 @@ class Server {
   private:
     System& system;
 
-    kernel::HostThread* thread{nullptr};
+    std::optional<kernel::HostThread> thread;
 
     std::map<kernel::hipc::ServerPort*, create_service_fn_t>
         port_service_creators;
@@ -50,9 +51,6 @@ class Server {
     std::vector<kernel::hipc::ServerSession*> sessions;
 
     void MainLoop(const kernel::should_stop_fn_t& should_stop);
-
-  public:
-    GETTER(thread, GetThread);
 };
 
 } // namespace hydra::horizon::services

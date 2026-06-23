@@ -125,15 +125,19 @@ Window::ShowSoftwareKeyboard(const std::string& header_text,
 }
 
 void Window::BeginEmulation(const std::string& path) {
+    // Create loader
+    // TODO: support loading applets from firmware
+    // TODO: display error when loading fails
+    ASSIGN_OR_RETURN(auto loader,
+                     horizon::loader::ILoader::CreateFromPath(path));
+
     // Connect cursor as a touch screen device
     system.GetInputDeviceManager().ConnectTouchScreenDevice("cursor", &cursor);
 
+    // Start
     system.SetSurface(SDL_GetRenderMetalLayer(renderer));
-    // TODO: support loading applets from firmware
-    auto loader = horizon::loader::ILoader::CreateFromPath(path);
     system.LoadAndStart(loader);
     title_id = loader->GetTitleID();
-    delete loader;
 }
 
 void Window::UpdateWindowTitle() {

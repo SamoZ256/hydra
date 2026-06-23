@@ -12,10 +12,11 @@ class HostThread : public IThread {
     HostThread(Process* process, i32 priority, run_callback_fn_t run_callback_,
                std::string_view debug_name = "Thread")
         : IThread(process, priority, debug_name),
-          run_callback{std::move(run_callback_)} {}
-    ~HostThread() override { delete[] tls; }
+          run_callback{std::move(run_callback_)}, tls(TLS_SIZE) {}
 
-    uptr GetTlsPtr() const override { return reinterpret_cast<uptr>(tls); }
+    uptr GetTlsPtr() const override {
+        return reinterpret_cast<uptr>(tls.data());
+    }
 
   protected:
     void Run() override;
@@ -23,7 +24,7 @@ class HostThread : public IThread {
   private:
     run_callback_fn_t run_callback;
 
-    u8* tls = new u8[TLS_SIZE]; // TODO: stack allocate
+    std::vector<u8> tls; // TODO: why cannot std::array be used?
 };
 
 } // namespace hydra::horizon::kernel

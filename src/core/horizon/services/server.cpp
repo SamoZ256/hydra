@@ -1,7 +1,6 @@
 #include "core/horizon/services/server.hpp"
 
 #include "core/horizon/kernel/hipc/server_port.hpp"
-#include "core/horizon/kernel/hipc/service_manager.hpp"
 #include "core/system.hpp"
 
 namespace hydra::horizon::services {
@@ -11,7 +10,7 @@ void Server::Start() {
     // TODO: process
 
     // Thread
-    thread = new kernel::HostThread(
+    thread.emplace(
         nullptr, 0x20,
         [this](const kernel::should_stop_fn_t& should_stop) {
             MainLoop(should_stop);
@@ -20,11 +19,7 @@ void Server::Start() {
     thread->Start();
 }
 
-void Server::Stop() {
-    thread->Stop();
-    delete thread;
-    thread = nullptr;
-}
+void Server::Stop() { thread = std::nullopt; }
 
 void Server::RegisterPort(kernel::hipc::ServerPort* port,
                           create_service_fn_t service_creator) {
@@ -50,8 +45,8 @@ void Server::MainLoop(const kernel::should_stop_fn_t& should_stop) {
 
         u32 signalled_index;
         const auto res = system.GetOS().GetKernel().ReplyAndReceive(
-            thread, sync_objs, reply_target_session, kernel::INFINITE_TIMEOUT,
-            signalled_index);
+            &thread.value(), sync_objs, reply_target_session,
+            kernel::INFINITE_TIMEOUT, signalled_index);
         switch (res) {
         case RESULT_SUCCESS: {
             if (signalled_index < ports.size()) {
@@ -95,7 +90,7 @@ void Server::MainLoop(const kernel::should_stop_fn_t& should_stop) {
 
             // Handle all requests
             while (session->HasRequests()) {
-                session->Receive(thread);
+                session->Receive(&thread.value());
                 service->HandleRequest(system,
                                        session->GetActiveRequestClientProcess(),
                                        thread->GetTlsPtr());

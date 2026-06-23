@@ -5,6 +5,12 @@
 
 namespace hydra::horizon::kernel {
 
+IThread::~IThread() noexcept {
+    if (!IsStoppingOrStopped()) {
+        Stop();
+    }
+}
+
 void IThread::Start() {
     thread = std::jthread([&]() {
         tls_current_thread = this;

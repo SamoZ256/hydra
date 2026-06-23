@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/horizon/kernel/hipc/client_session.hpp"
 #include "core/horizon/services/service.hpp"
 
 #define SERVICE_COMMAND_CASE(service, id, func)                                \
