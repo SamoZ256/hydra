@@ -25,8 +25,6 @@ add_library(hydra-common
     config.cpp
     config.hpp
     common.hpp
-    elf.h
-    stb.cpp
     io/stream.hpp
     io/continuous_stream.hpp
     io/memory_stream.hpp

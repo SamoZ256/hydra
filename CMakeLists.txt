@@ -74,6 +74,7 @@ endif ()
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 
@@ -132,6 +133,9 @@ if (NOT fmt_FOUND)
 endif ()
 
 # Externals
+
+# elf
+include_directories(SYSTEM externals/elf/include)
 
 # toml11
 #add_subdirectory(externals/toml11 SYSTEM) # Hatch already uses toml11

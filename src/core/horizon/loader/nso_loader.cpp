@@ -1,10 +1,10 @@
 #include "core/horizon/loader/nso_loader.hpp"
 
-#include "common/elf.h"
 #include "common/lz4.hpp"
 #include "core/debugger/debugger_manager.hpp"
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/kernel/process.hpp"
+#include "elf.h"
 
 namespace hydra::horizon::loader {
 

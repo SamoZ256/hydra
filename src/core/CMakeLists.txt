@@ -661,6 +661,11 @@ add_library(hydra-core
     title.hpp
     c_api.cpp
     c_api.h
+    stb.cpp
+)
+
+set_source_files_properties(c_api.cpp c_api.h PROPERTIES
+    SKIP_LINTING ON
 )
 
 if (HYPERVISOR_ENABLED)
