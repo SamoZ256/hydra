@@ -1,6 +1,5 @@
 #include "core/horizon/loader/nso_loader.hpp"
 
-#include "common/lz4.hpp"
 #include "core/debugger/debugger_manager.hpp"
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/kernel/process.hpp"
@@ -61,7 +60,7 @@ void read_segment(io::IStream* stream, uptr executable_mem_ptr,
         // Decompress
         std::vector<u8> file(file_size);
         stream->ReadToSpan(std::span(file));
-        DecompressLZ4(file,
+        ztd::compress::decompressLz4(file,
                       std::span(reinterpret_cast<u8*>(executable_mem_ptr +
                                                       segment.memory_offset),
                                 segment.size));
@@ -140,11 +139,11 @@ void NsoLoader::LoadProcess(System& system, kernel::Process* process) {
     // Create executable memory
     const auto set = kernel::CodeSet{
         .size = executable_size,
-        .code = Range<u64>::FromSize(segments[0].seg.memory_offset,
+        .code = ztd::Range<u64>::fromSize(segments[0].seg.memory_offset,
                                      segments[0].seg.size),
-        .ro_data = Range<u64>::FromSize(segments[1].seg.memory_offset,
+        .ro_data = ztd::Range<u64>::fromSize(segments[1].seg.memory_offset,
                                         segments[1].seg.size),
-        .data = Range<u64>::FromSize(segments[2].seg.memory_offset,
+        .data = ztd::Range<u64>::fromSize(segments[2].seg.memory_offset,
                                      segments[2].seg.size)};
     vaddr_t base;
     auto ptr = process->CreateExecutableMemory(name, set, base);
@@ -210,7 +209,7 @@ void NsoLoader::LoadProcess(System& system, kernel::Process* process) {
             DEBUGGER_MANAGER_INSTANCE.GetDebugger(process)
                 .GetFunctionTable()
                 .RegisterSymbol({.name = demangle(std::string(symbol_name)),
-                                 .guest_mem_range = Range<vaddr_t>(
+                                 .guest_mem_range = ztd::Range<vaddr_t>(
                                      base + symbol.st_value,
                                      base + symbol.st_value + symbol.st_size)});
         }
@@ -225,7 +224,7 @@ void NsoLoader::LoadProcess(System& system, kernel::Process* process) {
         // Main thread
         auto main_thread = new kernel::GuestThread(
             system, process,
-            kernel::STACK_REGION.GetBegin() + main_thread_stack_size - 0x10,
+            kernel::STACK_REGION.getBegin() + main_thread_stack_size - 0x10,
             main_thread_priority);
         const auto main_thread_handle_id = process->SetMainThread(main_thread);
 

@@ -50,7 +50,7 @@ class HomebrewThread : public kernel::GuestThread {
     HomebrewThread(System& system_, kernel::Process* process,
                    std::string_view path_)
         : kernel::GuestThread(system_, process,
-                              kernel::STACK_REGION.GetBegin() +
+                              kernel::STACK_REGION.getBegin() +
                                   STACK_MEMORY_SIZE - 0x10,
                               0x2c, "Homebrew thread"),
           system{system_}, path{path_} {}

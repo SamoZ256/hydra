@@ -86,7 +86,7 @@ class SparseFile : public IFile {
         for (const auto& entry : entries) {
             streams.push_back(
                 {.range =
-                     Range(entry.offset, entry.offset + entry.file->GetSize()),
+                     ztd::Range(entry.offset, entry.offset + entry.file->GetSize()),
                  .stream = entry.file->Open(flags)});
         }
 

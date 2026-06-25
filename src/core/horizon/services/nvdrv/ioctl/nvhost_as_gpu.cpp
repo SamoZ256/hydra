@@ -74,7 +74,7 @@ NvResult NvHostAsGpu::MapBufferEX(System* system, kernel::Process* process,
         addr = inout_addr;
 
     inout_addr = process->GetGMmu().MapBufferToAddressSpace(
-        Range<vaddr_t>::FromSize(map.addr + buffer_offset, size), addr);
+        ztd::Range<vaddr_t>::fromSize(map.addr + buffer_offset, size), addr);
     return NvResult::Success;
 }
 

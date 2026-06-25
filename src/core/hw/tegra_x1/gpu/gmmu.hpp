@@ -39,14 +39,14 @@ class GMmu : public GenericMmu<GMmu, AddressSpace> {
                    [[maybe_unused]] AddressSpace as) {}
 
     // Address space
-    uptr CreateAddressSpace(Range<vaddr_t> range, uptr gpu_addr);
+    uptr CreateAddressSpace(ztd::Range<vaddr_t> range, uptr gpu_addr);
 
     uptr AllocatePrivateAddressSpace(u64 size, uptr gpu_addr) {
-        return CreateAddressSpace(Range<vaddr_t>::FromSize(0x0, size),
+        return CreateAddressSpace(ztd::Range<vaddr_t>::fromSize(0x0, size),
                                   gpu_addr);
     }
 
-    uptr MapBufferToAddressSpace(Range<vaddr_t> range, uptr gpu_addr) {
+    uptr MapBufferToAddressSpace(ztd::Range<vaddr_t> range, uptr gpu_addr) {
         return CreateAddressSpace(range, gpu_addr);
     }
 

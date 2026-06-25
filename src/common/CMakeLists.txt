@@ -3,14 +3,11 @@ add_library(hydra-common
     macros.hpp
     type_aliases.hpp
     types.hpp
-    range.hpp
     traits.hpp
     functions.hpp
     atomic.hpp
     literals.hpp
     string.hpp
-    time.hpp
-    hash.hpp
     linked_list.hpp
     pool.hpp
     static_pool.hpp
@@ -19,12 +16,9 @@ add_library(hydra-common
     filesystem.hpp
     log.cpp
     log.hpp
-    lz4.cpp
-    lz4.hpp
     toml_helper.hpp
     config.cpp
     config.hpp
-    common.hpp
     io/stream.hpp
     io/continuous_stream.hpp
     io/memory_stream.hpp
@@ -33,10 +27,10 @@ add_library(hydra-common
     io/sparse_stream.hpp
 )
 
-target_link_libraries(hydra-common PRIVATE hydra_compile_options)
-target_link_libraries(hydra-common PUBLIC fmt::fmt toml11::toml11)
-
 target_precompile_headers(hydra-common PUBLIC common.hpp)
+
+target_link_libraries(hydra-common PRIVATE hydra_compile_options)
+target_link_libraries(hydra-common PUBLIC fmt::fmt toml11::toml11 ztd::ztd)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
     set_target_properties(hydra-common PROPERTIES

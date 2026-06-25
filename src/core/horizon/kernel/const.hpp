@@ -5,14 +5,18 @@ namespace hydra::horizon::kernel {
 constexpr handle_id_t CURRENT_PROCESS_PSEUDO_HANDLE = 0xffff8001;
 constexpr handle_id_t CURRENT_THREAD_PSEUDO_HANDLE = 0xffff8000;
 
-constexpr Range<vaddr_t> ADDRESS_SPACE =
-    Range<vaddr_t>(0x10000000, 0x200000000);
-constexpr Range<vaddr_t> STACK_REGION = Range<vaddr_t>(0x10000000, 0x20000000);
-constexpr Range<vaddr_t> TLS_REGION = Range<vaddr_t>(0x20000000, 0x30000000);
-constexpr Range<vaddr_t> ALIAS_REGION = Range<vaddr_t>(0x30000000, 0x40000000);
-constexpr Range<vaddr_t> EXECUTABLE_REGION =
-    Range<vaddr_t>(0x40000000, 0x80000000);
-constexpr Range<vaddr_t> HEAP_REGION = Range<vaddr_t>(0x100000000, 0x200000000);
+constexpr ztd::Range<vaddr_t> ADDRESS_SPACE =
+    ztd::Range<vaddr_t>(0x10000000, 0x200000000);
+constexpr ztd::Range<vaddr_t> STACK_REGION =
+    ztd::Range<vaddr_t>(0x10000000, 0x20000000);
+constexpr ztd::Range<vaddr_t> TLS_REGION =
+    ztd::Range<vaddr_t>(0x20000000, 0x30000000);
+constexpr ztd::Range<vaddr_t> ALIAS_REGION =
+    ztd::Range<vaddr_t>(0x30000000, 0x40000000);
+constexpr ztd::Range<vaddr_t> EXECUTABLE_REGION =
+    ztd::Range<vaddr_t>(0x40000000, 0x80000000);
+constexpr ztd::Range<vaddr_t> HEAP_REGION =
+    ztd::Range<vaddr_t>(0x100000000, 0x200000000);
 
 constexpr u64 HEAP_MEM_ALIGNMENT = 0x200000;
 
@@ -288,7 +292,7 @@ using result_t = u32;
      (static_cast<u32>(description) & 0x1fff) << 9)
 
 #define GET_RESULT_MODULE(result)                                              \
-    static_cast<::hydra::horizon::kernel::Module>((result)&0x1ff)
+    static_cast<::hydra::horizon::kernel::Module>((result) & 0x1ff)
 
 #define GET_RESULT_DESCRIPTION(result) ((result) >> 9)
 

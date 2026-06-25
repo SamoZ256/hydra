@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdlib>
+
 #include <fmt/ranges.h>
 
 #include "common/log.hpp"

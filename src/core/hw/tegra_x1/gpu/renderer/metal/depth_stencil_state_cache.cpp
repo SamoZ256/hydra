@@ -23,11 +23,11 @@ DepthStencilStateCache::Create(const DepthStencilStateDescriptor& descriptor) {
 
 u32 DepthStencilStateCache::Hash(
     const DepthStencilStateDescriptor& descriptor) {
-    HashCode hash;
-    hash.Add(descriptor.depth_test_enabled);
-    hash.Add(descriptor.depth_write_enabled);
-    hash.Add(descriptor.depth_compare_op);
-    return hash.ToHashCode();
+    ztd::hash::XxHash32 hash;
+    hash.add(descriptor.depth_test_enabled);
+    hash.add(descriptor.depth_write_enabled);
+    hash.add(descriptor.depth_compare_op);
+    return hash.toHashCode();
 }
 
 void DepthStencilStateCache::DestroyElement(

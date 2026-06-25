@@ -24,9 +24,9 @@ ShaderBase* ShaderCache::Create(const GuestShaderDescriptor& descriptor) {
 }
 
 u32 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {
-    HashCode hash;
-    hash.Add(descriptor.stage);
-    hash.Add(descriptor.code_ptr);
+    ztd::hash::XxHash32 hash;
+    hash.add(descriptor.stage);
+    hash.add(descriptor.code_ptr);
 
     // Take a few samples from the code
     // TODO: this should be limited by the size of the code
@@ -35,7 +35,7 @@ u32 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {
                   0x1000)); // TODO: size
     code_stream.SeekBy(80); // Header
     for (u32 i = 0; i < 8; i++) {
-        hash.Add(code_stream.Read<u8>());
+        hash.add(code_stream.Read<u8>());
         code_stream.SeekBy(17);
     }
 
@@ -43,9 +43,9 @@ u32 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {
     if (descriptor.stage == engines::ShaderStage::VertexB) {
         for (const auto& vertex_attrib_state :
              descriptor.state.vertex_attrib_states) {
-            hash.Add(vertex_attrib_state.is_fixed);
-            hash.Add(vertex_attrib_state.size);
-            hash.Add(vertex_attrib_state.type);
+            hash.add(vertex_attrib_state.is_fixed);
+            hash.add(vertex_attrib_state.size);
+            hash.add(vertex_attrib_state.type);
         }
     }
 
@@ -53,11 +53,11 @@ u32 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {
     if (descriptor.stage == engines::ShaderStage::Fragment) {
         for (const auto& color_target_data_type :
              descriptor.state.color_target_data_types) {
-            hash.Add(color_target_data_type);
+            hash.add(color_target_data_type);
         }
     }
 
-    return hash.ToHashCode();
+    return hash.toHashCode();
 }
 
 void ShaderCache::DestroyElement(ShaderBase* shader) { delete shader; }

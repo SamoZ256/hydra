@@ -15,8 +15,8 @@ class Texture final : public ITexture {
 
     // Copying
     void CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
-                  const Range<u32> dst_levels,
-                  const Range<u32> dst_layers) override;
+                  const ztd::Range<u32> dst_levels,
+                  const ztd::Range<u32> dst_layers) override;
     void CopyFrom(ICommandBuffer* command_buffer, const ITexture* src,
                   const u32 src_level, const u32 src_layer, const u32 dst_level,
                   const u32 dst_layer, const u32 level_count,

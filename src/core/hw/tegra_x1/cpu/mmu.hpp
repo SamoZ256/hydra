@@ -24,35 +24,35 @@ class IMmu {
     IMmu(System& system_) : system{system_} {}
     virtual ~IMmu() = default;
 
-    virtual void Map(vaddr_t dst_va, Range<uptr> range,
+    virtual void Map(vaddr_t dst_va, ztd::Range<uptr> range,
                      const horizon::kernel::MemoryState state) = 0;
     void Map(vaddr_t dst_va, IMemory* memory,
              const horizon::kernel::MemoryState state) {
-        Map(dst_va, Range<uptr>::FromSize(memory->GetPtr(), memory->GetSize()),
+        Map(dst_va, ztd::Range<uptr>::fromSize(memory->GetPtr(), memory->GetSize()),
             state);
     }
-    virtual void Map(vaddr_t dst_va, Range<vaddr_t> range) = 0;
-    virtual void Unmap(Range<vaddr_t> range) = 0;
-    virtual void Protect(Range<vaddr_t> range,
+    virtual void Map(vaddr_t dst_va, ztd::Range<vaddr_t> range) = 0;
+    virtual void Unmap(ztd::Range<vaddr_t> range) = 0;
+    virtual void Protect(ztd::Range<vaddr_t> range,
                          horizon::kernel::MemoryPermission perm) = 0;
 
     virtual uptr UnmapAddr(vaddr_t va) const = 0;
     virtual MemoryRegion QueryRegion(vaddr_t va) const = 0;
-    virtual void SetMemoryAttribute(Range<vaddr_t> range,
+    virtual void SetMemoryAttribute(ztd::Range<vaddr_t> range,
                                     horizon::kernel::MemoryAttribute mask,
                                     horizon::kernel::MemoryAttribute value) = 0;
 
     horizon::kernel::MemoryInfo QueryMemory(vaddr_t va) const;
-    vaddr_t FindFreeMemory(Range<vaddr_t> region, u64 size) const;
+    vaddr_t FindFreeMemory(ztd::Range<vaddr_t> region, u64 size) const;
 
     // Write tracking
-    void EnableWriteTracking(Range<vaddr_t> range) {
+    void EnableWriteTracking(ztd::Range<vaddr_t> range) {
         SetWriteTrackingEnabled(range, true);
     }
-    void DisableWriteTracking(Range<vaddr_t> range) {
+    void DisableWriteTracking(ztd::Range<vaddr_t> range) {
         SetWriteTrackingEnabled(range, false);
     }
-    bool TrackWrite(Range<vaddr_t> range);
+    bool TrackWrite(ztd::Range<vaddr_t> range);
     void FlushTrackedPages();
 
     // Read
@@ -100,15 +100,15 @@ class IMmu {
 
   protected:
     // Write tracking
-    virtual void SetWriteTrackingEnabled(Range<vaddr_t> range, bool enable) = 0;
-    virtual bool TrySuspendWriteTracking(Range<vaddr_t> range) = 0;
-    virtual void ResumeWriteTracking(Range<vaddr_t> range) = 0;
+    virtual void SetWriteTrackingEnabled(ztd::Range<vaddr_t> range, bool enable) = 0;
+    virtual bool TrySuspendWriteTracking(ztd::Range<vaddr_t> range) = 0;
+    virtual void ResumeWriteTracking(ztd::Range<vaddr_t> range) = 0;
 
   private:
     System& system;
 
     std::mutex write_tracking_mutex;
-    std::vector<Range<vaddr_t>> tracked_pages;
+    std::vector<ztd::Range<vaddr_t>> tracked_pages;
 };
 
 } // namespace hydra::hw::tegra_x1::cpu

@@ -19,7 +19,7 @@ inline std::string U64AsString(u64 value) {
     return {str, std::min<usize>(strlen(str), 8)};
 }
 
-inline constexpr u64 operator"" _u64(const char* str, unsigned long len) {
+inline constexpr u64 operator""_u64(const char* str, unsigned long len) {
     return StringAsU64(std::string_view(str, len));
 }
 

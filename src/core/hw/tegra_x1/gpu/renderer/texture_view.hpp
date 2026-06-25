@@ -16,7 +16,7 @@ class ITextureView {
 
     // Copying
     void CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
-                  const Range<u32> dst_levels, const Range<u32> dst_layers);
+                  const ztd::Range<u32> dst_levels, const ztd::Range<u32> dst_layers);
     void CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src);
     void CopyFrom(ICommandBuffer* command_buffer, const ITextureView* src,
                   const u32 src_level, const u32 src_layer, const u32 dst_level,

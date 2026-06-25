@@ -13,24 +13,24 @@ uptr GMmu::UnmapAddr(uptr gpu_addr) const {
     return as.ptr + (gpu_addr - base);
 }
 
-uptr GMmu::CreateAddressSpace(Range<vaddr_t> range, uptr gpu_addr) {
+uptr GMmu::CreateAddressSpace(ztd::Range<vaddr_t> range, uptr gpu_addr) {
     uptr ptr;
-    if (range.GetBegin() != 0x0) {
-        ptr = mmu->UnmapAddr(range.GetBegin());
+    if (range.getBegin() != 0x0) {
+        ptr = mmu->UnmapAddr(range.getBegin());
 
         // Write tracking
         mmu->EnableWriteTracking(range);
     } else {
-        ptr = reinterpret_cast<uptr>(malloc(range.GetSize()));
+        ptr = reinterpret_cast<uptr>(malloc(range.getSize()));
     }
 
     AddressSpace as;
     as.ptr = ptr;
-    as.size = range.GetSize();
+    as.size = range.getSize();
 
     if (gpu_addr == invalid<uptr>()) {
         gpu_addr = address_space_base;
-        address_space_base += align(range.GetSize(), GPU_PAGE_SIZE);
+        address_space_base += align(range.getSize(), GPU_PAGE_SIZE);
     }
     Map(gpu_addr, as);
 

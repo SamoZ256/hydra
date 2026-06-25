@@ -31,7 +31,7 @@ struct BufferView {
     }
     void CopyFrom(ICommandBuffer* command_buffer, ITextureView* src,
                   const uint3 src_origin, const uint3 src_size,
-                  const Range<u32> src_levels, const Range<u32> src_layers) {
+                  const ztd::Range<u32> src_levels, const ztd::Range<u32> src_layers) {
         base->CopyFrom(command_buffer, src, src_origin, src_size, src_levels,
                        src_layers, offset);
     }

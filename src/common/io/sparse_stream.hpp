@@ -1,14 +1,13 @@
 #pragma once
 
 #include "common/io/stream.hpp"
-#include "common/range.hpp"
 
 namespace hydra::io {
 
 class SparseStream : public IStream {
   public:
     struct Entry {
-        Range<u64> range;
+        ztd::Range<u64> range;
         IStream* stream;
     };
 
@@ -36,9 +35,9 @@ class SparseStream : public IStream {
 
             const auto entry = GetEntry(seek);
             const auto max_read_size = std::min(
-                entry.range.GetEnd() - seek, static_cast<u64>(buffer.size()));
+                entry.range.getEnd() - seek, static_cast<u64>(buffer.size()));
             if (entry.stream != nullptr) {
-                entry.stream->SeekTo(seek - entry.range.GetBegin());
+                entry.stream->SeekTo(seek - entry.range.getBegin());
                 entry.stream->ReadRaw(buffer.subspan(0, max_read_size));
             } else {
                 std::fill(buffer.begin(),
@@ -58,9 +57,9 @@ class SparseStream : public IStream {
 
             const auto entry = GetEntry(seek);
             const auto max_write_size = std::min(
-                entry.range.GetEnd() - seek, static_cast<u64>(buffer.size()));
+                entry.range.getEnd() - seek, static_cast<u64>(buffer.size()));
             if (entry.stream != nullptr) {
-                entry.stream->SeekTo(seek - entry.range.GetBegin());
+                entry.stream->SeekTo(seek - entry.range.getBegin());
                 entry.stream->WriteRaw(buffer.subspan(0, max_write_size));
             }
 
@@ -83,7 +82,7 @@ class SparseStream : public IStream {
         // First, check if the entry has been cached
         if (cached_entry.has_value()) {
             const auto entry = cached_entry.value();
-            if (entry.range.Contains(offset))
+            if (entry.range.contains(offset))
                 return entry;
         }
 
@@ -91,22 +90,22 @@ class SparseStream : public IStream {
         auto next_it =
             std::upper_bound(entries.begin(), entries.end(), offset,
                              [](u64 offset, const Entry& entry) {
-                                 return offset < entry.range.GetBegin();
+                                 return offset < entry.range.getBegin();
                              });
 
         // If the offset is before the first entry, return an empty entry
         if (next_it == entries.begin())
-            return {.range = {0, next_it->range.GetBegin()}, .stream = nullptr};
+            return {.range = {0, next_it->range.getBegin()}, .stream = nullptr};
 
         auto it = std::prev(next_it);
 
         // Check if entry is past the range
-        if (!it->range.Contains(offset)) {
+        if (!it->range.contains(offset)) {
             if (next_it == entries.end())
-                return {.range = {it->range.GetEnd(), size - offset},
+                return {.range = {it->range.getEnd(), size - offset},
                         .stream = nullptr};
 
-            return {.range = {it->range.GetEnd(), next_it->range.GetBegin()},
+            return {.range = {it->range.getEnd(), next_it->range.getBegin()},
                     .stream = nullptr};
         }
 

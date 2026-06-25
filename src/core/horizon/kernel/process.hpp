@@ -28,9 +28,9 @@ enum class ProcessState {
 
 struct CodeSet {
     u64 size;
-    Range<u64> code;
-    Range<u64> ro_data;
-    Range<u64> data;
+    ztd::Range<u64> code;
+    ztd::Range<u64> ro_data;
+    ztd::Range<u64> data;
 };
 
 class Process : public SynchronizationObject {
@@ -41,7 +41,7 @@ class Process : public SynchronizationObject {
     ~Process() override;
 
     // Memory
-    uptr CreateMemory(Range<vaddr_t> region, u64 size, MemoryType type,
+    uptr CreateMemory(ztd::Range<vaddr_t> region, u64 size, MemoryType type,
                       MemoryPermission perm, vaddr_t& out_base);
     uptr CreateExecutableMemory(const std::string_view module_name,
                                 CodeSet code_set, vaddr_t& out_base);
@@ -153,7 +153,7 @@ class Process : public SynchronizationObject {
     std::unique_ptr<hw::tegra_x1::cpu::IMemory> main_thread_stack_mem;
     std::unique_ptr<hw::tegra_x1::cpu::IMemory> heap_mem;
 
-    vaddr_t tls_mem_base{TLS_REGION.GetBegin()};
+    vaddr_t tls_mem_base{TLS_REGION.getBegin()};
 
     // Thread
     GuestThread* main_thread{nullptr};

@@ -363,7 +363,7 @@ result_t Kernel::SetHeapSize(Process* crnt_process, u64 size, uptr& out_base) {
 
     crnt_process->ResizeHeap(size);
 
-    out_base = HEAP_REGION.GetBegin();
+    out_base = HEAP_REGION.getBegin();
     return RESULT_SUCCESS;
 }
 
@@ -392,7 +392,7 @@ result_t Kernel::SetMemoryAttribute(Process* crnt_process, vaddr_t addr,
         addr, size, mask, value);
 
     crnt_process->GetMmu()->SetMemoryAttribute(
-        Range<vaddr_t>::FromSize(addr, size), mask, value);
+        ztd::Range<vaddr_t>::fromSize(addr, size), mask, value);
 
     return RESULT_SUCCESS;
 }
@@ -405,7 +405,7 @@ result_t Kernel::MapMemory(Process* crnt_process, uptr dst_addr, uptr src_addr,
               dst_addr, src_addr, size);
 
     crnt_process->GetMmu()->Map(dst_addr,
-                                Range<vaddr_t>::FromSize(src_addr, size));
+                                ztd::Range<vaddr_t>::fromSize(src_addr, size));
 
     return RESULT_SUCCESS;
 }
@@ -421,7 +421,7 @@ result_t Kernel::UnmapMemory(Process* crnt_process, uptr dst_addr,
     // TODO: verify that src_addr is the same as the one used in MapMemory?
     (void)src_addr;
 
-    crnt_process->GetMmu()->Unmap(Range<vaddr_t>::FromSize(dst_addr, size));
+    crnt_process->GetMmu()->Unmap(ztd::Range<vaddr_t>::fromSize(dst_addr, size));
 
     return RESULT_SUCCESS;
 }
@@ -577,7 +577,7 @@ result_t Kernel::MapSharedMemory(Process* crnt_process, SharedMemory* shmem,
               shmem->GetDebugName(), addr, size, perm);
 
     shmem->MapToRange(crnt_process->GetMmu(),
-                      Range(addr, static_cast<uptr>(addr + size)), perm);
+                      ztd::Range(addr, static_cast<uptr>(addr + size)), perm);
 
     return RESULT_SUCCESS;
 }
@@ -591,7 +591,7 @@ result_t Kernel::UnmapSharedMemory(Process* crnt_process, SharedMemory* shmem,
               "0x{:08x})",
               shmem->GetDebugName(), addr, size);
 
-    crnt_process->GetMmu()->Unmap(Range<vaddr_t>::FromSize(addr, size));
+    crnt_process->GetMmu()->Unmap(ztd::Range<vaddr_t>::fromSize(addr, size));
     return RESULT_SUCCESS;
 }
 
@@ -967,16 +967,16 @@ result_t Kernel::GetInfo(Process* crnt_process, InfoType info_type,
         out_info = 0xf;
         return RESULT_SUCCESS;
     case InfoType::AliasRegionAddress:
-        out_info = ALIAS_REGION.GetBegin();
+        out_info = ALIAS_REGION.getBegin();
         return RESULT_SUCCESS;
     case InfoType::AliasRegionSize:
-        out_info = ALIAS_REGION.GetSize();
+        out_info = ALIAS_REGION.getSize();
         return RESULT_SUCCESS;
     case InfoType::HeapRegionAddress:
-        out_info = HEAP_REGION.GetBegin();
+        out_info = HEAP_REGION.getBegin();
         return RESULT_SUCCESS;
     case InfoType::HeapRegionSize:
-        out_info = HEAP_REGION.GetSize();
+        out_info = HEAP_REGION.getSize();
         return RESULT_SUCCESS;
     case InfoType::TotalMemorySize:
         // TODO: what should this be?
@@ -1004,16 +1004,16 @@ result_t Kernel::GetInfo(Process* crnt_process, InfoType info_type,
         out_info = crnt_process->GetRandomEntropy()[info_sub_type];
         return RESULT_SUCCESS;
     case InfoType::AslrRegionAddress:
-        out_info = ADDRESS_SPACE.GetBegin();
+        out_info = ADDRESS_SPACE.getBegin();
         return RESULT_SUCCESS;
     case InfoType::AslrRegionSize:
-        out_info = ADDRESS_SPACE.GetSize();
+        out_info = ADDRESS_SPACE.getSize();
         return RESULT_SUCCESS;
     case InfoType::StackRegionAddress:
-        out_info = STACK_REGION.GetBegin();
+        out_info = STACK_REGION.getBegin();
         return RESULT_SUCCESS;
     case InfoType::StackRegionSize:
-        out_info = STACK_REGION.GetSize();
+        out_info = STACK_REGION.getSize();
         return RESULT_SUCCESS;
     case InfoType::TotalSystemResourceSize: {
         out_info = crnt_process->GetSystemResourceSize();
@@ -1069,7 +1069,7 @@ result_t Kernel::MapPhysicalMemory(Process* crnt_process, vaddr_t addr,
     if (!is_aligned(size, hw::tegra_x1::cpu::GUEST_PAGE_SIZE))
         return MAKE_RESULT(Svc, 101); // Invalid size
 
-    if (!ALIAS_REGION.Contains(Range<vaddr_t>::FromSize(addr, size)))
+    if (!ALIAS_REGION.contains(ztd::Range<vaddr_t>::fromSize(addr, size)))
         return MAKE_RESULT(Svc, 110); // Invalid memory region
 
     auto mem = system.GetCpu().AllocateMemory(size);
@@ -1344,7 +1344,7 @@ result_t Kernel::MapProcessMemory(Process* crnt_process, vaddr_t dst_addr,
 
     // TODO: correct?
     const auto ptr = process->GetMmu()->UnmapAddr(src_addr);
-    crnt_process->GetMmu()->Map(dst_addr, Range<uptr>::FromSize(ptr, size),
+    crnt_process->GetMmu()->Map(dst_addr, ztd::Range<uptr>::fromSize(ptr, size),
                                 {}); // TODO: state
 
     return RESULT_SUCCESS;
@@ -1357,7 +1357,7 @@ result_t Kernel::MapProcessCodeMemory(Process* process, vaddr_t dst_addr,
               "src_addr: 0x{:08x}, size: {})",
               process->GetDebugName(), dst_addr, src_addr, size);
 
-    process->GetMmu()->Map(dst_addr, Range<vaddr_t>::FromSize(src_addr, size));
+    process->GetMmu()->Map(dst_addr, ztd::Range<vaddr_t>::fromSize(src_addr, size));
 
     return RESULT_SUCCESS;
 }
@@ -1372,7 +1372,7 @@ result_t Kernel::UnmapProcessCodeMemory(Process* process, vaddr_t dst_addr,
     // TODO: verify that src_addr is the same as the one used in MapMemory?
     (void)src_addr;
 
-    process->GetMmu()->Unmap(Range<vaddr_t>::FromSize(dst_addr, size));
+    process->GetMmu()->Unmap(ztd::Range<vaddr_t>::fromSize(dst_addr, size));
 
     return RESULT_SUCCESS;
 }

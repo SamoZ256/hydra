@@ -249,7 +249,7 @@ struct TextureDescriptor {
         CalculateSize();
     }
 
-    Range<uptr> GetRange() const { return Range<uptr>::FromSize(ptr, size); }
+    ztd::Range<uptr> GetRange() const { return ztd::Range<uptr>::fromSize(ptr, size); }
 
     u32 GetGroupHash() const;
     u32 GetStorageHash() const;
@@ -266,12 +266,12 @@ struct TextureDescriptor {
 struct TextureViewDescriptor {
     TextureType type;
     TextureFormat format;
-    Range<u32> levels;
-    Range<u32> layers;
+    ztd::Range<u32> levels;
+    ztd::Range<u32> layers;
     SwizzleChannels swizzle_channels;
 
     TextureViewDescriptor(TextureType type_, TextureFormat format_,
-                          Range<u32> levels_, Range<u32> layers_,
+                          ztd::Range<u32> levels_, ztd::Range<u32> layers_,
                           SwizzleChannels swizzle_channels_ = SwizzleChannels())
         : type{type_}, format{format_}, levels{levels_}, layers{layers_},
           swizzle_channels{swizzle_channels_} {}

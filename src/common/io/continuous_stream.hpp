@@ -10,7 +10,7 @@ class IContinuousStream : public IStream {
     ~IContinuousStream() noexcept = default;
 
     MAKE_DEFAULT_COPYABLE(IContinuousStream);
-    MAKE_NON_MOVABLE(IContinuousStream);
+    MAKE_DEFAULT_MOVABLE(IContinuousStream);
 
     u64 GetSeek() const override { return seek; }
     void SeekTo(u64 seek_) override { seek = seek_; }

@@ -97,23 +97,23 @@ class PageTable {
     PageTable(paddr_t base_pa);
     ~PageTable();
 
-    void Map(vaddr_t va, Range<uptr> range,
+    void Map(vaddr_t va, ztd::Range<uptr> range,
              const horizon::kernel::MemoryState state, ApFlags ap_flags);
-    void Unmap(Range<vaddr_t> range);
+    void Unmap(ztd::Range<vaddr_t> range);
 
     // State
     PageRegion QueryRegion(vaddr_t va) const;
-    void SetMemoryPermission(Range<vaddr_t> range,
+    void SetMemoryPermission(ztd::Range<vaddr_t> range,
                              horizon::kernel::MemoryPermission perm,
                              ApFlags ap_flags);
-    void SetMemoryAttribute(Range<vaddr_t> range,
+    void SetMemoryAttribute(ztd::Range<vaddr_t> range,
                             horizon::kernel::MemoryAttribute mask,
                             horizon::kernel::MemoryAttribute value);
 
     // Write tracking
-    void SetWriteTrackingEnabled(Range<vaddr_t> range, bool enable);
-    bool TrySuspendWriteTracking(Range<vaddr_t> range);
-    void ResumeWriteTracking(Range<vaddr_t> range);
+    void SetWriteTrackingEnabled(ztd::Range<vaddr_t> range, bool enable);
+    bool TrySuspendWriteTracking(ztd::Range<vaddr_t> range);
+    void ResumeWriteTracking(ztd::Range<vaddr_t> range);
 
     paddr_t UnmapAddr(vaddr_t va) const;
 
@@ -130,12 +130,12 @@ class PageTable {
                       ApFlags ap_flags);
 
     void
-    IterateRange(Range<vaddr_t> range,
-                 const std::function<void(Range<vaddr_t>, u64,
+    IterateRange(ztd::Range<vaddr_t> range,
+                 const std::function<void(ztd::Range<vaddr_t>, u64,
                                           const horizon::kernel::MemoryState&,
                                           PageFlags)>& callback) const;
-    void ModifyRange(Range<vaddr_t> range,
-                     const std::function<void(Range<vaddr_t>, u64&,
+    void ModifyRange(ztd::Range<vaddr_t> range,
+                     const std::function<void(ztd::Range<vaddr_t>, u64&,
                                               horizon::kernel::MemoryState&,
                                               PageFlags&)>& callback);
 };

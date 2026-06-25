@@ -24,8 +24,8 @@ class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
 
     void Run() override;
 
-    void NotifyMemoryChanged(Range<vaddr_t> mem_range) override {
-        jit->InvalidateCacheRange(mem_range.GetBegin(), mem_range.GetSize());
+    void NotifyMemoryChanged(ztd::Range<vaddr_t> mem_range) override {
+        jit->InvalidateCacheRange(mem_range.getBegin(), mem_range.getSize());
     }
 
     // Debug

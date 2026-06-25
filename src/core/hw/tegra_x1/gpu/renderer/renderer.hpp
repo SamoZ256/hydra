@@ -49,7 +49,7 @@ class IRenderer {
     virtual ~IRenderer() = default;
 
     void InvalidateMemory(
-        Range<uptr> range,
+        ztd::Range<uptr> range,
         MemoryInvalidationScope scope = MemoryInvalidationScope::BufferCache |
                                         MemoryInvalidationScope::TextureCache |
                                         MemoryInvalidationScope::ShaderCache) {

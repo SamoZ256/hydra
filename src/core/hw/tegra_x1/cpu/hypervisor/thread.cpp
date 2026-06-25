@@ -179,7 +179,7 @@ void Thread::Run() {
                 case ExceptionClass::DataAbortLowerEl: {
                     // TODO: use the correct size
                     if (far < ADDRESS_SPACE_SIZE &&
-                        MMU.TrackWrite(Range<vaddr_t>::FromSize(far, 8)))
+                        MMU.TrackWrite(ztd::Range<vaddr_t>::fromSize(far, 8)))
                         break;
 
                     bool far_valid = (esr & 0x00000400) == 0;

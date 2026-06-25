@@ -30,7 +30,7 @@ horizon::kernel::MemoryInfo IMmu::QueryMemory(vaddr_t va) const {
 
         // Next
         vaddr_t addr = info.addr + info.size;
-        if (addr >= horizon::kernel::ADDRESS_SPACE.GetEnd())
+        if (addr >= horizon::kernel::ADDRESS_SPACE.getEnd())
             break;
 
         region = QueryRegion(addr);
@@ -48,35 +48,35 @@ horizon::kernel::MemoryInfo IMmu::QueryMemory(vaddr_t va) const {
     return info;
 }
 
-vaddr_t IMmu::FindFreeMemory(Range<vaddr_t> region, u64 size) const {
+vaddr_t IMmu::FindFreeMemory(ztd::Range<vaddr_t> region, u64 size) const {
     size = align(size, GUEST_PAGE_SIZE);
-    auto crnt_region = Range<vaddr_t>::FromSize(region.GetBegin(), size);
-    while (region.Contains(crnt_region)) {
-        const auto info = QueryMemory(crnt_region.GetBegin());
-        const auto mem_range = Range<vaddr_t>(
-            std::max(info.addr, region.GetBegin()), info.addr + info.size);
+    auto crnt_region = ztd::Range<vaddr_t>::fromSize(region.getBegin(), size);
+    while (region.contains(crnt_region)) {
+        const auto info = QueryMemory(crnt_region.getBegin());
+        const auto mem_range = ztd::Range<vaddr_t>(
+            std::max(info.addr, region.getBegin()), info.addr + info.size);
         if (info.state.type == horizon::kernel::MemoryType::Free &&
-            mem_range.Contains(crnt_region))
-            return mem_range.GetBegin();
+            mem_range.contains(crnt_region))
+            return mem_range.getBegin();
 
-        crnt_region += mem_range.GetSize();
+        crnt_region += mem_range.getSize();
     }
 
     return 0x0;
 }
 
-bool IMmu::TrackWrite(Range<vaddr_t> range) {
+bool IMmu::TrackWrite(ztd::Range<vaddr_t> range) {
     const auto aligned_range =
-        Range<vaddr_t>(align_down(range.GetBegin(), GUEST_PAGE_SIZE),
-                       align(range.GetEnd(), GUEST_PAGE_SIZE));
+        ztd::Range<vaddr_t>(align_down(range.getBegin(), GUEST_PAGE_SIZE),
+                       align(range.getEnd(), GUEST_PAGE_SIZE));
     if (!TrySuspendWriteTracking(aligned_range))
         return false;
 
     // Notify the GPU
     // TODO: what about non-contiguous regions?
-    const auto ptr = UnmapAddr(aligned_range.GetBegin());
+    const auto ptr = UnmapAddr(aligned_range.getBegin());
     system.GetGpu().GetRenderer().InvalidateMemory(
-        Range<uptr>::FromSize(ptr, aligned_range.GetSize()));
+        ztd::Range<uptr>::fromSize(ptr, aligned_range.getSize()));
 
     {
         std::scoped_lock lock(write_tracking_mutex);

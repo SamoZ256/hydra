@@ -11,7 +11,7 @@ struct IndexDescriptor {
     engines::IndexType type;
     engines::PrimitiveType primitive_type;
     u32 count;
-    std::optional<Range<uptr>> mem_range{std::nullopt};
+    std::optional<ztd::Range<uptr>> mem_range{std::nullopt};
 };
 
 // TODO: memory invalidation

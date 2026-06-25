@@ -338,7 +338,7 @@ void ThreeD::DrawVertexElements(const u32 index, u32 count) {
                 regs.index_type); // u64(regs.index_buffer_limit_addr) + 1
                                   // - u64(regs.index_buffer_addr);
         const auto range =
-            Range<uptr>::FromSize(index_buffer_ptr, index_buffer_size);
+            ztd::Range<uptr>::fromSize(index_buffer_ptr, index_buffer_size);
 
         index_buffer = gpu.GetRenderer().GetIndexCache().Decode(
             tls_crnt_command_buffer,
@@ -418,7 +418,7 @@ void ThreeD::LoadConstBuffer(const u32 index, const u32 data) {
     // Invalidate
     // TODO: invalidate as a whole
     gpu.GetRenderer().InvalidateMemory(
-        Range<uptr>::FromSize(ptr, sizeof(u32)),
+        ztd::Range<uptr>::fromSize(ptr, sizeof(u32)),
         renderer::MemoryInvalidationScope::BufferCache);
 }
 
@@ -437,12 +437,12 @@ void ThreeD::BindGroup(const u32 index, const u32 data) {
             const uptr const_buffer_gpu_ptr =
                 tls_crnt_gmmu->UnmapAddr(regs.const_buffer_selector);
 
-            const auto range = Range<uptr>::FromSize(
+            const auto range = ztd::Range<uptr>::fromSize(
                 const_buffer_gpu_ptr, regs.const_buffer_selector_size);
             bound_const_buffers[shader_stage_index][buffer_index] = range;
         } else {
             bound_const_buffers[shader_stage_index][buffer_index] =
-                Range<uptr>();
+                ztd::Range<uptr>();
         }
         break;
     }
@@ -780,7 +780,7 @@ renderer::BufferView ThreeD::GetVertexBuffer(u32 vertex_array_index) const {
         static_cast<u64>(regs.vertex_array_limits[vertex_array_index]) + 1 -
         static_cast<u64>(vertex_array.addr);
     return gpu.GetRenderer().GetBufferCache().Get(
-        tls_crnt_command_buffer, Range<uptr>::FromSize(ptr, size));
+        tls_crnt_command_buffer, ztd::Range<uptr>::fromSize(ptr, size));
 }
 
 renderer::ITextureView*
@@ -833,7 +833,7 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
         level_count, layer_count, tic.sparse_tile_width_gobs_log2,
         tic.tile_height_gobs_log2, tic.tile_depth_gobs_log2);
     const renderer::TextureViewDescriptor view_descriptor(
-        type, format, Range<u32>(0, level_count), Range<u32>(0, layer_count),
+        type, format, ztd::Range<u32>(0, level_count), ztd::Range<u32>(0, layer_count),
         renderer::SwizzleChannels(
             format, tic.format_word.swizzle_x, tic.format_word.swizzle_y,
             tic.format_word.swizzle_z, tic.format_word.swizzle_w));
@@ -884,7 +884,7 @@ void ThreeD::ConfigureShaderStage(
 
         // TODO: analyze the shader to get the max possible size
         const auto range = bound_const_buffers[stage_index][i];
-        if (range.GetBegin() == 0x0) {
+        if (range.getBegin() == 0x0) {
             LOG_WARN(Engines, "Uniform buffer at index {} is not bound", index);
             continue;
         }
@@ -902,7 +902,7 @@ void ThreeD::ConfigureShaderStage(
         auto tex_const_buffer = reinterpret_cast<const u32*>(
             bound_const_buffers[stage_index]
                                [regs.bindless_texture_const_buffer_slot]
-                                   .GetBegin());
+                                   .getBegin());
         for (const auto [const_buffer_index, renderer_index] :
              resource_mapping.textures) {
             const auto texture_handle = tex_const_buffer[const_buffer_index];

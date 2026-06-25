@@ -18,11 +18,11 @@ class ITexture {
 
     // Copying
     virtual void CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
-                          const Range<u32> dst_levels,
-                          const Range<u32> dst_layers) = 0;
+                          const ztd::Range<u32> dst_levels,
+                          const ztd::Range<u32> dst_layers) = 0;
     void CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src) {
-        CopyFrom(command_buffer, src, Range<u32>(0, descriptor.level_count),
-                 Range<u32>(0, descriptor.layer_count));
+        CopyFrom(command_buffer, src, ztd::Range<u32>(0, descriptor.level_count),
+                 ztd::Range<u32>(0, descriptor.layer_count));
     }
     virtual void CopyFrom(ICommandBuffer* command_buffer, const ITexture* src,
                           const u32 src_level, const u32 src_layer,

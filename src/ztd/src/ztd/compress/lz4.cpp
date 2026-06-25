@@ -1,12 +1,13 @@
-#include "common/lz4.hpp"
+#include "ztd/compress/lz4.hpp"
 
 #include <cstring>
 
-namespace hydra {
+namespace ztd::compress {
 
 namespace {
 
-u32 GetLength(std::span<const u8> src, u32& cmp_pos, u32 length) {
+auto getLength(std::span<const u8> src, u32& cmp_pos, u32 length) noexcept
+    -> u32 {
     u8 sum = 0;
     if (length == 0xf) {
         do {
@@ -19,7 +20,8 @@ u32 GetLength(std::span<const u8> src, u32& cmp_pos, u32 length) {
 
 } // namespace
 
-void DecompressLZ4(std::span<const u8> src, std::span<u8> dst) {
+auto decompressLz4(std::span<const u8> src, std::span<u8> dst) noexcept
+    -> void {
     u32 cmp_pos = 0;
     u32 dec_pos = 0;
 
@@ -30,7 +32,7 @@ void DecompressLZ4(std::span<const u8> src, std::span<u8> dst) {
         u32 lit_count = (token >> 4) & 0xf;
 
         // Copy literal chunk
-        lit_count = GetLength(src, cmp_pos, lit_count);
+        lit_count = getLength(src, cmp_pos, lit_count);
 
         std::memcpy(dst.data() + dec_pos, src.data() + cmp_pos, lit_count);
 
@@ -45,7 +47,7 @@ void DecompressLZ4(std::span<const u8> src, std::span<u8> dst) {
         u32 back = static_cast<u32>(src[cmp_pos++]) << 0u;
         back |= static_cast<u32>(src[cmp_pos++]) << 8u;
 
-        enc_count = GetLength(src, cmp_pos, enc_count) + 4;
+        enc_count = getLength(src, cmp_pos, enc_count) + 4;
 
         u32 enc_pos = dec_pos - back;
 
@@ -61,4 +63,4 @@ void DecompressLZ4(std::span<const u8> src, std::span<u8> dst) {
     } while (cmp_pos < src.size() && dec_pos < dst.size());
 }
 
-} // namespace hydra
+} // namespace ztd::compress

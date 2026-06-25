@@ -70,9 +70,9 @@ void NroLoader::LoadProcess(System& system, kernel::Process* process) {
     // TODO: is the size correct?
     const auto set = kernel::CodeSet{
         .size=GetExecutableSize() + 0x1000, // HACK: one extra page
-        .code=Range<u64>::FromSize(sections[0].offset, sections[0].size),
-        .ro_data=Range<u64>::FromSize(sections[1].offset, sections[1].size),
-        .data=Range<u64>::FromSize(sections[2].offset, sections[2].size)};
+        .code=ztd::Range<u64>::fromSize(sections[0].offset, sections[0].size),
+        .ro_data=ztd::Range<u64>::fromSize(sections[1].offset, sections[1].size),
+        .data=ztd::Range<u64>::fromSize(sections[2].offset, sections[2].size)};
     // TODO: module name
     executable_ptr =
         process->CreateExecutableMemory("main.nro", set, executable_base);
