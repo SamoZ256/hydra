@@ -9,7 +9,7 @@ PageAllocator::PageAllocator(paddr_t base_pa_, usize page_count)
 
 PageAllocator::~PageAllocator() {
     for (const auto allocation : allocations) {
-        free(reinterpret_cast<void*>(allocation.ptr));
+        FreeVmMemory(allocation.ptr, GUEST_PAGE_SIZE * allocation.page_count);
     }
 }
 

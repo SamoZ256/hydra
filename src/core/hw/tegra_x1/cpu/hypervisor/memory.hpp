@@ -40,7 +40,7 @@ class Memory : public IMemory {
         HV_ASSERT_SUCCESS(
             hv_vm_unmap(ptr, align(GetSizeAligned(), APPLE_PAGE_SIZE)));
 
-        munmap(reinterpret_cast<void*>(ptr), GetSizeAligned());
+        FreeVmMemory(ptr, GetSizeAligned());
     }
 };
 
