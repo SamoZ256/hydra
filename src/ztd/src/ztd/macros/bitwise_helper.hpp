@@ -1,9 +1,9 @@
 #pragma once
 
-#define BIT(n) (1u << (n))
-#define BITL(n) (1ul << (n))
+#define ZTD_BIT(n) (1u << (n))
+#define ZTD_BITL(n) (1ul << (n))
 
-#define ENABLE_ENUM_BITWISE_OPERATORS(type)                                    \
+#define ZTD_ENABLE_ENUM_BITWISE_OPERATORS(type)                                \
     [[maybe_unused]] inline type operator|(type a, type b) {                   \
         return static_cast<type>(                                              \
             static_cast<std::underlying_type_t<type>>(a) |                     \

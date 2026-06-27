@@ -26,6 +26,20 @@ add_library(ztd
     src/ztd/compress/lz4.cpp
     src/ztd/compress/lz4.hpp
     src/ztd/hash/xxhash32.hpp
+    src/ztd/macros/bitwise_helper.hpp
+    src/ztd/macros/constructor_helper.hpp
+    src/ztd/macros/crtp_helper.hpp
+    src/ztd/macros/for_each_helper.hpp
+    src/ztd/macros/macro_helper.hpp
+    src/ztd/macros/optional_helper.hpp
+    src/ztd/macros/platform.hpp
+    src/ztd/mem/alignment.hpp
+    src/ztd/mem/allocator.hpp
+    src/ztd/mem/c_allocator.hpp
+    src/ztd/mem/default_allocator.hpp
+    src/ztd/mem/literals.hpp
+    src/ztd/mem/page.hpp
+    src/ztd/mem/page_allocator.hpp
     src/ztd/range.hpp
     src/ztd/time.hpp
     src/ztd/type_aliases.hpp
