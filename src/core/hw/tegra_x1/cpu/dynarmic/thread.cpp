@@ -1,7 +1,5 @@
 #include "core/hw/tegra_x1/cpu/dynarmic/thread.hpp"
 
-#include <mach/mach_time.h>
-
 #include <dynarmic/interface/exclusive_monitor.h>
 
 #include "core/hw/tegra_x1/cpu/dynarmic/mmu.hpp"

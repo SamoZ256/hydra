@@ -12,8 +12,8 @@ struct RingLifo {
     };
 
     void Clear() {
-        atomic_store(&index, 0ull);
-        atomic_store(&count, 0ull);
+        atomic_store<u64>(&index, 0ull);
+        atomic_store<u64>(&count, 0ull);
     }
 
     T& GetCurrentStorage() { return GetCurrentAtomicStorage().data; }
@@ -26,7 +26,7 @@ struct RingLifo {
         // TODO: why?
         // TODO: should be max_entries - 1
         if (ReadCount() < 1) {
-            atomic_fetch_add(&count, 1ull);
+            atomic_fetch_add<u64>(&count, 1ull);
         }
     }
 
@@ -68,7 +68,7 @@ struct RingLifo {
 
     AtomicStorage& GetCurrentAtomicStorage() {
         const auto count_ =
-            std::min(ReadCount(), 1ull); // TODO: why limit to 1?
+            std::min<u64>(ReadCount(), 1ull); // TODO: why limit to 1?
         if (count_ == 0) {
             throw Error::NoStorage; // TODO: what to do?
         }

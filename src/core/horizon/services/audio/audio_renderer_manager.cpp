@@ -49,7 +49,7 @@ IAudioRendererManager::GetWorkBufferSize(AudioRendererParameters params,
             edge_matrix_buffer_sz = node_count / 8;
         }
         buffer_sz +=
-            align(node_state_buffer_sz + edge_matrix_buffer_sz, 0x10ull);
+            align<u64>(node_state_buffer_sz + edge_matrix_buffer_sz, 0x10ull);
     }
 
     buffer_sz += 0x20 * (params.effect_count + 4 * params.voice_count) + 0x50;
@@ -59,7 +59,7 @@ IAudioRendererManager::GetWorkBufferSize(AudioRendererParameters params,
         buffer_sz += 0x20 * params.splitter_count;
         buffer_sz += align(4 * params._unknown_x2c, 0x10u);
     }
-    buffer_sz = align(buffer_sz, 0x40ull) + 0x170 * params.sink_count;
+    buffer_sz = align<u64>(buffer_sz, 0x40ull) + 0x170 * params.sink_count;
     u64 output_sz = buffer_sz + 0x280 * params.sink_count +
                     0x4B0 * params.effect_count +
                     ((params.voice_count * 256) | 0x40);
@@ -73,7 +73,7 @@ IAudioRendererManager::GetWorkBufferSize(AudioRendererParameters params,
                           0x40u) +
                     output_sz;
     }
-    output_sz = align(output_sz + 0x1807e, 0x1000ull);
+    output_sz = align<u64>(output_sz + 0x1807e, 0x1000ull);
 
     *out_size = output_sz;
     LOG_INFO(Services, "Audio renderer work buffer size: 0x{:x}", *out_size);

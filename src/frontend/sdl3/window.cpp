@@ -15,7 +15,9 @@ Context::~Context() { SDL_Quit(); }
 
 Window::Window(int argc, const char* argv[]) : system(*this) {
     // Window and renderer
+#ifdef PLATFORM_APPLE
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "metal");
+#endif
     SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
 
     if (!SDL_CreateWindowAndRenderer(APP_NAME, 1280, 720, SDL_WINDOW_RESIZABLE,
@@ -72,7 +74,9 @@ void Window::Run() {
                 break;
             }
             default:
-                cursor.Poll(e);
+                if (cursor != nullptr) {
+                    cursor->Poll(e);
+                }
                 break;
             }
         }
@@ -113,20 +117,25 @@ void Window::ShowMessageDialog(const horizon::ui::MessageDialogType type,
 }
 
 horizon::applets::software_keyboard::SoftwareKeyboardResult
-Window::ShowSoftwareKeyboard(const std::string& header_text,
-                             const std::string& sub_text,
-                             const std::string& guide_text,
-                             std::string& out_text) {
+Window::ShowSoftwareKeyboard([[maybe_unused]] const std::string& header_text,
+                             [[maybe_unused]] const std::string& sub_text,
+                             [[maybe_unused]] const std::string& guide_text,
+                             [[maybe_unused]] std::string& out_text) {
+#ifdef PLATFORM_APPLE
     return native.ShowInputTextDialog(header_text, sub_text, guide_text,
                                       out_text)
                ? horizon::applets::software_keyboard::SoftwareKeyboardResult::OK
                : horizon::applets::software_keyboard::SoftwareKeyboardResult::
                      Cancel;
+#else
+    return horizon::applets::software_keyboard::SoftwareKeyboardResult::Cancel;
+#endif
 }
 
 void Window::BeginEmulation(const std::string& path) {
     // Connect cursor as a touch screen device
-    system.GetInputDeviceManager().ConnectTouchScreenDevice("cursor", &cursor);
+    cursor = new Cursor{};
+    system.GetInputDeviceManager().ConnectTouchScreenDevice("cursor", cursor);
 
     system.SetSurface(SDL_GetRenderMetalLayer(renderer));
     // TODO: support loading applets from firmware

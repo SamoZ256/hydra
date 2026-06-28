@@ -99,6 +99,9 @@ result_t ITimeZoneService::ToCalendarTimeImpl(
 
     // Get time zone name
     const char* tz_name = rule.chars + info.abbreviation_list_index;
+    if (tz_name == nullptr) {
+        tz_name = "UTC";
+    }
 
     // Output
     out_time = {

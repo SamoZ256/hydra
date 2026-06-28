@@ -2,7 +2,9 @@
 
 #include <fstream>
 
+#ifdef PLATFORM_APPLE
 #include <CoreFoundation/CoreFoundation.h>
+#endif
 
 #include "common/log.hpp"
 #include "common/platform.hpp"

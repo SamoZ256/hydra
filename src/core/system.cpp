@@ -99,6 +99,8 @@ System::System(horizon::ui::IHandler& ui_handler_)
 System::~System() {
     // TODO: set this elsewhere
     LOGGER_INSTANCE.SetOutput(LogOutput::StdOut);
+    
+    ForceStop();
 }
 
 void System::LoadAndStart(horizon::loader::LoaderBase* loader) {

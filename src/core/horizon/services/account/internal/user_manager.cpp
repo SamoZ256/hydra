@@ -92,7 +92,10 @@ uuid_t UserManager::CreateUser() {
     return user_id;
 }
 
-void UserManager::LoadSystemAvatars(filesystem::Filesystem& fs) {
+void UserManager::LoadSystemAvatars(
+    [[maybe_unused]] filesystem::Filesystem& fs) {
+// TODO: other platforms
+#ifdef PLATFORM_APPLE
     // Default avatar
     const auto default_image_path =
         get_bundle_resource_path("default_avatar_image.png");
@@ -135,6 +138,7 @@ void UserManager::LoadSystemAvatars(filesystem::Filesystem& fs) {
             avatars[fmt::format(SYSTEM_AVATARS_PATH "/{}", name)] = {
                 static_cast<filesystem::IFile*>(entry)};
     }
+#endif
 }
 
 const std::vector<uchar4>& UserManager::LoadAvatarImage(std::string_view path,

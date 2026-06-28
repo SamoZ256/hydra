@@ -3,6 +3,10 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#ifdef PLATFORM_LINUX
+#include <fcntl.h>
+#include <sys/stat.h>
+#endif
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"

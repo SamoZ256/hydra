@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 #include "core/horizon/filesystem/file.hpp"
 
 #define LOG_FS_ACCESS(host_path, f, ...)                                       \
@@ -16,7 +18,7 @@ class DiskStream : public io::IostreamStream {
     // as a path
     DiskStream(const std::string_view path, std::ios::openmode flags)
         : io::IostreamStream(stream), stream(std::string(path), flags) {
-        LOG_FS_ACCESS(path, "file opened (flags: {})", flags);
+        LOG_FS_ACCESS(path, "file opened (flags: {})", static_cast<u32>(flags));
     }
     ~DiskStream() override {
         stream.close();

@@ -4,9 +4,12 @@
 #include "core/system.hpp"
 #include "frontend/sdl3/cursor.hpp"
 
-// TODO: if macOS
+#ifdef PLATFORM_APPLE
 #include "frontend/native/cocoa/native.hpp"
 using Native = hydra::frontend::native::cocoa::Native;
+#else
+using Native = std::monostate;
+#endif
 
 namespace hydra::frontend::sdl3 {
 
@@ -39,8 +42,8 @@ class Window : public horizon::ui::IHandler {
     SDL_Window* window;
     SDL_Renderer* renderer;
 
-    Native native;
-    Cursor cursor;
+    [[maybe_unused]] Native native;
+    Cursor* cursor{nullptr};
 
     System system;
     u64 title_id;

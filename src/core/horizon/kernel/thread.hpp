@@ -1,5 +1,7 @@
 #pragma once
 
+#include <condition_variable>
+
 #include "core/horizon/kernel/synchronization_object.hpp"
 
 namespace hydra::horizon::kernel {

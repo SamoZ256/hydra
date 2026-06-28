@@ -115,7 +115,7 @@ std::vector<SparseFileEntry> Builder::Build() {
     // Assign file offsets
     u32 entry_offset = 0;
     for (auto& file : files) {
-        data_size = align(data_size, 16ull);
+        data_size = align<u64>(data_size, 16ull);
         file->offset = data_size;
         data_size += file->size;
         file->entry_offset = entry_offset;
@@ -166,7 +166,7 @@ std::vector<SparseFileEntry> Builder::Build() {
     Header header{};
     header.header_size = sizeof(Header);
     header.data_offset = DATA_OFFSET;
-    header.directory_hash = {align(header.data_offset + data_size, 4ull),
+    header.directory_hash = {align<u64>(header.data_offset + data_size, 4ull),
                              dir_hash_table_size};
     header.directory_meta = {header.directory_hash.offset +
                                  header.directory_hash.size,

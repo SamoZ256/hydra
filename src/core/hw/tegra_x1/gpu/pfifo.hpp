@@ -1,5 +1,7 @@
 #pragma once
 
+#include <condition_variable>
+
 #include "core/hw/tegra_x1/gpu/const.hpp"
 #include "core/hw/tegra_x1/gpu/gmmu.hpp"
 

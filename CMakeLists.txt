@@ -154,6 +154,7 @@ target_compile_options(hydra_warnings INTERFACE
     -Wno-vla-extension
     -Wno-gnu-case-range
     -Wno-gnu-zero-variadic-macro-arguments
+    -Wno-missing-designated-field-initializers
 )
 
 include_directories(externals/metal-cpp externals/dynarmic externals/stb)

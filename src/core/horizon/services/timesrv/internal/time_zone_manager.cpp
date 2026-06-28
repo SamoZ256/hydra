@@ -92,6 +92,8 @@ void TimeZoneManager::LoadRule(std::string_view location_name,
                                TimeZoneRule& out_rule) const {
     LOG_DEBUG(Services, "Location name: {}", location_name);
 
+    out_rule = {};
+
     // NCA
     filesystem::IFile* time_zone_archive_file;
     auto res = filesystem.GetFile(FS_FIRMWARE_PATH "/TimeZoneBinary",

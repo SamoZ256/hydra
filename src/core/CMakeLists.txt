@@ -599,38 +599,6 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/null/texture.hpp
     hw/tegra_x1/gpu/renderer/null/renderer.cpp
     hw/tegra_x1/gpu/renderer/null/renderer.hpp
-    hw/tegra_x1/gpu/renderer/metal/const.hpp
-    hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.cpp
-    hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.hpp
-    hw/tegra_x1/gpu/renderer/metal/impl.cpp
-    hw/tegra_x1/gpu/renderer/metal/command_buffer.cpp
-    hw/tegra_x1/gpu/renderer/metal/command_buffer.hpp
-    hw/tegra_x1/gpu/renderer/metal/surface_compositor.cpp
-    hw/tegra_x1/gpu/renderer/metal/surface_compositor.hpp
-    hw/tegra_x1/gpu/renderer/metal/buffer.cpp
-    hw/tegra_x1/gpu/renderer/metal/buffer.hpp
-    hw/tegra_x1/gpu/renderer/metal/texture.cpp
-    hw/tegra_x1/gpu/renderer/metal/texture.hpp
-    hw/tegra_x1/gpu/renderer/metal/texture_view.cpp
-    hw/tegra_x1/gpu/renderer/metal/texture_view.hpp
-    hw/tegra_x1/gpu/renderer/metal/sampler.cpp
-    hw/tegra_x1/gpu/renderer/metal/sampler.hpp
-    hw/tegra_x1/gpu/renderer/metal/render_pass.cpp
-    hw/tegra_x1/gpu/renderer/metal/render_pass.hpp
-    hw/tegra_x1/gpu/renderer/metal/shader.cpp
-    hw/tegra_x1/gpu/renderer/metal/shader.hpp
-    hw/tegra_x1/gpu/renderer/metal/pipeline.cpp
-    hw/tegra_x1/gpu/renderer/metal/pipeline.hpp
-    hw/tegra_x1/gpu/renderer/metal/depth_stencil_state_cache.cpp
-    hw/tegra_x1/gpu/renderer/metal/depth_stencil_state_cache.hpp
-    hw/tegra_x1/gpu/renderer/metal/blit_pipeline_cache.cpp
-    hw/tegra_x1/gpu/renderer/metal/blit_pipeline_cache.hpp
-    hw/tegra_x1/gpu/renderer/metal/clear_color_pipeline_cache.cpp
-    hw/tegra_x1/gpu/renderer/metal/clear_color_pipeline_cache.hpp
-    hw/tegra_x1/gpu/renderer/metal/clear_depth_pipeline_cache.cpp
-    hw/tegra_x1/gpu/renderer/metal/clear_depth_pipeline_cache.hpp
-    hw/tegra_x1/gpu/renderer/metal/renderer.cpp
-    hw/tegra_x1/gpu/renderer/metal/renderer.hpp
     input/const.hpp
     input/state.hpp
     input/device.hpp
@@ -642,12 +610,6 @@ add_library(hydra-core
     input/device_list.hpp
     input/device_manager.cpp
     input/device_manager.hpp
-    input/apple_gc/keyboard.mm
-    input/apple_gc/keyboard.hpp
-    input/apple_gc/controller.mm
-    input/apple_gc/controller.hpp
-    input/apple_gc/device_list.mm
-    input/apple_gc/device_list.hpp
     # TODO: only build the debugger on debug builds
     debugger/const.hpp
     debugger/gdb_server.cpp
@@ -662,6 +624,49 @@ add_library(hydra-core
     c_api.cpp
     c_api.h
 )
+
+if (APPLE)
+    target_sources(hydra-core PRIVATE 
+        hw/tegra_x1/gpu/renderer/metal/const.hpp
+        hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.cpp
+        hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.hpp
+        hw/tegra_x1/gpu/renderer/metal/impl.cpp
+        hw/tegra_x1/gpu/renderer/metal/command_buffer.cpp
+        hw/tegra_x1/gpu/renderer/metal/command_buffer.hpp
+        hw/tegra_x1/gpu/renderer/metal/surface_compositor.cpp
+        hw/tegra_x1/gpu/renderer/metal/surface_compositor.hpp
+        hw/tegra_x1/gpu/renderer/metal/buffer.cpp
+        hw/tegra_x1/gpu/renderer/metal/buffer.hpp
+        hw/tegra_x1/gpu/renderer/metal/texture.cpp
+        hw/tegra_x1/gpu/renderer/metal/texture.hpp
+        hw/tegra_x1/gpu/renderer/metal/texture_view.cpp
+        hw/tegra_x1/gpu/renderer/metal/texture_view.hpp
+        hw/tegra_x1/gpu/renderer/metal/sampler.cpp
+        hw/tegra_x1/gpu/renderer/metal/sampler.hpp
+        hw/tegra_x1/gpu/renderer/metal/render_pass.cpp
+        hw/tegra_x1/gpu/renderer/metal/render_pass.hpp
+        hw/tegra_x1/gpu/renderer/metal/shader.cpp
+        hw/tegra_x1/gpu/renderer/metal/shader.hpp
+        hw/tegra_x1/gpu/renderer/metal/pipeline.cpp
+        hw/tegra_x1/gpu/renderer/metal/pipeline.hpp
+        hw/tegra_x1/gpu/renderer/metal/depth_stencil_state_cache.cpp
+        hw/tegra_x1/gpu/renderer/metal/depth_stencil_state_cache.hpp
+        hw/tegra_x1/gpu/renderer/metal/blit_pipeline_cache.cpp
+        hw/tegra_x1/gpu/renderer/metal/blit_pipeline_cache.hpp
+        hw/tegra_x1/gpu/renderer/metal/clear_color_pipeline_cache.cpp
+        hw/tegra_x1/gpu/renderer/metal/clear_color_pipeline_cache.hpp
+        hw/tegra_x1/gpu/renderer/metal/clear_depth_pipeline_cache.cpp
+        hw/tegra_x1/gpu/renderer/metal/clear_depth_pipeline_cache.hpp
+        hw/tegra_x1/gpu/renderer/metal/renderer.cpp
+        hw/tegra_x1/gpu/renderer/metal/renderer.hpp
+        input/apple_gc/keyboard.mm
+        input/apple_gc/keyboard.hpp
+        input/apple_gc/controller.mm
+        input/apple_gc/controller.hpp
+        input/apple_gc/device_list.mm
+        input/apple_gc/device_list.hpp
+    )
+endif ()
 
 if (HYPERVISOR_ENABLED)
     target_sources(hydra-core PRIVATE
@@ -702,11 +707,17 @@ if (SDL_ENABLED)
 endif ()
 
 target_include_directories(hydra-core PRIVATE ${CMAKE_SOURCE_DIR}/externals/libyaz0/include)
-# TODO: only link Apple frameworks if Apple
-target_link_libraries(hydra-core PRIVATE hydra_warnings "-framework Foundation" "-framework Metal" "-framework QuartzCore" "-framework GameController" dynarmic hatch libyaz0 nx2elf date::date date::date-tz hydra-common)
+target_link_libraries(hydra-core PRIVATE hydra_warnings dynarmic hatch libyaz0 nx2elf date::date date::date-tz hydra-common)
 
-if (HYPERVISOR_ENABLED)
-    target_link_libraries(hydra-core PRIVATE "-framework Hypervisor")
+if (LINUX)
+    target_link_libraries(hydra-core PRIVATE atomic)
+endif ()
+
+if (APPLE)
+    target_link_libraries(hydra-core PRIVATE hydra_warnings "-framework Foundation" "-framework Metal" "-framework QuartzCore" "-framework GameController")
+    if (HYPERVISOR_ENABLED)
+        target_link_libraries(hydra-core PRIVATE "-framework Hypervisor")
+    endif ()
 endif ()
 
 if (CUBEB_ENABLED)

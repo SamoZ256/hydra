@@ -563,7 +563,7 @@ u32 TextureCache::GetDataHash(const ITexture* texture) {
 
     const auto& descriptor = texture->GetDescriptor();
     u64 mem_range = descriptor.size;
-    u64 mem_step = std::max(mem_range / SAMPLE_COUNT, 1ull);
+    u64 mem_step = std::max<u64>(mem_range / SAMPLE_COUNT, 1ull);
 
     HashCode hash;
     for (u64 offset = 0; offset < mem_range; offset += mem_step)

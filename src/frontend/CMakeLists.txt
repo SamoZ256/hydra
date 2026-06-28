@@ -1,8 +1,10 @@
 # TODO: set based on platform
-set(NATIVE_SOURCE_FILES
-    native/cocoa/native.hpp
-    native/cocoa/native.mm
-)
+if (APPLE)
+    set(NATIVE_SOURCE_FILES
+        native/cocoa/native.hpp
+        native/cocoa/native.mm
+    )
+endif ()
 
 if (FRONTEND STREQUAL "SDL3")
     message(STATUS "Using SDL3 frontend")
@@ -20,7 +22,11 @@ if (FRONTEND STREQUAL "SDL3")
         sdl3/window.hpp
     )
 
-    target_link_libraries(hydra PRIVATE hydra_warnings SDL3::SDL3 "-framework Cocoa")
+    target_link_libraries(hydra PRIVATE hydra_warnings SDL3::SDL3)
+
+    if (APPLE)
+        target_link_libraries(hydra PRIVATE "-framework Cocoa")
+    endif ()
 elseif (FRONTEND STREQUAL "SwiftUI")
     message(STATUS "Using SwiftUI frontend")
 
