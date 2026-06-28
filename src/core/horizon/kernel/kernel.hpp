@@ -158,8 +158,8 @@ class Kernel {
     std::mutex critical_section_mutex;
 
     // Sync
-    DoubleLinkedList<IThread*> cond_var_waiters;
-    DoubleLinkedList<IThread*> arbiters;
+    ztd::DoublyLinkedList<IThread*> cond_var_waiters;
+    ztd::DoublyLinkedList<IThread*> arbiters;
 
     // Applet resource
     std::array<bool, MAX_APPLET_RESOURCES> free_applet_resource_user_ids = {

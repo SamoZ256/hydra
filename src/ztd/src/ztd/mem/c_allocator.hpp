@@ -14,7 +14,7 @@ class CAllocator : public IAllocator {
     }
 
   protected:
-    auto allocateImpl(usize size, usize alignment) noexcept
+    auto allocImpl(usize size, usize alignment) noexcept
         -> std::optional<std::span<std::byte>> override {
         (void)alignment;
         // NOLINTBEGIN(cppcoreguidelines-owning-memory,

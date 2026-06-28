@@ -16,7 +16,7 @@ class PageAllocator : public IAllocator {
     }
 
   protected:
-    auto allocateImpl(usize size, usize alignment) noexcept
+    auto allocImpl(usize size, usize alignment) noexcept
         -> std::optional<std::span<std::byte>> override {
         (void)alignment;
         const auto aligned_size = alignUp(size, getPageSize());

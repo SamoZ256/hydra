@@ -421,7 +421,8 @@ result_t Kernel::UnmapMemory(Process* crnt_process, uptr dst_addr,
     // TODO: verify that src_addr is the same as the one used in MapMemory?
     (void)src_addr;
 
-    crnt_process->GetMmu()->Unmap(ztd::Range<vaddr_t>::fromSize(dst_addr, size));
+    crnt_process->GetMmu()->Unmap(
+        ztd::Range<vaddr_t>::fromSize(dst_addr, size));
 
     return RESULT_SUCCESS;
 }
@@ -779,7 +780,8 @@ result_t Kernel::WaitProcessWideKeyAtomic(Process* crnt_process,
 
     {
         CriticalSectionLock cs_lock(*this);
-        cond_var_waiters.AddLast(crnt_thread);
+        ASSERT_DEBUG(cond_var_waiters.addLast(crnt_thread).has_value(), Kernel,
+                     "Failed to add cond var waiter");
         UnlockMutex(crnt_thread, mutex_addr);
     }
 
@@ -801,7 +803,7 @@ result_t Kernel::WaitProcessWideKeyAtomic(Process* crnt_process,
         CriticalSectionLock cs_lock(*this);
 
         // Cond var
-        cond_var_waiters.Remove(crnt_thread);
+        cond_var_waiters.remove(crnt_thread);
 
         // Mutex
         auto owner = GetMutexOwner(
@@ -821,19 +823,20 @@ result_t Kernel::SignalProcessWideKey(Process* crnt_process, uptr addr,
     CriticalSectionLock cs_lock(*this);
 
     if (count == -1)
-        count = static_cast<i32>(cond_var_waiters.GetSize());
+        count = static_cast<i32>(cond_var_waiters.getSize());
 
     // TODO: sort by priority
-    for (auto thread_node = cond_var_waiters.GetHead();
-         (thread_node != nullptr) && count > 0;) {
-        const auto thread = thread_node->Get();
+    for (auto thread_node = cond_var_waiters.getHead();
+         thread_node.has_value() && count > 0;) {
+        const auto thread_node_ = thread_node.value();
+        const auto thread = thread_node_->get();
         if (thread->cond_var_wait_addr == addr) {
             thread->cond_var_wait_addr = 0x0;
             TryAcquireMutex(crnt_process, thread);
-            thread_node = cond_var_waiters.Remove(thread_node);
+            thread_node = cond_var_waiters.remove(thread_node_);
             count--;
         } else {
-            thread_node = thread_node->GetNext();
+            thread_node = thread_node_->getNext();
         }
     }
 
@@ -1139,7 +1142,8 @@ result_t Kernel::WaitForAddress(IThread* crnt_thread, uptr addr,
             crnt_thread->Pause();
 
             crnt_thread->mutex_wait_addr = addr;
-            arbiters.AddLast(crnt_thread);
+            ASSERT_DEBUG(arbiters.addLast(crnt_thread).has_value(), Kernel,
+                         "Failed to add arbiter");
         }
     }
 
@@ -1163,7 +1167,7 @@ result_t Kernel::WaitForAddress(IThread* crnt_thread, uptr addr,
         /*
         {
             CriticalSectionLock cs_lock(*this);
-            arbiters.Remove(crnt_thread);
+            arbiters.remove(crnt_thread);
         }
         */
 
@@ -1187,15 +1191,16 @@ result_t Kernel::SignalToAddress(uptr addr, SignalType signal_type, u32 value,
     (void)count;
 
     CriticalSectionLock cs_lock(*this);
-    for (auto waiter_node = arbiters.GetHead(); waiter_node != nullptr;) {
-        auto waiter = waiter_node->Get();
+    for (auto waiter_node = arbiters.getHead(); waiter_node.has_value();) {
+        const auto waiter_node_ = waiter_node.value();
+        auto waiter = waiter_node_->get();
         if (waiter->mutex_wait_addr != addr) {
-            waiter_node = waiter_node->GetNext();
+            waiter_node = waiter_node_->getNext();
             continue;
         }
 
         waiter->Resume();
-        waiter_node = arbiters.Remove(waiter_node);
+        waiter_node = arbiters.remove(waiter_node_);
     }
 
     return RESULT_SUCCESS;
@@ -1357,7 +1362,8 @@ result_t Kernel::MapProcessCodeMemory(Process* process, vaddr_t dst_addr,
               "src_addr: 0x{:08x}, size: {})",
               process->GetDebugName(), dst_addr, src_addr, size);
 
-    process->GetMmu()->Map(dst_addr, ztd::Range<vaddr_t>::fromSize(src_addr, size));
+    process->GetMmu()->Map(dst_addr,
+                           ztd::Range<vaddr_t>::fromSize(src_addr, size));
 
     return RESULT_SUCCESS;
 }

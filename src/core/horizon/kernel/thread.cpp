@@ -108,12 +108,13 @@ bool IThread::ProcessMessagesImpl() {
 
 void IThread::AddMutexWaiter(IThread* waiter) {
     std::scoped_lock lock(mutex_wait_mutex);
-    mutex_wait_list.AddLast(waiter);
+    ASSERT_DEBUG(mutex_wait_list.addLast(waiter).has_value(), Kernel,
+                 "Failed to add mutex waiter");
 }
 
 void IThread::RemoveMutexWaiter(IThread* waiter) {
     std::scoped_lock lock(mutex_wait_mutex);
-    mutex_wait_list.Remove(waiter);
+    mutex_wait_list.remove(waiter);
 }
 
 IThread* IThread::RelinquishMutex(uptr mutex_addr, u32& out_waiter_count) {
@@ -122,15 +123,16 @@ IThread* IThread::RelinquishMutex(uptr mutex_addr, u32& out_waiter_count) {
     // Find a new owner
     IThread* new_owner = nullptr;
     out_waiter_count = 0;
-    for (auto waiter_node = mutex_wait_list.GetHead();
-         waiter_node != nullptr;) {
-        auto waiter = waiter_node->Get();
+    for (auto waiter_node = mutex_wait_list.getHead();
+         waiter_node.has_value();) {
+        const auto waiter_node_ = waiter_node.value();
+        auto waiter = waiter_node_->get();
         if (waiter->mutex_wait_addr != mutex_addr) {
-            waiter_node = waiter_node->GetNext();
+            waiter_node = waiter_node_->getNext();
             continue;
         }
 
-        waiter_node = mutex_wait_list.Remove(waiter_node);
+        waiter_node = mutex_wait_list.remove(waiter_node_);
         if (new_owner != nullptr) {
             new_owner->AddMutexWaiter(waiter);
             out_waiter_count++;

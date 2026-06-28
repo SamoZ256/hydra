@@ -24,26 +24,26 @@ class IAllocator {
     template <typename T, typename... Args>
     auto create(Args... args) noexcept -> std::expected<T*, Error> {
         ZTD_ASSIGN_OR_RETURN_VALUE(const auto bytes,
-                                   allocateImpl(sizeof(T), alignof(T)),
-                                   Error::OutOfMemory);
+                                   allocImpl(sizeof(T), alignof(T)),
+                                   std::unexpected(Error::OutOfMemory));
         const auto ptr = reinterpret_cast<T*>(bytes.data());
-        ptr->T(std::forward<Args>(args)...);
+        new (ptr) T(std::forward<Args>(args)...);
         return ptr;
     }
 
     template <typename T>
-    auto allocate() noexcept -> std::expected<T*, Error> {
+    auto alloc() noexcept -> std::expected<T*, Error> {
         ZTD_ASSIGN_OR_RETURN_VALUE(const auto bytes,
-                                   allocateImpl(sizeof(T), alignof(T)),
-                                   Error::OutOfMemory);
+                                   allocImpl(sizeof(T), alignof(T)),
+                                   std::unexpected(Error::OutOfMemory));
         return reinterpret_cast<T*>(bytes.data());
     }
 
     template <typename T>
-    auto allocate(usize count) noexcept -> std::expected<std::span<T>, Error> {
+    auto alloc(usize count) noexcept -> std::expected<std::span<T>, Error> {
         ZTD_ASSIGN_OR_RETURN_VALUE(const auto bytes,
-                                   allocateImpl(sizeof(T) * count, alignof(T)),
-                                   Error::OutOfMemory);
+                                   allocImpl(sizeof(T) * count, alignof(T)),
+                                   std::unexpected(Error::OutOfMemory));
         return {reinterpret_cast<T*>(bytes.data()), count};
     }
 
@@ -65,7 +65,7 @@ class IAllocator {
     }
 
   protected:
-    virtual auto allocateImpl(usize size, usize alignment) noexcept
+    virtual auto allocImpl(usize size, usize alignment) noexcept
         -> std::optional<std::span<std::byte>> = 0;
     virtual auto freeImpl(std::span<std::byte> bytes) noexcept -> void = 0;
 };

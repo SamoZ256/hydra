@@ -117,7 +117,7 @@ class IThread : public SynchronizationObject {
         mutex_wait_addr = 0x0;
         cond_var_wait_addr = 0x0;
         cond_var_wait_addr = 0x0;
-        mutex_wait_list.Clear();
+        mutex_wait_list.clear();
         supervisor_pause = false;
         guest_pause = false;
     }
@@ -136,7 +136,7 @@ class IThread : public SynchronizationObject {
     u32 self_handle_for_mutex{0x0};
     uptr cond_var_wait_addr{0x0};
     std::mutex mutex_wait_mutex;
-    DoubleLinkedList<IThread*> mutex_wait_list;
+    ztd::DoublyLinkedList<IThread*> mutex_wait_list;
 
     // Synchronization
     bool supervisor_pause{false};

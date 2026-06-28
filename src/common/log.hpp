@@ -71,14 +71,12 @@
     ASSERT_ALIGNMENT(value, alignment, c, name)
 #else
 // TODO: should the condition be evaluated?
-#define ASSERT_DEBUG(condition, c, ...)                                        \
-    if (condition) {                                                           \
-    }
+#define ASSERT_DEBUG(condition, c, ...) (void)(condition)
 #define ASSERT_ALIGNMENT_DEBUG(value, alignment, c, name)
 #endif
 
 #define INDENT_FMT "{:{}}"
-#define PASS_INDENT(indent) "", ((indent)*4)
+#define PASS_INDENT(indent) "", ((indent) * 4)
 
 namespace hydra {
 

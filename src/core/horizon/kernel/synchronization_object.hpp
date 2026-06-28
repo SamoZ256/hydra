@@ -23,7 +23,7 @@ class SynchronizationObject : public AutoObject {
 
   private:
     std::mutex mutex;
-    DoubleLinkedList<IThread*> waiting_threads;
+    ztd::DoublyLinkedList<IThread*> waiting_threads;
     std::vector<signal_callback_fn_t> signal_callbacks;
     bool signalled{false};
 };
