@@ -2,13 +2,9 @@
 
 #include "core/horizon/services/const.hpp"
 #include "core/horizon/services/nvdrv/const.hpp"
-#include "core/horizon/services/nvdrv/ioctl/const.hpp"
+#include "core/horizon/services/nvdrv/ioctl/fd_base.hpp"
 
 namespace hydra::horizon::services::nvdrv {
-
-namespace ioctl {
-class FdBase;
-}
 
 constexpr usize MAX_FD_COUNT = 256;
 
@@ -19,7 +15,7 @@ class INvDrvServices : public IService {
 
   private:
     // TODO: what should be the max number of fds?
-    static StaticPool<ioctl::FdBase*, MAX_FD_COUNT> fd_pool;
+    ztd::mem::StaticPool<std::unique_ptr<ioctl::FdBase>, MAX_FD_COUNT> fd_pool;
 
     // Commands
     result_t Open(InBuffer<BufferAttr::MapAlias> path_buffer, u32* out_fd_id,

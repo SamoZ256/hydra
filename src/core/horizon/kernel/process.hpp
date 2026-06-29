@@ -85,50 +85,65 @@ class Process : public SynchronizationObject {
 
     // Handles
     template <typename T>
-    T* GetHandle(handle_id_t handle_id) {
+    // TODO: uncomment
+    /*std::optional<T*>*/ T* GetHandle(handle_id_t handle_id) {
         static_assert(std::is_base_of_v<AutoObject, T>,
                       "T must be derived from AutoObject");
 
         if (handle_id == INVALID_HANDLE_ID)
             return nullptr;
 
-        AutoObject* obj;
-        if (handle_id == CURRENT_PROCESS_PSEUDO_HANDLE) [[unlikely]] {
-            obj = this;
-        } else if (handle_id == CURRENT_THREAD_PSEUDO_HANDLE) [[unlikely]] {
-            obj = tls_current_thread;
-        } else {
-            if (!handle_pool.IsValid(handle_id))
-                return nullptr;
-
-            obj = handle_pool.Get(handle_id);
+        if constexpr (std::is_same_v<T, Process>) {
+            if (handle_id == CURRENT_PROCESS_PSEUDO_HANDLE) [[unlikely]] {
+                return this;
+            }
         }
 
-        return static_cast<T*>(obj);
+        if constexpr (std::is_same_v<T, IThread>) {
+            if (handle_id == CURRENT_THREAD_PSEUDO_HANDLE) [[unlikely]] {
+                return tls_current_thread;
+            }
+        }
+
+        // HACK
+        return handle_pool.get(handle_id)
+            .transform(
+                [](AutoObject* obj) -> auto { return static_cast<T*>(obj); })
+            .value_or(nullptr);
     }
 
     handle_id_t AddHandleNoRetain(AutoObject* obj) {
+        // TODO: remove
         if (obj == nullptr) [[unlikely]]
             return INVALID_HANDLE_ID;
 
-        return handle_pool.Insert(obj);
+        return handle_pool.insert(obj).value_or(INVALID_HANDLE_ID);
     }
 
     handle_id_t AddHandle(AutoObject* obj) {
+        // TODO: remove
         if (obj == nullptr) [[unlikely]]
             return INVALID_HANDLE_ID;
 
         obj->Retain();
-        return handle_pool.Insert(obj);
+        return handle_pool.insert(obj).value_or(INVALID_HANDLE_ID);
     }
 
-    void FreeHandle(handle_id_t handle_id) {
+    bool FreeHandle(handle_id_t handle_id) {
         ASSERT_DEBUG(handle_id != CURRENT_PROCESS_PSEUDO_HANDLE, Kernel,
                      "Cannot free current process handle");
         ASSERT_DEBUG(handle_id != CURRENT_THREAD_PSEUDO_HANDLE, Kernel,
                      "Cannot free current thread handle");
-        handle_pool.Get(handle_id)->Release();
-        handle_pool.Free(handle_id);
+        const auto object = handle_pool.get(handle_id);
+        if (!object.has_value()) {
+            LOG_WARN(Kernel, "Invalid handle {:#x}", handle_id);
+            return false;
+        }
+
+        object.value()->Release();
+        ASSERT_DEBUG(handle_pool.free(handle_id), Kernel,
+                     "Failed to free handle {:#x}", handle_id);
+        return true;
     }
 
     hw::tegra_x1::cpu::IMmu* GetMmu() const { return mmu.get(); }
@@ -161,7 +176,8 @@ class Process : public SynchronizationObject {
     std::vector<IThread*> threads;
 
     // Handles
-    StaticPool<AutoObject*, 512>
+    // TODO: store as strong refs
+    ztd::mem::StaticPool<AutoObject*, 512>
         handle_pool; // TODO: get the size from capabilities
 
     std::atomic<ProcessState> state{ProcessState::Created};

@@ -31,8 +31,9 @@ Process::~Process() {
     DEBUGGER_MANAGER_INSTANCE.DetachDebugger(this);
 }
 
-uptr Process::CreateMemory(ztd::Range<vaddr_t> region, u64 size, MemoryType type,
-                           MemoryPermission perm, vaddr_t& out_base) {
+uptr Process::CreateMemory(ztd::Range<vaddr_t> region, u64 size,
+                           MemoryType type, MemoryPermission perm,
+                           vaddr_t& out_base) {
     out_base = mmu->FindFreeMemory(region, size);
     ASSERT(out_base != 0x0, Kernel, "Failed to find free memory");
 
@@ -105,7 +106,7 @@ void Process::ResizeHeap(u64 size) {
         heap_mem.reset(system.GetCpu().AllocateMemory(size));
     } else {
         mmu->Unmap(ztd::Range<vaddr_t>::fromSize(HEAP_REGION.getBegin(),
-                                            heap_mem->GetSize()));
+                                                 heap_mem->GetSize()));
         heap_mem->Resize(size);
     }
 
@@ -161,10 +162,8 @@ void Process::CleanUp() {
         main_thread = nullptr;
     }
 
-    for (handle_id_t handle_id = 1; handle_id < handle_pool.GetCapacity() + 1;
-         handle_id++) {
-        if (handle_pool.IsValid(handle_id))
-            handle_pool.Get(handle_id)->Release();
+    for (const auto& obj : handle_pool) {
+        obj->Release();
     }
 
     // Signal

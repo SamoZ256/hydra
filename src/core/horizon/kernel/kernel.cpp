@@ -610,16 +610,13 @@ result_t Kernel::CreateTransferMemory(uptr addr, u64 size,
 }
 
 result_t Kernel::CloseHandle(Process* crnt_process, handle_id_t handle_id) {
-    auto obj = crnt_process->GetHandle<AutoObject>(handle_id);
-    if (obj == nullptr) {
-        LOG_WARN(Kernel, "CloseHandle called (INVALID_HANDLE)");
+    LOG_DEBUG(Kernel, "CloseHandle called (handle: {:#x})", handle_id);
+
+    if (crnt_process->FreeHandle(handle_id)) {
+        return RESULT_SUCCESS;
+    } else {
         return MAKE_RESULT(Svc, Error::InvalidHandle);
     }
-
-    LOG_DEBUG(Kernel, "CloseHandle called (handle: {})", obj->GetDebugName());
-
-    crnt_process->FreeHandle(handle_id);
-    return RESULT_SUCCESS;
 }
 
 // TODO: can only be ReadableEvent or Process?

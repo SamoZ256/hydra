@@ -53,16 +53,18 @@ class IService {
         if (service == nullptr)
             return INVALID_HANDLE_ID;
 
-        return parent->subservice_pool->Insert(service);
+        return parent->subservice_pool->insert(service).value_or(
+            INVALID_HANDLE_ID);
     }
 
     void FreeSubservice(handle_id_t handle_id) {
-        parent->subservice_pool->Get(handle_id)->Release();
-        parent->subservice_pool->Free(handle_id);
+        parent->subservice_pool->get(handle_id).value()->Release();
+        ASSERT_DEBUG(parent->subservice_pool->free(handle_id), Services,
+                     "Failed to free subservice");
     }
 
     IService* GetSubservice(handle_id_t handle_id) const {
-        return parent->subservice_pool->Get(handle_id);
+        return parent->subservice_pool->get(handle_id).value();
     }
 
   private:
@@ -73,7 +75,8 @@ class IService {
     // Domain
     bool is_domain{false};
     IService* parent{this};
-    std::optional<DynamicPool<IService*>> subservice_pool;
+    // TODO: dynamic pool?
+    std::optional<ztd::mem::StaticPool<IService*, 512>> subservice_pool;
 
     void Close();
     void Request(RequestContext& context);

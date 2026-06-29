@@ -8,9 +8,6 @@ add_library(hydra-common
     atomic.hpp
     literals.hpp
     string.hpp
-    pool.hpp
-    static_pool.hpp
-    dynamic_pool.hpp
     small_cache.hpp
     filesystem.hpp
     log.cpp

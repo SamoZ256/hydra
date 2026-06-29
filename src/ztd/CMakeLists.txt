@@ -40,6 +40,8 @@ add_library(ztd
     src/ztd/mem/literals.hpp
     src/ztd/mem/page.hpp
     src/ztd/mem/page_allocator.hpp
+    src/ztd/mem/pool.hpp
+    src/ztd/mem/static_pool.hpp
     src/ztd/linked_list.hpp
     src/ztd/range.hpp
     src/ztd/time.hpp

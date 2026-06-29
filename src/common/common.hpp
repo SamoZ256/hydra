@@ -11,7 +11,6 @@
 
 #include "common/atomic.hpp"
 #include "common/config.hpp"
-#include "common/dynamic_pool.hpp"
 #include "common/filesystem.hpp"
 #include "common/functions.hpp"
 #include "common/io/iostream_stream.hpp"
@@ -23,7 +22,6 @@
 #include "common/objc.hpp"
 #include "common/platform.hpp"
 #include "common/small_cache.hpp"
-#include "common/static_pool.hpp"
 #include "common/string.hpp"
 #include "common/toml_helper.hpp"
 #include "common/traits.hpp"
