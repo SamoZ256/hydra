@@ -12,14 +12,14 @@ namespace {
 enum class NsoFlags : u32 {
     None = 0,
 
-    TextCompressed = BIT(0),
-    RoCompressed = BIT(1),
-    DataCompressed = BIT(2),
-    TextHash = BIT(3),
-    RoHash = BIT(4),
-    DataHash = BIT(5),
+    TextCompressed = ZTD_BIT(0),
+    RoCompressed = ZTD_BIT(1),
+    DataCompressed = ZTD_BIT(2),
+    TextHash = ZTD_BIT(3),
+    RoHash = ZTD_BIT(4),
+    DataHash = ZTD_BIT(5),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(NsoFlags)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(NsoFlags)
 
 struct NsoHeader {
     u32 magic;
@@ -60,10 +60,10 @@ void read_segment(io::IStream* stream, uptr executable_mem_ptr,
         // Decompress
         std::vector<u8> file(file_size);
         stream->ReadToSpan(std::span(file));
-        ztd::compress::decompressLz4(file,
-                      std::span(reinterpret_cast<u8*>(executable_mem_ptr +
-                                                      segment.memory_offset),
-                                segment.size));
+        ztd::compress::decompressLz4(
+            file, std::span(reinterpret_cast<u8*>(executable_mem_ptr +
+                                                  segment.memory_offset),
+                            segment.size));
     } else {
         stream->ReadToSpan(std::span(
             reinterpret_cast<u8*>(executable_mem_ptr + segment.memory_offset),
@@ -140,11 +140,11 @@ void NsoLoader::LoadProcess(System& system, kernel::Process* process) {
     const auto set = kernel::CodeSet{
         .size = executable_size,
         .code = ztd::Range<u64>::fromSize(segments[0].seg.memory_offset,
-                                     segments[0].seg.size),
+                                          segments[0].seg.size),
         .ro_data = ztd::Range<u64>::fromSize(segments[1].seg.memory_offset,
-                                        segments[1].seg.size),
+                                             segments[1].seg.size),
         .data = ztd::Range<u64>::fromSize(segments[2].seg.memory_offset,
-                                     segments[2].seg.size)};
+                                          segments[2].seg.size)};
     vaddr_t base;
     auto ptr = process->CreateExecutableMemory(name, set, base);
     LOG_DEBUG(Loader, "Base: 0x{:08x}, size: 0x{:08x}", base, executable_size);

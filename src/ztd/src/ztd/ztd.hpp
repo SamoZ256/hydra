@@ -3,6 +3,8 @@
 #include "ztd/compress/lz4.hpp"
 #include "ztd/hash/xxhash32.hpp"
 #include "ztd/linked_list.hpp"
+#include "ztd/macros/enum_helper.hpp"
+#include "ztd/macros/for_each_helper.hpp"
 #include "ztd/mem/c_allocator.hpp"
 #include "ztd/mem/default_allocator.hpp"
 #include "ztd/mem/page_allocator.hpp"

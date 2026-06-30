@@ -91,15 +91,15 @@ class Process : public SynchronizationObject {
                       "T must be derived from AutoObject");
 
         if (handle_id == INVALID_HANDLE_ID)
-            return nullptr;
+            return nullptr; // std::nullopt;
 
-        if constexpr (std::is_same_v<T, Process>) {
+        if constexpr (std::is_base_of_v<T, Process>) {
             if (handle_id == CURRENT_PROCESS_PSEUDO_HANDLE) [[unlikely]] {
                 return this;
             }
         }
 
-        if constexpr (std::is_same_v<T, IThread>) {
+        if constexpr (std::is_base_of_v<T, IThread>) {
             if (handle_id == CURRENT_THREAD_PSEUDO_HANDLE) [[unlikely]] {
                 return tls_current_thread;
             }

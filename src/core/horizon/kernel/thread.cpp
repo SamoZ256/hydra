@@ -145,8 +145,16 @@ IThread* IThread::RelinquishMutex(uptr mutex_addr, u32& out_waiter_count) {
     return new_owner;
 }
 
-IThread* GetMutexOwner(Process* process, u32 mutex) {
-    return process->GetHandle<IThread>(mutex & ~MUTEX_WAIT_MASK);
+std::optional<IThread*> GetMutexOwner(Process* process, u32 mutex) {
+    // HACK
+    const auto thread = process->GetHandle<IThread>(mutex & ~MUTEX_WAIT_MASK);
+    return (thread != nullptr ? std::make_optional(thread) : std::nullopt);
+}
+
+std::optional<IThread*> GetMutexOwner(Process* process, u32* mutex_ptr) {
+    if (mutex_ptr == nullptr)
+        return std::nullopt;
+    return GetMutexOwner(process, atomic_load(mutex_ptr));
 }
 
 } // namespace hydra::horizon::kernel

@@ -28,8 +28,8 @@ class AutoObject {
                                  reinterpret_cast<void*>(this))} {}
     virtual ~AutoObject() noexcept = default;
 
-    MAKE_NON_COPYABLE(AutoObject);
-    MAKE_NON_MOVABLE(AutoObject);
+    ZTD_MAKE_NON_COPYABLE(AutoObject);
+    ZTD_MAKE_NON_MOVABLE(AutoObject);
 
     void Retain() { ref_count.fetch_add(1, std::memory_order_relaxed); }
 

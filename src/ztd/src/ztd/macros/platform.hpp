@@ -8,7 +8,7 @@
 #define ZTD_ARCH_ARM32
 #elif defined(__x86_64__) || defined(_M_X64)
 #define ZTD_ARCH_X86_64
-#elif defined(__riscv)
+#elifdef __riscv
 #define ZTD_ARCH_RISCV
 #else
 #define ZTD_ARCH_UNKNOWN
@@ -37,7 +37,7 @@
 #endif
 
 // Android
-#elif defined(__ANDROID__)
+#elifdef __ANDROID__
 #define ZTD_PLATFORM_ANDROID
 
 // Linux
@@ -45,13 +45,14 @@
 #define ZTD_PLATFORM_LINUX
 
 // FreeBSD
-#elif defined(__FreeBSD__)
+#elifdef __FreeBSD__
 #define ZTD_PLATFORM_FREEBSD
-
-// Generic Unix
-#elif defined(__unix__) || defined(__unix)
-#define ZTD_PLATFORM_UNIX
 
 #else
 #error ZTD_PLATFORM_UNKNOWN
+#endif
+
+// Unix
+#if defined(__unix__) || defined(__unix)
+#define ZTD_PLATFORM_UNIX
 #endif

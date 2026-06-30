@@ -11,7 +11,7 @@
 #define DEFINE_IOCTL_TABLE_ENTRY_IMPL(fd, ioctl_suffix, type, ...)             \
     case type:                                                                 \
         switch (nr) {                                                          \
-            FOR_EACH_2_2(IOCTL_CASE, fd, ioctl_suffix, __VA_ARGS__)            \
+            ZTD_FOR_EACH_2_2(IOCTL_CASE, fd, ioctl_suffix, __VA_ARGS__)        \
         default:                                                               \
             LOG_WARN(Services, "Unknown ioctl nr 0x{:02x} for type 0x{:02x}",  \
                      nr, type);                                                \

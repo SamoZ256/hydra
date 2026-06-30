@@ -120,11 +120,11 @@ inline bool IsTextureArray(TextureType type) {
 
 enum class TextureSampleFlags {
     None = 0,
-    IntCoords = BIT(0),
-    DepthCompare = BIT(1),
-    Lod = BIT(2),
+    IntCoords = ZTD_BIT(0),
+    DepthCompare = ZTD_BIT(1),
+    Lod = ZTD_BIT(2),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(TextureSampleFlags)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(TextureSampleFlags)
 
 enum class PixelImapType : u8 {
     Unused = 0,

@@ -4,12 +4,12 @@
 
 #include <CoreFoundation/CoreFoundation.h>
 
+#include "common/fmt_helper.hpp"
 #include "common/log.hpp"
-#include "common/platform.hpp"
 
 namespace hydra {
 
-#ifdef PLATFORM_APPLE
+#ifdef ZTD_PLATFORM_APPLE
 inline std::string GetBundleResourcePath(const std::string& filename) {
     CFBundleRef main_bundle = CFBundleGetMainBundle();
     if (main_bundle == nullptr) {

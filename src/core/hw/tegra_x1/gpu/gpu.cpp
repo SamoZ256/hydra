@@ -3,7 +3,7 @@
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
 #include "core/hw/tegra_x1/gpu/const.hpp"
 
-#ifdef PLATFORM_APPLE
+#ifdef ZTD_PLATFORM_APPLE
 #include "core/hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
 #endif
 #include "core/hw/tegra_x1/gpu/renderer/null/renderer.hpp"
@@ -16,7 +16,7 @@ renderer::IRenderer* CreateRenderer() {
     const auto renderer_type = CONFIG_INSTANCE.GetGpuRenderer();
     switch (renderer_type) {
     case GpuRenderer::Metal:
-#ifdef PLATFORM_APPLE
+#ifdef ZTD_PLATFORM_APPLE
         return new renderer::metal::Renderer();
 #else
         LOG_FATAL(Gpu, "Metal renderer not supported");
@@ -37,8 +37,8 @@ struct SetObjectArg {
 
 Gpu::Gpu()
     : pfifo(*this), three_d_engine(*this), compute_engine(*this),
-      inline_engine(*this), two_d_engine(*this),
-      copy_engine(*this), renderer{CreateRenderer()} {}
+      inline_engine(*this), two_d_engine(*this), copy_engine(*this),
+      renderer{CreateRenderer()} {}
 
 void Gpu::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
     if (method == 0x0) { // SetEngine
@@ -103,7 +103,7 @@ Gpu::GetTexture(renderer::ICommandBuffer* command_buffer, cpu::IMmu* mmu,
 
     // TODO: why are there more planes?
     const renderer::TextureDescriptor descriptor(
-        mmu->UnmapAddr(GetMap(static_cast<u32>(buff.nvmap_id)).addr +
+        mmu->UnmapAddr(GetMap(static_cast<u32>(buff.nvmap_id)).value()->addr +
                        plane.offset),
         renderer::TextureType::_2D,
         renderer::to_texture_format(plane.color_format), is_linear, plane.pitch,

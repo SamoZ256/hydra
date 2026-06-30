@@ -90,8 +90,8 @@ class SmallCache {
     SmallCache() noexcept = default;
     ~SmallCache() noexcept = default;
 
-    MAKE_NON_COPYABLE(SmallCache);
-    MAKE_DEFAULT_MOVABLE(SmallCache);
+    ZTD_MAKE_NON_COPYABLE(SmallCache);
+    ZTD_MAKE_DEFAULT_MOVABLE(SmallCache);
 
     // TODO: const versions as well
     iterator begin() { return iterator(this, 0); }

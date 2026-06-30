@@ -28,20 +28,20 @@ MTL::TextureType ToMtlTextureType(TextureType type) {
     {                                                                          \
         TextureFormat::format, {                                               \
             MTL::PixelFormat##pixel_format, has_depth, has_stencil,            \
-                PASS(component_indices)                                        \
+                ZTD_PASS(component_indices)                                    \
         }                                                                      \
     }
 
 #define DS_PIXEL_FORMAT_ENTRY(format, pixel_format, has_depth, has_stencil)    \
     PIXEL_FORMAT_ENTRY(format, pixel_format, has_depth, has_stencil,           \
-                       PASS({0, 1, 2, 3}))
+                       ZTD_PASS({0, 1, 2, 3}))
 
 #define COLOR_PIXEL_FORMAT_ENTRY(format, pixel_format, component_indices)      \
     PIXEL_FORMAT_ENTRY(format, pixel_format, false, false,                     \
-                       PASS(component_indices))
+                       ZTD_PASS(component_indices))
 
 #define COLOR_PIXEL_FORMAT_ENTRY_RGBA(format, pixel_format)                    \
-    COLOR_PIXEL_FORMAT_ENTRY(format, pixel_format, PASS({0, 1, 2, 3}))
+    COLOR_PIXEL_FORMAT_ENTRY(format, pixel_format, ZTD_PASS({0, 1, 2, 3}))
 
 std::map<TextureFormat, PixelFormatInfo> pixel_format_lut = {
     COLOR_PIXEL_FORMAT_ENTRY_RGBA(R8Unorm, R8Unorm),
@@ -93,10 +93,10 @@ std::map<TextureFormat, PixelFormatInfo> pixel_format_lut = {
                           true),                                     // HACK
     COLOR_PIXEL_FORMAT_ENTRY_RGBA(RGBX8Unorm_sRGB, RGBA8Unorm_sRGB), // HACK
     COLOR_PIXEL_FORMAT_ENTRY_RGBA(RGBA8Unorm_sRGB, RGBA8Unorm_sRGB),
-    COLOR_PIXEL_FORMAT_ENTRY(RGBA4Unorm, ABGR4Unorm, PASS({3, 2, 1, 0})),
+    COLOR_PIXEL_FORMAT_ENTRY(RGBA4Unorm, ABGR4Unorm, ZTD_PASS({3, 2, 1, 0})),
     COLOR_PIXEL_FORMAT_ENTRY_RGBA(RGB5Unorm, BGR5A1Unorm), // HACK
     COLOR_PIXEL_FORMAT_ENTRY(R5G6B5Unorm, B5G6R5Unorm,
-                             PASS({2, 1, 0, 3})), // TODO: correct?
+                             ZTD_PASS({2, 1, 0, 3})), // TODO: correct?
     COLOR_PIXEL_FORMAT_ENTRY_RGBA(RGB10A2Unorm, RGB10A2Unorm),
     COLOR_PIXEL_FORMAT_ENTRY_RGBA(RGB10A2Uint, RGB10A2Uint),
     COLOR_PIXEL_FORMAT_ENTRY_RGBA(RG11B10Float, RG11B10Float),

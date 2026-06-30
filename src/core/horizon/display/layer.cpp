@@ -64,7 +64,7 @@ bool Layer::AcquirePresentTexture(
 void Layer::Present(hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer,
                     hw::tegra_x1::gpu::renderer::ISurfaceCompositor* compositor,
                     FloatRect2D dst_rect, f32 dst_scale, bool transparent) {
-    ASSIGN_OR_RETURN(auto present_tex, present_texture);
+    ZTD_ASSIGN_OR_RETURN(auto present_tex, present_texture);
 
     // Size
     if (size != LAYER_SIZE_AUTO)

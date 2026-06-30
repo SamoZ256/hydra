@@ -330,24 +330,24 @@ enum class MemoryType : u32 {
 
 enum class MemoryAttribute : u32 {
     None = 0,
-    Locked = BIT(0),
-    IpcLocked = BIT(1),
-    DeviceShared = BIT(2),
-    Uncached = BIT(3),
+    Locked = ZTD_BIT(0),
+    IpcLocked = ZTD_BIT(1),
+    DeviceShared = ZTD_BIT(2),
+    Uncached = ZTD_BIT(3),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(MemoryAttribute)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(MemoryAttribute)
 
 enum class MemoryPermission : u32 {
     None = 0x0,
-    Read = BIT(0),
-    Write = BIT(1),
-    Execute = BIT(2),
+    Read = ZTD_BIT(0),
+    Write = ZTD_BIT(1),
+    Execute = ZTD_BIT(2),
     ReadWrite = Read | Write,
     ReadExecute = Read | Execute,
     ReadWriteExecute = Read | Write | Execute,
-    DontCare = BIT(28),
+    DontCare = ZTD_BIT(28),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(MemoryPermission)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(MemoryPermission)
 
 struct MemoryState {
     MemoryType type;

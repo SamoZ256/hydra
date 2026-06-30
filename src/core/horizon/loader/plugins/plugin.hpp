@@ -50,7 +50,7 @@ class Plugin {
     Plugin() = default;
     ~Plugin();
 
-    MAKE_NON_COPYABLE(Plugin);
+    ZTD_MAKE_NON_COPYABLE(Plugin);
     MAKE_MOVABLE(Plugin, library, std::exchange(other.library, nullptr),
                  get_api_version, other.get_api_version, query, other.query,
                  create_context, other.create_context, destroy_context,

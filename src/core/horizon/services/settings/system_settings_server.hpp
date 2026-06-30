@@ -11,12 +11,12 @@ enum class ColorSetId : i32 {
 
 enum class TvFlags : u32 {
     None = 0,
-    Allows4k = BIT(0),
-    Allows3d = BIT(1),
-    AllowsCec = BIT(2),
-    PreventsScreenBurnIn = BIT(3),
+    Allows4k = ZTD_BIT(0),
+    Allows3d = ZTD_BIT(1),
+    AllowsCec = ZTD_BIT(2),
+    PreventsScreenBurnIn = ZTD_BIT(3),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(TvFlags)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(TvFlags)
 
 enum class TvResolution : u32 {
     Auto = 0,

@@ -17,9 +17,9 @@ constexpr u64 ADDRESS_SPACE_SIZE = 1ull << GET_BLOCK_SHIFT(-1);
 
 enum class PageFlags : u8 {
     None = 0,
-    WriteTrackingEnabled = BITL(0),
+    WriteTrackingEnabled = ZTD_BITL(0),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(PageFlags);
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(PageFlags);
 
 struct PageTableLevel {
     PageTableLevel(u32 level_, const Page page_, const vaddr_t base_va_);

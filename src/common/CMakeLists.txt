@@ -1,18 +1,17 @@
 add_library(hydra-common
-    platform.hpp
     macros.hpp
     type_aliases.hpp
     types.hpp
     traits.hpp
     functions.hpp
     atomic.hpp
-    literals.hpp
     string.hpp
     small_cache.hpp
     filesystem.hpp
     log.cpp
     log.hpp
     toml_helper.hpp
+    fmt_helper.hpp
     config.cpp
     config.hpp
     io/stream.hpp

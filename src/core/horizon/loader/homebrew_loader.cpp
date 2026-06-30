@@ -35,7 +35,7 @@ enum class ConfigEntryType : u32 {
 
 enum class ConfigEntryFlag : u32 {
     None = 0,
-    IsMandatory = BIT(0),
+    IsMandatory = ZTD_BIT(0),
 };
 
 struct ConfigEntry {
@@ -176,11 +176,11 @@ class HomebrewThread : public kernel::GuestThread {
                 ADD_ENTRY_OPTIONAL(RandomSeed, gen(), gen());
                 ADD_ENTRY_OPTIONAL(UserIdStorage,
                                    state_base + USER_ID_STORAGE_OFFSET, 0);
-                ADD_ENTRY_OPTIONAL(HosVersion,
-                                   BIT(31) | (FIRMWARE_VERSION.major << 16) |
-                                       (FIRMWARE_VERSION.minor << 8) |
-                                       FIRMWARE_VERSION.micro,
-                                   0x41544d4f53504852ul); // "ATMOSPHR"
+                ADD_ENTRY_OPTIONAL(
+                    HosVersion,
+                    ZTD_BIT(31) | (FIRMWARE_VERSION.major << 16) |
+                        (FIRMWARE_VERSION.minor << 8) | FIRMWARE_VERSION.micro,
+                    0x41544d4f53504852ul); // "ATMOSPHR"
                 ADD_ENTRY_OPTIONAL(EndOfList, state_base + NOTICE_TEXT_OFFSET,
                                    sizeof(NOTICE_TEXT));
 

@@ -34,11 +34,11 @@ struct Info {
 
 enum class MemoryInvalidationScope {
     None = 0,
-    BufferCache = BIT(0),
-    TextureCache = BIT(1),
-    ShaderCache = BIT(2),
+    BufferCache = ZTD_BIT(0),
+    TextureCache = ZTD_BIT(1),
+    ShaderCache = ZTD_BIT(2),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(MemoryInvalidationScope)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(MemoryInvalidationScope)
 
 class IRenderer {
   public:

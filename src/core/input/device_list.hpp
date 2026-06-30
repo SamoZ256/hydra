@@ -9,8 +9,8 @@ class IDeviceList {
     IDeviceList() noexcept = default;
     virtual ~IDeviceList() noexcept = default;
 
-    MAKE_NON_COPYABLE(IDeviceList);
-    MAKE_NON_MOVABLE(IDeviceList);
+    ZTD_MAKE_NON_COPYABLE(IDeviceList);
+    ZTD_MAKE_NON_MOVABLE(IDeviceList);
 
     virtual void PumpEvents() {}
 

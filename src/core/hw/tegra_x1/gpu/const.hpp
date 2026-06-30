@@ -728,14 +728,14 @@ struct Fence {
 
 enum class GpfifoFlags : u32 {
     None = 0,
-    FenceWait = BIT(0),
-    FenceGet = BIT(1),
-    HwFormat = BIT(2),
-    SyncFence = BIT(3),
-    SuppressWfi = BIT(4),
-    SkipBufferRefcounting = BIT(5),
+    FenceWait = ZTD_BIT(0),
+    FenceGet = ZTD_BIT(1),
+    HwFormat = ZTD_BIT(2),
+    SyncFence = ZTD_BIT(3),
+    SuppressWfi = ZTD_BIT(4),
+    SkipBufferRefcounting = ZTD_BIT(5),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(GpfifoFlags);
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(GpfifoFlags);
 
 struct GpfifoEntry {
     u64 gpu_addr_lo : 32;
@@ -1011,9 +1011,9 @@ ENABLE_ENUM_FORMATTING(
     "zf32_x16v8x8__cov4r12v", ZF32_X16V8S8_COV4R12V, "zf32_x16v8s8__cov4r12v",
     Z16, "z16", V8Z24_COV8R24V, "v8z24__cov8r24v", X8Z24_X16V8S8_COV8R24V,
     "x8z24_x16v8s8__cov8r24v", ZF32_X16V8X8_COV8R24V, "zf32_x16v8x8__cov8r24v",
-    ZF32_X16V8S8_COV8R24V, "zf32_x16v8s8__cov8r24v", ASTC_2D_4X4,
-    "astc_2d_4x4", ASTC_2D_5X5, "astc_2d_5x5", ASTC_2D_6X6, "astc_2d_6x6",
-    ASTC_2D_8X8, "astc_2d_8x8", ASTC_2D_10X10, "astc_2d_10x10", ASTC_2D_12X12,
+    ZF32_X16V8S8_COV8R24V, "zf32_x16v8s8__cov8r24v", ASTC_2D_4X4, "astc_2d_4x4",
+    ASTC_2D_5X5, "astc_2d_5x5", ASTC_2D_6X6, "astc_2d_6x6", ASTC_2D_8X8,
+    "astc_2d_8x8", ASTC_2D_10X10, "astc_2d_10x10", ASTC_2D_12X12,
     "astc_2d_12x12", ASTC_2D_5X4, "astc_2d_5x4", ASTC_2D_6X5, "astc_2d_6x5",
     ASTC_2D_8X6, "astc_2d_8x6", ASTC_2D_10X8, "astc_2d_10x8", ASTC_2D_12X10,
     "astc_2d_12x10", ASTC_2D_8X5, "astc_2d_8x5", ASTC_2D_10X5, "astc_2d_10x5",

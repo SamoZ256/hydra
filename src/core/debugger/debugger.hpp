@@ -19,7 +19,7 @@ class IFile;
     if (!(condition)) {                                                        \
         /* TODO: log class? */                                                 \
         GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(                      \
-            f PASS_VA_ARGS(__VA_ARGS__));                                      \
+            f ZTD_PASS_VA_ARGS(__VA_ARGS__));                                  \
     }
 
 #ifdef HYDRA_DEBUG

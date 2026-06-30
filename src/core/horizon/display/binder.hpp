@@ -44,14 +44,14 @@ struct NvMultiFence {
 
 enum class TransformFlags : u32 {
     None = 0,
-    FlipH = BIT(0),
-    FlipV = BIT(1),
-    Rot90 = BIT(2),
-    InverseDisplay = BIT(3),
-    NoVSyncCapability = BIT(4),
-    ReturnFrameNumber = BIT(5),
+    FlipH = ZTD_BIT(0),
+    FlipV = ZTD_BIT(1),
+    Rot90 = ZTD_BIT(2),
+    InverseDisplay = ZTD_BIT(3),
+    NoVSyncCapability = ZTD_BIT(4),
+    ReturnFrameNumber = ZTD_BIT(5),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(TransformFlags)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(TransformFlags)
 
 struct BqBufferInput {
     i64 timestamp;
@@ -87,7 +87,8 @@ struct AccumulatedTime {
     explicit operator bool() const { return sample_count != 0; }
 
     explicit operator f32() const {
-        return static_cast<f32>(std::chrono::duration_cast<std::chrono::duration<f32>>(value)
+        return static_cast<f32>(
+                   std::chrono::duration_cast<std::chrono::duration<f32>>(value)
                        .count()) /
                static_cast<f32>(sample_count);
     }

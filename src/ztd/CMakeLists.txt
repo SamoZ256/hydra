@@ -26,9 +26,9 @@ add_library(ztd
     src/ztd/compress/lz4.cpp
     src/ztd/compress/lz4.hpp
     src/ztd/hash/xxhash32.hpp
-    src/ztd/macros/bitwise_helper.hpp
     src/ztd/macros/constructor_helper.hpp
     src/ztd/macros/crtp_helper.hpp
+    src/ztd/macros/enum_helper.hpp
     src/ztd/macros/for_each_helper.hpp
     src/ztd/macros/macro_helper.hpp
     src/ztd/macros/optional_helper.hpp
@@ -85,12 +85,6 @@ target_compile_options(ztd PRIVATE
     -Wno-gnu-case-range
     -Wno-gnu-zero-variadic-macro-arguments
 )
-
-if (ZTD_FMT_ENABLED)
-    find_package(fmt REQUIRED)
-    target_link_libraries(ztd PUBLIC fmt::fmt)
-    target_compile_definitions(ztd PUBLIC ZTD_FMT_ENABLED)
-endif ()
 
 target_include_directories(ztd PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 

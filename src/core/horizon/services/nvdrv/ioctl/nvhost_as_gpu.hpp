@@ -7,20 +7,20 @@ namespace hydra::horizon::services::nvdrv::ioctl {
 
 enum class AllocSpaceFlags : u32 {
     None = 0,
-    FixedOffset = BIT(0),
-    Sparse = BIT(1),
+    FixedOffset = ZTD_BIT(0),
+    Sparse = ZTD_BIT(1),
 };
 
-ENABLE_ENUM_BITWISE_OPERATORS(AllocSpaceFlags)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(AllocSpaceFlags)
 
 enum class MapBufferFlags : u32 {
     None = 0,
-    FixedOffset = BIT(0),
-    IsCacheable = BIT(2),
-    Modify = BIT(8),
+    FixedOffset = ZTD_BIT(0),
+    IsCacheable = ZTD_BIT(2),
+    Modify = ZTD_BIT(8),
 };
 
-ENABLE_ENUM_BITWISE_OPERATORS(MapBufferFlags)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(MapBufferFlags)
 
 struct VaRegion {
     gpu_vaddr_t addr;

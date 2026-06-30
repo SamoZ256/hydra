@@ -39,11 +39,6 @@ class Gpu {
     // Memory map
     u32 CreateMap(u64 size) {
         return memory_maps.insert(0, size).value_or(INVALID_HANDLE_ID);
-
-        // TODO: is this hack still needed?
-        // HACK: allocate one more index. Games are probably confused with
-        // handle IDs and IDs
-        // memory_maps.insert();
     }
 
     void AllocateMap(handle_id_t handle_id, uptr addr, bool write) {
@@ -58,9 +53,8 @@ class Gpu {
                      "Failed to free map {:#x}", handle_id);
     }
 
-    // TODO: optional
-    MemoryMap& GetMap(handle_id_t handle_id) {
-        return *memory_maps.get(handle_id).value();
+    std::optional<MemoryMap*> GetMap(handle_id_t handle_id) {
+        return memory_maps.get(handle_id);
     }
 
     // Engines

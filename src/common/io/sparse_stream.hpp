@@ -125,7 +125,7 @@ class OwnedSparseStream : public SparseStream {
             delete entry.stream;
     }
 
-    MAKE_NON_COPYABLE(OwnedSparseStream);
+    ZTD_MAKE_NON_COPYABLE(OwnedSparseStream);
 };
 
 } // namespace hydra::io

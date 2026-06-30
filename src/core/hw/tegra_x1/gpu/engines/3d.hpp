@@ -177,10 +177,10 @@ enum class ViewportZClip : u32 {
 
 enum class WindowOriginFlags : u32 {
     None = 0,
-    LowerLeft = BIT(0),
-    FlipY = BIT(4), // Only for the purpose of figuring out polygon winding
+    LowerLeft = ZTD_BIT(0),
+    FlipY = ZTD_BIT(4), // Only for the purpose of figuring out polygon winding
 };
-ENABLE_ENUM_BITWISE_OPERATORS(WindowOriginFlags)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(WindowOriginFlags)
 
 enum class ViewportSwizzle : u32 {
     PositiveX = 0,
@@ -571,8 +571,9 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
         renderer::ShaderType::Count)] = {nullptr};
 
     // State
-    ztd::Range<uptr> bound_const_buffers[static_cast<usize>(ShaderStage::Count) - 1]
-                                   [CONST_BUFFER_BINDING_COUNT];
+    ztd::Range<uptr>
+        bound_const_buffers[static_cast<usize>(ShaderStage::Count) - 1]
+                           [CONST_BUFFER_BINDING_COUNT];
 
     // Methods
     DEFINE_INLINE_ENGINE_METHODS;

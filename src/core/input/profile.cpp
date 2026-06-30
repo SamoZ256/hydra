@@ -187,9 +187,9 @@ void Profile::LoadDefaults() {
     switch (index) {
     case horizon::services::hid::internal::NpadIndex::No1: {
         // Devices
-#ifdef PLATFORM_MACOS
+#ifdef ZTD_PLATFORM_MACOS
         device_names = {"Generic Keyboard"};
-#elifdef PLATFORM_IOS
+#elifdef ZTD_PLATFORM_IOS
         device_names = {"Apple Touch Controller"};
 #endif
 

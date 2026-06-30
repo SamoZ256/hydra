@@ -28,7 +28,7 @@ class IService {
     IService() noexcept = default;
     virtual ~IService() noexcept = default;
 
-    MAKE_NON_COPYABLE(IService);
+    ZTD_MAKE_NON_COPYABLE(IService);
 
     void HandleRequest(System& system, kernel::Process* caller_process,
                        uptr ptr);

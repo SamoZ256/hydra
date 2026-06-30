@@ -269,8 +269,8 @@ void System::LoadAndStart(horizon::loader::ILoader* loader) {
 
                 const auto view_descriptor =
                     hw::tegra_x1::gpu::renderer::TextureViewDescriptor(
-                        descriptor.type, descriptor.format, ztd::Range<u32>(0, 1),
-                        ztd::Range<u32>(0, 1));
+                        descriptor.type, descriptor.format,
+                        ztd::Range<u32>(0, 1), ztd::Range<u32>(0, 1));
                 const auto texture_view = texture->CreateView(view_descriptor);
                 nintendo_logo = {.base = texture, .view = texture_view};
 
@@ -301,8 +301,8 @@ void System::LoadAndStart(horizon::loader::ILoader* loader) {
                     true, stride, width, height, 1, 1, 1, 0x0, 0x0, 0x0);
                 const auto view_descriptor =
                     hw::tegra_x1::gpu::renderer::TextureViewDescriptor(
-                        descriptor.type, descriptor.format, ztd::Range<u32>(0, 1),
-                        ztd::Range<u32>(0, 1));
+                        descriptor.type, descriptor.format,
+                        ztd::Range<u32>(0, 1), ztd::Range<u32>(0, 1));
                 startup_movie.reserve(frame_count);
 
                 // Command buffer
@@ -596,7 +596,7 @@ void System::TakeScreenshot() {
     if (layer == nullptr)
         return;
 
-    ASSIGN_OR_RETURN(auto texture, layer->GetPresentTexture());
+    ZTD_ASSIGN_OR_RETURN(auto texture, layer->GetPresentTexture());
 
     std::thread thread([layer, texture, this]() {
         // Get the image data

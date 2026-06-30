@@ -1,6 +1,6 @@
 #pragma once
 
-namespace ztd::mem {
+namespace ztd::mem::inline literals {
 
 constexpr auto operator""_KiB(unsigned long long x) noexcept
     -> unsigned long long {
@@ -22,4 +22,4 @@ constexpr auto operator""_TiB(unsigned long long x) noexcept
     return x * 1024_GiB;
 }
 
-} // namespace ztd::mem
+} // namespace ztd::mem::inline literals

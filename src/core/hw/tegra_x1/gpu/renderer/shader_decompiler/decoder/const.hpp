@@ -7,8 +7,9 @@
     {                                                                          \
         /* TODO: comments */                                                   \
         /*BUILDER.OpDebugComment(fmt::format(f_comment                         \
-         * PASS_VA_ARGS(__VA_ARGS__)));*/                                      \
-        LOG_##log_level(ShaderDecompiler, f_log PASS_VA_ARGS(__VA_ARGS__));    \
+         * ZTD_PASS_VA_ARGS(__VA_ARGS__)));*/                                  \
+        LOG_##log_level(ShaderDecompiler,                                      \
+                        f_log ZTD_PASS_VA_ARGS(__VA_ARGS__));                  \
     }
 #define COMMENT(f, ...) COMMENT_IMPL(DEBUG, f, f, __VA_ARGS__)
 #define COMMENT_NOT_IMPLEMENTED(f, ...)                                        \

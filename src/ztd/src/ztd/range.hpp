@@ -2,11 +2,6 @@
 
 #include <algorithm>
 
-#ifdef ZTD_FMT_ENABLED
-#include <cstdlib>
-#include <fmt/core.h>
-#endif
-
 #include "ztd/type_aliases.hpp"
 
 namespace ztd {
@@ -76,27 +71,3 @@ class Range {
 };
 
 } // namespace ztd
-
-#ifdef ZTD_FMT_ENABLED
-template <typename T>
-struct fmt::formatter<ztd::Range<T>> : formatter<string_view> {
-    fmt::formatter<T> value_formatter;
-
-    constexpr auto parse(fmt::format_parse_context& ctx) {
-        return value_formatter.parse(ctx);
-    }
-
-    template <typename FormatContext>
-    auto format(const ztd::Range<T>& range, FormatContext& ctx) const {
-        auto out = ctx.out();
-
-        *out++ = '<';
-        out = value_formatter.format(range.getBegin(), ctx);
-        out = fmt::format_to(out, "...");
-        out = value_formatter.format(range.getEnd(), ctx);
-        *out++ = ')';
-
-        return out;
-    }
-};
-#endif

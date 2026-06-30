@@ -176,8 +176,8 @@ Plugin::Create(const std::string& path,
             }
 
             // Create context
-            ASSIGN_OR_RETURN_ERROR(plugin.context,
-                                   plugin.CreateContext(options));
+            ZTD_ASSIGN_OR_RETURN_ERROR(plugin.context,
+                                       plugin.CreateContext(options));
 
             return plugin;
         });

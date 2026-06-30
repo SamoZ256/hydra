@@ -163,9 +163,7 @@ class IThread : public SynchronizationObject {
 
 inline thread_local IThread* tls_current_thread = nullptr;
 
-IThread* GetMutexOwner(Process* process, u32 mutex);
-inline IThread* GetMutexOwner(Process* process, u32* mutex_ptr) {
-    return GetMutexOwner(process, atomic_load(mutex_ptr));
-}
+std::optional<IThread*> GetMutexOwner(Process* process, u32 mutex);
+std::optional<IThread*> GetMutexOwner(Process* process, u32* mutex_ptr);
 
 } // namespace hydra::horizon::kernel

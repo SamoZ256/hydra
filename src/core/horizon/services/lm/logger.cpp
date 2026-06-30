@@ -7,12 +7,12 @@ namespace {
 enum class PacketFlags : u8 {
     None = 0,
 
-    Head = BIT(0),
-    Tail = BIT(1),
-    LittleEndian = BIT(2),
+    Head = ZTD_BIT(0),
+    Tail = ZTD_BIT(1),
+    LittleEndian = ZTD_BIT(2),
 };
 
-ENABLE_ENUM_BITWISE_OPERATORS(hydra::horizon::services::lm::PacketFlags)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(hydra::horizon::services::lm::PacketFlags)
 
 enum class Severity : u8 {
     Trace,
@@ -81,8 +81,9 @@ namespace hydra::horizon::services::lm {
 DEFINE_SERVICE_COMMAND_TABLE(ILogger, 0, Log)
 
 result_t ILogger::Log(InBuffer<BufferAttr::AutoSelect> buffer) {
-    ASSIGN_OR_RETURN_VALUE(auto stream, buffer.stream,
-                           RESULT_SUCCESS); // TODO: return error on failure?
+    ZTD_ASSIGN_OR_RETURN_VALUE(
+        auto stream, buffer.stream,
+        RESULT_SUCCESS); // TODO: return error on failure?
     const auto header = stream.Read<LogPacketHeader>();
 
     // From Ryujinx

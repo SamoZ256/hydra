@@ -10,7 +10,7 @@ enum class SharedFontType : u32 {
     Korean = 4,
     NintendoExtended = 5,
 };
-ENABLE_ENUM_ARITHMETIC_OPERATORS(SharedFontType)
+ZTD_ENABLE_ENUM_ARITHMETIC_OPERATORS(SharedFontType)
 
 enum class LoadState : u32 {
     Loading = 0,

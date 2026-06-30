@@ -804,9 +804,9 @@ result_t Kernel::WaitProcessWideKeyAtomic(Process* crnt_process,
 
         // Mutex
         auto owner = GetMutexOwner(
-            crnt_process, static_cast<u32>(crnt_thread->mutex_wait_addr));
-        if (owner != nullptr)
-            owner->RemoveMutexWaiter(crnt_thread);
+            crnt_process, reinterpret_cast<u32*>(crnt_thread->mutex_wait_addr));
+        if (owner.has_value())
+            owner.value()->RemoveMutexWaiter(crnt_thread);
     }
 
     return res;
@@ -1403,7 +1403,7 @@ void Kernel::TryAcquireMutex(Process* crnt_process, IThread* thread) {
     }
 
     // Register this thread as a waiter by the owner
-    auto owner = GetMutexOwner(crnt_process, value);
+    auto owner = GetMutexOwner(crnt_process, value).value();
     owner->AddMutexWaiter(thread);
 }
 

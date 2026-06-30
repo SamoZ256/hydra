@@ -334,7 +334,7 @@ class CacheBase {
         THIS->Destroy();
     }
 
-    MAKE_NON_COPYABLE(CacheBase);
+    ZTD_MAKE_NON_COPYABLE(CacheBase);
 
     T& Find(const DescriptorT& descriptor) {
         u32 hash = THIS->Hash(descriptor);

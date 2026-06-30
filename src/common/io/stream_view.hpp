@@ -44,7 +44,7 @@ class OwnedStreamView : public StreamView {
 
     ~OwnedStreamView() override { delete base; }
 
-    MAKE_NON_COPYABLE(OwnedStreamView);
+    ZTD_MAKE_NON_COPYABLE(OwnedStreamView);
 };
 
 } // namespace hydra::io

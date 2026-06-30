@@ -5,7 +5,7 @@
 #define LOG_FS_ACCESS(host_path, f, ...)                                       \
     if (CONFIG_INSTANCE.GetLogFsAccess()) {                                    \
         LOG_INFO(Filesystem, "\"{}\": " f,                                     \
-                 host_path PASS_VA_ARGS(__VA_ARGS__));                         \
+                 host_path ZTD_PASS_VA_ARGS(__VA_ARGS__));                     \
     }
 
 namespace hydra::horizon::filesystem {

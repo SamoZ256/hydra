@@ -29,11 +29,11 @@ enum class FsResult {
 
 enum class FileOpenFlags {
     None = 0,
-    Read = BIT(0),
-    Write = BIT(1),
-    Append = BIT(2),
+    Read = ZTD_BIT(0),
+    Write = ZTD_BIT(1),
+    Append = ZTD_BIT(2),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(FileOpenFlags)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(FileOpenFlags)
 
 } // namespace hydra::horizon::filesystem
 

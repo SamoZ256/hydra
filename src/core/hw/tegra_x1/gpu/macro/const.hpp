@@ -45,7 +45,7 @@ enum class ResultOperation : int32_t {
 };
 
 constexpr usize REG_COUNT = 8;
-constexpr u32 EXIT_BIT = BIT(7);
+constexpr u32 EXIT_BIT = ZTD_BIT(7);
 
 } // namespace hydra::hw::tegra_x1::gpu::macro
 

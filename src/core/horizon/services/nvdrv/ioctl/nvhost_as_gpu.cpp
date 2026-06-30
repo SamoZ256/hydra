@@ -63,18 +63,20 @@ NvResult NvHostAsGpu::MapBufferEX(System* system, kernel::Process* process,
         return NvResult::Success;
     }
 
-    const auto& map = system->GetGpu().GetMap(nvmap_handle_id);
+    ZTD_ASSIGN_OR_RETURN_VALUE(const auto map,
+                               system->GetGpu().GetMap(nvmap_handle_id),
+                               NvResult::BadParameter);
 
     u64 size = mapping_size;
     if (size == 0x0)
-        size = map.size; // TODO: correct?
+        size = map->size; // TODO: correct?
 
     gpu_vaddr_t addr = invalid<uptr>();
     if (any(flags & MapBufferFlags::FixedOffset))
         addr = inout_addr;
 
     inout_addr = process->GetGMmu().MapBufferToAddressSpace(
-        ztd::Range<vaddr_t>::fromSize(map.addr + buffer_offset, size), addr);
+        ztd::Range<vaddr_t>::fromSize(map->addr + buffer_offset, size), addr);
     return NvResult::Success;
 }
 

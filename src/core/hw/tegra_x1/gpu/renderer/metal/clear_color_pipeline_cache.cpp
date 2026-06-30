@@ -73,13 +73,13 @@ MTL::RenderPipelineState* ClearColorPipelineCache::Create(
     color_attachment->setPixelFormat(descriptor.pixel_format);
 
     MTL::ColorWriteMask mask = MTL::ColorWriteMaskNone;
-    if ((descriptor.mask & BIT(0)) != 0u)
+    if ((descriptor.mask & ZTD_BIT(0)) != 0u)
         mask |= MTL::ColorWriteMaskRed;
-    if ((descriptor.mask & BIT(1)) != 0u)
+    if ((descriptor.mask & ZTD_BIT(1)) != 0u)
         mask |= MTL::ColorWriteMaskGreen;
-    if ((descriptor.mask & BIT(2)) != 0u)
+    if ((descriptor.mask & ZTD_BIT(2)) != 0u)
         mask |= MTL::ColorWriteMaskBlue;
-    if ((descriptor.mask & BIT(3)) != 0u)
+    if ((descriptor.mask & ZTD_BIT(3)) != 0u)
         mask |= MTL::ColorWriteMaskAlpha;
     color_attachment->setWriteMask(mask);
 

@@ -12,7 +12,7 @@
     result_t service::RequestImpl([[maybe_unused]] RequestContext& context,    \
                                   u32 id) {                                    \
         switch (id) {                                                          \
-            FOR_EACH_1_2(SERVICE_COMMAND_CASE, service, __VA_ARGS__)           \
+            ZTD_FOR_EACH_1_2(SERVICE_COMMAND_CASE, service, __VA_ARGS__)       \
         default:                                                               \
             LOG_WARN(Services, "Unknown request {}", id);                      \
             return MAKE_RESULT(Svc, 0); /* TODO */                             \

@@ -8,7 +8,9 @@ struct Iova {
     u32 hi;
     u32 lo;
 
-    operator u64() const { return static_cast<u64>(hi) << 32 | static_cast<u64>(lo); }
+    operator u64() const {
+        return static_cast<u64>(hi) << 32 | static_cast<u64>(lo);
+    }
 };
 
 enum class Winding : u32 {
@@ -161,13 +163,13 @@ inline i32 get_block_size_log2(const BlockDim dim) {
 
 enum class ColorWriteMask : u32 {
     None = 0,
-    Red = BIT(0),
-    Green = BIT(4),
-    Blue = BIT(8),
-    Alpha = BIT(12),
+    Red = ZTD_BIT(0),
+    Green = ZTD_BIT(4),
+    Blue = ZTD_BIT(8),
+    Alpha = ZTD_BIT(12),
     All = Red | Green | Blue | Alpha,
 };
-ENABLE_ENUM_BITWISE_OPERATORS(ColorWriteMask)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(ColorWriteMask)
 
 } // namespace hydra::hw::tegra_x1::gpu::engines
 

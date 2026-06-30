@@ -4,8 +4,8 @@
 
 #include <fmt/ranges.h>
 
+#include "common/fmt_helper.hpp"
 #include "common/log.hpp"
-#include "common/platform.hpp"
 #include "common/types.hpp"
 
 #define CONFIG_INSTANCE Config::GetInstance()
@@ -106,7 +106,7 @@ class Config {
     static std::vector<LoaderPlugin> GetDefaultLoaderPlugins() { return {}; }
     static std::vector<std::string> GetDefaultPatchPaths() { return {}; }
     static InputBackend GetDefaultInputBackend() {
-#ifdef PLATFORM_APPLE
+#ifdef ZTD_PLATFORM_APPLE
         return InputBackend::AppleGameController;
 #else
         return InputBackend::Sdl;
@@ -123,7 +123,7 @@ class Config {
 #endif
     }
     static GpuRenderer GetDefaultGpuRenderer() {
-#ifdef PLATFORM_APPLE
+#ifdef ZTD_PLATFORM_APPLE
         return GpuRenderer::Metal;
 #else
         return GpuRenderer::Null;

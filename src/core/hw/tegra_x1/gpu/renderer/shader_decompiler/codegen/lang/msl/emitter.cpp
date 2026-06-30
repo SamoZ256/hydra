@@ -250,7 +250,7 @@ void MslEmitter::EmitMainPrototype() {
     }
     WriteRaw("StageOut main_(StageIn __in [[stage_in]]");
 
-#define ADD_ARG(f, ...) WriteRaw(", " f PASS_VA_ARGS(__VA_ARGS__))
+#define ADD_ARG(f, ...) WriteRaw(", " f ZTD_PASS_VA_ARGS(__VA_ARGS__))
 
     // Input SVs
     switch (context.type) {

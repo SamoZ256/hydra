@@ -35,21 +35,21 @@ NvResult NvMap::Alloc(System* system, handle_id_t handle_id, u32 heap_mask,
 
 NvResult NvMap::Free(System* system, Aligned<handle_id_t, 8> handle_id,
                      gpu_vaddr_t* out_addr, u64* out_size, u32* out_flags) {
-    auto map = system->GetGpu().GetMap(handle_id);
+    auto map = system->GetGpu().GetMap(handle_id).value();
     system->GetGpu().FreeMap(handle_id);
 
-    *out_addr = map.addr;
-    *out_size = map.size;
-    *out_flags = map.write ? 1 : 0; // TODO: correct?
+    *out_addr = map->addr;
+    *out_size = map->size;
+    *out_flags = map->write ? 1 : 0; // TODO: correct?
     return NvResult::Success;
 }
 
 NvResult NvMap::Param(System* system, handle_id_t handle_id,
                       NvMapParamType type, u32* out_value) {
-    auto map = system->GetGpu().GetMap(handle_id);
+    auto map = system->GetGpu().GetMap(handle_id).value();
     switch (type) {
     case NvMapParamType::Size:
-        *out_value = static_cast<u32>(map.size);
+        *out_value = static_cast<u32>(map->size);
         break;
     case NvMapParamType::Alignment:
         *out_value = hw::tegra_x1::gpu::GPU_PAGE_SIZE; // TODO: correct?

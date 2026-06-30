@@ -14,8 +14,8 @@ class StorageQueue {
             data->Release();
     }
 
-    MAKE_NON_COPYABLE(StorageQueue);
-    MAKE_DEFAULT_MOVABLE(StorageQueue);
+    ZTD_MAKE_NON_COPYABLE(StorageQueue);
+    ZTD_MAKE_DEFAULT_MOVABLE(StorageQueue);
 
     void PushData(IStorage* data) {
         data->Retain();
@@ -44,8 +44,8 @@ class LibraryAppletController {
           interactive_out_data_event(std::make_unique<kernel::Event>(
               false, "Library applet interactive out data event")) {}
 
-    MAKE_NON_COPYABLE(LibraryAppletController);
-    MAKE_DEFAULT_MOVABLE(LibraryAppletController);
+    ZTD_MAKE_NON_COPYABLE(LibraryAppletController);
+    ZTD_MAKE_DEFAULT_MOVABLE(LibraryAppletController);
 
     // Data
 

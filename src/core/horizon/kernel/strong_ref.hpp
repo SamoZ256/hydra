@@ -16,8 +16,8 @@ class StrongRef {
 
     ~StrongRef() { obj->Release(); }
 
-    MAKE_NON_COPYABLE(StrongRef);
-    MAKE_DEFAULT_MOVABLE(StrongRef);
+    ZTD_MAKE_NON_COPYABLE(StrongRef);
+    ZTD_MAKE_DEFAULT_MOVABLE(StrongRef);
 
     T* operator*() const { return obj; }
     T* operator->() const { return obj; }
