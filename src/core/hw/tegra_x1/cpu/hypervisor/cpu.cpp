@@ -42,7 +42,7 @@ VirtualMachine::VirtualMachine() {
     auto config = hv_vm_config_create();
     uint32_t max_bits;
     HV_ASSERT_SUCCESS(hv_vm_config_get_max_ipa_size(&max_bits));
-    HV_ASSERT_SUCCESS(hv_vm_config_set_ipa_size(config, 39));
+    HV_ASSERT_SUCCESS(hv_vm_config_set_ipa_size(config, max_bits));
 
     HV_ASSERT_SUCCESS(hv_vm_create(config));
     os_release(config);
