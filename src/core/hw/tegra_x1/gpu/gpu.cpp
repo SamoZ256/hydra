@@ -35,7 +35,7 @@ struct SetObjectArg {
 
 } // namespace
 
-Gpu::Gpu()
+Gpu::Gpu() noexcept
     : pfifo(*this), three_d_engine(*this), compute_engine(*this),
       inline_engine(*this), two_d_engine(*this), copy_engine(*this),
       renderer{CreateRenderer()} {}

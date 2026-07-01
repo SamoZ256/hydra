@@ -34,12 +34,14 @@ inline thread_local renderer::ICommandBuffer* tls_crnt_command_buffer = nullptr;
 
 class Gpu {
   public:
-    Gpu();
+    Gpu() noexcept;
+    ~Gpu() noexcept = default;
+
+    ZTD_MAKE_NON_COPYABLE(Gpu);
+    ZTD_MAKE_NON_MOVABLE(Gpu);
 
     // Memory map
-    u32 CreateMap(u64 size) {
-        return memory_maps.insert(0, size).value_or(INVALID_HANDLE_ID);
-    }
+    u32 CreateMap(u64 size) { return memory_maps.insert(0, size).value(); }
 
     void AllocateMap(handle_id_t handle_id, uptr addr, bool write) {
         // TODO: error?
@@ -100,7 +102,7 @@ class Gpu {
 
     // Memory
     // TODO: dynamic pool?
-    ztd::mem::StaticPool<MemoryMap, 512> memory_maps;
+    ztd::mem::StaticPool<MemoryMap, 2048> memory_maps;
 };
 
 } // namespace hydra::hw::tegra_x1::gpu

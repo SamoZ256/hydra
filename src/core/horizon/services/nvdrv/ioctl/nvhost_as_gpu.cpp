@@ -63,9 +63,11 @@ NvResult NvHostAsGpu::MapBufferEX(System* system, kernel::Process* process,
         return NvResult::Success;
     }
 
-    ZTD_ASSIGN_OR_RETURN_VALUE(const auto map,
-                               system->GetGpu().GetMap(nvmap_handle_id),
-                               NvResult::BadParameter);
+    ZTD_ASSIGN_OR(
+        const auto map, system->GetGpu().GetMap(nvmap_handle_id), ZTD_PASS({
+            LOG_WARN(Services, "Invalid nvmap handle {:#x}", nvmap_handle_id);
+            return NvResult::BadParameter; /* TODO: correct? */
+        }));
 
     u64 size = mapping_size;
     if (size == 0x0)
