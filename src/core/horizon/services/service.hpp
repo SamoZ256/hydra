@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/horizon/handle_pool.hpp"
 #include "core/horizon/kernel/hipc/const.hpp"
 
 namespace hydra {
@@ -34,7 +35,7 @@ class IService {
                        uptr ptr);
 
     void AddService(RequestContext& context, IService* service);
-    IService* GetService(RequestContext& context, handle_id_t handle_id);
+    IService* GetService(RequestContext& context, Handle handle);
 
     // Reference counting
     IService* Retain() {
@@ -49,22 +50,21 @@ class IService {
   protected:
     virtual result_t RequestImpl(RequestContext& context, u32 id) = 0;
 
-    u32 AddSubservice(IService* service) {
+    Handle AddSubservice(IService* service) {
         if (service == nullptr)
-            return INVALID_HANDLE_ID;
+            return INVALID_HANDLE;
 
-        return parent->subservice_pool->insert(service).value_or(
-            INVALID_HANDLE_ID);
+        return parent->subservice_pool->Insert(service).value();
     }
 
-    void FreeSubservice(handle_id_t handle_id) {
-        parent->subservice_pool->get(handle_id).value()->Release();
-        ASSERT_DEBUG(parent->subservice_pool->free(handle_id), Services,
+    void FreeSubservice(Handle handle) {
+        parent->subservice_pool->Get(handle).value()->Release();
+        ASSERT_DEBUG(parent->subservice_pool->Free(handle), Services,
                      "Failed to free subservice");
     }
 
-    IService* GetSubservice(handle_id_t handle_id) const {
-        return parent->subservice_pool->get(handle_id).value();
+    IService* GetSubservice(Handle handle) const {
+        return parent->subservice_pool->Get(handle).value();
     }
 
   private:
@@ -76,7 +76,7 @@ class IService {
     bool is_domain{false};
     IService* parent{this};
     // TODO: dynamic pool?
-    std::optional<ztd::mem::StaticPool<IService*, 512>> subservice_pool;
+    std::optional<StaticHandlePool<IService*, 512>> subservice_pool;
 
     void Close();
     void Request(RequestContext& context);

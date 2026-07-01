@@ -50,7 +50,7 @@ NvResult NvHostAsGpu::UnmapBuffer(gpu_vaddr_t addr) {
 NvResult NvHostAsGpu::MapBufferEX(System* system, kernel::Process* process,
                                   MapBufferFlags flags,
                                   hw::tegra_x1::gpu::NvKind kind,
-                                  handle_id_t nvmap_handle_id,
+                                  Handle nvmap_handle,
                                   [[maybe_unused]] u32 reserved,
                                   u64 buffer_offset, u64 mapping_size,
                                   InOutSingle<gpu_vaddr_t> inout_addr) {
@@ -64,8 +64,8 @@ NvResult NvHostAsGpu::MapBufferEX(System* system, kernel::Process* process,
     }
 
     ZTD_ASSIGN_OR(
-        const auto map, system->GetGpu().GetMap(nvmap_handle_id), ZTD_PASS({
-            LOG_WARN(Services, "Invalid nvmap handle {:#x}", nvmap_handle_id);
+        const auto map, system->GetGpu().GetMap(nvmap_handle), ZTD_PASS({
+            LOG_WARN(Services, "Invalid nvmap handle {}", nvmap_handle);
             return NvResult::BadParameter; /* TODO: correct? */
         }));
 

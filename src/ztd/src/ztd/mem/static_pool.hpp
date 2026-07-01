@@ -1,13 +1,11 @@
 #pragma once
 
-#include "ztd/mem/pool.hpp"
+#include "ztd/type_aliases.hpp"
 
 namespace ztd::mem {
 
-template <typename T, usize capacity, bool allow_zero_handle = false>
-class StaticPool : public Pool<StaticPool<T, capacity>, T, allow_zero_handle> {
-    friend class Pool<StaticPool<T, capacity>, T, allow_zero_handle>;
-
+template <typename T, usize capacity>
+class StaticPool {
   public:
     StaticPool() noexcept = default;
     ~StaticPool() noexcept = default;
@@ -15,11 +13,60 @@ class StaticPool : public Pool<StaticPool<T, capacity>, T, allow_zero_handle> {
     ZTD_MAKE_DEFAULT_COPYABLE(StaticPool);
     ZTD_MAKE_DEFAULT_MOVABLE(StaticPool);
 
+    template <typename... Args>
+    auto insert(Args... args) noexcept
+        -> std::expected<usize, IAllocator::Error> {
+        ZTD_ASSIGN_OR_RETURN_ERROR(const auto index, allocateIndex());
+        objects[index].emplace(std::forward<Args>(args)...);
+        return index;
+    }
+
+    [[nodiscard]] auto free(usize index) noexcept -> bool {
+        auto& object = objects[index];
+        if (object.has_value()) {
+            object = std::nullopt;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    [[nodiscard]] auto isValid(usize index) const noexcept -> bool {
+        return objects[index].has_value();
+    }
+
+    auto get(usize index) noexcept -> std::optional<T>
+        requires std::is_pointer_v<T>
+    {
+        return objects[index];
+    }
+
+    auto get(usize index) const noexcept -> std::optional<const T>
+        requires std::is_pointer_v<T>
+    {
+        return objects[index];
+    }
+
+    auto get(usize index) noexcept -> std::optional<T*>
+        requires(!std::is_pointer_v<T>)
+    {
+        return objects[index].transform([](T& value) -> T* { return &value; });
+    }
+
+    auto get(usize index) const noexcept -> std::optional<const T*>
+        requires(!std::is_pointer_v<T>)
+    {
+        return objects[index].transform(
+            [](const T& value) -> const T* { return &value; });
+        ;
+    }
+
+    // Iterating
     auto begin() noexcept { return Iterator(this, 0); }
-    auto end() noexcept { return Iterator(this, capacity); }
+    auto end() noexcept { return Iterator(this, crnt); }
 
     auto begin() const noexcept { return ConstIterator(this, 0); }
-    auto end() const noexcept { return ConstIterator(this, capacity); }
+    auto end() const noexcept { return ConstIterator(this, crnt); }
 
     auto cbegin() const noexcept { return begin(); }
     auto cend() const noexcept { return end(); }
@@ -29,6 +76,24 @@ class StaticPool : public Pool<StaticPool<T, capacity>, T, allow_zero_handle> {
     }
 
   private:
+    std::array<std::optional<T>, capacity> objects;
+    usize crnt{0};
+
+    auto allocateIndex() noexcept -> std::expected<usize, IAllocator::Error> {
+        if (crnt < capacity) {
+            return crnt++;
+        }
+
+        for (usize i = 0; i < capacity; i++) {
+            if (!isValid(i)) {
+                return i;
+            }
+        }
+
+        return std::unexpected(IAllocator::Error::OutOfMemory);
+    }
+
+    // Iterator
     template <bool is_const>
     struct IteratorBase {
         using PoolType =
@@ -37,7 +102,7 @@ class StaticPool : public Pool<StaticPool<T, capacity>, T, allow_zero_handle> {
         usize index;
 
         IteratorBase(PoolType* p, usize i) noexcept : pool(p), index(i) {
-            while (index < capacity && !pool->isValidByIndex(index)) {
+            while (index < pool->crnt && !pool->isValid(index)) {
                 index++;
             }
         }
@@ -67,7 +132,7 @@ class StaticPool : public Pool<StaticPool<T, capacity>, T, allow_zero_handle> {
         auto operator++() noexcept -> IteratorBase& {
             do {
                 index++;
-            } while (index < capacity && !pool->isValidByIndex(index));
+            } while (index < pool->crnt && !pool->isValid(index));
             return *this;
         }
 
@@ -76,46 +141,9 @@ class StaticPool : public Pool<StaticPool<T, capacity>, T, allow_zero_handle> {
         }
     };
 
+  public:
     using Iterator = IteratorBase<false>;
     using ConstIterator = IteratorBase<true>;
-
-    std::array<std::optional<T>, capacity> objects;
-    u32 crnt{0};
-
-    auto findFreeIndex() noexcept -> std::expected<u32, IAllocator::Error> {
-        if (crnt < capacity) {
-            return crnt++;
-        }
-
-        for (u32 i = 0; i < capacity; i++) {
-            if (!isValidByIndex(i)) {
-                return i;
-            }
-        }
-
-        return std::unexpected(IAllocator::Error::OutOfMemory);
-    }
-
-    [[nodiscard]] auto freeByIndex(u32 index) noexcept -> bool {
-        auto& object = objects[index];
-        if (object.has_value()) {
-            object = std::nullopt;
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    [[nodiscard]] auto isValidByIndex(u32 index) const noexcept -> bool {
-        return objects[index].has_value();
-    }
-
-    auto getByIndex(u32 index) noexcept -> std::optional<T>& {
-        return objects[index];
-    }
-    auto getByIndex(u32 index) const noexcept -> const std::optional<T>& {
-        return objects[index];
-    }
 };
 
 } // namespace ztd::mem

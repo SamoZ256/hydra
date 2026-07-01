@@ -10,8 +10,8 @@ class IPsmSession : public IService {
                          u32 id) override;
 
   private:
-    handle_id_t event_handle_id{
-        INVALID_HANDLE_ID}; // TODO: storing the handle ID is definitely wrong
+    Handle event_handle{
+        INVALID_HANDLE}; // TODO: storing the handle ID is definitely wrong
 
     bool signal_on_charger_type_change{false};
     bool signal_on_power_supply_change{false};

@@ -92,19 +92,21 @@ result_t IApplicationDisplayService::ListDisplays(
 result_t IApplicationDisplayService::OpenDisplay(System* system,
                                                  DisplayName display_name,
                                                  u64* out_display_id) {
-    auto display_id = system->GetOS().GetDisplayDriver().GetDisplayIDFromName(
-        display_name.name);
-    auto& display = system->GetOS().GetDisplayDriver().GetDisplay(display_id);
+    const auto display_handle =
+        system->GetOS().GetDisplayDriver().GetDisplayIDFromName(
+            display_name.name);
+    auto& display =
+        system->GetOS().GetDisplayDriver().GetDisplay(display_handle);
     display.Open();
 
-    *out_display_id = display_id;
+    *out_display_id = display_handle.GetRaw();
     return RESULT_SUCCESS;
 }
 
 result_t IApplicationDisplayService::CloseDisplay(System* system,
                                                   u64 display_id) {
     auto& display = system->GetOS().GetDisplayDriver().GetDisplay(
-        static_cast<handle_id_t>(display_id));
+        static_cast<u32>(display_id));
     display.Close();
     return RESULT_SUCCESS;
 }
@@ -114,7 +116,7 @@ result_t IApplicationDisplayService::GetDisplayResolution(System* system,
                                                           i64* out_width,
                                                           i64* out_height) {
     auto& display = system->GetOS().GetDisplayDriver().GetDisplay(
-        static_cast<handle_id_t>(display_id));
+        static_cast<u32>(display_id));
     (void)display;
 
     // TODO: use the display
@@ -141,7 +143,7 @@ result_t IApplicationDisplayService::OpenLayer(
 
     // Parcel
     hosbinder::ParcelWriter parcel_writer(parcel_buffer.stream.value());
-    parcel_writer.WriteObject(layer.GetBinderID(), "dispdrv"_u64);
+    parcel_writer.WriteObject(layer.GetBinderHandle().GetRaw(), "dispdrv"_u64);
     parcel_writer.Finish();
 
     *out_native_window_size = parcel_writer.GetWrittenSize();
@@ -180,7 +182,7 @@ result_t IApplicationDisplayService::GetDisplayVsyncEvent(
     System* system, kernel::Process* process, u64 display_id,
     OutHandle<HandleAttr::Move> out_handle) {
     auto& display = system->GetOS().GetDisplayDriver().GetDisplay(
-        static_cast<handle_id_t>(display_id));
+        static_cast<u32>(display_id));
 
     out_handle = process->AddHandle(display.GetVSyncEvent());
     return RESULT_SUCCESS;

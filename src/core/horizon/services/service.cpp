@@ -127,8 +127,8 @@ void IService::AddService(RequestContext& context, IService* service) {
         service->is_domain = true;
         service->parent = parent;
 
-        const auto handle_id = AddSubservice(service);
-        context.streams.out_objects_stream.Write(handle_id);
+        const auto handle = AddSubservice(service);
+        context.streams.out_objects_stream.Write(handle);
     } else {
         // Create new session
         auto server_session = new kernel::hipc::ServerSession();
@@ -139,18 +139,17 @@ void IService::AddService(RequestContext& context, IService* service) {
         server->RegisterSession(server_session, service);
 
         // Register client side
-        const auto handle_id =
-            context.process->AddHandleNoRetain(client_session);
-        context.streams.out_move_handles_stream.Write(handle_id);
+        const auto handle = context.process->AddHandleNoRetain(client_session);
+        context.streams.out_move_handles_stream.Write(handle);
     }
 }
 
-IService* IService::GetService(RequestContext& context, handle_id_t handle_id) {
+IService* IService::GetService(RequestContext& context, Handle handle) {
     if (is_domain) {
-        return GetSubservice(handle_id);
+        return GetSubservice(handle);
     } else {
         return server->GetServiceForSession(
-            context.process->GetHandle<kernel::hipc::ClientSession>(handle_id)
+            context.process->GetHandle<kernel::hipc::ClientSession>(handle)
                 ->GetParent()
                 ->GetServerSide());
     }
@@ -173,8 +172,8 @@ void IService::Request(RequestContext& context) {
             auto objects = context.streams.in_stream.GetPtr() +
                            context.streams.in_stream.GetSeek() +
                            cmif_in.data_size;
-            context.streams.in_objects_stream.emplace(std::span(
-                objects, cmif_in.num_in_objects * sizeof(handle_id_t)));
+            context.streams.in_objects_stream.emplace(
+                std::span(objects, cmif_in.num_in_objects * sizeof(Handle)));
         }
 
         kernel::hipc::cmif::write_domain_out_header(context.streams.out_stream);
@@ -224,8 +223,8 @@ void IService::Control(RequestContext& context) {
     case kernel::hipc::cmif::ControlCommandType::ConvertCurrentObjectToDomain: {
         is_domain = true;
         subservice_pool.emplace();
-        const auto handle_id = AddSubservice(this->Retain());
-        context.streams.out_stream.Write(handle_id);
+        const auto handle = AddSubservice(this->Retain());
+        context.streams.out_stream.Write(handle);
         *result = RESULT_SUCCESS;
         break;
     }
@@ -261,8 +260,8 @@ void IService::Clone(RequestContext& context) {
     server->RegisterSession(server_session, this);
 
     // Register client side
-    const auto handle_id = context.process->AddHandleNoRetain(client_session);
-    context.streams.out_move_handles_stream.Write(handle_id);
+    const auto handle = context.process->AddHandleNoRetain(client_session);
+    context.streams.out_move_handles_stream.Write(handle);
 }
 
 void IService::TipcRequest(RequestContext& context, const u32 command_id) {

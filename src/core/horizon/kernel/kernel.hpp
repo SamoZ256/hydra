@@ -88,19 +88,19 @@ class Kernel {
                                uptr addr, u64 size);
     result_t CreateTransferMemory(uptr addr, u64 size, MemoryPermission perm,
                                   TransferMemory*& out_tmem);
-    result_t CloseHandle(Process* crnt_process, handle_id_t handle_id);
+    result_t CloseHandle(Process* crnt_process, Handle handle);
     result_t ResetSignal(SynchronizationObject* sync_object);
     result_t WaitSynchronization(IThread* crnt_thread,
                                  std::span<SynchronizationObject*> sync_objs,
                                  i64 timeout, u32& out_signalled_index);
     result_t CancelSynchronization(IThread* thread);
     result_t ArbitrateLock(IThread* crnt_thread, IThread* owner_thread,
-                           uptr mutex_addr, handle_id_t self_handle,
-                           handle_id_t owner_handle);
+                           uptr mutex_addr, Handle self_handle,
+                           Handle owner_handle);
     result_t ArbitrateUnlock(IThread* crnt_thread, uptr mutex_addr);
     result_t WaitProcessWideKeyAtomic(Process* crnt_process,
                                       IThread* crnt_thread, uptr mutex_addr,
-                                      uptr var_addr, handle_id_t self_handle,
+                                      uptr var_addr, Handle self_handle,
                                       i64 timeout);
     result_t SignalProcessWideKey(Process* crnt_process, uptr addr, i32 count);
     void GetSystemTick(u64& out_tick);

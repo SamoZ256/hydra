@@ -92,7 +92,7 @@ hw::tegra_x1::cpu::IMemory* Process::CreateTlsMemory(vaddr_t& base) {
 
 void Process::CreateStackMemory(u64 stack_size) {
     // main_thread = new GuestThread(this, STACK_REGION.begin + stack_size -
-    // 0x10, priority); auto handle_id = AddHandle(main_thread);
+    // 0x10, priority); auto handle = AddHandle(main_thread);
 
     main_thread_stack_mem.reset(system.GetCpu().AllocateMemory(stack_size));
     mmu->Map(STACK_REGION.getBegin(), main_thread_stack_mem.get(),

@@ -1,5 +1,6 @@
 add_library(hydra-core
     horizon/const.hpp
+    horizon/handle_pool.hpp
     horizon/os.cpp
     horizon/os.hpp
     horizon/kernel/const.hpp

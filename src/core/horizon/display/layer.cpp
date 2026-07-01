@@ -13,7 +13,7 @@ namespace hydra::horizon::display {
 bool Layer::AcquirePresentTexture(
     hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer) {
     // Get the buffer to present
-    auto& binder = system.GetOS().GetDisplayDriver().GetBinder(binder_id);
+    auto& binder = system.GetOS().GetDisplayDriver().GetBinder(binder_handle);
 
     BqBufferInput input;
     i32 slot = binder.ConsumeBuffer(input);
@@ -78,7 +78,7 @@ void Layer::Present(hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer,
 AccumulatedTime Layer::GetAccumulatedDT() {
     return system.GetOS()
         .GetDisplayDriver()
-        .GetBinder(binder_id)
+        .GetBinder(binder_handle)
         .GetAccumulatedDT();
 }
 

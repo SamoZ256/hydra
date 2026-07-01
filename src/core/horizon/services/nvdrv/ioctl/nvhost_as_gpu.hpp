@@ -55,9 +55,9 @@ class NvHostAsGpu : public FdBase {
     NvResult UnmapBuffer(gpu_vaddr_t addr);
     NvResult MapBufferEX(System* system, kernel::Process* process,
                          MapBufferFlags flags, hw::tegra_x1::gpu::NvKind kind,
-                         handle_id_t nvmap_handle_id,
-                         [[maybe_unused]] u32 reserved, u64 buffer_offset,
-                         u64 mapping_size, InOutSingle<gpu_vaddr_t> inout_addr);
+                         Handle nvmap_handle, [[maybe_unused]] u32 reserved,
+                         u64 buffer_offset, u64 mapping_size,
+                         InOutSingle<gpu_vaddr_t> inout_addr);
     NvResult GetVaRegions(gpu_vaddr_t buffer_addr,
                           InOutSingle<u32> inout_buffer_size,
                           [[maybe_unused]] u32 reserved,

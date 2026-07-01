@@ -72,8 +72,8 @@ struct Response {
     u32 num_move_handles;
     StaticDescriptor* statics;
     u32* data_words;
-    handle_id_t* copy_handles;
-    handle_id_t* move_handles;
+    Handle* copy_handles;
+    Handle* move_handles;
 };
 
 // From https://github.com/switchbrew/libnx
@@ -84,8 +84,8 @@ struct Request {
     BufferDescriptor* exch_buffers;
     u32* data_words;
     RecvListEntry* recv_list;
-    handle_id_t* copy_handles;
-    handle_id_t* move_handles;
+    Handle* copy_handles;
+    Handle* move_handles;
 };
 
 // From https://github.com/switchbrew/libnx
@@ -106,16 +106,16 @@ struct SpecialHeader {
 // From https://github.com/switchbrew/libnx
 inline Request calc_request_layout(Metadata meta, void* base) {
     // Copy handles
-    handle_id_t* copy_handles = nullptr;
+    Handle* copy_handles = nullptr;
     if (meta.num_copy_handles != 0) {
-        copy_handles = reinterpret_cast<handle_id_t*>(base);
+        copy_handles = reinterpret_cast<Handle*>(base);
         base = copy_handles + meta.num_copy_handles;
     }
 
     // Move handles
-    handle_id_t* move_handles = nullptr;
+    Handle* move_handles = nullptr;
     if (meta.num_move_handles != 0) {
-        move_handles = reinterpret_cast<handle_id_t*>(base);
+        move_handles = reinterpret_cast<Handle*>(base);
         base = move_handles + meta.num_move_handles;
     }
 
@@ -311,10 +311,10 @@ struct Streams {
                               hipc_in.meta.num_data_words * sizeof(u32))),
           in_copy_handles_stream(
               std::span(reinterpret_cast<u8*>(hipc_in.data.copy_handles),
-                        hipc_in.meta.num_copy_handles * sizeof(handle_id_t))),
+                        hipc_in.meta.num_copy_handles * sizeof(Handle))),
           in_move_handles_stream(
               std::span(reinterpret_cast<u8*>(hipc_in.data.move_handles),
-                        hipc_in.meta.num_move_handles * sizeof(handle_id_t))),
+                        hipc_in.meta.num_move_handles * sizeof(Handle))),
           out_stream(std::span(scratch_buffer, 0x1000)),
           out_objects_stream(std::span(scratch_buffer_objects, 0x1000)),
           out_copy_handles_stream(

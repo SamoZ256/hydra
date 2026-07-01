@@ -133,7 +133,7 @@ class IThread : public SynchronizationObject {
 
     // Mutex and cond var
     uptr mutex_wait_addr{0x0};
-    u32 self_handle_for_mutex{0x0};
+    Handle self_handle_for_mutex{INVALID_HANDLE};
     uptr cond_var_wait_addr{0x0};
     std::mutex mutex_wait_mutex;
     ztd::DoublyLinkedList<IThread*> mutex_wait_list;

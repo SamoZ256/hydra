@@ -26,9 +26,6 @@ using magic4_t = u32;
 using paddr_t = u64;
 using vaddr_t = u64;
 using gpu_vaddr_t = u64;
-using handle_id_t = u32;
-
-constexpr handle_id_t INVALID_HANDLE_ID = 0;
 
 using namespace ztd::mem::literals;
 

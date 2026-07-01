@@ -17,8 +17,8 @@ DEFINE_SERVICE_COMMAND_TABLE(
     SetWirelessPriorityMode, 91, GetAccumulatedSuspendedTickChangedEvent)
 
 ISelfController::ISelfController()
-    : library_applet_launchable_event{new kernel::Event(
-          true, "Library applet launchable event")},
+    : library_applet_launchable_event{
+          new kernel::Event(true, "Library applet launchable event")},
       accumulated_suspended_tick_changed_event{new kernel::Event(
           false, "Accumulated suspended tick changed event")} {}
 
@@ -47,9 +47,12 @@ result_t ISelfController::GetLibraryAppletLaunchableEvent(
 result_t ISelfController::CreateManagedDisplayLayer(System* system,
                                                     kernel::Process* process,
                                                     u64* out_layer_id) {
-    u32 binder_id = system->GetOS().GetDisplayDriver().CreateBinder();
-    *out_layer_id =
-        system->GetOS().GetDisplayDriver().CreateLayer(process, binder_id);
+    const auto binder_handle =
+        system->GetOS().GetDisplayDriver().CreateBinder();
+    *out_layer_id = system->GetOS()
+                        .GetDisplayDriver()
+                        .CreateLayer(process, binder_handle)
+                        .GetRaw();
     return RESULT_SUCCESS;
 }
 
@@ -62,12 +65,17 @@ result_t ISelfController::IsSystemBufferSharingEnabled() {
 result_t ISelfController::CreateManagedDisplaySeparableLayer(
     System* system, kernel::Process* process, u64* out_display_layer_id,
     u64* out_recording_layer_id) {
-    u32 binder_id = system->GetOS().GetDisplayDriver().CreateBinder();
-    *out_display_layer_id =
-        system->GetOS().GetDisplayDriver().CreateLayer(process, binder_id);
+    const auto binder_handle =
+        system->GetOS().GetDisplayDriver().CreateBinder();
+    *out_display_layer_id = system->GetOS()
+                                .GetDisplayDriver()
+                                .CreateLayer(process, binder_handle)
+                                .GetRaw();
     // TODO: what is a recording layer?
-    *out_recording_layer_id =
-        system->GetOS().GetDisplayDriver().CreateLayer(process, binder_id);
+    *out_recording_layer_id = system->GetOS()
+                                  .GetDisplayDriver()
+                                  .CreateLayer(process, binder_handle)
+                                  .GetRaw();
     return RESULT_SUCCESS;
 }
 

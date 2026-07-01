@@ -5,7 +5,7 @@
 namespace hydra::horizon::display {
 
 Driver::Driver(System& system_) : system{system_} {
-    ASSERT_DEBUG(display_pool.insert().has_value(), Horizon,
+    ASSERT_DEBUG(display_pool.Insert().has_value(), Horizon,
                  "Fail to create display");
 }
 

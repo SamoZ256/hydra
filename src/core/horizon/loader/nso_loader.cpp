@@ -226,11 +226,11 @@ void NsoLoader::LoadProcess(System& system, kernel::Process* process) {
             system, process,
             kernel::STACK_REGION.getBegin() + main_thread_stack_size - 0x10,
             main_thread_priority);
-        const auto main_thread_handle_id = process->SetMainThread(main_thread);
+        const auto main_thread_handle = process->SetMainThread(main_thread);
 
         main_thread->SetEntryPoint(base + text_offset);
         main_thread->SetArg(0, 0x0);
-        main_thread->SetArg(1, main_thread_handle_id);
+        main_thread->SetArg(1, main_thread_handle.GetRaw());
     }
 }
 

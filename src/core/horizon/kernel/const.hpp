@@ -2,8 +2,8 @@
 
 namespace hydra::horizon::kernel {
 
-constexpr handle_id_t CURRENT_PROCESS_PSEUDO_HANDLE = 0xffff8001;
-constexpr handle_id_t CURRENT_THREAD_PSEUDO_HANDLE = 0xffff8000;
+constexpr Handle CURRENT_PROCESS_PSEUDO_HANDLE = 0xffff8001;
+constexpr Handle CURRENT_THREAD_PSEUDO_HANDLE = 0xffff8000;
 
 constexpr ztd::Range<vaddr_t> ADDRESS_SPACE =
     ztd::Range<vaddr_t>(0x10000000, 0x200000000);

@@ -157,8 +157,9 @@ class HomebrewThread : public kernel::GuestThread {
                 auto entry = reinterpret_cast<ConfigEntry*>(executable_ptr +
                                                             config_offset);
 
-                ADD_ENTRY_OPTIONAL(MainThreadHandle, self_handle, 0);
-                ADD_ENTRY_OPTIONAL(ProcessHandle, self_process_handle, 0);
+                ADD_ENTRY_OPTIONAL(MainThreadHandle, self_handle.GetRaw(), 0);
+                ADD_ENTRY_OPTIONAL(ProcessHandle, self_process_handle.GetRaw(),
+                                   0);
                 ADD_ENTRY_OPTIONAL(
                     AppletType,
                     static_cast<u64>(kernel::AppletType::Application), 0);
@@ -222,7 +223,7 @@ class HomebrewThread : public kernel::GuestThread {
     System& system;
     std::string path;
 
-    handle_id_t self_handle{INVALID_HANDLE_ID};
+    Handle self_handle{INVALID_HANDLE};
 
   public:
     SETTER(self_handle, SetSelfHandle);
@@ -262,8 +263,8 @@ void HomebrewLoader::LoadProcess(System& system, kernel::Process* process) {
 
     // Main thread
     auto main_thread = new HomebrewThread(system, process, mapped_path);
-    const auto main_thread_handle_id = process->SetMainThread(main_thread);
-    main_thread->SetSelfHandle(main_thread_handle_id);
+    const auto main_thread_handle = process->SetMainThread(main_thread);
+    main_thread->SetSelfHandle(main_thread_handle);
 }
 
 namespace {
