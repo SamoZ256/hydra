@@ -968,28 +968,32 @@ result_t Kernel::GetInfo(Process* crnt_process, InfoType info_type,
                          AutoObject* obj, u64 info_sub_type, u64& out_info) {
     (void)obj;
 
+    LOG_DEBUG(Kernel, "GetInfo called (type: {}, object: {}, subtype: {})",
+              info_type, (obj != nullptr ? obj->GetDebugName() : "null"),
+              info_sub_type);
+
     switch (info_type) {
     case InfoType::CoreMask:
         LOG_NOT_IMPLEMENTED(Kernel, "CoreMask");
         // HACK
         out_info = 0xf;
-        break;
+        return RESULT_SUCCESS;
     case InfoType::AliasRegionAddress:
         out_info = ALIAS_REGION.GetBegin();
-        break;
+        return RESULT_SUCCESS;
     case InfoType::AliasRegionSize:
         out_info = ALIAS_REGION.GetSize();
-        break;
+        return RESULT_SUCCESS;
     case InfoType::HeapRegionAddress:
         out_info = HEAP_REGION.GetBegin();
-        break;
+        return RESULT_SUCCESS;
     case InfoType::HeapRegionSize:
         out_info = HEAP_REGION.GetSize();
-        break;
+        return RESULT_SUCCESS;
     case InfoType::TotalMemorySize:
         // TODO: what should this be?
         out_info = 3u * 1024u * 1024u * 1024u;
-        break;
+        return RESULT_SUCCESS;
     case InfoType::UsedMemorySize: {
         // TODO: correct?
         /*
@@ -1000,74 +1004,69 @@ result_t Kernel::GetInfo(Process* crnt_process, InfoType info_type,
         out_info = size;
         */
         out_info = 4u * 1024u * 1024u;
-        break;
+        return RESULT_SUCCESS;
     }
     case InfoType::DebuggerAttached:
         // TODO: make this configurable
         out_info = true;
-        break;
+        return RESULT_SUCCESS;
     case InfoType::RandomEntropy:
         ASSERT_DEBUG(info_sub_type < crnt_process->GetRandomEntropy().size(),
                      Kernel, "Invalid random entropy index {}", info_sub_type);
         out_info = crnt_process->GetRandomEntropy()[info_sub_type];
-        break;
+        return RESULT_SUCCESS;
     case InfoType::AslrRegionAddress:
         out_info = ADDRESS_SPACE.GetBegin();
-        break;
+        return RESULT_SUCCESS;
     case InfoType::AslrRegionSize:
         out_info = ADDRESS_SPACE.GetSize();
-        break;
+        return RESULT_SUCCESS;
     case InfoType::StackRegionAddress:
         out_info = STACK_REGION.GetBegin();
-        break;
+        return RESULT_SUCCESS;
     case InfoType::StackRegionSize:
         out_info = STACK_REGION.GetSize();
-        break;
+        return RESULT_SUCCESS;
     case InfoType::TotalSystemResourceSize: {
         out_info = crnt_process->GetSystemResourceSize();
-        break;
+        return RESULT_SUCCESS;
     }
     case InfoType::UsedSystemResourceSize:
         LOG_NOT_IMPLEMENTED(Kernel, "UsedSystemResourceSize");
         // HACK
         out_info = 64 * 1024;
-        break;
+        return RESULT_SUCCESS;
     case InfoType::ProgramId:
         out_info = crnt_process->GetTitleID();
-        break;
+        return RESULT_SUCCESS;
     case InfoType::UserExceptionContextAddress:
         LOG_NOT_IMPLEMENTED(Kernel, "UserExceptionContextAddress");
         // HACK
         out_info = 0;
-        break;
+        return RESULT_SUCCESS;
     case InfoType::TotalNonSystemMemorySize:
         LOG_NOT_IMPLEMENTED(Kernel, "TotalNonSystemMemorySize");
         // HACK
         out_info = 2u * 1024u * 1024u * 1024u;
-        break;
+        return RESULT_SUCCESS;
     case InfoType::UsedNonSystemMemorySize:
         LOG_NOT_IMPLEMENTED(Kernel, "UsedNonSystemMemorySize");
         // HACK
         out_info = 1;
-        break;
+        return RESULT_SUCCESS;
     case InfoType::IsApplication:
         // TODO: don't always return true
         out_info = true;
-        break;
+        return RESULT_SUCCESS;
     case InfoType::AliasRegionExtraSize:
         LOG_NOT_IMPLEMENTED(Kernel, "AliasRegionExtraSize");
         // HACK
         out_info = 0;
-        break;
+        return RESULT_SUCCESS;
     default:
-        LOG_WARN(Kernel, "GetInfo called with unknown info type {} (object: {}, subtype: {})", static_cast<u32>(info_type), (obj != nullptr ? obj->GetDebugName() : "null"), info_sub_type);
+        LOG_WARN(Kernel, "Unknown info type {}", info_type);
         return MAKE_RESULT(Svc, 0x78);
     }
-
-    LOG_DEBUG(Kernel, "GetInfo called (type: {}, object: {}, subtype: {}, out: 0x{:08x})",
-              info_type, (obj != nullptr ? obj->GetDebugName() : "null"),
-              info_sub_type, out_info);
-    return RESULT_SUCCESS;
 }
 
 result_t Kernel::MapPhysicalMemory(Process* crnt_process, vaddr_t addr,
