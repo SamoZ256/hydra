@@ -108,8 +108,8 @@ Thread::Thread(WallClock& wall_clock, Cpu& cpu_, IMmu* mmu,
     SetReg(HV_REG_CPSR, 0x3c0);
 
     SetSysReg(HV_SYS_REG_MAIR_EL1, 0xfful);
-    SetSysReg(HV_SYS_REG_TCR_EL1, 0x00000011B5193519ul);
-    SetSysReg(HV_SYS_REG_SCTLR_EL1, 0x0000000034D5D925ul);
+    SetSysReg(HV_SYS_REG_TCR_EL1, 0x12B5193519ul);
+    SetSysReg(HV_SYS_REG_SCTLR_EL1, 0x34D5D925ul);
 
     // Enable FP and SIMD instructions
     SetSysReg(HV_SYS_REG_CPACR_EL1, 0b11 << 20);
