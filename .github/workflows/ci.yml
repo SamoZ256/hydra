@@ -56,8 +56,11 @@ jobs:
 
             - name: Install Dependencies
               run: |
+                  echo "Installing dependencies"
+                  brew install llvm dylibbundler
+
                   if [[ "${{ matrix.suffix }}" == *"x86"* ]]; then
-                    echo "Installing x86_64 deps under Rosetta"
+                    echo "Installing x86_64 dependencies under Rosetta"
 
                     arch -x86_64 /bin/bash -c '
                       export HOMEBREW_PREFIX=/usr/local
@@ -68,11 +71,11 @@ jobs:
                         NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
                       fi
 
-                      brew install llvm boost fmt sdl3 dylibbundler
+                      brew install boost fmt sdl3
                     '
                   else
-                    echo "Installing arm64 deps"
-                    brew install llvm boost fmt sdl3 dylibbundler
+                    echo "Installing arm64 dependencies"
+                    brew install boost fmt sdl3
                   fi
 
             - name: Verify CMake Version
