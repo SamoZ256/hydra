@@ -2,7 +2,10 @@ name: macOS
 
 on:
     workflow_dispatch:
+
     push:
+        branches:
+            - main
         paths:
             - "**"
             - "!.github/**"
@@ -88,7 +91,7 @@ jobs:
                     echo "FRONTEND_MODE=SDL3" >> $GITHUB_ENV
                   fi
                   if [[ ${{ matrix.suffix }} == *'x86'* ]]; then
-                        echo "ARCH=x86_64" >> $GITHUB_ENV
+                    echo "ARCH=x86_64" >> $GITHUB_ENV
                   else
                     echo "ARCH=arm64" >> $GITHUB_ENV
                   fi
