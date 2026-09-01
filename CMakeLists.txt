@@ -164,6 +164,7 @@ add_subdirectory(externals/nx2elf SYSTEM)
 
 # date
 set(BUILD_TZ_LIB ON)
+set(USE_SYSTEM_TZ_DB ON)
 add_subdirectory(externals/date SYSTEM)
 
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)

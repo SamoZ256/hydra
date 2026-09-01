@@ -43,6 +43,7 @@ Checks: >
   -cppcoreguidelines-prefer-member-initializer,
   -cppcoreguidelines-avoid-c-arrays,
   -modernize-use-nodiscard,
+  -modernize-avoid-c-arrays,
   -readability-qualified-auto,
   -readability-avoid-const-params-in-decls,
   -readability-convert-member-functions-to-static,

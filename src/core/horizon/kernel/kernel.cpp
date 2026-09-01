@@ -594,7 +594,7 @@ result_t Kernel::CreateTransferMemory(uptr addr, u64 size,
 }
 
 result_t Kernel::CloseHandle(Process* crnt_process, Handle handle) {
-    LOG_DEBUG(Kernel, "CloseHandle called (handle: {:#x})", handle);
+    LOG_DEBUG(Kernel, "CloseHandle called (handle: {})", handle);
 
     if (crnt_process->FreeHandle(handle)) {
         return RESULT_SUCCESS;
@@ -696,8 +696,8 @@ result_t Kernel::ArbitrateLock(IThread* crnt_thread, IThread* owner_thread,
                                uptr mutex_addr, Handle self_handle,
                                Handle owner_handle) {
     LOG_DEBUG(Kernel,
-              "ArbitrateLock called (owner: {}, mutex: 0x{:08x}, self: "
-              "0x{:x})",
+              "ArbitrateLock called (owner: {}, mutex: {:#x}, self: "
+              "{})",
               owner_thread->GetDebugName(), mutex_addr, self_handle);
 
     crnt_thread->self_handle_for_mutex = self_handle;
@@ -746,11 +746,10 @@ result_t Kernel::WaitProcessWideKeyAtomic(Process* crnt_process,
                                           IThread* crnt_thread, uptr mutex_addr,
                                           uptr var_addr, Handle self_handle,
                                           i64 timeout) {
-    LOG_DEBUG(
-        Kernel,
-        "WaitProcessWideKeyAtomic called (mutex: 0x{:08x}, var: 0x{:08x}, "
-        "self: 0x{:x}, timeout: {})",
-        mutex_addr, var_addr, self_handle, timeout);
+    LOG_DEBUG(Kernel,
+              "WaitProcessWideKeyAtomic called (mutex: {:#x}, var: {:#x}, "
+              "self: {}, timeout: {})",
+              mutex_addr, var_addr, self_handle, timeout);
 
     crnt_thread->self_handle_for_mutex = self_handle;
     crnt_thread->mutex_wait_addr = mutex_addr;
