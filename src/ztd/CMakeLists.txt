@@ -25,6 +25,12 @@ endif ()
 add_library(ztd
     src/ztd/compress/lz4.cpp
     src/ztd/compress/lz4.hpp
+    src/ztd/fs/directory.hpp
+    src/ztd/fs/error.hpp
+    src/ztd/fs/file.cpp
+    src/ztd/fs/file.hpp
+    src/ztd/fs/directory.cpp
+    src/ztd/fs/directory.hpp
     src/ztd/hash/xxhash32.hpp
     src/ztd/macros/constructor_helper.hpp
     src/ztd/macros/crtp_helper.hpp
@@ -32,7 +38,6 @@ add_library(ztd
     src/ztd/macros/for_each_helper.hpp
     src/ztd/macros/macro_helper.hpp
     src/ztd/macros/optional_helper.hpp
-    src/ztd/macros/platform.hpp
     src/ztd/mem/alignment.hpp
     src/ztd/mem/allocator.hpp
     src/ztd/mem/c_allocator.hpp
@@ -41,7 +46,9 @@ add_library(ztd
     src/ztd/mem/page.hpp
     src/ztd/mem/page_allocator.hpp
     src/ztd/mem/static_pool.hpp
+    src/ztd/builtin.hpp
     src/ztd/linked_list.hpp
+    src/ztd/platform.hpp
     src/ztd/range.hpp
     src/ztd/time.hpp
     src/ztd/type_aliases.hpp

@@ -9,6 +9,8 @@ Checks: >
   -bugprone-exception-escape,
   -bugprone-unchecked-optional-access,
   -bugprone-derived-method-shadowing-base-method,
+  -bugprone-branch-clone,
+  -bugprone-signed-bitwise,
   -cppcoreguidelines-pro-bounds-pointer-arithmetic,
   -cppcoreguidelines-avoid-magic-numbers,
   -cppcoreguidelines-pro-bounds-array-to-pointer-decay,

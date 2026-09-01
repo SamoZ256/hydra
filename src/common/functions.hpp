@@ -11,19 +11,11 @@
 
 namespace hydra {
 
-[[noreturn]] inline void builtin_unreachable() {
-#if defined(_MSC_VER) && !defined(__clang__) // MSVC
-    __assume(false);
-#else // GCC, Clang
-    __builtin_unreachable();
-#endif
-}
-
 [[noreturn]] inline void unreachable() {
 #ifdef HYDRA_DEBUG
     LOG_FATAL(Common, "Unreachable code reached");
 #else
-    builtin_unreachable();
+    ztd::builtin::unreachable();
 #endif
 }
 

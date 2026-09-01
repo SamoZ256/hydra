@@ -43,7 +43,7 @@
     {                                                                          \
         LOG(Fatal, c, __VA_ARGS__);                                            \
         abort();                                                               \
-        builtin_unreachable();                                                 \
+        ztd::builtin::unreachable();                                           \
     }
 
 #define LOG_FUNC_STUBBED(c) LOG_STUBBED(c, "{}", __func__)

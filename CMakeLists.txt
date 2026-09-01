@@ -192,6 +192,7 @@ target_compile_options(hydra_compile_options INTERFACE
 
     # Disabled warnings
     -Wno-missing-designated-field-initializers
+    -Wno-unused-template
 
     # Extensions
     -Wno-c99-extensions

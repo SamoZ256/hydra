@@ -41,7 +41,7 @@
 #define ZTD_PASS_TO_MAKE_MOVE_ASSIGNABLE(member1, value1, ...)                 \
     member1 ZTD_FOR_EACH_0_2(ZTD_PASS_TO_MAKE_MOVE_ASSIGNABLE_CASE, __VA_ARGS__)
 
-#define MAKE_MOVABLE(type, ...)                                                \
+#define ZTD_MAKE_MOVABLE(type, ...)                                            \
     type(type&& other) noexcept : ZTD_MOVE_MEMBERS(__VA_ARGS__) {}             \
     ZTD_MAKE_MOVE_ASSIGNABLE(type,                                             \
                              ZTD_PASS_TO_MAKE_MOVE_ASSIGNABLE(__VA_ARGS__))

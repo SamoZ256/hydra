@@ -2,8 +2,8 @@
 
 #include <unistd.h>
 
-#include "ztd/macros/platform.hpp"
 #include "ztd/mem/literals.hpp"
+#include "ztd/platform.hpp"
 #include "ztd/type_aliases.hpp"
 
 namespace ztd::mem {

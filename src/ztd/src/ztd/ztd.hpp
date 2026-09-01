@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ztd/compress/lz4.hpp"
+#include "ztd/fs/directory.hpp"
 #include "ztd/hash/xxhash32.hpp"
 #include "ztd/linked_list.hpp"
 #include "ztd/macros/enum_helper.hpp"
