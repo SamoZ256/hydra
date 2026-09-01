@@ -56,11 +56,17 @@ constexpr u64 AP_FLAGS_MASK =
 inline uptr AllocateVmMemory(u64 size) {
     ASSERT_ALIGNMENT(size, APPLE_PAGE_SIZE, Hypervisor, "size")
 
-    void* ptr;
-    const auto res = posix_memalign(&ptr, APPLE_PAGE_SIZE, size);
-    ASSERT(res == 0, Hypervisor, "Failed to allocate memory: {:#x}", res);
+    void* ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    ASSERT(ptr != MAP_FAILED, Hypervisor, "Failed to allocate memory: {:#x}", errno);
 
     return reinterpret_cast<uptr>(ptr);
+}
+
+inline void FreeVmMemory(paddr_t addr, u64 size) {
+    ASSERT_ALIGNMENT(size, APPLE_PAGE_SIZE, Hypervisor, "size")
+
+    auto res = munmap(reinterpret_cast<void*>(addr), size);
+    ASSERT(res == 0, Hypervisor, "Failed to deallocate memory: {:#x}", res);
 }
 
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor
