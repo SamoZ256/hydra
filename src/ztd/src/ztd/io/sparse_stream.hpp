@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 // TODO: remove dependency on std::vector
 #include <vector>
 
