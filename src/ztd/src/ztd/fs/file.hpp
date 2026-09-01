@@ -28,6 +28,7 @@ class File {
         Truncate = ZTD_BIT(3),
     };
 
+    File() noexcept = default;
     File(i32 handle_) noexcept : handle{handle_} {}
     ~File() noexcept {
         if (handle >= 0)
@@ -40,7 +41,7 @@ class File {
     [[nodiscard]] auto getHandle() const noexcept -> i32 { return handle; }
 
   private:
-    i32 handle;
+    i32 handle{-1};
 
     // Helpers
     static auto getPosixOpenFlags(OpenFlags flags) noexcept -> i32;

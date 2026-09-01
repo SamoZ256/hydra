@@ -45,25 +45,24 @@ auto Directory::getPosixOpenFlags(OpenFlags flags) noexcept -> i32 {
     return res;
 }
 
-auto openDirectoryAbsolute(const std::string& rel_path,
+auto openDirectoryAbsolute(const std::string& path,
                            Directory::OpenFlags flags) noexcept
     -> std::expected<Directory, Error> {
     // TODO: verify the path is absolute?
-    return cwd().openDirectory(rel_path, flags);
+    return cwd().openDirectory(path, flags);
 }
 
-auto openFileAbsolute(const std::string& rel_path,
-                      File::OpenFlags flags) noexcept
+auto openFileAbsolute(const std::string& path, File::OpenFlags flags) noexcept
     -> std::expected<File, Error> {
     // TODO: verify the path is absolute?
-    return cwd().openFile(rel_path, flags);
+    return cwd().openFile(path, flags);
 }
 
-auto createFileAbsolute(const std::string& rel_path,
+auto createFileAbsolute(const std::string& path,
                         File::CreateFlags flags) noexcept
     -> std::expected<File, Error> {
     // TODO: verify the path is absolute?
-    return cwd().createFile(rel_path, flags);
+    return cwd().createFile(path, flags);
 }
 
 } // namespace ztd::fs

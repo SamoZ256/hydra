@@ -59,8 +59,12 @@ class UserManager {
         return it->second;
     }
 
-    static std::string GetUserPath() {
+    static std::string GetUsersPath() {
         return fmt::format("{}/user", CONFIG_INSTANCE.GetAppDataPath());
+    }
+
+    static std::string GetUserPath(uuid_t user_id) {
+        return fmt::format("{}/{:032x}.husr", GetUsersPath(), user_id);
     }
 
     void Serialize(uuid_t user_id);

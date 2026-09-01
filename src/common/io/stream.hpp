@@ -117,14 +117,19 @@ class IStream {
     }
 
   protected:
+    // TODO: verify size
     virtual void ReadRaw(std::span<u8> buffer) {
         (void)buffer;
         LOG_FATAL(Common, "Stream is write-only");
     }
+
+    // TODO: verify size
     virtual void WriteRaw(std::span<const u8> buffer) {
         (void)buffer;
         LOG_FATAL(Common, "Stream is read-only");
     }
+
+    // TODO: verify size
     virtual u8* ConsumePtrRaw(usize size) {
         (void)size;
         LOG_FATAL(Common, "Stream is not continuous");

@@ -10,23 +10,23 @@
 
 namespace hydra::horizon::filesystem {
 
-class DiskStream : public io::IostreamStream {
+class DiskStream : public io::FileStream {
   public:
-    // Fucking C++ STL doesn't allow creating std::fstream with std::string_view
-    // as a path
-    DiskStream(const std::string_view path, std::ios::openmode flags)
-        : io::IostreamStream(stream), stream(std::string(path), flags) {
-        LOG_FS_ACCESS(path, "file opened (flags: {})", flags);
-    }
-    ~DiskStream() override {
-        stream.close();
+    // HACK: FileStream takes a reference to File, so its okay to initialize
+    // file after calling the base constructor
+    DiskStream(const std::string_view path,
+               ztd::fs::File::OpenFlags flags) noexcept
+        : io::FileStream(file) {
+        // HACK: construct a temporary string
+        ZTD_ASSIGN_OR(
+            file, ztd::fs::openFileAbsolute(std::string(path), flags),
+            { LOG_FATAL(Filesystem, "Failed to open file at path {}", path); });
 
-        // TODO
-        // LOG_FS_ACCESS(path, "file closed");
+        LOG_FS_ACCESS(path, "file opened (flags: {})", flags);
     }
 
   private:
-    std::fstream stream;
+    ztd::fs::File file;
 };
 
 class DiskFile : public IFile {

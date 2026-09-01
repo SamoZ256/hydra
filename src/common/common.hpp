@@ -15,7 +15,7 @@
 #include "common/fmt_helper.hpp"
 #include "common/functions.hpp"
 #include "common/handle.hpp"
-#include "common/io/iostream_stream.hpp"
+#include "common/io/file_stream.hpp"
 #include "common/io/memory_stream.hpp"
 #include "common/io/sparse_stream.hpp"
 #include "common/io/stream_view.hpp"

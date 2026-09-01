@@ -18,7 +18,7 @@ add_library(hydra-common
     io/stream.hpp
     io/continuous_stream.hpp
     io/memory_stream.hpp
-    io/iostream_stream.hpp
+    io/file_stream.hpp
     io/stream_view.hpp
     io/sparse_stream.hpp
 )

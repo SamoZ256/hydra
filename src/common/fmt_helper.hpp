@@ -106,3 +106,10 @@ struct fmt::formatter<ztd::Range<T>> : formatter<string_view> {
         return out;
     }
 };
+
+ENABLE_ENUM_FLAGS_FORMATTING(ztd::fs::File::OpenFlags, Read, "read", Write,
+                             "write", Append, "append")
+
+ENABLE_ENUM_FLAGS_FORMATTING(ztd::fs::File::CreateFlags, Read, "read", Append,
+                             "append", Exclusive, "exclusive", Truncate,
+                             "truncate")

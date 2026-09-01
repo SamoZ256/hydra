@@ -49,17 +49,17 @@ ZTD_ENABLE_ENUM_BITWISE_OPERATORS(Directory::OpenFlags);
 [[nodiscard]] constexpr auto cwd() noexcept -> Directory { return {AT_FDCWD}; }
 
 // TODO: allow std::string_view
-[[nodiscard]] auto openDirectoryAbsolute(const std::string& rel_path,
+[[nodiscard]] auto openDirectoryAbsolute(const std::string& path,
                                          Directory::OpenFlags flags) noexcept
     -> std::expected<Directory, Error>;
 
 // TODO: allow std::string_view
-[[nodiscard]] auto openFileAbsolute(const std::string& rel_path,
+[[nodiscard]] auto openFileAbsolute(const std::string& path,
                                     File::OpenFlags flags) noexcept
     -> std::expected<File, Error>;
 
 // TODO: allow std::string_view
-[[nodiscard]] auto createFileAbsolute(const std::string& rel_path,
+[[nodiscard]] auto createFileAbsolute(const std::string& path,
                                       File::CreateFlags flags) noexcept
     -> std::expected<File, Error>;
 

@@ -51,15 +51,15 @@ void DiskFile::Flush() {
 }
 
 io::IStream* DiskFile::Open(FileOpenFlags flags) {
-    std::ios::openmode std_flags = std::ios::binary;
+    auto ztd_flags = ztd::fs::File::OpenFlags::None;
     if (any(flags & FileOpenFlags::Read))
-        std_flags |= std::ios::in;
+        ztd_flags |= ztd::fs::File::OpenFlags::Read;
     if (any(flags & FileOpenFlags::Write))
-        std_flags |= std::ios::out;
+        ztd_flags |= ztd::fs::File::OpenFlags::Write;
     if (any(flags & FileOpenFlags::Append))
-        std_flags |= std::ios::app;
+        ztd_flags |= ztd::fs::File::OpenFlags::Append;
 
-    return new DiskStream(path, std_flags);
+    return new DiskStream(path, ztd_flags);
 }
 
 u64 DiskFile::GetSize() const {

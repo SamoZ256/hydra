@@ -7,7 +7,7 @@
     auto operator=(const type&) noexcept -> type& = default;
 
 #define ZTD_MAKE_NON_COPYABLE(type)                                            \
-    type(const type&) = delete;                                                \
+    type(const type&) noexcept = delete;                                       \
     auto operator=(const type&) noexcept -> type& = delete;
 
 #define ZTD_MAKE_DEFAULT_MOVABLE(type)                                         \

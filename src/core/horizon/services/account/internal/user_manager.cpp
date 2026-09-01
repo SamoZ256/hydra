@@ -38,12 +38,12 @@ void jpg_to_memory(void* context, void* data, int len) {
 
 UserManager::UserManager() {
     // Create user directory
-    std::filesystem::create_directories(GetUserPath());
+    std::filesystem::create_directories(GetUsersPath());
 
     // Deserialize all users
-    if (std::filesystem::exists(GetUserPath())) {
+    if (std::filesystem::exists(GetUsersPath())) {
         for (const auto& dir_entry :
-             std::filesystem::directory_iterator{GetUserPath()}) {
+             std::filesystem::directory_iterator{GetUsersPath()}) {
             auto filename = dir_entry.path().filename();
 
             auto extension = filename.extension().string();
@@ -52,7 +52,7 @@ UserManager::UserManager() {
 
             auto user_id_str = filename.stem().string();
             if (user_id_str.size() != 32) {
-                LOG_WARN(Horizon, "Invalid user ID {}", user_id_str);
+                LOG_WARN(Services, "Invalid user ID {}", user_id_str);
                 return;
             }
 
@@ -194,7 +194,7 @@ void UserManager::LoadAvatarImageAsJpeg(std::string_view path, uchar3 bg_color,
 }
 
 void UserManager::Serialize(uuid_t user_id) {
-    LOG_INFO(Horizon, "Serializing user with ID {:032x}", user_id);
+    LOG_INFO(Services, "Serializing user with ID {:032x}", user_id);
 
     auto& user_pair = GetPair(user_id);
     const auto& user = user_pair.first;
@@ -202,62 +202,69 @@ void UserManager::Serialize(uuid_t user_id) {
         return;
 
     // Serialize
-    // TODO: std::ofstream
-    std::fstream ofs(fmt::format("{}/{:032x}.husr", GetUserPath(), user_id));
-    {
-        io::IostreamStream stream(ofs);
+    const auto path = GetUserPath(user_id);
+    ZTD_ASSIGN_OR(
+        auto file,
+        ztd::fs::openFileAbsolute(path, ztd::fs::File::OpenFlags::Write), {
+            LOG_ERROR(Services, "Failed to write user at path {}", path);
+            return;
+        });
+    io::FileStream stream(std::move(file));
 
-        // Header
-        HusrHeader header{};
-        stream.Write(header);
+    // Header
+    HusrHeader header{};
+    stream.Write(header);
 
-        // Data
-        stream.Write(user.base);
-        stream.Write(user.data);
-        stream.Write(user.avatar_bg_color);
-        stream.Write(static_cast<u32>(user.avatar_path.size()));
-        stream.WriteSpan(std::span(user.avatar_path));
-    }
-    ofs.close();
+    // Data
+    stream.Write(user.base);
+    stream.Write(user.data);
+    stream.Write(user.avatar_bg_color);
+    stream.Write(static_cast<u32>(user.avatar_path.size()));
+    stream.WriteSpan(std::span(user.avatar_path));
 
     user_pair.second = GetTimestamp();
 }
 
 void UserManager::Deserialize(uuid_t user_id) {
-    LOG_INFO(Horizon, "Deserializing user with ID {:032x}", user_id);
+    LOG_INFO(Services, "Deserializing user with ID {:032x}", user_id);
 
     auto it = users.find(user_id);
     if (it != users.end()) {
         auto& user_pair = it->second;
         if (!user_pair.first.EditedSince(user_pair.second))
-            LOG_WARN(Horizon, "Overwriting user {:032x}", user_id);
+            LOG_WARN(Services, "Overwriting user {:032x}", user_id);
     }
 
     // Deserialize
-    // TODO: std::ifstream
-    std::fstream ifs{fmt::format("{}/{:032x}.husr", GetUserPath(), user_id)};
-    io::IostreamStream stream(ifs);
+    const auto path = GetUserPath(user_id);
+    ZTD_ASSIGN_OR(
+        auto file,
+        ztd::fs::openFileAbsolute(path, ztd::fs::File::OpenFlags::Read), {
+            LOG_ERROR(Services, "Failed to read user at path {}", path);
+            return;
+        });
+    io::FileStream stream(std::move(file));
 
     // Header
     const auto header = stream.Read<HusrHeader>();
 
     // Validate
-    ASSERT(header.magic == HUSR_MAGIC, Horizon,
+    ASSERT(header.magic == HUSR_MAGIC, Services,
            "Invalid HUSR magic 0x{:08x} for user {:032x}", header.magic,
            user_id);
     if (header.version < 2) {
-        LOG_WARN(Horizon,
+        LOG_WARN(Services,
                  "Unsupported HUSR version {} for user {:032x}, skipping",
                  header.version, user_id);
         return;
     }
     if (header.version > CURRENT_HUSR_VERSION) {
-        LOG_WARN(Horizon,
+        LOG_WARN(Services,
                  "Unsupported HUSR version {} for user {:032x}, skipping",
                  header.version, user_id);
         return;
     }
-    ASSERT(header.header_size == sizeof(HusrHeader), Horizon,
+    ASSERT(header.header_size == sizeof(HusrHeader), Services,
            "Invalid HUSR header size 0x{:x} for user {:032x}",
            header.header_size, user_id);
 
