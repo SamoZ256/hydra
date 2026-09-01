@@ -24,7 +24,7 @@ DEFINE_SERVICE_COMMAND_TABLE(INvDrvServices, 0, Open, 1, Ioctl, 2, Close, 3,
 
 result_t INvDrvServices::Open(InBuffer<BufferAttr::MapAlias> path_buffer,
                               u32* out_fd_id, u32* out_error) {
-    auto path = path_buffer.stream->ReadNullTerminatedString();
+    auto path = path_buffer.stream->readNullTerminatedString();
     Handle fd_handle;
     if (path == "/dev/nvhost-ctrl") {
         fd_handle =
@@ -151,10 +151,11 @@ result_t INvDrvServices::IoctlImpl(
     NvResult (ioctl::FdBase::*func)(ioctl::IoctlContext& context, u32 type,
                                     u32 nr),
     System& system, kernel::Process* process, Handle fd_handle, u32 code,
-    std::optional<io::MemoryStream> in_stream,
-    std::optional<io::MemoryStream> in_buffer_stream,
-    std::optional<io::MemoryStream> out_stream,
-    std::optional<io::MemoryStream> out_buffer_stream, NvResult* out_result) {
+    std::optional<ztd::io::MemoryStream> in_stream,
+    std::optional<ztd::io::MemoryStream> in_buffer_stream,
+    std::optional<ztd::io::MemoryStream> out_stream,
+    std::optional<ztd::io::MemoryStream> out_buffer_stream,
+    NvResult* out_result) {
     ZTD_ASSIGN_OR_RETURN_VALUE(auto fd, fd_pool.Get(fd_handle),
                                MAKE_RESULT(Svc, 4)); // TODO: result
 

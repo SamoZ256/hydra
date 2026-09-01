@@ -21,7 +21,7 @@ class AppletBase {
     // Helpers
 
     // Data
-    io::MemoryStream PopInDataRaw() {
+    ztd::io::MemoryStream PopInDataRaw() {
         auto data = controller.PopInData()->GetData();
         return {data};
     }
@@ -29,10 +29,10 @@ class AppletBase {
     template <typename T>
     T PopInData() {
         auto stream = PopInDataRaw();
-        ASSERT(stream.GetSize() >= sizeof(T), Applets,
-               "Not enough space ({} < {})", stream.GetSize(), sizeof(T));
+        ASSERT(stream.getSize() >= sizeof(T), Applets,
+               "Not enough space ({} < {})", stream.getSize(), sizeof(T));
 
-        return stream.Read<T>();
+        return stream.read<T>();
     }
 
     void PushOutDataRaw(std::vector<u8> data) {
@@ -47,7 +47,7 @@ class AppletBase {
     }
 
     // Interactive data
-    io::MemoryStream PopInteractiveInDataRaw() {
+    ztd::io::MemoryStream PopInteractiveInDataRaw() {
         // TODO: wait
         // controller.GetInteractiveInDataEvent().Wait();
         auto data = controller.PopInteractiveInData()->GetData();
@@ -57,10 +57,10 @@ class AppletBase {
     template <typename T>
     T PopInteractiveInData() {
         auto stream = PopInteractiveInDataRaw();
-        ASSERT(stream.GetSize() >= sizeof(T), Applets,
-               "Not enough space ({} < {})", stream.GetSize(), sizeof(T));
+        ASSERT(stream.getSize() >= sizeof(T), Applets,
+               "Not enough space ({} < {})", stream.getSize(), sizeof(T));
 
-        return stream.Read<T>();
+        return stream.read<T>();
     }
 
     void PushInteractiveOutDataRaw(std::vector<u8> data) {

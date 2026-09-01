@@ -47,7 +47,7 @@ result_t IApplicationDisplayService::GetRelayService(RequestContext* ctx,
                  "GetRelayService cannot be a domain service");
     auto client_session = client_port->Connect();
     const auto handle = ctx->process->AddHandle(client_session);
-    ctx->streams.out_move_handles_stream.Write(handle);
+    ctx->streams.out_move_handles_stream.write(handle);
 
     return RESULT_SUCCESS;
 }
@@ -78,7 +78,7 @@ result_t IApplicationDisplayService::ListDisplays(
     System* system, u64* out_count,
     OutBuffer<BufferAttr::MapAlias> out_display_infos_buffer) {
     const auto res = system->GetOS().GetDisplayResolution();
-    out_display_infos_buffer.stream->Write<DisplayInfo>({
+    out_display_infos_buffer.stream->write<DisplayInfo>({
         .name = "Default",
         .has_layer_limit = true,
         .layer_count_max = 1,

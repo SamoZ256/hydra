@@ -10,13 +10,13 @@
 
 namespace hydra::horizon::filesystem {
 
-class DiskStream : public io::FileStream {
+class DiskStream : public ztd::io::FileStream {
   public:
     // HACK: FileStream takes a reference to File, so its okay to initialize
     // file after calling the base constructor
     DiskStream(const std::string_view path,
                ztd::fs::File::OpenFlags flags) noexcept
-        : io::FileStream(file) {
+        : ztd::io::FileStream(file) {
         // HACK: construct a temporary string
         ZTD_ASSIGN_OR(
             file, ztd::fs::openFileAbsolute(std::string(path), flags),
@@ -37,7 +37,7 @@ class DiskFile : public IFile {
     void Resize(u64 new_size) override;
     void Flush() override;
 
-    io::IStream* Open(FileOpenFlags flags) override;
+    ztd::io::IStream* Open(FileOpenFlags flags) override;
 
     u64 GetSize() const override;
 

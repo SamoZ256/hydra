@@ -43,7 +43,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder {
 
 struct DecoderContext {
     const DecompilerContext& decomp_context;
-    io::IStream* code_stream;
+    ztd::io::IStream* code_stream;
     ir::Builder& builder;
 };
 

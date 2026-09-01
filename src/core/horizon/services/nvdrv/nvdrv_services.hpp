@@ -46,10 +46,10 @@ class INvDrvServices : public IService {
     IoctlImpl(NvResult (ioctl::FdBase::*func)(ioctl::IoctlContext& context,
                                               u32 type, u32 nr),
               System& system, kernel::Process* process, Handle fd_id, u32 code,
-              std::optional<io::MemoryStream> in_stream,
-              std::optional<io::MemoryStream> in_buffer_stream,
-              std::optional<io::MemoryStream> out_stream,
-              std::optional<io::MemoryStream> out_buffer_stream,
+              std::optional<ztd::io::MemoryStream> in_stream,
+              std::optional<ztd::io::MemoryStream> in_buffer_stream,
+              std::optional<ztd::io::MemoryStream> out_stream,
+              std::optional<ztd::io::MemoryStream> out_buffer_stream,
               NvResult* out_result);
 };
 

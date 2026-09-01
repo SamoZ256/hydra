@@ -6,19 +6,27 @@ namespace hydra::horizon::loader::plugins {
 
 namespace {
 
-class StreamAdapter : public io::IStream {
+class StreamAdapter : public ztd::io::IStream {
   public:
-    StreamAdapter(Plugin& extension_, void* handle_)
+    StreamAdapter(Plugin& extension_, void* handle_) noexcept
         : plugin{extension_}, handle{handle_} {}
-    ~StreamAdapter() override { plugin.StreamDestroy(handle); }
+    ~StreamAdapter() noexcept override { plugin.StreamDestroy(handle); }
 
-    u64 GetSeek() const override { return plugin.StreamGetSeek(handle); }
-    void SeekTo(u64 seek) override { plugin.StreamSeekTo(handle, seek); }
-    void SeekBy(u64 offset) override { plugin.StreamSeekBy(handle, offset); }
+    u64 getSeek() const noexcept override {
+        return plugin.StreamGetSeek(handle);
+    }
+    void seekTo(u64 seek) noexcept override {
+        plugin.StreamSeekTo(handle, seek);
+    }
+    void seekBy(u64 offset) noexcept override {
+        plugin.StreamSeekBy(handle, offset);
+    }
 
-    u64 GetSize() const override { return plugin.StreamGetSize(handle); }
+    u64 getSize() const noexcept override {
+        return plugin.StreamGetSize(handle);
+    }
 
-    void ReadRaw(std::span<u8> buffer) override {
+    void readRaw(std::span<u8> buffer) noexcept override {
         plugin.StreamReadRaw(handle, buffer);
     }
 
@@ -33,7 +41,7 @@ class FileAdapter : public filesystem::IFile {
         : plugin{extension_}, handle{handle_} {}
     ~FileAdapter() override { plugin.FileDestroy(handle); }
 
-    io::IStream* Open(filesystem::FileOpenFlags flags) override {
+    ztd::io::IStream* Open(filesystem::FileOpenFlags flags) override {
         (void)flags;
         return new StreamAdapter(plugin, plugin.FileOpen(handle));
     }

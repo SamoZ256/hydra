@@ -25,13 +25,18 @@ endif ()
 add_library(ztd
     src/ztd/compress/lz4.cpp
     src/ztd/compress/lz4.hpp
+    src/ztd/fs/directory.cpp
     src/ztd/fs/directory.hpp
     src/ztd/fs/error.hpp
     src/ztd/fs/file.cpp
     src/ztd/fs/file.hpp
-    src/ztd/fs/directory.cpp
-    src/ztd/fs/directory.hpp
     src/ztd/hash/xxhash32.hpp
+    src/ztd/io/continuous_stream.hpp
+    src/ztd/io/file_stream.hpp
+    src/ztd/io/memory_stream.hpp
+    src/ztd/io/sparse_stream.hpp
+    src/ztd/io/stream.hpp
+    src/ztd/io/stream_view.hpp
     src/ztd/macros/constructor_helper.hpp
     src/ztd/macros/crtp_helper.hpp
     src/ztd/macros/enum_helper.hpp

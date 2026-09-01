@@ -16,7 +16,7 @@ result_t ISettingsServer::GetLanguageCode(LanguageCode* out_language_code) {
 
 result_t ISettingsServer::GetAvailableLanguageCodes(
     i32* out_count, OutBuffer<BufferAttr::HipcPointer> out_buffer) {
-    out_buffer.stream->WriteSpan(
+    out_buffer.stream->writeSpan(
         std::span(available_languages, sizeof_array(available_languages)));
     *out_count = sizeof_array(available_languages);
     return RESULT_SUCCESS;
@@ -35,7 +35,7 @@ result_t ISettingsServer::GetRegionCode(RegionCode* out_code) {
 
 result_t ISettingsServer::GetAvailableLanguageCodes2(
     i32* out_count, OutBuffer<BufferAttr::MapAlias> out_buffer) {
-    out_buffer.stream->WriteSpan(
+    out_buffer.stream->writeSpan(
         std::span(available_languages, sizeof_array(available_languages)));
     *out_count = sizeof_array(available_languages);
     return RESULT_SUCCESS;
@@ -47,7 +47,7 @@ ISettingsServer::GetDeviceNickName(OutBuffer<BufferAttr::MapAlias> out_buffer) {
     std::memset(nickname.name, 0, sizeof_array(nickname.name));
     std::memcpy(nickname.name, CONFIG_INSTANCE.GetDeviceNickname().data(),
                 CONFIG_INSTANCE.GetDeviceNickname().size());
-    out_buffer.stream->Write(nickname);
+    out_buffer.stream->write(nickname);
     return RESULT_SUCCESS;
 }
 

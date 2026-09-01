@@ -2,26 +2,26 @@
 
 #include <sys/stat.h>
 
-#include "common/io/stream.hpp"
+#include "ztd/io/stream.hpp"
 
-namespace hydra::io {
+namespace ztd::io {
 
 class FileStream : public IStream {
   public:
-    FileStream(const ztd::fs::File& file_) : file{file_} {}
+    FileStream(const ztd::fs::File& file_) noexcept : file{file_} {}
 
-    u64 GetSeek() const override {
+    [[nodiscard]] auto getSeek() const noexcept -> u64 override {
         return static_cast<u64>(lseek(file.getHandle(), 0, SEEK_CUR));
     }
-    void SeekTo(u64 seek) override {
+    auto seekTo(u64 seek) noexcept -> void override {
         lseek(file.getHandle(), static_cast<off_t>(seek), SEEK_SET);
     }
-    void SeekBy(u64 offset) override {
+    auto seekBy(u64 offset) noexcept -> void override {
         lseek(file.getHandle(), static_cast<off_t>(offset), SEEK_CUR);
     }
 
-    u64 GetSize() const override {
-        struct stat st;
+    [[nodiscard]] auto getSize() const noexcept -> u64 override {
+        struct stat st{};
         if (fstat(file.getHandle(), &st) == -1) {
             // TODO: error
             unreachable();
@@ -30,25 +30,25 @@ class FileStream : public IStream {
         }
     }
 
-    void Flush() override {
+    auto flush() noexcept -> void override {
         if (fsync(file.getHandle()) == -1) {
             // TODO: error
             unreachable();
         }
     }
 
-    void ReadRaw(std::span<u8> buffer) override {
+    auto readRaw(std::span<u8> buffer) noexcept -> void override {
         // TODO: return size
-        (void)read(file.getHandle(), buffer.data(), buffer.size());
+        (void)::read(file.getHandle(), buffer.data(), buffer.size());
     }
 
-    void WriteRaw(std::span<const u8> buffer) override {
+    auto writeRaw(std::span<const u8> buffer) noexcept -> void override {
         // TODO: return size
-        (void)write(file.getHandle(), buffer.data(), buffer.size());
+        (void)::write(file.getHandle(), buffer.data(), buffer.size());
     }
 
   private:
     const ztd::fs::File& file;
 };
 
-} // namespace hydra::io
+} // namespace ztd::io

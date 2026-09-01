@@ -4,6 +4,6 @@
 
 namespace hydra::horizon::services::timesrv::internal {
 
-void ParseTimeZoneBinary(io::IStream* stream, TimeZoneRule& out_rule);
+void ParseTimeZoneBinary(ztd::io::IStream* stream, TimeZoneRule& out_rule);
 
 } // namespace hydra::horizon::services::timesrv::internal

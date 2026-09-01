@@ -38,7 +38,7 @@ NcaLoader::NcaLoader(filesystem::ContentArchive content_archive_)
 
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
 
-    const auto meta = stream->Read<NpdmMeta>();
+    const auto meta = stream->read<NpdmMeta>();
 
     delete stream;
 

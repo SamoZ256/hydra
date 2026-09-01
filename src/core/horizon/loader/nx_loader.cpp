@@ -89,8 +89,8 @@ void NxLoader::ParseInfo() {
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
 
     std::string content;
-    content.resize(stream->GetSize());
-    stream->ReadToSpan(std::span(content));
+    content.resize(stream->getSize());
+    stream->readToSpan(std::span(content));
     const auto info = toml::parse_str(content);
     title_id = toml::find<u64>(info, "title_id");
 
@@ -107,7 +107,7 @@ void NxLoader::ParseNpdm() {
 
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
 
-    const auto meta = stream->Read<NpdmMeta>();
+    const auto meta = stream->read<NpdmMeta>();
 
     delete stream;
 

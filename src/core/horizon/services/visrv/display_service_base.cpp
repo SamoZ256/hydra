@@ -8,7 +8,7 @@ namespace hydra::horizon::services::visrv {
 result_t DisplayServiceBase::CreateStrayLayerImpl(
     System& system, kernel::Process* process, u32 flags, u64 display_id,
     u64* out_layer_id, u64* out_native_window_size,
-    std::optional<io::MemoryStream> out_parcel_stream) {
+    std::optional<ztd::io::MemoryStream> out_parcel_stream) {
     (void)flags;
     (void)display_id;
 

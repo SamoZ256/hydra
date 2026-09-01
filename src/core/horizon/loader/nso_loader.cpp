@@ -48,24 +48,24 @@ struct NsoHeader {
     u32 data_hash[0x8];
 };
 
-void read_segment(io::IStream* stream, uptr executable_mem_ptr,
+void read_segment(ztd::io::IStream* stream, uptr executable_mem_ptr,
                   const Segment& segment, const u64 segment_file_size,
                   bool is_compressed) {
     // Skip
-    stream->SeekTo(segment.file_offset);
+    stream->seekTo(segment.file_offset);
 
     u64 file_size = (is_compressed ? segment_file_size : segment.size);
 
     if (is_compressed) {
         // Decompress
         std::vector<u8> file(file_size);
-        stream->ReadToSpan(std::span(file));
+        stream->readToSpan(std::span(file));
         ztd::compress::decompressLz4(
             file, std::span(reinterpret_cast<u8*>(executable_mem_ptr +
                                                   segment.memory_offset),
                             segment.size));
     } else {
-        stream->ReadToSpan(std::span(
+        stream->readToSpan(std::span(
             reinterpret_cast<u8*>(executable_mem_ptr + segment.memory_offset),
             file_size));
     }
@@ -89,7 +89,7 @@ NsoLoader::NsoLoader(filesystem::IFile* file_, const std::string_view name_,
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
 
     // Header
-    const auto header = stream->Read<NsoHeader>();
+    const auto header = stream->read<NsoHeader>();
     ASSERT(header.magic == make_magic4('N', 'S', 'O', '0'), Loader,
            "Invalid NSO magic");
 

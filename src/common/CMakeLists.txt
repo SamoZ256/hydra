@@ -15,12 +15,6 @@ add_library(hydra-common
     fmt_helper.hpp
     config.cpp
     config.hpp
-    io/stream.hpp
-    io/continuous_stream.hpp
-    io/memory_stream.hpp
-    io/file_stream.hpp
-    io/stream_view.hpp
-    io/sparse_stream.hpp
 )
 
 target_precompile_headers(hydra-common PUBLIC common.hpp)

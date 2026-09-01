@@ -281,28 +281,28 @@ u8* get_list_entry_ptr(const hw::tegra_x1::cpu::IMmu* mmu,
         u8* ptr = get_##buffer_or_static##_ptr(                                \
             mmu, hipc_in.data.type##_##buffer_or_static##s[i], size);          \
         type##_##buffer_or_static##s_streams.push_back(                        \
-            ptr != nullptr                                                     \
-                ? std::make_optional<io::MemoryStream>(std::span(ptr, size))   \
-                : std::nullopt);                                               \
+            ptr != nullptr ? std::make_optional<ztd::io::MemoryStream>(        \
+                                 std::span(ptr, size))                         \
+                           : std::nullopt);                                    \
     }
 
 #define CREATE_STATIC_STREAMS(type) CREATE_STREAMS(static, type)
 #define CREATE_BUFFER_STREAMS(type) CREATE_STREAMS(buffer, type)
 
 struct Streams {
-    io::MemoryStream in_stream;
-    std::optional<io::MemoryStream> in_objects_stream{std::nullopt};
-    io::MemoryStream in_copy_handles_stream;
-    io::MemoryStream in_move_handles_stream;
-    io::MemoryStream out_stream;
-    io::MemoryStream out_objects_stream;
-    io::MemoryStream out_copy_handles_stream;
-    io::MemoryStream out_move_handles_stream;
-    std::vector<std::optional<io::MemoryStream>> send_statics_streams;
-    std::vector<std::optional<io::MemoryStream>> send_buffers_streams;
-    std::vector<std::optional<io::MemoryStream>> recv_list_streams;
-    std::vector<std::optional<io::MemoryStream>> recv_buffers_streams;
-    std::vector<std::optional<io::MemoryStream>> exch_buffers_streams;
+    ztd::io::MemoryStream in_stream;
+    std::optional<ztd::io::MemoryStream> in_objects_stream{std::nullopt};
+    ztd::io::MemoryStream in_copy_handles_stream;
+    ztd::io::MemoryStream in_move_handles_stream;
+    ztd::io::MemoryStream out_stream;
+    ztd::io::MemoryStream out_objects_stream;
+    ztd::io::MemoryStream out_copy_handles_stream;
+    ztd::io::MemoryStream out_move_handles_stream;
+    std::vector<std::optional<ztd::io::MemoryStream>> send_statics_streams;
+    std::vector<std::optional<ztd::io::MemoryStream>> send_buffers_streams;
+    std::vector<std::optional<ztd::io::MemoryStream>> recv_list_streams;
+    std::vector<std::optional<ztd::io::MemoryStream>> recv_buffers_streams;
+    std::vector<std::optional<ztd::io::MemoryStream>> exch_buffers_streams;
 
     Streams(const hw::tegra_x1::cpu::IMmu* mmu, ParsedRequest hipc_in,
             u8* scratch_buffer, u8* scratch_buffer_objects,
@@ -329,9 +329,9 @@ struct Streams {
             u8* ptr = get_list_entry_ptr(mmu, hipc_in.data.recv_list[i], size);
             // TODO: should we continue or push std::nullopt in case of nullptr?
             recv_list_streams.push_back(
-                ptr != nullptr
-                    ? std::make_optional<io::MemoryStream>(std::span(ptr, size))
-                    : std::nullopt);
+                ptr != nullptr ? std::make_optional<ztd::io::MemoryStream>(
+                                     std::span(ptr, size))
+                               : std::nullopt);
         }
         CREATE_BUFFER_STREAMS(recv);
         CREATE_BUFFER_STREAMS(exch);

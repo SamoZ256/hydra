@@ -206,27 +206,27 @@ result_t IAudioRenderer::RequestUpdateAuto(
 }
 
 result_t IAudioRenderer::RequestUpdateImpl(
-    std::optional<io::MemoryStream> in_stream,
-    std::optional<io::MemoryStream> out_stream,
-    std::optional<io::MemoryStream> out_perf_stream) {
+    std::optional<ztd::io::MemoryStream> in_stream,
+    std::optional<ztd::io::MemoryStream> out_stream,
+    std::optional<ztd::io::MemoryStream> out_perf_stream) {
     ONCE(LOG_FUNC_STUBBED(Services));
 
     // Header
-    const auto in_header = in_stream->Read<UpdateDataHeader>();
+    const auto in_header = in_stream->read<UpdateDataHeader>();
 
     // TODO: correct?
-    auto header = out_stream->WriteReturningPtr<UpdateDataHeader>();
+    auto header = out_stream->writeReturningPtr<UpdateDataHeader>();
     header->revision = in_header.revision; // make_magic4('R', 'E', 'V', '4');
     header->total_size = sizeof(UpdateDataHeader);
 
-    in_stream->SeekBy(in_header.behavior_size);
+    in_stream->seekBy(in_header.behavior_size);
 
     // Mempools
     u32 mempool_count = (params.effect_count + params.voice_count * 4);
     header->mempools_size = mempool_count * sizeof(MemPoolInfoOut);
     header->total_size += header->mempools_size;
     for (u32 i = 0; i < mempool_count; i++) {
-        const auto mempool_in = in_stream->Read<MemPoolInfoIn>();
+        const auto mempool_in = in_stream->read<MemPoolInfoIn>();
 
         MemPoolInfoOut mempool{};
         switch (mempool_in.state) {
@@ -242,14 +242,14 @@ result_t IAudioRenderer::RequestUpdateImpl(
             mempool.new_state = MemPoolState::Released; // mempool_in.state;
             break;
         }
-        out_stream->Write(mempool);
+        out_stream->write(mempool);
     }
 
     // Voices
     header->voices_size = params.voice_count * sizeof(VoiceInfoOut);
     header->total_size += header->voices_size;
     for (u32 i = 0; i < params.voice_count; i++) {
-        const auto voice_in = in_stream->Read<VoiceInfoIn>();
+        const auto voice_in = in_stream->read<VoiceInfoIn>();
 
         VoiceInfoOut& voice = voices[i];
         if (voice_in.is_new) {
@@ -275,7 +275,7 @@ result_t IAudioRenderer::RequestUpdateImpl(
         } else {
             ONCE(LOG_NOT_IMPLEMENTED(Services, "Voice"));
         }
-        out_stream->Write(voice);
+        out_stream->write(voice);
     }
 
     // Channels
@@ -290,7 +290,7 @@ result_t IAudioRenderer::RequestUpdateImpl(
     } else {
         header->effects_size = params.effect_count * sizeof(EffectInfoOutV1);
         for (u32 i = 0; i < params.effect_count; i++) {
-            out_stream->Write<EffectInfoOutV1>({
+            out_stream->write<EffectInfoOutV1>({
                 .state = EffectState::Enabled,
             });
         }
@@ -301,7 +301,7 @@ result_t IAudioRenderer::RequestUpdateImpl(
     header->sinks_size = params.sink_count * sizeof(SinkInfoOut);
     header->total_size += header->sinks_size;
     for (u32 i = 0; i < params.sink_count; i++) {
-        out_stream->Write<SinkInfoOut>({
+        out_stream->write<SinkInfoOut>({
             .last_written_offset = 0,
         });
     }
@@ -309,7 +309,7 @@ result_t IAudioRenderer::RequestUpdateImpl(
     // Behavior
     header->behavior_size = sizeof(BehaviorInfoOut);
     header->total_size += header->behavior_size;
-    out_stream->Write<BehaviorInfoOut>({
+    out_stream->write<BehaviorInfoOut>({
         .error_info_count = 0,
     });
 
@@ -318,7 +318,7 @@ result_t IAudioRenderer::RequestUpdateImpl(
     if (false) {
         header->render_info_size = sizeof(RenderInfoOut);
         header->total_size += header->render_info_size;
-        out_stream->Write<RenderInfoOut>({
+        out_stream->write<RenderInfoOut>({
             .elapsed_frame_count = 0,
         });
     }
@@ -328,7 +328,7 @@ result_t IAudioRenderer::RequestUpdateImpl(
     header->total_size += header->performance_manager_size;
     // HACK
     if (out_perf_stream) {
-        out_perf_stream->Write<PerformanceInfoOut>({
+        out_perf_stream->write<PerformanceInfoOut>({
             .history_size = 0,
         });
     }

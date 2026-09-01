@@ -23,16 +23,16 @@ result_t
 IAccountService::ListAllUsers(System* system,
                               OutBuffer<BufferAttr::HipcPointer> out_buffer) {
     // Clear buffer
-    std::memset(out_buffer.stream->GetPtr(), 0, out_buffer.stream->GetSize());
+    std::memset(out_buffer.stream->getPtr(), 0, out_buffer.stream->getSize());
 
     // Write user IDs
     for (const auto user_id : system->GetOS().GetUserManager().GetUserIDs()) {
         // Check if we cen fit the entry in the buffer
-        if (out_buffer.stream->GetSeek() + sizeof(uuid_t) >
-            out_buffer.stream->GetSize())
+        if (out_buffer.stream->getSeek() + sizeof(uuid_t) >
+            out_buffer.stream->getSize())
             continue;
 
-        out_buffer.stream->Write(user_id);
+        out_buffer.stream->write(user_id);
     }
 
     return RESULT_SUCCESS;
@@ -46,16 +46,16 @@ IAccountService::ListOpenUsers(System* system,
     LOG_FUNC_STUBBED(Services);
 
     // Clear buffer
-    std::memset(out_buffer.stream->GetPtr(), 0, out_buffer.stream->GetSize());
+    std::memset(out_buffer.stream->getPtr(), 0, out_buffer.stream->getSize());
 
     // Write user IDs
     for (const auto user_id : system->GetOS().GetUserManager().GetUserIDs()) {
         // Check if we cen fit the entry in the buffer
-        if (out_buffer.stream->GetSeek() + sizeof(uuid_t) >
-            out_buffer.stream->GetSize())
+        if (out_buffer.stream->getSeek() + sizeof(uuid_t) >
+            out_buffer.stream->getSize())
             continue;
 
-        out_buffer.stream->Write(user_id);
+        out_buffer.stream->write(user_id);
     }
     // memset((void*)out_buffer.writer->GetBase(), 0,
     //        out_buffer.writer->GetSize());

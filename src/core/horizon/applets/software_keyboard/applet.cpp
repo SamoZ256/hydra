@@ -43,19 +43,19 @@ result_t Applet::Run(System& system) {
         const usize size =
             sizeof(u64) + ((output_text.size() + 1) * sizeof(char16_t));
         std::vector<u8> bytes(size);
-        io::MemoryStream stream(bytes);
-        stream.Write<u64>(size);
-        stream.WriteSpan(std::span<const char16_t>(output_text));
-        stream.Write(u'\0');
+        ztd::io::MemoryStream stream(bytes);
+        stream.write<u64>(size);
+        stream.writeSpan(std::span<const char16_t>(output_text));
+        stream.write(u'\0');
         PushInteractiveOutDataRaw(std::move(bytes));
 
         auto reader = PopInteractiveInDataRaw();
-        auto res = reader.Read<TextCheckResult>();
+        auto res = reader.read<TextCheckResult>();
         if (res == TextCheckResult::Success)
             break;
 
         // Dialog
-        std::u16string msg = reader.ReadPtr<char16_t>();
+        std::u16string msg = reader.readPtr<char16_t>();
         system.GetUIHandler().ShowMessageDialog(
             (res == TextCheckResult::ShowFailureDialog
                  ? ui::MessageDialogType::Error
@@ -69,10 +69,10 @@ result_t Applet::Run(System& system) {
         const usize size = sizeof(SoftwareKeyboardResult) +
                            ((output_text.size() + 1) * sizeof(char16_t));
         std::vector<u8> bytes(size);
-        io::MemoryStream stream(bytes);
-        stream.Write(result);
-        stream.WriteSpan(std::span<const char16_t>(output_text));
-        stream.Write(u'\0');
+        ztd::io::MemoryStream stream(bytes);
+        stream.write(result);
+        stream.writeSpan(std::span<const char16_t>(output_text));
+        stream.write(u'\0');
         PushOutDataRaw(std::move(bytes));
     }
 

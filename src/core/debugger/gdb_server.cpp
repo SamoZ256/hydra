@@ -706,8 +706,8 @@ void GdbServer::HandleGetExecutables() {
         auto file = debugger.executables.at(module_.name);
         auto stream = file->Open(horizon::filesystem::FileOpenFlags::Read);
 
-        std::vector<u8> data(stream->GetSize());
-        stream->ReadToSpan(std::span(data));
+        std::vector<u8> data(stream->getSize());
+        stream->readToSpan(std::span(data));
 
         delete stream;
 

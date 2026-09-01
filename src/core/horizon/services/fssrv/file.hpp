@@ -12,7 +12,7 @@ class IFile : public IService {
 
   private:
     filesystem::IFile* file;
-    io::IStream* stream;
+    ztd::io::IStream* stream;
 
     result_t RequestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;

@@ -50,7 +50,7 @@ void DiskFile::Flush() {
     // LOG_FS_ACCESS(host_path, "file flushed");
 }
 
-io::IStream* DiskFile::Open(FileOpenFlags flags) {
+ztd::io::IStream* DiskFile::Open(FileOpenFlags flags) {
     auto ztd_flags = ztd::fs::File::OpenFlags::None;
     if (any(flags & FileOpenFlags::Read))
         ztd_flags |= ztd::fs::File::OpenFlags::Read;

@@ -55,8 +55,8 @@ class IHOSBinderDriver : public IService {
 
     void TransactParcelImpl(System& system, i32 binder_id, TransactCode code,
                             u32 flags,
-                            std::optional<io::MemoryStream> in_stream,
-                            std::optional<io::MemoryStream> out_stream);
+                            std::optional<ztd::io::MemoryStream> in_stream,
+                            std::optional<ztd::io::MemoryStream> out_stream);
 };
 
 } // namespace hydra::horizon::services::hosbinder

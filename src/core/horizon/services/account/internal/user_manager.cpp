@@ -209,18 +209,18 @@ void UserManager::Serialize(uuid_t user_id) {
             LOG_ERROR(Services, "Failed to write user at path {}", path);
             return;
         });
-    io::FileStream stream(std::move(file));
+    ztd::io::FileStream stream(file);
 
     // Header
     HusrHeader header{};
-    stream.Write(header);
+    stream.write(header);
 
     // Data
-    stream.Write(user.base);
-    stream.Write(user.data);
-    stream.Write(user.avatar_bg_color);
-    stream.Write(static_cast<u32>(user.avatar_path.size()));
-    stream.WriteSpan(std::span(user.avatar_path));
+    stream.write(user.base);
+    stream.write(user.data);
+    stream.write(user.avatar_bg_color);
+    stream.write(static_cast<u32>(user.avatar_path.size()));
+    stream.writeSpan(std::span(user.avatar_path));
 
     user_pair.second = GetTimestamp();
 }
@@ -243,10 +243,10 @@ void UserManager::Deserialize(uuid_t user_id) {
             LOG_ERROR(Services, "Failed to read user at path {}", path);
             return;
         });
-    io::FileStream stream(std::move(file));
+    ztd::io::FileStream stream(file);
 
     // Header
-    const auto header = stream.Read<HusrHeader>();
+    const auto header = stream.read<HusrHeader>();
 
     // Validate
     ASSERT(header.magic == HUSR_MAGIC, Services,
@@ -269,15 +269,15 @@ void UserManager::Deserialize(uuid_t user_id) {
            header.header_size, user_id);
 
     // Data
-    const auto base = stream.Read<ProfileBase>();
-    const auto data = stream.Read<UserData>();
-    const auto avatar_bg_color = stream.Read<uchar3>();
+    const auto base = stream.read<ProfileBase>();
+    const auto data = stream.read<UserData>();
+    const auto avatar_bg_color = stream.read<uchar3>();
     std::string avatar_path;
     {
-        const auto size = stream.Read<u32>();
+        const auto size = stream.read<u32>();
         // TODO: do more cleanly
         for (u32 i = 0; i < size; i++)
-            avatar_path += stream.Read<char>();
+            avatar_path += stream.read<char>();
     }
 
     User user(base, data, avatar_bg_color, avatar_path);
@@ -290,8 +290,8 @@ void UserManager::PreloadAvatar(Avatar& avatar, bool is_compressed) {
 
     auto stream = avatar.file->Open(filesystem::FileOpenFlags::Read);
 
-    std::vector<u8> raw(stream->GetSize());
-    stream->ReadToSpan(std::span(raw));
+    std::vector<u8> raw(stream->getSize());
+    stream->readToSpan(std::span(raw));
 
     delete stream;
 

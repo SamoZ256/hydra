@@ -20,13 +20,13 @@ result_t ISystemSettingsServer::GetFirmwareVersion(
     firmware_version.revision_major = 0;
     firmware_version.revision_minor = 0;
 
-    out_buffer.stream->Write(firmware_version);
+    out_buffer.stream->write(firmware_version);
     return RESULT_SUCCESS;
 }
 
 result_t ISystemSettingsServer::GetFirmwareVersion2(
     OutBuffer<BufferAttr::HipcPointer> out_buffer) {
-    out_buffer.stream->Write(FIRMWARE_VERSION);
+    out_buffer.stream->write(FIRMWARE_VERSION);
     return RESULT_SUCCESS;
 }
 
@@ -39,8 +39,8 @@ result_t ISystemSettingsServer::GetColorSetId(ColorSetId* out_id) {
 result_t ISystemSettingsServer::GetSettingsItemValueSize(
     InBuffer<BufferAttr::HipcPointer> in_name_buffer,
     InBuffer<BufferAttr::HipcPointer> in_item_key_buffer, u64* out_size) {
-    auto name = in_name_buffer.stream->ReadNullTerminatedString();
-    auto item_key = in_item_key_buffer.stream->ReadNullTerminatedString();
+    auto name = in_name_buffer.stream->readNullTerminatedString();
+    auto item_key = in_item_key_buffer.stream->readNullTerminatedString();
     const auto* value = GetSettingsValue(name, item_key);
     if (value == nullptr) {
         // TODO: error
@@ -66,8 +66,8 @@ result_t ISystemSettingsServer::GetSettingsItemValue(
     InBuffer<BufferAttr::HipcPointer> in_name_buffer,
     InBuffer<BufferAttr::HipcPointer> in_item_key_buffer, u64* out_size,
     OutBuffer<BufferAttr::MapAlias> out_buffer) {
-    auto name = in_name_buffer.stream->ReadNullTerminatedString();
-    auto item_key = in_item_key_buffer.stream->ReadNullTerminatedString();
+    auto name = in_name_buffer.stream->readNullTerminatedString();
+    auto item_key = in_item_key_buffer.stream->readNullTerminatedString();
     const auto* value = GetSettingsValue(name, item_key);
     if (value == nullptr) {
         // TODO: error
@@ -76,15 +76,15 @@ result_t ISystemSettingsServer::GetSettingsItemValue(
 
     switch (value->type) {
     case settings::SettingDataType::String:
-        out_buffer.stream->WriteSpan(std::span(value->s));
+        out_buffer.stream->writeSpan(std::span(value->s));
         *out_size = value->s.size();
         break;
     case settings::SettingDataType::Integer:
-        out_buffer.stream->Write(value->i);
+        out_buffer.stream->write(value->i);
         *out_size = sizeof(value->i);
         break;
     case settings::SettingDataType::Boolean:
-        out_buffer.stream->Write(value->b);
+        out_buffer.stream->write(value->b);
         *out_size = sizeof(value->b);
         break;
     }
@@ -125,7 +125,7 @@ result_t ISystemSettingsServer::GetDebugModeFlag(bool* out_flag) {
 result_t ISystemSettingsServer::GetDeviceNickName(
     OutBuffer<BufferAttr::MapAlias> out_buffer) {
     // TODO: make this configurable
-    out_buffer.stream->Write<DeviceNickName>({
+    out_buffer.stream->write<DeviceNickName>({
         .name = "Hydra device",
     });
     return RESULT_SUCCESS;

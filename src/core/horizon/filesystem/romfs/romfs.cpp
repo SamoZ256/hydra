@@ -11,7 +11,7 @@ RomFS::RomFS(IFile* file) {
     auto stream = file->Open(FileOpenFlags::Read);
 
     // Header
-    const auto header = stream->Read<Header>();
+    const auto header = stream->read<Header>();
     ASSERT(header.header_size == sizeof(Header), Filesystem,
            "Invalid romFS header size 0x{:x}", header.header_size);
 

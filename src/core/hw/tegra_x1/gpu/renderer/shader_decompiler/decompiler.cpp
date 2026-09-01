@@ -81,13 +81,13 @@ struct ShaderHeader {
 };
 #pragma pack(pop)
 
-void Decompile(io::MemoryStream& code_stream, const ShaderType type,
+void Decompile(ztd::io::MemoryStream& code_stream, const ShaderType type,
                const GuestShaderState& state, ShaderBackend& out_backend,
                std::vector<u8>& out_code,
                ResourceMapping& out_resource_mapping) {
     // Header
     // TODO: don't read in case of compute shaders
-    const auto header = code_stream.Read<ShaderHeader>();
+    const auto header = code_stream.read<ShaderHeader>();
     // HACK: just for testing
     ASSERT_DEBUG(header.version == 3, ShaderDecompiler,
                  "Invalid shader version {}", header.version);
@@ -111,7 +111,7 @@ void Decompile(io::MemoryStream& code_stream, const ShaderType type,
     ir::Module modul;
     {
         ir::Builder builder(modul);
-        io::StreamView stream(&code_stream, code_stream.GetSeek());
+        ztd::io::StreamView stream(&code_stream, code_stream.getSeek());
         decoder::Decoder decoder({.decomp_context = context,
                                   .code_stream = &stream,
                                   .builder = builder});

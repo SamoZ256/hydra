@@ -25,18 +25,18 @@ struct ParcelFlattenedBinder {
 
 class ParcelReader {
   public:
-    ParcelReader(io::MemoryStream stream_) : stream{std::move(stream_)} {
+    ParcelReader(ztd::io::MemoryStream stream_) : stream{std::move(stream_)} {
         auto header = Read<ParcelHeader>();
-        stream.SeekTo(header.data_offset);
+        stream.seekTo(header.data_offset);
     }
 
     template <typename T>
     std::span<const T> ReadSpan(usize count) {
-        const auto span = stream.ReadSpan<T>(count);
+        const auto span = stream.readSpan<T>(count);
 
         // Align
         usize size = count * sizeof(T);
-        stream.SeekBy(align(size, static_cast<usize>(4)) - size);
+        stream.seekBy(align(size, static_cast<usize>(4)) - size);
 
         return span;
     }
@@ -94,13 +94,13 @@ class ParcelReader {
     }
 
   private:
-    io::MemoryStream stream;
+    ztd::io::MemoryStream stream;
 };
 
 class ParcelWriter {
   public:
-    ParcelWriter(io::MemoryStream stream_) : stream{std::move(stream_)} {
-        header = stream.WriteReturningPtr<ParcelHeader>({
+    ParcelWriter(ztd::io::MemoryStream stream_) : stream{std::move(stream_)} {
+        header = stream.writeReturningPtr<ParcelHeader>({
             .data_size = 0x0,
             .data_offset = sizeof(ParcelHeader),
             .objects_size = 0x0,
@@ -110,11 +110,11 @@ class ParcelWriter {
 
     void Finish() {
         header->data_size =
-            static_cast<u32>(stream.GetSeek() - header->data_offset);
+            static_cast<u32>(stream.getSeek() - header->data_offset);
         header->objects_size = static_cast<u32>(objects.size() * sizeof(u32));
         header->objects_offset = header->data_offset + header->data_size;
-        stream.SeekTo(header->objects_offset);
-        stream.WriteSpan(std::span<const u32>(objects));
+        stream.seekTo(header->objects_offset);
+        stream.writeSpan(std::span<const u32>(objects));
     }
 
     template <typename T>
@@ -131,11 +131,11 @@ class ParcelWriter {
 
     template <typename T>
     std::span<T> WriteReturningSpan(usize count) {
-        auto span = stream.WriteReturningSpan<T>(count);
+        auto span = stream.writeReturningSpan<T>(count);
 
         // Align
         usize size = count * sizeof(T);
-        stream.SeekBy(align(size, static_cast<usize>(4)) - size);
+        stream.seekBy(align(size, static_cast<usize>(4)) - size);
 
         return span;
     }
@@ -195,7 +195,7 @@ class ParcelWriter {
     }
 
   private:
-    io::MemoryStream stream;
+    ztd::io::MemoryStream stream;
 
     ParcelHeader* header;
     std::vector<u32> objects;

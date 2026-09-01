@@ -51,10 +51,10 @@ IHidServer::GetSupportedNpadStyleSet(System* system,
 result_t IHidServer::SetSupportedNpadIdType(
     System* system, kernel::AppletResourceUserId aruid,
     InBuffer<BufferAttr::HipcPointer> in_types_buffer) {
-    while (in_types_buffer.stream->GetSeek() <
-           in_types_buffer.stream->GetSize()) {
+    while (in_types_buffer.stream->getSeek() <
+           in_types_buffer.stream->getSize()) {
         const auto index =
-            internal::ToNpadIndex(in_types_buffer.stream->Read<NpadIdType>());
+            internal::ToNpadIndex(in_types_buffer.stream->read<NpadIdType>());
         APPLET_RESOURCE(aruid).SetNpadSupported(index, true);
     }
     return RESULT_SUCCESS;

@@ -243,7 +243,7 @@ void HomebrewLoader::LoadProcess(System& system, kernel::Process* process) {
     auto stream = nacp_file->Open(filesystem::FileOpenFlags::Read);
 
     // Create a virtual filename
-    const auto nacp = stream->Read<services::ns::ApplicationControlProperty>();
+    const auto nacp = stream->read<services::ns::ApplicationControlProperty>();
     std::string title_name =
         nacp.GetApplicationTitle(SystemLanguage::AmericanEnglish).name;
     std::ranges::replace(title_name, ' ', '_');
@@ -292,7 +292,7 @@ void HomebrewLoader::TryLoadAssetSection(filesystem::IFile* asset_file) {
     auto stream = asset_file->Open(filesystem::FileOpenFlags::Read);
 
     // Header
-    const auto header = stream->Read<AssetHeader>();
+    const auto header = stream->read<AssetHeader>();
     // TODO: is this the correct way to check if the asset section is present?
     if (header.magic != make_magic4('A', 'S', 'E', 'T')) {
         LOG_WARN(Loader, "Asset section not found");

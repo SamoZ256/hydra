@@ -53,12 +53,12 @@ bool TimeTypeEquals(const TimeZoneRule& rule, u8 a_index, u8 b_index) {
 } // namespace
 
 // From Ryujinx
-void ParseTimeZoneBinary(io::IStream* stream, TimeZoneRule& out_rule) {
-    const auto header = stream->Read<TzifHeader>();
+void ParseTimeZoneBinary(ztd::io::IStream* stream, TimeZoneRule& out_rule) {
+    const auto header = stream->read<TzifHeader>();
     ASSERT(header.magic == make_magic4('T', 'Z', 'i', 'f'), Services,
            "Invalid TZif magic {:#x}", header.magic);
 
-    u32 data_size = static_cast<u32>(stream->GetRemainingSize());
+    u32 data_size = static_cast<u32>(stream->getRemainingSize());
 
     u32 ttis_gmt_count = Decode(header.ttis_gmt_count);
     u32 ttis_std_count = Decode(header.ttis_std_count);
@@ -86,7 +86,7 @@ void ParseTimeZoneBinary(io::IStream* stream, TimeZoneRule& out_rule) {
     time_count = 0;
 
     for (u32 i = 0; i < out_rule.time_count; i++) {
-        const auto at = Decode(stream->Read<i64>());
+        const auto at = Decode(stream->read<i64>());
         out_rule.type_indices[i] = 1;
 
         if (time_count != 0 && at <= out_rule.ats[time_count - 1]) {
@@ -102,7 +102,7 @@ void ParseTimeZoneBinary(io::IStream* stream, TimeZoneRule& out_rule) {
 
     time_count = 0;
     for (u32 i = 0; i < out_rule.time_count; i++) {
-        const auto type_index = stream->Read<u8>();
+        const auto type_index = stream->read<u8>();
         ASSERT(type_index < out_rule.type_count, Services,
                "Invalid type index ({} >= {})", type_index,
                out_rule.type_count);
@@ -115,29 +115,29 @@ void ParseTimeZoneBinary(io::IStream* stream, TimeZoneRule& out_rule) {
 
     for (u32 i = 0; i < out_rule.type_count; i++) {
         TimeTypeInfo& type_info = out_rule.type_infos[i];
-        type_info.gmt_offset = Decode(stream->Read<i32>());
+        type_info.gmt_offset = Decode(stream->read<i32>());
 
-        const auto is_day_saving_time = stream->Read<u8>();
+        const auto is_day_saving_time = stream->read<u8>();
         ASSERT(is_day_saving_time < 2, Services,
                "Invalid is day saving time boolean {}", is_day_saving_time);
 
         type_info.is_day_saving_time = (is_day_saving_time != 0);
 
-        u32 abbreviation_list_index = stream->Read<u8>();
+        u32 abbreviation_list_index = stream->read<u8>();
         ASSERT(abbreviation_list_index < TimeZoneRule::MAX_CHAR_COUNT, Services,
                "Invalid abbreviation list index {}", abbreviation_list_index);
 
         type_info.abbreviation_list_index = abbreviation_list_index;
     }
 
-    stream->ReadToSpan(std::span<char>(out_rule.chars, out_rule.char_count));
+    stream->readToSpan(std::span<char>(out_rule.chars, out_rule.char_count));
     out_rule.chars[out_rule.char_count] = '\0';
 
     for (u32 i = 0; i < out_rule.type_count; i++) {
         if (ttis_std_count == 0) {
             out_rule.type_infos[i].is_standard_time_daylight = false;
         } else {
-            const auto is_standard_time_daylight = stream->Read<u8>();
+            const auto is_standard_time_daylight = stream->read<u8>();
             ASSERT(is_standard_time_daylight < 2, Services,
                    "Invalid is standard time daylight boolean {}",
                    is_standard_time_daylight);
@@ -151,19 +151,19 @@ void ParseTimeZoneBinary(io::IStream* stream, TimeZoneRule& out_rule) {
         if (ttis_std_count == 0) {
             out_rule.type_infos[i].is_gmt = false;
         } else {
-            const auto is_gmt = stream->Read<u8>();
+            const auto is_gmt = stream->read<u8>();
             ASSERT(is_gmt < 2, Services, "Invalid is GMT boolean {}", is_gmt);
 
             out_rule.type_infos[i].is_gmt = (is_gmt != 0);
         }
     }
 
-    u32 name_len = static_cast<u32>(stream->GetRemainingSize());
+    u32 name_len = static_cast<u32>(stream->getRemainingSize());
     ASSERT(name_len <= (TimeZoneRule::MAX_NAME_LEN + 1), Services,
            "Invalid name length {}", name_len);
 
     char tmp_name[TimeZoneRule::MAX_NAME_LEN + 1];
-    stream->ReadToSpan(std::span<char>(tmp_name, name_len));
+    stream->readToSpan(std::span<char>(tmp_name, name_len));
 
     if (name_len > 2 && tmp_name[0] == '\n' && tmp_name[name_len - 1] == '\n' &&
         out_rule.type_count + 2 <= TimeZoneRule::MAX_TYPE_COUNT) {

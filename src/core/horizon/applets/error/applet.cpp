@@ -9,14 +9,14 @@ namespace hydra::horizon::applets::error {
 result_t Applet::Run(System& system) {
     // TODO: PopInData
     auto param_reader = PopInDataRaw();
-    const auto param_common = param_reader.Read<ParamCommon>();
+    const auto param_common = param_reader.read<ParamCommon>();
 
     // TODO: context (if present)
 
     ReturnValue ret;
     switch (param_common.type) {
     case ErrorType::ApplicationError: {
-        const auto param = param_reader.Read<ParamForApplicationError>();
+        const auto param = param_reader.read<ParamForApplicationError>();
 
         // TODO: handle empty messages
         system.GetUIHandler().ShowMessageDialog(

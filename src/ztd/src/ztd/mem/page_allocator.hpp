@@ -20,8 +20,8 @@ class PageAllocator : public IAllocator {
         -> std::optional<std::span<std::byte>> override {
         (void)alignment;
         const auto aligned_size = alignUp(size, getPageSize());
-        const auto ptr = mmap(nullptr, aligned_size, PROT_READ | PROT_WRITE,
-                              MAP_ANON | MAP_PRIVATE, -1, 0);
+        auto* const ptr = mmap(nullptr, aligned_size, PROT_READ | PROT_WRITE,
+                               MAP_ANON | MAP_PRIVATE, -1, 0);
         if (ptr == MAP_FAILED) {
             return std::nullopt;
         }

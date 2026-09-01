@@ -50,10 +50,10 @@ class InBuffer {
   public:
     static constexpr BufferAttr attr = attr_;
 
-    std::optional<io::MemoryStream> stream;
+    std::optional<ztd::io::MemoryStream> stream;
 
     InBuffer() : stream{std::nullopt} {}
-    InBuffer(std::optional<io::MemoryStream> stream_)
+    InBuffer(std::optional<ztd::io::MemoryStream> stream_)
         : stream{std::move(stream_)} {}
 
     bool IsValid() const { return stream.has_value(); }
@@ -64,10 +64,10 @@ class OutBuffer {
   public:
     static constexpr BufferAttr attr = attr_;
 
-    std::optional<io::MemoryStream> stream;
+    std::optional<ztd::io::MemoryStream> stream;
 
     OutBuffer() : stream{std::nullopt} {}
-    OutBuffer(std::optional<io::MemoryStream> stream_)
+    OutBuffer(std::optional<ztd::io::MemoryStream> stream_)
         : stream{std::move(stream_)} {}
 
     bool IsValid() const { return stream.has_value(); }
@@ -218,7 +218,7 @@ void read_arg(RequestContext& context, Class& instance,
                      arg_index + 1>(context, instance, args);
             return;
         } else if constexpr (traits::type == ArgumentType::InData) {
-            arg = context.streams.in_stream.Read<Arg>();
+            arg = context.streams.in_stream.read<Arg>();
 
             // Next
             read_arg<Class, CommandArguments, in_buffer_index, out_buffer_index,
@@ -226,14 +226,14 @@ void read_arg(RequestContext& context, Class& instance,
             return;
         } else if constexpr (traits::type == ArgumentType::OutData) {
             arg = context.streams.out_stream
-                      .WriteReturningPtr<typename traits::BaseType>();
+                      .writeReturningPtr<typename traits::BaseType>();
 
             // Next
             read_arg<Class, CommandArguments, in_buffer_index, out_buffer_index,
                      arg_index + 1>(context, instance, args);
             return;
         } else if constexpr (traits::type == ArgumentType::InBuffer) {
-            std::optional<io::MemoryStream> stream;
+            std::optional<ztd::io::MemoryStream> stream;
             if constexpr (Arg::attr == BufferAttr::AutoSelect) {
                 if (in_buffer_index <
                     context.streams.send_buffers_streams.size())
@@ -258,7 +258,7 @@ void read_arg(RequestContext& context, Class& instance,
                      out_buffer_index, arg_index + 1>(context, instance, args);
             return;
         } else if constexpr (traits::type == ArgumentType::OutBuffer) {
-            std::optional<io::MemoryStream> stream;
+            std::optional<ztd::io::MemoryStream> stream;
             if constexpr (Arg::attr == BufferAttr::AutoSelect) {
                 if (out_buffer_index <
                     context.streams.recv_buffers_streams.size())
@@ -286,9 +286,9 @@ void read_arg(RequestContext& context, Class& instance,
         } else if constexpr (traits::type == ArgumentType::InHandle) {
             Handle handle;
             if constexpr (Arg::attr == HandleAttr::Copy) {
-                handle = context.streams.in_copy_handles_stream.Read<Handle>();
+                handle = context.streams.in_copy_handles_stream.read<Handle>();
             } else if constexpr (Arg::attr == HandleAttr::Move) {
-                handle = context.streams.in_move_handles_stream.Read<Handle>();
+                handle = context.streams.in_move_handles_stream.read<Handle>();
             } else {
                 LOG_FATAL(Services, "Invalid in handle args");
             }
@@ -303,10 +303,10 @@ void read_arg(RequestContext& context, Class& instance,
             Handle* handle;
             if constexpr (Arg::attr == HandleAttr::Copy) {
                 handle = context.streams.out_copy_handles_stream
-                             .WriteReturningPtr<Handle>();
+                             .writeReturningPtr<Handle>();
             } else if constexpr (Arg::attr == HandleAttr::Move) {
                 handle = context.streams.out_move_handles_stream
-                             .WriteReturningPtr<Handle>();
+                             .writeReturningPtr<Handle>();
             } else {
                 LOG_FATAL(Services, "Invalid out handle args");
             }
@@ -321,7 +321,7 @@ void read_arg(RequestContext& context, Class& instance,
             ASSERT_DEBUG(context.streams.in_objects_stream, Services,
                          "Objects stream is null");
             auto service_handle =
-                context.streams.in_objects_stream->Read<Handle>();
+                context.streams.in_objects_stream->read<Handle>();
             arg = instance.GetService(context, service_handle);
             ASSERT_DEBUG(arg, Services, "Invalid service");
 
