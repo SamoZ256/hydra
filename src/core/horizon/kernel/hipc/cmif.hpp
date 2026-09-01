@@ -65,8 +65,8 @@ struct OutHeader {
     u32 token;
 };
 
-inline result_t* write_out_header(io::MemoryStream& stream) {
-    auto hdr = stream.WriteReturningPtr<OutHeader>({
+inline result_t* write_out_header(ztd::io::MemoryStream& stream) {
+    auto hdr = stream.writeReturningPtr<OutHeader>({
         .magic = OUT_HEADER_MAGIC,
         .version = 0,
         .result = RESULT_SUCCESS,
@@ -76,8 +76,8 @@ inline result_t* write_out_header(io::MemoryStream& stream) {
     return &hdr->result;
 }
 
-inline void write_domain_out_header(io::MemoryStream& stream) {
-    stream.Write<DomainOutHeader>({
+inline void write_domain_out_header(ztd::io::MemoryStream& stream) {
+    stream.write<DomainOutHeader>({
         .num_out_objects = 0,
     });
 }

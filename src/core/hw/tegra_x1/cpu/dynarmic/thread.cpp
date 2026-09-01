@@ -55,7 +55,7 @@ Thread::Thread(WallClock& wall_clock, IMmu* mmu,
     config.enable_cycle_counting = false;
 
     // Code cache size
-    config.code_cache_size = static_cast<usize>(128 * 1024 * 1024); // 128_MiB;
+    config.code_cache_size = 128_MiB;
 
     // TODO: make this configurable
     // config.optimizations = Dyn::no_optimizations;

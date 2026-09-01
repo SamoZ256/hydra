@@ -1,6 +1,6 @@
 #include "core/input/device_manager.hpp"
 
-#ifdef PLATFORM_APPLE
+#ifdef ZTD_PLATFORM_APPLE
 #include "core/input/apple_gc/device_list.hpp"
 #endif
 
@@ -20,7 +20,7 @@ IDeviceList* CreateDeviceList() {
         LOG_FATAL(Input, "SDL not supported");
 #endif
     case InputBackend::AppleGameController:
-#ifdef PLATFORM_APPLE
+#ifdef ZTD_PLATFORM_APPLE
         return new apple_gc::DeviceList();
 #else
         LOG_FATAL(Input, "Apple GameController not supported");

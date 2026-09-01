@@ -43,10 +43,10 @@ enum class BisPartitionId : u32 {
 };
 
 enum class SaveDataFlags : u32 {
-    KeepAfterResettingSystemSaveData = BIT(0),
-    KeepAfterRefurbishment = BIT(1),
-    KeepAfterResettingSystemSaveDataWithoutUserSaveData = BIT(2),
-    NeedsSecureDelete = BIT(3),
+    KeepAfterResettingSystemSaveData = ZTD_BIT(0),
+    KeepAfterRefurbishment = ZTD_BIT(1),
+    KeepAfterResettingSystemSaveDataWithoutUserSaveData = ZTD_BIT(2),
+    NeedsSecureDelete = ZTD_BIT(3),
 };
 
 enum class SaveDataMetaType : u8 {

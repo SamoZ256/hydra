@@ -19,16 +19,16 @@ enum class KeyboardMode : u32 {
 
 enum class InvalidCharFlags : u32 {
     None = 0,
-    Space = BIT(1),
-    AtMark = BIT(2),
-    Percent = BIT(3),
-    Slash = BIT(4),
-    BackSlash = BIT(5),
-    Numeric = BIT(6),
-    OutsideOfDownloadCode = BIT(7),
-    OutsideOfMiiNickName = BIT(8),
+    Space = ZTD_BIT(1),
+    AtMark = ZTD_BIT(2),
+    Percent = ZTD_BIT(3),
+    Slash = ZTD_BIT(4),
+    BackSlash = ZTD_BIT(5),
+    Numeric = ZTD_BIT(6),
+    OutsideOfDownloadCode = ZTD_BIT(7),
+    OutsideOfMiiNickName = ZTD_BIT(8),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(InvalidCharFlags)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(InvalidCharFlags)
 
 enum class InitialCursorPosition : u32 {
     First = 0,

@@ -164,8 +164,8 @@ OS::OS(System& system_)
         return s;                                                              \
     });
 #define REGISTER_SERVICE(server_name, service, ...)                            \
-    FOR_EACH_2_1(REGISTER_SERVICE_CASE, &server_name##_server, service,        \
-                 __VA_ARGS__)
+    ZTD_FOR_EACH_2_1(REGISTER_SERVICE_CASE, &server_name##_server, service,    \
+                     __VA_ARGS__)
 
     // HID
     REGISTER_SERVICE(others, hid::IHidServer, "hid");

@@ -27,8 +27,8 @@ class ILoader {
     ILoader() noexcept = default;
     virtual ~ILoader() noexcept = default;
 
-    MAKE_NON_COPYABLE(ILoader);
-    MAKE_DEFAULT_MOVABLE(ILoader);
+    ZTD_MAKE_NON_COPYABLE(ILoader);
+    ZTD_MAKE_DEFAULT_MOVABLE(ILoader);
 
     virtual u64 GetTitleID() const { return invalid<u64>(); }
 

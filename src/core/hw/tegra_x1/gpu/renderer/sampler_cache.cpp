@@ -11,17 +11,17 @@ SamplerBase* SamplerCache::Create(const SamplerDescriptor& descriptor) {
 }
 
 u32 SamplerCache::Hash(const SamplerDescriptor& descriptor) {
-    HashCode hash;
-    hash.Add(descriptor.min_filter);
-    hash.Add(descriptor.mag_filter);
-    hash.Add(descriptor.mip_filter);
-    hash.Add(descriptor.address_mode_s);
-    hash.Add(descriptor.address_mode_t);
-    hash.Add(descriptor.address_mode_r);
-    hash.Add(descriptor.depth_compare_op);
-    hash.Add(descriptor.border_color_u);
+    ztd::hash::XxHash32 hash;
+    hash.add(descriptor.min_filter);
+    hash.add(descriptor.mag_filter);
+    hash.add(descriptor.mip_filter);
+    hash.add(descriptor.address_mode_s);
+    hash.add(descriptor.address_mode_t);
+    hash.add(descriptor.address_mode_r);
+    hash.add(descriptor.depth_compare_op);
+    hash.add(descriptor.border_color_u);
 
-    return hash.ToHashCode();
+    return hash.toHashCode();
 }
 
 void SamplerCache::DestroyElement(SamplerBase* sampler) { delete sampler; }

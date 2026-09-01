@@ -30,7 +30,7 @@
 
 #define LOG_INFO(c, ...) LOG(Info, c, __VA_ARGS__)
 #define LOG_STUBBED(c, f, ...)                                                 \
-    LOG(Stub, c, f " stubbed" PASS_VA_ARGS(__VA_ARGS__))
+    LOG(Stub, c, f " stubbed" ZTD_PASS_VA_ARGS(__VA_ARGS__))
 #define LOG_WARN(c, ...) LOG(Warning, c, __VA_ARGS__)
 #define LOG_ERROR(c, ...) LOG(Error, c, __VA_ARGS__)
 #ifdef HYDRA_DEBUG
@@ -43,14 +43,14 @@
     {                                                                          \
         LOG(Fatal, c, __VA_ARGS__);                                            \
         abort();                                                               \
-        builtin_unreachable();                                                 \
+        ztd::builtin::unreachable();                                           \
     }
 
 #define LOG_FUNC_STUBBED(c) LOG_STUBBED(c, "{}", __func__)
 #define LOG_FUNC_WITH_ARGS_STUBBED(c, f, ...)                                  \
     LOG_STUBBED(c, "{} (" f ")", __func__, __VA_ARGS__)
 #define LOG_NOT_IMPLEMENTED(c, f, ...)                                         \
-    LOG_WARN(c, f " not implemented" PASS_VA_ARGS(__VA_ARGS__))
+    LOG_WARN(c, f " not implemented" ZTD_PASS_VA_ARGS(__VA_ARGS__))
 #define LOG_FUNC_WITH_ARGS_NOT_IMPLEMENTED(c, f, ...)                          \
     LOG_NOT_IMPLEMENTED(c, "{} (" f ")", __func__, __VA_ARGS__)
 #define LOG_FUNC_NOT_IMPLEMENTED(c) LOG_NOT_IMPLEMENTED(c, "{}", __func__)
@@ -71,14 +71,12 @@
     ASSERT_ALIGNMENT(value, alignment, c, name)
 #else
 // TODO: should the condition be evaluated?
-#define ASSERT_DEBUG(condition, c, ...)                                        \
-    if (condition) {                                                           \
-    }
+#define ASSERT_DEBUG(condition, c, ...) (void)(condition)
 #define ASSERT_ALIGNMENT_DEBUG(value, alignment, c, name)
 #endif
 
 #define INDENT_FMT "{:{}}"
-#define PASS_INDENT(indent) "", ((indent)*4)
+#define PASS_INDENT(indent) "", ((indent) * 4)
 
 namespace hydra {
 
@@ -172,8 +170,8 @@ class Logger {
     Logger() noexcept = default;
     ~Logger() noexcept = default;
 
-    MAKE_NON_COPYABLE(Logger);
-    MAKE_NON_MOVABLE(Logger);
+    ZTD_MAKE_NON_COPYABLE(Logger);
+    ZTD_MAKE_NON_MOVABLE(Logger);
 
     void InstallCallback(const log_callback_fn_t& callback_) {
         std::lock_guard lock(mutex);

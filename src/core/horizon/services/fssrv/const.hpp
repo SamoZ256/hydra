@@ -11,10 +11,10 @@ enum class EntryType : u32 {
 
 enum class DirectoryFilterFlags {
     None = 0,
-    Directories = BIT(0),
-    Files = BIT(1),
+    Directories = ZTD_BIT(0),
+    Files = ZTD_BIT(1),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(DirectoryFilterFlags)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(DirectoryFilterFlags)
 
 enum class SaveDataType : u8 {
     System = 0,

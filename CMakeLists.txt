@@ -164,6 +164,7 @@ add_subdirectory(externals/nx2elf SYSTEM)
 
 # date
 set(BUILD_TZ_LIB ON)
+set(USE_SYSTEM_TZ_DB ON)
 add_subdirectory(externals/date SYSTEM)
 
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
@@ -192,6 +193,7 @@ target_compile_options(hydra_compile_options INTERFACE
 
     # Disabled warnings
     -Wno-missing-designated-field-initializers
+    -Wno-unused-template
 
     # Extensions
     -Wno-c99-extensions

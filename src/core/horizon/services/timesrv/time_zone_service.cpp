@@ -27,7 +27,7 @@ result_t ITimeZoneService::LoadTimeZoneRule(
     ctx->system.GetOS().GetTimeManager().GetTimeZoneManager().LoadRule(
         location_name.name, rule);
 
-    out_rule_buffer.stream->Write(rule);
+    out_rule_buffer.stream->write(rule);
     return RESULT_SUCCESS;
 }
 
@@ -36,7 +36,7 @@ ITimeZoneService::ToCalendarTime(i64 posix_time,
                                  InBuffer<BufferAttr::MapAlias> in_rule_buffer,
                                  ToCalendarTimeWithMyRuleOut* out) {
     return ToCalendarTimeImpl(posix_time,
-                              in_rule_buffer.stream->Read<TimeZoneRule>(),
+                              in_rule_buffer.stream->read<TimeZoneRule>(),
                               out->time, out->additional_info);
 }
 
@@ -54,10 +54,10 @@ result_t ITimeZoneService::ToPosixTime(
     i32* out_count, OutBuffer<BufferAttr::HipcPointer> out_buffer) {
     i64 time;
     const auto res = ToPosixTimeImpl(
-        calendar_time, in_rule_buffer.stream->Read<TimeZoneRule>(), time);
+        calendar_time, in_rule_buffer.stream->read<TimeZoneRule>(), time);
 
-    out_buffer.stream->Write(time);
-    *out_count = static_cast<i32>(out_buffer.stream->GetSeek() / sizeof(i64));
+    out_buffer.stream->write(time);
+    *out_count = static_cast<i32>(out_buffer.stream->getSeek() / sizeof(i64));
     return res;
 }
 
@@ -70,8 +70,8 @@ result_t ITimeZoneService::ToPosixTimeWithMyRule(
         ctx->system.GetOS().GetTimeManager().GetTimeZoneManager().GetMyRule(),
         time);
 
-    out_buffer.stream->Write(time);
-    *out_count = static_cast<i32>(out_buffer.stream->GetSeek() / sizeof(i64));
+    out_buffer.stream->write(time);
+    *out_count = static_cast<i32>(out_buffer.stream->getSeek() / sizeof(i64));
     return res;
 }
 

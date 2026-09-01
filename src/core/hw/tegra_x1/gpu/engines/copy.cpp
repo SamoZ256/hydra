@@ -82,7 +82,7 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
     // Invalidate memory
     if (data.dst_memory_layout == MemoryLayout::Pitch) {
         gpu.GetRenderer().InvalidateMemory(
-            Range<uptr>::FromSize(dst_ptr, regs.line_count * regs.stride_out),
+            ztd::Range<uptr>::fromSize(dst_ptr, regs.line_count * regs.stride_out),
             renderer::MemoryInvalidationScope::BufferCache |
                 renderer::MemoryInvalidationScope::TextureCache);
     } else {
@@ -95,7 +95,7 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
             align(regs.dst.depth, 1u << static_cast<u32>(get_block_size_log2(
                                       regs.dst.block_size.depth)));
         gpu.GetRenderer().InvalidateMemory(
-            Range<uptr>::FromSize(dst_ptr,
+            ztd::Range<uptr>::fromSize(dst_ptr,
                                   static_cast<u32>(slices * rows * stride)),
             renderer::MemoryInvalidationScope::TextureCache);
     }

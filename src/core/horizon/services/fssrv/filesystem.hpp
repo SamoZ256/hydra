@@ -8,9 +8,9 @@ namespace hydra::horizon::services::fssrv {
 
 enum class CreateOption : u32 {
     None = 0,
-    BigFile = BIT(0),
+    BigFile = ZTD_BIT(0),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(CreateOption)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(CreateOption)
 
 struct TimeStampRaw {
     u64 creation_time;

@@ -12,7 +12,7 @@ ShaderBase* ShaderCache::Create(const GuestShaderDescriptor& descriptor) {
     host_descriptor.type = engines::to_renderer_shader_type(descriptor.stage);
 
     // Decompile
-    io::MemoryStream code_stream(
+    ztd::io::MemoryStream code_stream(
         std::span(reinterpret_cast<u8*>(descriptor.code_ptr),
                   0x1000)); // TODO: size
     shader_decomp::Decompile(code_stream, host_descriptor.type,
@@ -24,28 +24,28 @@ ShaderBase* ShaderCache::Create(const GuestShaderDescriptor& descriptor) {
 }
 
 u32 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {
-    HashCode hash;
-    hash.Add(descriptor.stage);
-    hash.Add(descriptor.code_ptr);
+    ztd::hash::XxHash32 hash;
+    hash.add(descriptor.stage);
+    hash.add(descriptor.code_ptr);
 
     // Take a few samples from the code
     // TODO: this should be limited by the size of the code
-    io::MemoryStream code_stream(
+    ztd::io::MemoryStream code_stream(
         std::span(reinterpret_cast<u8*>(descriptor.code_ptr),
                   0x1000)); // TODO: size
-    code_stream.SeekBy(80); // Header
+    code_stream.seekBy(80); // Header
     for (u32 i = 0; i < 8; i++) {
-        hash.Add(code_stream.Read<u8>());
-        code_stream.SeekBy(17);
+        hash.add(code_stream.read<u8>());
+        code_stream.seekBy(17);
     }
 
     // Vertex state
     if (descriptor.stage == engines::ShaderStage::VertexB) {
         for (const auto& vertex_attrib_state :
              descriptor.state.vertex_attrib_states) {
-            hash.Add(vertex_attrib_state.is_fixed);
-            hash.Add(vertex_attrib_state.size);
-            hash.Add(vertex_attrib_state.type);
+            hash.add(vertex_attrib_state.is_fixed);
+            hash.add(vertex_attrib_state.size);
+            hash.add(vertex_attrib_state.type);
         }
     }
 
@@ -53,11 +53,11 @@ u32 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {
     if (descriptor.stage == engines::ShaderStage::Fragment) {
         for (const auto& color_target_data_type :
              descriptor.state.color_target_data_types) {
-            hash.Add(color_target_data_type);
+            hash.add(color_target_data_type);
         }
     }
 
-    return hash.ToHashCode();
+    return hash.toHashCode();
 }
 
 void ShaderCache::DestroyElement(ShaderBase* shader) { delete shader; }

@@ -16,8 +16,8 @@ class Driver;
 
 class Layer {
   public:
-    Layer(System& system_, kernel::Process* process_, u32 binder_id_)
-        : system{system_}, process{process_}, binder_id{binder_id_} {}
+    Layer(System& system_, kernel::Process* process_, Handle binder_handle_)
+        : system{system_}, process{process_}, binder_handle{binder_handle_} {}
 
     // TODO
     void Open() {}
@@ -35,7 +35,7 @@ class Layer {
   private:
     System& system;
     kernel::Process* process;
-    u32 binder_id;
+    Handle binder_handle;
 
     float2 position{0, 0};
     uint2 size{LAYER_SIZE_AUTO};
@@ -47,7 +47,7 @@ class Layer {
 
   public:
     GETTER(process, GetProcess);
-    GETTER(binder_id, GetBinderID);
+    GETTER(binder_handle, GetBinderHandle);
     SETTER(position, SetPosition);
     SETTER(size, SetSize);
     GETTER_AND_SETTER(z, GetZ, SetZ);

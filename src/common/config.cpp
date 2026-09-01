@@ -63,7 +63,7 @@ struct into<CustomResolution> {
 namespace hydra {
 
 Config::Config() {
-#ifdef PLATFORM_APPLE
+#ifdef ZTD_PLATFORM_APPLE
     if (const char* home = std::getenv("HOME")) {
         app_data_path =
             fmt::format("{}/Library/Application Support/" APP_NAME, home);
@@ -72,7 +72,7 @@ Config::Config() {
     } else {
         LOG_FATAL(Other, "Failed to find HOME path");
     }
-#elifdef PLATFORM_WINDOWS
+#elifdef ZTD_PLATFORM_WINDOWS
     if (const char* app_data = std::getenv("APPDATA")) {
         app_data_path = fmt::format("{}/" APP_NAME, app_data);
         logs_path = fmt::format("{}/logs", app_data_path); // TODO
@@ -85,7 +85,7 @@ Config::Config() {
     } else {
         LOG_FATAL(Other, "Failed to find USERPROFILE path");
     }
-#elif defined(PLATFORM_LINUX)
+#elifdef ZTD_PLATFORM_LINUX
     if (const char* xdg_config = std::getenv("XDG_CONFIG_HOME")) {
         app_data_path = fmt::format("{}/" APP_NAME, xdg_config);
         logs_path = fmt::format("{}/logs", app_data_path);
@@ -111,7 +111,7 @@ Config::Config() {
     std::filesystem::create_directories(app_data_path);
     std::filesystem::create_directories(logs_path);
     // HACK
-#ifndef PLATFORM_IOS
+#ifndef ZTD_PLATFORM_IOS
     std::filesystem::create_directories(pictures_path);
 #endif
 

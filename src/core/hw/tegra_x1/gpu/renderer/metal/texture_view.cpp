@@ -27,15 +27,15 @@ TextureView::TextureView(Texture* base, const TextureViewDescriptor& descriptor)
     // Demote array types to non-array types if possible
     switch (type) {
     case TextureType::_1DArray:
-        if (descriptor.layers.GetSize() == 1)
+        if (descriptor.layers.getSize() == 1)
             type = TextureType::_1D;
         break;
     case TextureType::_2DArray:
-        if (descriptor.layers.GetSize() == 1)
+        if (descriptor.layers.getSize() == 1)
             type = TextureType::_2D;
         break;
     case TextureType::CubeArray:
-        if (descriptor.layers.GetSize() == 6)
+        if (descriptor.layers.getSize() == 6)
             type = TextureType::Cube;
         break;
     default:
@@ -44,8 +44,8 @@ TextureView::TextureView(Texture* base, const TextureViewDescriptor& descriptor)
 
     texture = base->GetTexture()->newTextureView(
         to_mtl_pixel_format(descriptor.format), ToMtlTextureType(type),
-        NS::Range(descriptor.levels.GetBegin(), descriptor.levels.GetSize()),
-        NS::Range(descriptor.layers.GetBegin(), descriptor.layers.GetSize()),
+        NS::Range(descriptor.levels.getBegin(), descriptor.levels.getSize()),
+        NS::Range(descriptor.layers.getBegin(), descriptor.layers.getSize()),
         swizzle_channels_mtl);
 }
 

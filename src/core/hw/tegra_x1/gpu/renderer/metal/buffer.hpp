@@ -18,7 +18,7 @@ class Buffer final : public BufferBase {
     // Copying
     void CopyFrom(ICommandBuffer* command_buffer, ITextureView* src,
                   const uint3 src_origin, const uint3 src_size,
-                  const Range<u32> src_levels, const Range<u32> src_layers,
+                  const ztd::Range<u32> src_levels, const ztd::Range<u32> src_layers,
                   u64 dst_offset) override;
 
   private:

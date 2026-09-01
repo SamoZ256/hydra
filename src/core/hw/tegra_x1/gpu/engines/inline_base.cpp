@@ -31,7 +31,7 @@ void InlineBase::LoadInlineDataImpl(Gpu& gpu, RegsInline& regs, const u32 index,
 
         // Invalidate
         gpu.GetRenderer().InvalidateMemory(
-            Range<uptr>::FromSize(dst_ptr, inline_data.size() * sizeof(u32)));
+            ztd::Range<uptr>::fromSize(dst_ptr, inline_data.size() * sizeof(u32)));
     }
 }
 

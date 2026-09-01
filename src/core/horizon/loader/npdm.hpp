@@ -4,17 +4,17 @@ namespace hydra::horizon::loader {
 
 enum class NpdmFlags : u8 {
     None = 0,
-    Is64BitInstruction = BIT(0),
+    Is64BitInstruction = ZTD_BIT(0),
     AddressSpace32Bit = 0x0 << 1,
     AddressSpace64BitOld = 0x1 << 1,
     AddressSpace32BitNoReserved = 0x2 << 1,
     AddressSpace64Bit = 0x3 << 1,
-    OptimizeMemoryAllocation = BIT(4),       // 7.0.0+
-    DisableDeviceAddressSpaceMerge = BIT(5), // 11.0.0+
-    EnableAliasRegionExtraSize = BIT(6),     // 18.0.0+
-    PreventCodeReads = BIT(7),               // 19.0.0+
+    OptimizeMemoryAllocation = ZTD_BIT(4),       // 7.0.0+
+    DisableDeviceAddressSpaceMerge = ZTD_BIT(5), // 11.0.0+
+    EnableAliasRegionExtraSize = ZTD_BIT(6),     // 18.0.0+
+    PreventCodeReads = ZTD_BIT(7),               // 19.0.0+
 };
-ENABLE_ENUM_BITWISE_OPERATORS(NpdmFlags)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(NpdmFlags)
 
 struct NpdmMeta {
     u32 magic;

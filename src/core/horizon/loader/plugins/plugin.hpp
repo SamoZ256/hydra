@@ -50,22 +50,23 @@ class Plugin {
     Plugin() = default;
     ~Plugin();
 
-    MAKE_NON_COPYABLE(Plugin);
-    MAKE_MOVABLE(Plugin, library, std::exchange(other.library, nullptr),
-                 get_api_version, other.get_api_version, query, other.query,
-                 create_context, other.create_context, destroy_context,
-                 other.destroy_context, create_loader_from_file,
-                 other.create_loader_from_file, loader_destroy,
-                 other.loader_destroy, file_destroy, other.file_destroy,
-                 file_open, other.file_open, file_get_size, other.file_get_size,
-                 stream_destroy, other.stream_destroy, stream_get_seek,
-                 other.stream_get_seek, stream_seek_to, other.stream_seek_to,
-                 stream_seek_by, other.stream_seek_by, stream_get_size,
-                 other.stream_get_size, stream_read_raw, other.stream_read_raw,
-                 name, other.name, display_version, other.display_version,
-                 supported_formats, std::move(other.supported_formats),
-                 option_configs, std::move(other.option_configs), context,
-                 std::exchange(other.context, nullptr));
+    ZTD_MAKE_NON_COPYABLE(Plugin);
+    ZTD_MAKE_MOVABLE(Plugin, library, std::exchange(other.library, nullptr),
+                     get_api_version, other.get_api_version, query, other.query,
+                     create_context, other.create_context, destroy_context,
+                     other.destroy_context, create_loader_from_file,
+                     other.create_loader_from_file, loader_destroy,
+                     other.loader_destroy, file_destroy, other.file_destroy,
+                     file_open, other.file_open, file_get_size,
+                     other.file_get_size, stream_destroy, other.stream_destroy,
+                     stream_get_seek, other.stream_get_seek, stream_seek_to,
+                     other.stream_seek_to, stream_seek_by, other.stream_seek_by,
+                     stream_get_size, other.stream_get_size, stream_read_raw,
+                     other.stream_read_raw, name, other.name, display_version,
+                     other.display_version, supported_formats,
+                     std::move(other.supported_formats), option_configs,
+                     std::move(other.option_configs), context,
+                     std::exchange(other.context, nullptr));
 
     std::optional<NxLoader*> Load(std::string_view path);
 

@@ -42,7 +42,7 @@ class PartitionFilesystem final : public Directory {
         auto stream = file->Open(FileOpenFlags::Read);
 
         // Header
-        const auto header = stream->Read<PfsHeader>();
+        const auto header = stream->read<PfsHeader>();
         if (!is_hfs) {
             ASSERT(header.magic == make_magic4('P', 'F', 'S', '0'), Filesystem,
                    "Invalid PFS0 magic 0x{:08x}", header.magic);
@@ -59,15 +59,15 @@ class PartitionFilesystem final : public Directory {
         const u64 data_offset = string_table_offset + header.string_table_size;
 
         // String table
-        stream->SeekTo(string_table_offset);
+        stream->seekTo(string_table_offset);
         std::string string_table;
         string_table.resize(header.string_table_size);
-        stream->ReadToSpan(std::span(string_table));
+        stream->readToSpan(std::span(string_table));
 
         // Entries
-        stream->SeekTo(entries_offset);
+        stream->seekTo(entries_offset);
         for (u32 i = 0; i < header.entry_count; i++) {
-            const auto entry = stream->Read<EntryType>();
+            const auto entry = stream->read<EntryType>();
 
             const std::string entry_name(string_table.data() +
                                          entry.string_offset);

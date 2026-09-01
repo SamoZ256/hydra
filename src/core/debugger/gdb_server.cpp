@@ -515,7 +515,7 @@ void GdbServer::HandleQuery(std::string_view command) {
             // TODO: number_to_hex?
             output += fmt::format(
                 R"(<library name="{}"><segment address="{:#x}"/></library>)",
-                symbol.name, symbol.guest_mem_range.GetBegin());
+                symbol.name, symbol.guest_mem_range.getBegin());
         }
         output += "</library-list>";
         SendPacket(PageFromBuffer(output, command.substr(21)));
@@ -608,7 +608,7 @@ void GdbServer::HandleInsertBreakpoint(std::string_view command) {
             const auto mmu = debugger.process->GetMmu();
             replaced_instructions.insert({addr, mmu->Read<u32>(addr)});
             mmu->Write(addr, BRK);
-            NotifyMemoryChanged(Range<vaddr_t>(addr, 4));
+            NotifyMemoryChanged(ztd::Range<vaddr_t>(addr, 4));
         }
 
         SendPacket(GDB_OK);
@@ -646,7 +646,7 @@ void GdbServer::HandleRemoveBreakpoint(std::string_view command) {
             ASSERT(it != replaced_instructions.end(), Debugger,
                    "Breakpoint not found at address {:#x}", addr);
             mmu->Write(addr, it->second);
-            NotifyMemoryChanged(Range<vaddr_t>(addr, 4));
+            NotifyMemoryChanged(ztd::Range<vaddr_t>(addr, 4));
             replaced_instructions.erase(it);
         }
 
@@ -691,7 +691,7 @@ void GdbServer::HandleGetExecutables() {
 
         // Output
         output += fmt::format("\"{}\":{:#x}", path,
-                              module_.guest_mem_range.GetBegin());
+                              module_.guest_mem_range.getBegin());
         if (i < debugger.GetModuleTable().GetSymbols().size() - 1)
             output += ";";
 
@@ -706,8 +706,8 @@ void GdbServer::HandleGetExecutables() {
         auto file = debugger.executables.at(module_.name);
         auto stream = file->Open(horizon::filesystem::FileOpenFlags::Read);
 
-        std::vector<u8> data(stream->GetSize());
-        stream->ReadToSpan(std::span(data));
+        std::vector<u8> data(stream->getSize());
+        stream->readToSpan(std::span(data));
 
         delete stream;
 
@@ -800,7 +800,7 @@ void GdbServer::NotifySupervisorPausedImpl(horizon::kernel::GuestThread* thread,
     SendPacket(GetThreadStatus(thread, signal));
 }
 
-void GdbServer::NotifyMemoryChanged(Range<vaddr_t> mem_range) {
+void GdbServer::NotifyMemoryChanged(ztd::Range<vaddr_t> mem_range) {
     for (const auto& [_, thread] : debugger.threads)
         thread.guest_thread->GetThread()->NotifyMemoryChanged(mem_range);
 }

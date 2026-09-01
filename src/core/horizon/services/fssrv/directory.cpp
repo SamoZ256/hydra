@@ -29,8 +29,8 @@ result_t IDirectory::Read(u64* out_entry_count,
     u32 i = 0;
     for (const auto& [path, entry] : directory->GetEntries()) {
         // Check if the stream has enough space to write the entry
-        if (out_entries.stream->GetSeek() + sizeof(FsDirectoryEntry) >
-            out_entries.stream->GetSize())
+        if (out_entries.stream->getSeek() + sizeof(FsDirectoryEntry) >
+            out_entries.stream->getSize())
             break;
 
         // TODO: find a better way to index
@@ -56,13 +56,13 @@ result_t IDirectory::Read(u64* out_entry_count,
         else
             e.file_size = 0;
 
-        out_entries.stream->Write(e);
+        out_entries.stream->write(e);
 
         entry_index++;
         i++;
     }
 
-    *out_entry_count = out_entries.stream->GetSeek() / sizeof(FsDirectoryEntry);
+    *out_entry_count = out_entries.stream->getSeek() / sizeof(FsDirectoryEntry);
 
     return RESULT_SUCCESS;
 }

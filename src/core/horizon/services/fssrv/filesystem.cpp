@@ -20,7 +20,7 @@ DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 0, CreateFile, 1, DeleteFile, 2,
     [[maybe_unused]] const auto path_var =                                     \
         mount +                                                                \
         std::string(                                                           \
-            in_##path_var##_buffer.stream->ReadNullTerminatedString());        \
+            in_##path_var##_buffer.stream->readNullTerminatedString());        \
     LOG_DEBUG(Services, debug_name ": {}", path);
 #define READ_PATH() READ_PATH_IMPL(path, "Path")
 

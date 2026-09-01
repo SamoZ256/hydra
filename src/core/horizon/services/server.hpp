@@ -23,8 +23,8 @@ class Server {
     Server(System& system_) : system{system_} {}
     ~Server() { Stop(); }
 
-    MAKE_NON_COPYABLE(Server);
-    MAKE_NON_MOVABLE(Server);
+    ZTD_MAKE_NON_COPYABLE(Server);
+    ZTD_MAKE_NON_MOVABLE(Server);
 
     void Start();
     void Stop();

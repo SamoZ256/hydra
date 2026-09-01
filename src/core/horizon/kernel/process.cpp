@@ -31,8 +31,9 @@ Process::~Process() {
     DEBUGGER_MANAGER_INSTANCE.DetachDebugger(this);
 }
 
-uptr Process::CreateMemory(Range<vaddr_t> region, u64 size, MemoryType type,
-                           MemoryPermission perm, vaddr_t& out_base) {
+uptr Process::CreateMemory(ztd::Range<vaddr_t> region, u64 size,
+                           MemoryType type, MemoryPermission perm,
+                           vaddr_t& out_base) {
     out_base = mmu->FindFreeMemory(region, size);
     ASSERT(out_base != 0x0, Kernel, "Failed to find free memory");
 
@@ -53,26 +54,26 @@ uptr Process::CreateExecutableMemory(const std::string_view module_name,
 
     // Protect
     mmu->Protect(
-        Range<vaddr_t>::FromSize(
-            out_base + code_set.code.GetBegin(),
-            align(code_set.code.GetSize(), hw::tegra_x1::cpu::GUEST_PAGE_SIZE)),
+        ztd::Range<vaddr_t>::fromSize(
+            out_base + code_set.code.getBegin(),
+            align(code_set.code.getSize(), hw::tegra_x1::cpu::GUEST_PAGE_SIZE)),
         MemoryPermission::ReadExecute);
     // mmu->Protect(
-    //     Range<vaddr_t>::FromSize(out_base + code_set.ro_data.GetBegin(),
+    //     ztd::Range<vaddr_t>::fromSize(out_base + code_set.ro_data.getBegin(),
     //                              align(code_set.ro_data.GetSize(),
     //                                    hw::tegra_x1::cpu::GUEST_PAGE_SIZE)),
     //     MemoryPermission::Read);
     mmu->Protect(
-        Range<vaddr_t>::FromSize(
-            out_base + code_set.data.GetBegin(),
-            align(code_set.data.GetSize(), hw::tegra_x1::cpu::GUEST_PAGE_SIZE)),
+        ztd::Range<vaddr_t>::fromSize(
+            out_base + code_set.data.getBegin(),
+            align(code_set.data.getSize(), hw::tegra_x1::cpu::GUEST_PAGE_SIZE)),
         MemoryPermission::ReadWrite);
 
     // Debug
     DEBUGGER_MANAGER_INSTANCE.GetDebugger(this).GetModuleTable().RegisterSymbol(
         {.name = std::string(module_name),
          .guest_mem_range =
-             Range<vaddr_t>(out_base, out_base + code_set.size)});
+             ztd::Range<vaddr_t>(out_base, out_base + code_set.size)});
 
     return ptr;
 }
@@ -91,10 +92,10 @@ hw::tegra_x1::cpu::IMemory* Process::CreateTlsMemory(vaddr_t& base) {
 
 void Process::CreateStackMemory(u64 stack_size) {
     // main_thread = new GuestThread(this, STACK_REGION.begin + stack_size -
-    // 0x10, priority); auto handle_id = AddHandle(main_thread);
+    // 0x10, priority); auto handle = AddHandle(main_thread);
 
     main_thread_stack_mem.reset(system.GetCpu().AllocateMemory(stack_size));
-    mmu->Map(STACK_REGION.GetBegin(), main_thread_stack_mem.get(),
+    mmu->Map(STACK_REGION.getBegin(), main_thread_stack_mem.get(),
              {.type = MemoryType::Stack,
               .attr = MemoryAttribute::None,
               .perm = MemoryPermission::ReadWrite});
@@ -104,12 +105,12 @@ void Process::ResizeHeap(u64 size) {
     if (heap_mem == nullptr) {
         heap_mem.reset(system.GetCpu().AllocateMemory(size));
     } else {
-        mmu->Unmap(Range<vaddr_t>::FromSize(HEAP_REGION.GetBegin(),
-                                            heap_mem->GetSize()));
+        mmu->Unmap(ztd::Range<vaddr_t>::fromSize(HEAP_REGION.getBegin(),
+                                                 heap_mem->GetSize()));
         heap_mem->Resize(size);
     }
 
-    mmu->Map(HEAP_REGION.GetBegin(), heap_mem.get(),
+    mmu->Map(HEAP_REGION.getBegin(), heap_mem.get(),
              {.type = MemoryType::Normal_1_0_0,
               .attr = MemoryAttribute::None,
               .perm = MemoryPermission::ReadWrite});
@@ -161,10 +162,8 @@ void Process::CleanUp() {
         main_thread = nullptr;
     }
 
-    for (handle_id_t handle_id = 1; handle_id < handle_pool.GetCapacity() + 1;
-         handle_id++) {
-        if (handle_pool.IsValid(handle_id))
-            handle_pool.Get(handle_id)->Release();
+    for (const auto& obj : handle_pool) {
+        obj->Release();
     }
 
     // Signal

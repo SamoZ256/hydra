@@ -53,7 +53,7 @@ result_t IFileSystemProxy::OpenFileSystem(
     (void)type;
 
     // TODO: correct?
-    const auto mount = path_buffer.stream->ReadNullTerminatedString();
+    const auto mount = path_buffer.stream->readNullTerminatedString();
     LOG_DEBUG(Services, "Mount: {}", mount);
 
     AddService(*ctx, new IFileSystem(mount));
@@ -69,7 +69,7 @@ result_t IFileSystemProxy::OpenFileSystemWithIdObsolete(
     (void)program_id;
 
     // TODO: correct?
-    const auto mount = path_buffer.stream->ReadNullTerminatedString();
+    const auto mount = path_buffer.stream->readNullTerminatedString();
     LOG_DEBUG(Services, "Mount: {}", mount);
 
     AddService(*ctx, new IFileSystem(mount));
@@ -82,7 +82,7 @@ result_t IFileSystemProxy::OpenBisFileSystem(
     InBuffer<BufferAttr::HipcPointer> unknown_buffer) {
     const auto unknown =
         unknown_buffer.stream
-            ->ReadNullTerminatedString(); // TODO: what is this for?
+            ->readNullTerminatedString(); // TODO: what is this for?
 
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "partition ID: {}, unknown: {}",
                                partition_id, unknown);
@@ -122,7 +122,7 @@ result_t IFileSystemProxy::ReadSaveDataFileSystemExtraDataBySaveDataSpaceId(
     // TODO: why is the stream NULL?
     if (out_buffer.stream) {
         // HACK
-        out_buffer.stream->Write<SaveDataFileSystemExtraData>({});
+        out_buffer.stream->write<SaveDataFileSystemExtraData>({});
     }
     return RESULT_SUCCESS;
 }

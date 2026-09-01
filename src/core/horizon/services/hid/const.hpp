@@ -12,20 +12,20 @@ enum class NpadRevision : u32 {
 };
 
 enum class DebugPadButton : u32 {
-    A = BIT(0),
-    B = BIT(1),
-    X = BIT(2),
-    Y = BIT(3),
-    L = BIT(4),
-    R = BIT(5),
-    ZL = BIT(6),
-    ZR = BIT(7),
-    Start = BIT(8),
-    Select = BIT(9),
-    Left = BIT(10),
-    Up = BIT(11),
-    Right = BIT(12),
-    Down = BIT(13),
+    A = ZTD_BIT(0),
+    B = ZTD_BIT(1),
+    X = ZTD_BIT(2),
+    Y = ZTD_BIT(3),
+    L = ZTD_BIT(4),
+    R = ZTD_BIT(5),
+    ZL = ZTD_BIT(6),
+    ZR = ZTD_BIT(7),
+    Start = ZTD_BIT(8),
+    Select = ZTD_BIT(9),
+    Left = ZTD_BIT(10),
+    Up = ZTD_BIT(11),
+    Right = ZTD_BIT(12),
+    Down = ZTD_BIT(13),
 };
 
 enum class TouchScreenModeForNx : u32 {
@@ -35,11 +35,11 @@ enum class TouchScreenModeForNx : u32 {
 };
 
 enum class MouseButton : u32 {
-    Left = BIT(0),
-    Right = BIT(1),
-    Middle = BIT(2),
-    Forward = BIT(3),
-    Back = BIT(4),
+    Left = ZTD_BIT(0),
+    Right = ZTD_BIT(1),
+    Middle = ZTD_BIT(2),
+    Forward = ZTD_BIT(3),
+    Back = ZTD_BIT(4),
 };
 
 enum class KeyboardKey : u32 {
@@ -178,28 +178,28 @@ enum class KeyboardKey : u32 {
 };
 
 enum class KeyboardModifier : u32 {
-    Control = BIT(0),
-    Shift = BIT(1),
-    LeftAlt = BIT(2),
-    RightAlt = BIT(3),
-    Gui = BIT(4),
-    CapsLock = BIT(8),
-    ScrollLock = BIT(9),
-    NumLock = BIT(10),
-    Katakana = BIT(11),
-    Hiragana = BIT(12),
+    Control = ZTD_BIT(0),
+    Shift = ZTD_BIT(1),
+    LeftAlt = ZTD_BIT(2),
+    RightAlt = ZTD_BIT(3),
+    Gui = ZTD_BIT(4),
+    CapsLock = ZTD_BIT(8),
+    ScrollLock = ZTD_BIT(9),
+    NumLock = ZTD_BIT(10),
+    Katakana = ZTD_BIT(11),
+    Hiragana = ZTD_BIT(12),
 };
 
 enum class KeyboardLockKeyEvent : u32 {
-    NumLockOn = BIT(0),
-    NumLockOff = BIT(1),
-    NumLockToggle = BIT(2),
-    CapsLockOn = BIT(3),
-    CapsLockOff = BIT(4),
-    CapsLockToggle = BIT(5),
-    ScrollLockOn = BIT(6),
-    ScrollLockOff = BIT(7),
-    ScrollLockToggle = BIT(8),
+    NumLockOn = ZTD_BIT(0),
+    NumLockOff = ZTD_BIT(1),
+    NumLockToggle = ZTD_BIT(2),
+    CapsLockOn = ZTD_BIT(3),
+    CapsLockOff = ZTD_BIT(4),
+    CapsLockToggle = ZTD_BIT(5),
+    ScrollLockOn = ZTD_BIT(6),
+    ScrollLockOff = ZTD_BIT(7),
+    ScrollLockToggle = ZTD_BIT(8),
 };
 
 enum class NpadIdType : u32 {
@@ -217,25 +217,25 @@ enum class NpadIdType : u32 {
 
 enum class NpadStyleSet : u32 {
     None = 0,
-    FullKey = BIT(0),
-    Handheld = BIT(1),
-    JoyDual = BIT(2),
-    JoyLeft = BIT(3),
-    JoyRight = BIT(4),
-    Gc = BIT(5),
-    Palma = BIT(6),
-    Lark = BIT(7),
-    HandheldLark = BIT(8),
-    Lucia = BIT(9),
-    Lagon = BIT(10),
-    Lager = BIT(11),
-    SystemExt = BIT(29),
-    System = BIT(30),
+    FullKey = ZTD_BIT(0),
+    Handheld = ZTD_BIT(1),
+    JoyDual = ZTD_BIT(2),
+    JoyLeft = ZTD_BIT(3),
+    JoyRight = ZTD_BIT(4),
+    Gc = ZTD_BIT(5),
+    Palma = ZTD_BIT(6),
+    Lark = ZTD_BIT(7),
+    HandheldLark = ZTD_BIT(8),
+    Lucia = ZTD_BIT(9),
+    Lagon = ZTD_BIT(10),
+    Lager = ZTD_BIT(11),
+    SystemExt = ZTD_BIT(29),
+    System = ZTD_BIT(30),
 
     FullCtrl = FullKey | Handheld | JoyDual,
     Standard = FullCtrl | JoyLeft | JoyRight,
 };
-ENABLE_ENUM_BITWISE_OPERATORS(NpadStyleSet)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(NpadStyleSet)
 
 enum class ColorAttribute : u32 {
     Ok = 0,
@@ -246,46 +246,46 @@ enum class ColorAttribute : u32 {
 enum class NpadButtons : u64 {
     None = 0,
 
-    A = BITL(0),
-    B = BITL(1),
-    X = BITL(2),
-    Y = BITL(3),
-    StickL = BITL(4),
-    StickR = BITL(5),
-    L = BITL(6),
-    R = BITL(7),
-    ZL = BITL(8),
-    ZR = BITL(9),
-    Plus = BITL(10),
-    Minus = BITL(11),
-    Left = BITL(12),
-    Up = BITL(13),
-    Right = BITL(14),
-    Down = BITL(15),
-    StickLLeft = BITL(16),
-    StickLUp = BITL(17),
-    StickLRight = BITL(18),
-    StickLDown = BITL(19),
-    StickRLeft = BITL(20),
-    StickRUp = BITL(21),
-    StickRRight = BITL(22),
-    StickRDown = BITL(23),
-    LeftSL = BITL(24),
-    LeftSR = BITL(25),
-    RightSL = BITL(26),
-    RightSR = BITL(27),
-    Palma = BITL(28),
-    Verification = BITL(29),
-    HandheldLeftB = BITL(30),
-    LagonCLeft = BITL(31),
-    LagonCUp = BITL(32),
-    LagonCRight = BITL(33),
-    LagonCDown = BITL(34),
+    A = ZTD_BITL(0),
+    B = ZTD_BITL(1),
+    X = ZTD_BITL(2),
+    Y = ZTD_BITL(3),
+    StickL = ZTD_BITL(4),
+    StickR = ZTD_BITL(5),
+    L = ZTD_BITL(6),
+    R = ZTD_BITL(7),
+    ZL = ZTD_BITL(8),
+    ZR = ZTD_BITL(9),
+    Plus = ZTD_BITL(10),
+    Minus = ZTD_BITL(11),
+    Left = ZTD_BITL(12),
+    Up = ZTD_BITL(13),
+    Right = ZTD_BITL(14),
+    Down = ZTD_BITL(15),
+    StickLLeft = ZTD_BITL(16),
+    StickLUp = ZTD_BITL(17),
+    StickLRight = ZTD_BITL(18),
+    StickLDown = ZTD_BITL(19),
+    StickRLeft = ZTD_BITL(20),
+    StickRUp = ZTD_BITL(21),
+    StickRRight = ZTD_BITL(22),
+    StickRDown = ZTD_BITL(23),
+    LeftSL = ZTD_BITL(24),
+    LeftSR = ZTD_BITL(25),
+    RightSL = ZTD_BITL(26),
+    RightSR = ZTD_BITL(27),
+    Palma = ZTD_BITL(28),
+    Verification = ZTD_BITL(29),
+    HandheldLeftB = ZTD_BITL(30),
+    LagonCLeft = ZTD_BITL(31),
+    LagonCUp = ZTD_BITL(32),
+    LagonCRight = ZTD_BITL(33),
+    LagonCDown = ZTD_BITL(34),
 
     // HACK: alias
     Invalid = None,
 };
-ENABLE_ENUM_BITWISE_OPERATORS(NpadButtons)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(NpadButtons)
 
 enum class NpadColor : u32 {
     BodyGray = 0x828282,
@@ -323,61 +323,61 @@ enum class NpadColor : u32 {
 
 enum class NpadSystemProperties : u64 {
     None = 0,
-    IsChargingJoyDual = BIT(0),
-    IsChargingJoyLeft = BIT(1),
-    IsChargingJoyRight = BIT(2),
-    IsPoweredJoyDual = BIT(3),
-    IsPoweredJoyLeft = BIT(4),
-    IsPoweredJoyRight = BIT(5),
-    IsUnsuportedButtonPressedOnNpadSystem = BIT(9),
-    IsUnsuportedButtonPressedOnNpadSystemExt = BIT(10),
-    IsAbxyButtonOriented = BIT(11),
-    IsSlSrButtonOriented = BIT(12),
-    IsPlusAvailable = BIT(13),
-    IsMinusAvailable = BIT(14),
-    IsDirectionalButtonsAvailable = BIT(15),
+    IsChargingJoyDual = ZTD_BIT(0),
+    IsChargingJoyLeft = ZTD_BIT(1),
+    IsChargingJoyRight = ZTD_BIT(2),
+    IsPoweredJoyDual = ZTD_BIT(3),
+    IsPoweredJoyLeft = ZTD_BIT(4),
+    IsPoweredJoyRight = ZTD_BIT(5),
+    IsUnsuportedButtonPressedOnNpadSystem = ZTD_BIT(9),
+    IsUnsuportedButtonPressedOnNpadSystemExt = ZTD_BIT(10),
+    IsAbxyButtonOriented = ZTD_BIT(11),
+    IsSlSrButtonOriented = ZTD_BIT(12),
+    IsPlusAvailable = ZTD_BIT(13),
+    IsMinusAvailable = ZTD_BIT(14),
+    IsDirectionalButtonsAvailable = ZTD_BIT(15),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(NpadSystemProperties)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(NpadSystemProperties)
 
 enum class NpadSystemButtonProperties : u32 {
     None = 0,
-    IsUnintendedHomeButtonInputProtectionEnabled = BIT(0),
+    IsUnintendedHomeButtonInputProtectionEnabled = ZTD_BIT(0),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(NpadSystemButtonProperties)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(NpadSystemButtonProperties)
 
 enum class DebugPadAttribute : u32 {
-    IsConnected = BIT(0),
+    IsConnected = ZTD_BIT(0),
 };
 
 enum class HidTouchAttribute : u32 {
-    Start = BIT(0),
-    End = BIT(1),
+    Start = ZTD_BIT(0),
+    End = ZTD_BIT(1),
 };
 
 enum class MouseAttribute : u32 {
-    Transferable = BIT(0),
-    IsConnected = BIT(1),
+    Transferable = ZTD_BIT(0),
+    IsConnected = ZTD_BIT(1),
 };
 
 enum class NpadAttributes : u32 {
     None = 0,
-    IsConnected = BIT(0),
-    IsWired = BIT(1),
-    IsLeftConnected = BIT(2),
-    IsLeftWired = BIT(3),
-    IsRightConnected = BIT(4),
-    IsRightWired = BIT(5),
+    IsConnected = ZTD_BIT(0),
+    IsWired = ZTD_BIT(1),
+    IsLeftConnected = ZTD_BIT(2),
+    IsLeftWired = ZTD_BIT(3),
+    IsRightConnected = ZTD_BIT(4),
+    IsRightWired = ZTD_BIT(5),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(NpadAttributes)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(NpadAttributes)
 
 enum class SixAxisSensorAttribute : u32 {
-    IsConnected = BIT(0),
-    IsInterpolated = BIT(1),
+    IsConnected = ZTD_BIT(0),
+    IsInterpolated = ZTD_BIT(1),
 };
 
 enum class GestureAttribute : u32 {
-    IsNewTouch = BIT(4),
-    IsDoubleTap = BIT(8),
+    IsNewTouch = ZTD_BIT(4),
+    IsDoubleTap = ZTD_BIT(8),
 };
 
 enum class GestureDirection : u32 {
@@ -445,27 +445,27 @@ enum class NpadBatteryLevel : u32 {
 
 enum class DeviceTypeBits : u32 {
     None = 0,
-    FullKey = BIT(0),
-    DebugPad = BIT(1),
-    HandheldLeft = BIT(2),
-    HandheldRight = BIT(3),
-    JoyLeft = BIT(4),
-    JoyRight = BIT(5),
-    Palma = BIT(6),
-    LarkHvcLeft = BIT(7),
-    LarkHvcRight = BIT(8),
-    LarkNesLeft = BIT(9),
-    LarkNesRight = BIT(10),
-    HandheldLarkHvcLeft = BIT(11),
-    HandheldLarkHvcRight = BIT(12),
-    HandheldLarkNesLeft = BIT(13),
-    HandheldLarkNesRight = BIT(14),
-    Lucia = BIT(15),
-    Lagon = BIT(16),
-    Lager = BIT(17),
-    System = BIT(31),
+    FullKey = ZTD_BIT(0),
+    DebugPad = ZTD_BIT(1),
+    HandheldLeft = ZTD_BIT(2),
+    HandheldRight = ZTD_BIT(3),
+    JoyLeft = ZTD_BIT(4),
+    JoyRight = ZTD_BIT(5),
+    Palma = ZTD_BIT(6),
+    LarkHvcLeft = ZTD_BIT(7),
+    LarkHvcRight = ZTD_BIT(8),
+    LarkNesLeft = ZTD_BIT(9),
+    LarkNesRight = ZTD_BIT(10),
+    HandheldLarkHvcLeft = ZTD_BIT(11),
+    HandheldLarkHvcRight = ZTD_BIT(12),
+    HandheldLarkNesLeft = ZTD_BIT(13),
+    HandheldLarkNesRight = ZTD_BIT(14),
+    Lucia = ZTD_BIT(15),
+    Lagon = ZTD_BIT(16),
+    Lager = ZTD_BIT(17),
+    System = ZTD_BIT(31),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(DeviceTypeBits)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(DeviceTypeBits)
 
 enum class DeviceType : u32 {
     JoyRight1 = 1,
@@ -523,10 +523,10 @@ enum class NpadInterfaceType : u32 {
 };
 
 enum class XcdInterfaceType : u32 {
-    Bluetooth = BIT(0),
-    Uart = BIT(1),
-    Usb = BIT(2),
-    FieldSet = BIT(7),
+    Bluetooth = ZTD_BIT(0),
+    Uart = ZTD_BIT(1),
+    Usb = ZTD_BIT(2),
+    FieldSet = ZTD_BIT(7),
 };
 
 enum class NpadLarkType : u32 {
@@ -605,10 +605,10 @@ enum class PalmaWaveSet : u32 {
 };
 
 enum class PalmaFeature : u32 {
-    FrMode = BIT(0),
-    RumbleFeedback = BIT(1),
-    Step = BIT(2),
-    MuteSwitch = BIT(3),
+    FrMode = ZTD_BIT(0),
+    RumbleFeedback = ZTD_BIT(1),
+    Step = ZTD_BIT(2),
+    MuteSwitch = ZTD_BIT(3),
 };
 
 } // namespace hydra::horizon::services::hid

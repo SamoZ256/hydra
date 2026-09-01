@@ -58,9 +58,9 @@ result_t ISharedFontManager::GetSharedFontInOrderOfPriority(
          type <= SharedFontType::NintendoExtended; type++) {
         const auto& state =
             system->GetOS().GetSharedFontManager().GetState(type);
-        out_types_buffer.stream->Write(type);
-        out_offsets_buffer.stream->Write<u32>(state.shared_memory_offset);
-        out_sizes_buffer.stream->Write(static_cast<u32>(state.size));
+        out_types_buffer.stream->write(type);
+        out_offsets_buffer.stream->write<u32>(state.shared_memory_offset);
+        out_sizes_buffer.stream->write(static_cast<u32>(state.size));
 
         (*out_loaded)++;
         (*out_count)++;

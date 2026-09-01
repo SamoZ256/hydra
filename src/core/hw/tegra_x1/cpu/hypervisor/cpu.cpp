@@ -64,7 +64,7 @@ Cpu::Cpu()
 
     // Kernel memory
     kernel_page_table.Map(
-        0x0, Range<uptr>::FromSize(kernel_mem.GetPtr(), KERNEL_MEM_SIZE),
+        0x0, ztd::Range<uptr>::fromSize(kernel_mem.GetPtr(), KERNEL_MEM_SIZE),
         {.type = horizon::kernel::MemoryType::Kernel,
          .attr = horizon::kernel::MemoryAttribute::None,
          .perm = horizon::kernel::MemoryPermission::Execute},
@@ -83,11 +83,11 @@ Cpu::Cpu()
     /*
     GET_CURRENT_PROCESS_DEBUGGER().GetModuleTable().RegisterSymbol(
         {"Hypervisor::handler",
-         Range<vaddr_t>(KERNEL_REGION_BASE,
+         ztd::Range<vaddr_t>(KERNEL_REGION_BASE,
                         KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET)});
     GET_CURRENT_PROCESS_DEBUGGER().GetModuleTable().RegisterSymbol(
         {"Hypervisor::trampoline",
-         Range<vaddr_t>(KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET,
+         ztd::Range<vaddr_t>(KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET,
                         KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET +
                             sizeof(exception_trampoline))});
     */

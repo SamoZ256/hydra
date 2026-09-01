@@ -203,7 +203,7 @@ ContentArchive::ContentArchive(IFile* file) {
     auto stream = file->Open(FileOpenFlags::Read);
 
     // Header
-    const auto header = stream->Read<Header>();
+    const auto header = stream->read<Header>();
     // TODO: allow other NCA versions as well
     ASSERT(header.magic == make_magic4('N', 'C', 'A', '3'), Filesystem,
            "Invalid NCA magic 0x{:08x}", header.magic);

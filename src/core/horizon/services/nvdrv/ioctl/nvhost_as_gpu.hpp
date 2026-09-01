@@ -7,20 +7,20 @@ namespace hydra::horizon::services::nvdrv::ioctl {
 
 enum class AllocSpaceFlags : u32 {
     None = 0,
-    FixedOffset = BIT(0),
-    Sparse = BIT(1),
+    FixedOffset = ZTD_BIT(0),
+    Sparse = ZTD_BIT(1),
 };
 
-ENABLE_ENUM_BITWISE_OPERATORS(AllocSpaceFlags)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(AllocSpaceFlags)
 
 enum class MapBufferFlags : u32 {
     None = 0,
-    FixedOffset = BIT(0),
-    IsCacheable = BIT(2),
-    Modify = BIT(8),
+    FixedOffset = ZTD_BIT(0),
+    IsCacheable = ZTD_BIT(2),
+    Modify = ZTD_BIT(8),
 };
 
-ENABLE_ENUM_BITWISE_OPERATORS(MapBufferFlags)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(MapBufferFlags)
 
 struct VaRegion {
     gpu_vaddr_t addr;
@@ -55,9 +55,9 @@ class NvHostAsGpu : public FdBase {
     NvResult UnmapBuffer(gpu_vaddr_t addr);
     NvResult MapBufferEX(System* system, kernel::Process* process,
                          MapBufferFlags flags, hw::tegra_x1::gpu::NvKind kind,
-                         handle_id_t nvmap_handle_id,
-                         [[maybe_unused]] u32 reserved, u64 buffer_offset,
-                         u64 mapping_size, InOutSingle<gpu_vaddr_t> inout_addr);
+                         Handle nvmap_handle, [[maybe_unused]] u32 reserved,
+                         u64 buffer_offset, u64 mapping_size,
+                         InOutSingle<gpu_vaddr_t> inout_addr);
     NvResult GetVaRegions(gpu_vaddr_t buffer_addr,
                           InOutSingle<u32> inout_buffer_size,
                           [[maybe_unused]] u32 reserved,

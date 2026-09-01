@@ -2,13 +2,9 @@
 
 #include "core/horizon/services/const.hpp"
 #include "core/horizon/services/nvdrv/const.hpp"
-#include "core/horizon/services/nvdrv/ioctl/const.hpp"
+#include "core/horizon/services/nvdrv/ioctl/fd_base.hpp"
 
 namespace hydra::horizon::services::nvdrv {
-
-namespace ioctl {
-class FdBase;
-}
 
 constexpr usize MAX_FD_COUNT = 256;
 
@@ -19,27 +15,27 @@ class INvDrvServices : public IService {
 
   private:
     // TODO: what should be the max number of fds?
-    static StaticPool<ioctl::FdBase*, MAX_FD_COUNT> fd_pool;
+    StaticHandlePool<std::unique_ptr<ioctl::FdBase>, MAX_FD_COUNT> fd_pool;
 
     // Commands
     result_t Open(InBuffer<BufferAttr::MapAlias> path_buffer, u32* out_fd_id,
                   u32* out_error);
-    result_t Ioctl(System* system, kernel::Process* process, handle_id_t fd_id,
+    result_t Ioctl(System* system, kernel::Process* process, Handle fd_id,
                    u32 code, InBuffer<BufferAttr::AutoSelect> in_buffer,
                    NvResult* out_result,
                    OutBuffer<BufferAttr::AutoSelect> out_buffer);
     result_t Close(u32 fd_id, u32* out_err);
     result_t Initialize(u32 transfer_mem_size, NvResult* out_result);
-    result_t QueryEvent(kernel::Process* process, handle_id_t fd_id,
-                        u32 event_id, NvResult* out_result,
+    result_t QueryEvent(kernel::Process* process, Handle fd_id, u32 event_id,
+                        NvResult* out_result,
                         OutHandle<HandleAttr::Copy> out_handle);
     STUB_REQUEST_COMMAND(SetAruid);
-    result_t Ioctl2(System* system, kernel::Process* process, handle_id_t fd_id,
+    result_t Ioctl2(System* system, kernel::Process* process, Handle fd_id,
                     u32 code, InBuffer<BufferAttr::AutoSelect> in_buffer1,
                     InBuffer<BufferAttr::AutoSelect> in_buffer2,
                     NvResult* out_result,
                     OutBuffer<BufferAttr::AutoSelect> out_buffer);
-    result_t Ioctl3(System* system, kernel::Process* process, handle_id_t fd_id,
+    result_t Ioctl3(System* system, kernel::Process* process, Handle fd_id,
                     u32 code, InBuffer<BufferAttr::AutoSelect> in_buffer,
                     NvResult* out_result,
                     OutBuffer<BufferAttr::AutoSelect> out_buffer1,
@@ -49,11 +45,11 @@ class INvDrvServices : public IService {
     result_t
     IoctlImpl(NvResult (ioctl::FdBase::*func)(ioctl::IoctlContext& context,
                                               u32 type, u32 nr),
-              System& system, kernel::Process* process, handle_id_t fd_id,
-              u32 code, std::optional<io::MemoryStream> in_stream,
-              std::optional<io::MemoryStream> in_buffer_stream,
-              std::optional<io::MemoryStream> out_stream,
-              std::optional<io::MemoryStream> out_buffer_stream,
+              System& system, kernel::Process* process, Handle fd_id, u32 code,
+              std::optional<ztd::io::MemoryStream> in_stream,
+              std::optional<ztd::io::MemoryStream> in_buffer_stream,
+              std::optional<ztd::io::MemoryStream> out_stream,
+              std::optional<ztd::io::MemoryStream> out_buffer_stream,
               NvResult* out_result);
 };
 

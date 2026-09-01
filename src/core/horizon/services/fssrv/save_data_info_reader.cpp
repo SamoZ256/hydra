@@ -29,13 +29,13 @@ result_t ISaveDataInfoReader::ReadSaveDataInfo(
 
     auto stream = out_entry_buffer.stream;
     for (u32 i = entry_index; i < sizeof_array(entries); i++) {
-        if (stream->GetSeek() + sizeof(SaveDataInfo) > stream->GetSize())
+        if (stream->getSeek() + sizeof(SaveDataInfo) > stream->getSize())
             break;
 
-        stream->Write(entries[i]);
+        stream->write(entries[i]);
     }
 
-    *out_entry_count = stream->GetSeek() / sizeof(SaveDataInfo);
+    *out_entry_count = stream->getSeek() / sizeof(SaveDataInfo);
 
     return RESULT_SUCCESS;
 }

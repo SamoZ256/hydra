@@ -14,7 +14,7 @@
             return;                                                            \
         }                                                                      \
         switch (method) {                                                      \
-            FOR_EACH_0_4(METHOD_CASE, __VA_ARGS__)                             \
+            ZTD_FOR_EACH_0_4(METHOD_CASE, __VA_ARGS__)                         \
         default:                                                               \
             WriteReg(method, arg);                                             \
             break;                                                             \

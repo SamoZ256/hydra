@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+
 #include "type_aliases.hpp"
 
 #if __cpp_lib_atomic_ref >= 201806L
@@ -67,7 +69,8 @@ template <>
 inline constexpr bool atomic_supported_size<u128> = true;
 
 template <typename T>
-concept valid_atomic = std::is_trivially_copyable_v<T> and atomic_supported_size<T>;
+concept valid_atomic =
+    std::is_trivially_copyable_v<T> and atomic_supported_size<T>;
 
 template <valid_atomic T>
 void atomic_store(T* ptr, T value) {

@@ -56,8 +56,8 @@ Texture::CreateView(const TextureViewDescriptor& view_descriptor) {
 }
 
 void Texture::CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
-                       const Range<u32> dst_levels,
-                       const Range<u32> dst_layers) {
+                       const ztd::Range<u32> dst_levels,
+                       const ztd::Range<u32> dst_layers) {
     const auto command_buffer_impl =
         static_cast<CommandBuffer*>(command_buffer);
     const auto mtl_src = static_cast<const Buffer*>(src)->GetBuffer();
@@ -65,9 +65,9 @@ void Texture::CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
     auto encoder = command_buffer_impl->GetBlitCommandEncoder();
 
     u32 offset = 0;
-    for (u32 layer = dst_layers.GetBegin(); layer < dst_layers.GetEnd();
+    for (u32 layer = dst_layers.getBegin(); layer < dst_layers.getEnd();
          layer++) {
-        for (u32 level = dst_levels.GetBegin(); level < dst_levels.GetEnd();
+        for (u32 level = dst_levels.getBegin(); level < dst_levels.getEnd();
              level++) {
             // Calculate sizes
             const auto dims = descriptor.GetLevelDimensions(level);

@@ -12,8 +12,8 @@ Texture::CreateView(const TextureViewDescriptor& view_descriptor) {
 
 void Texture::CopyFrom([[maybe_unused]] ICommandBuffer* command_buffer,
                        [[maybe_unused]] const BufferBase* src,
-                       [[maybe_unused]] const Range<u32> dst_levels,
-                       [[maybe_unused]] const Range<u32> dst_layers) {}
+                       [[maybe_unused]] const ztd::Range<u32> dst_levels,
+                       [[maybe_unused]] const ztd::Range<u32> dst_layers) {}
 void Texture::CopyFrom([[maybe_unused]] ICommandBuffer* command_buffer,
                        [[maybe_unused]] const ITexture* src,
                        [[maybe_unused]] const u32 src_level,

@@ -69,7 +69,7 @@ result_t IGeneralService::GetCurrentNetworkProfile(
     LOG_NOT_IMPLEMENTED(Services, "GetCurrentNetworkProfile");
 
     // HACK
-    out_buffer.stream->Write<SfNetworkProfileData>(
+    out_buffer.stream->write<SfNetworkProfileData>(
         {.ip_setting_data =
              {
                  .ip_address_setting =

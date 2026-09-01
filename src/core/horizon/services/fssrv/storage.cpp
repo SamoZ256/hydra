@@ -16,7 +16,7 @@ result_t IStorage::Read(u64 offset, u64 size,
                         OutBuffer<BufferAttr::MapAlias> out_buffer) {
     LOG_DEBUG(Services, "Offset: 0x{:08x}, size: 0x{:08x}", offset, size);
 
-    const auto max_size = stream->GetSize() - offset;
+    const auto max_size = stream->getSize() - offset;
     if (size > max_size) {
         LOG_WARN(Services, "Reading {} bytes, but maximum readable size is {}",
                  size, max_size);
@@ -27,8 +27,8 @@ result_t IStorage::Read(u64 offset, u64 size,
     if (!out_buffer.stream)
         return RESULT_SUCCESS;
 
-    stream->SeekTo(offset);
-    stream->ReadToSpan(out_buffer.stream->WriteReturningSpan<u8>(size));
+    stream->seekTo(offset);
+    stream->readToSpan(out_buffer.stream->writeReturningSpan<u8>(size));
 
     return RESULT_SUCCESS;
 }
@@ -37,8 +37,8 @@ result_t IStorage::Write(u64 offset, u64 size,
                          InBuffer<BufferAttr::MapAlias> in_buffer) {
     LOG_DEBUG(Services, "Offset: 0x{:08x}, size: 0x{:08x}", offset, size);
 
-    stream->SeekTo(offset);
-    stream->WriteSpan(in_buffer.stream->ReadSpan<u8>(size));
+    stream->seekTo(offset);
+    stream->writeSpan(in_buffer.stream->readSpan<u8>(size));
 
     return RESULT_SUCCESS;
 }

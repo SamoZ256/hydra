@@ -34,10 +34,10 @@ class Decoder {
 
     // Helpers
     void Jump(u32 target) const {
-        context.code_stream->SeekTo(target * sizeof(instruction_t));
+        context.code_stream->seekTo(target * sizeof(instruction_t));
     }
     u32 GetPC() const {
-        return static_cast<u32>(context.code_stream->GetSeek() /
+        return static_cast<u32>(context.code_stream->getSeek() /
                                 sizeof(instruction_t));
     }
 

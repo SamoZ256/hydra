@@ -18,13 +18,16 @@ result_t IManagerDisplayService::CreateManagedLayer(System* system,
     (void)display_id;
     (void)aruid;
 
-    u32 binder_id = system->GetOS().GetDisplayDriver().CreateBinder();
+    const auto binder_handle =
+        system->GetOS().GetDisplayDriver().CreateBinder();
     // TODO: what's the display for?
     // auto& display =
     // system->GetOS().GetDisplayDriver().GetDisplay(display_id);
 
-    *out_layer_id =
-        system->GetOS().GetDisplayDriver().CreateLayer(process, binder_id);
+    *out_layer_id = system->GetOS()
+                        .GetDisplayDriver()
+                        .CreateLayer(process, binder_handle)
+                        .GetRaw();
     return RESULT_SUCCESS;
 }
 

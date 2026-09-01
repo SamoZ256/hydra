@@ -19,7 +19,7 @@ class IFile;
     if (!(condition)) {                                                        \
         /* TODO: log class? */                                                 \
         GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(                      \
-            f PASS_VA_ARGS(__VA_ARGS__));                                      \
+            f ZTD_PASS_VA_ARGS(__VA_ARGS__));                                  \
     }
 
 #ifdef HYDRA_DEBUG
@@ -107,7 +107,7 @@ class Thread {
 
 struct Symbol {
     std::string name;
-    Range<vaddr_t> guest_mem_range;
+    ztd::Range<vaddr_t> guest_mem_range;
 };
 
 class SymbolTable {
@@ -116,7 +116,7 @@ class SymbolTable {
 
     std::string FindSymbol(vaddr_t addr) {
         for (const auto& symbol : symbols) {
-            if (symbol.guest_mem_range.Contains(addr))
+            if (symbol.guest_mem_range.contains(addr))
                 return symbol.name;
         }
 

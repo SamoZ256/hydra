@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/horizon/handle_pool.hpp"
 #include "core/horizon/kernel/applet_state.hpp"
 #include "core/horizon/kernel/synchronization_object.hpp"
 #include "core/horizon/kernel/thread.hpp"
@@ -28,9 +29,9 @@ enum class ProcessState {
 
 struct CodeSet {
     u64 size;
-    Range<u64> code;
-    Range<u64> ro_data;
-    Range<u64> data;
+    ztd::Range<u64> code;
+    ztd::Range<u64> ro_data;
+    ztd::Range<u64> data;
 };
 
 class Process : public SynchronizationObject {
@@ -41,7 +42,7 @@ class Process : public SynchronizationObject {
     ~Process() override;
 
     // Memory
-    uptr CreateMemory(Range<vaddr_t> region, u64 size, MemoryType type,
+    uptr CreateMemory(ztd::Range<vaddr_t> region, u64 size, MemoryType type,
                       MemoryPermission perm, vaddr_t& out_base);
     uptr CreateExecutableMemory(const std::string_view module_name,
                                 CodeSet code_set, vaddr_t& out_base);
@@ -50,7 +51,7 @@ class Process : public SynchronizationObject {
     void ResizeHeap(u64 size);
 
     // Thread
-    handle_id_t SetMainThread(GuestThread* thread) {
+    Handle SetMainThread(GuestThread* thread) {
         main_thread = thread;
         return AddHandle(main_thread);
     }
@@ -85,50 +86,66 @@ class Process : public SynchronizationObject {
 
     // Handles
     template <typename T>
-    T* GetHandle(handle_id_t handle_id) {
+    // TODO: uncomment
+    /*std::optional<T*>*/ T* GetHandle(Handle handle) {
         static_assert(std::is_base_of_v<AutoObject, T>,
                       "T must be derived from AutoObject");
 
-        if (handle_id == INVALID_HANDLE_ID)
-            return nullptr;
+        if (!handle.IsValid())
+            return nullptr; // TODO: std::nullopt
 
-        AutoObject* obj;
-        if (handle_id == CURRENT_PROCESS_PSEUDO_HANDLE) [[unlikely]] {
-            obj = this;
-        } else if (handle_id == CURRENT_THREAD_PSEUDO_HANDLE) [[unlikely]] {
-            obj = tls_current_thread;
-        } else {
-            if (!handle_pool.IsValid(handle_id))
-                return nullptr;
-
-            obj = handle_pool.Get(handle_id);
+        if constexpr (std::is_base_of_v<T, Process>) {
+            if (handle == CURRENT_PROCESS_PSEUDO_HANDLE) [[unlikely]] {
+                return this;
+            }
         }
 
-        return static_cast<T*>(obj);
+        if constexpr (std::is_base_of_v<T, IThread>) {
+            if (handle == CURRENT_THREAD_PSEUDO_HANDLE) [[unlikely]] {
+                return tls_current_thread;
+            }
+        }
+
+        // HACK
+        return handle_pool.Get(handle)
+            .transform(
+                [](AutoObject* obj) -> auto { return static_cast<T*>(obj); })
+            .value_or(nullptr);
     }
 
-    handle_id_t AddHandleNoRetain(AutoObject* obj) {
+    Handle AddHandleNoRetain(AutoObject* obj) {
+        // TODO: remove
         if (obj == nullptr) [[unlikely]]
-            return INVALID_HANDLE_ID;
+            return INVALID_HANDLE;
 
-        return handle_pool.Insert(obj);
+        return handle_pool.Insert(obj).value();
     }
 
-    handle_id_t AddHandle(AutoObject* obj) {
+    Handle AddHandle(AutoObject* obj) {
+        // TODO: remove
         if (obj == nullptr) [[unlikely]]
-            return INVALID_HANDLE_ID;
+            return INVALID_HANDLE;
 
         obj->Retain();
-        return handle_pool.Insert(obj);
+        return handle_pool.Insert(obj).value();
     }
 
-    void FreeHandle(handle_id_t handle_id) {
-        ASSERT_DEBUG(handle_id != CURRENT_PROCESS_PSEUDO_HANDLE, Kernel,
+    bool FreeHandle(Handle handle) {
+        ASSERT_DEBUG(handle != CURRENT_PROCESS_PSEUDO_HANDLE, Kernel,
                      "Cannot free current process handle");
-        ASSERT_DEBUG(handle_id != CURRENT_THREAD_PSEUDO_HANDLE, Kernel,
+        ASSERT_DEBUG(handle != CURRENT_THREAD_PSEUDO_HANDLE, Kernel,
                      "Cannot free current thread handle");
-        handle_pool.Get(handle_id)->Release();
-        handle_pool.Free(handle_id);
+
+        const auto object = handle_pool.Get(handle);
+        if (!object.has_value()) {
+            LOG_WARN(Kernel, "Invalid handle {}", handle);
+            return false;
+        }
+
+        object.value()->Release();
+        ASSERT_DEBUG(handle_pool.Free(handle), Kernel,
+                     "Failed to free handle {}", handle);
+        return true;
     }
 
     hw::tegra_x1::cpu::IMmu* GetMmu() const { return mmu.get(); }
@@ -153,7 +170,7 @@ class Process : public SynchronizationObject {
     std::unique_ptr<hw::tegra_x1::cpu::IMemory> main_thread_stack_mem;
     std::unique_ptr<hw::tegra_x1::cpu::IMemory> heap_mem;
 
-    vaddr_t tls_mem_base{TLS_REGION.GetBegin()};
+    vaddr_t tls_mem_base{TLS_REGION.getBegin()};
 
     // Thread
     GuestThread* main_thread{nullptr};
@@ -161,7 +178,8 @@ class Process : public SynchronizationObject {
     std::vector<IThread*> threads;
 
     // Handles
-    StaticPool<AutoObject*, 512>
+    // TODO: store as strong refs
+    StaticHandlePool<AutoObject*, 512>
         handle_pool; // TODO: get the size from capabilities
 
     std::atomic<ProcessState> state{ProcessState::Created};

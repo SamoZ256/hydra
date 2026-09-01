@@ -19,10 +19,10 @@ class IHardwareOpusDecoder : public IService {
 
     // Impl
     result_t
-    DecodeInterleavedImpl(std::optional<io::MemoryStream> in_opus_stream,
+    DecodeInterleavedImpl(std::optional<ztd::io::MemoryStream> in_opus_stream,
                           i32* out_decoded_data_size,
                           i32* out_decoded_sample_count,
-                          std::optional<io::MemoryStream> out_pcm_stream);
+                          std::optional<ztd::io::MemoryStream> out_pcm_stream);
 };
 
 } // namespace hydra::horizon::services::codec

@@ -2,17 +2,21 @@
 
 namespace hydra::horizon::kernel {
 
-constexpr handle_id_t CURRENT_PROCESS_PSEUDO_HANDLE = 0xffff8001;
-constexpr handle_id_t CURRENT_THREAD_PSEUDO_HANDLE = 0xffff8000;
+constexpr Handle CURRENT_PROCESS_PSEUDO_HANDLE = 0xffff8001;
+constexpr Handle CURRENT_THREAD_PSEUDO_HANDLE = 0xffff8000;
 
-constexpr Range<vaddr_t> ADDRESS_SPACE =
-    Range<vaddr_t>(0x10000000, 0x200000000);
-constexpr Range<vaddr_t> STACK_REGION = Range<vaddr_t>(0x10000000, 0x20000000);
-constexpr Range<vaddr_t> TLS_REGION = Range<vaddr_t>(0x20000000, 0x30000000);
-constexpr Range<vaddr_t> ALIAS_REGION = Range<vaddr_t>(0x30000000, 0x40000000);
-constexpr Range<vaddr_t> EXECUTABLE_REGION =
-    Range<vaddr_t>(0x40000000, 0x80000000);
-constexpr Range<vaddr_t> HEAP_REGION = Range<vaddr_t>(0x100000000, 0x200000000);
+constexpr ztd::Range<vaddr_t> ADDRESS_SPACE =
+    ztd::Range<vaddr_t>(0x10000000, 0x200000000);
+constexpr ztd::Range<vaddr_t> STACK_REGION =
+    ztd::Range<vaddr_t>(0x10000000, 0x20000000);
+constexpr ztd::Range<vaddr_t> TLS_REGION =
+    ztd::Range<vaddr_t>(0x20000000, 0x30000000);
+constexpr ztd::Range<vaddr_t> ALIAS_REGION =
+    ztd::Range<vaddr_t>(0x30000000, 0x40000000);
+constexpr ztd::Range<vaddr_t> EXECUTABLE_REGION =
+    ztd::Range<vaddr_t>(0x40000000, 0x80000000);
+constexpr ztd::Range<vaddr_t> HEAP_REGION =
+    ztd::Range<vaddr_t>(0x100000000, 0x200000000);
 
 constexpr u64 HEAP_MEM_ALIGNMENT = 0x200000;
 
@@ -288,7 +292,7 @@ using result_t = u32;
      (static_cast<u32>(description) & 0x1fff) << 9)
 
 #define GET_RESULT_MODULE(result)                                              \
-    static_cast<::hydra::horizon::kernel::Module>((result)&0x1ff)
+    static_cast<::hydra::horizon::kernel::Module>((result) & 0x1ff)
 
 #define GET_RESULT_DESCRIPTION(result) ((result) >> 9)
 
@@ -326,24 +330,24 @@ enum class MemoryType : u32 {
 
 enum class MemoryAttribute : u32 {
     None = 0,
-    Locked = BIT(0),
-    IpcLocked = BIT(1),
-    DeviceShared = BIT(2),
-    Uncached = BIT(3),
+    Locked = ZTD_BIT(0),
+    IpcLocked = ZTD_BIT(1),
+    DeviceShared = ZTD_BIT(2),
+    Uncached = ZTD_BIT(3),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(MemoryAttribute)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(MemoryAttribute)
 
 enum class MemoryPermission : u32 {
     None = 0x0,
-    Read = BIT(0),
-    Write = BIT(1),
-    Execute = BIT(2),
+    Read = ZTD_BIT(0),
+    Write = ZTD_BIT(1),
+    Execute = ZTD_BIT(2),
     ReadWrite = Read | Write,
     ReadExecute = Read | Execute,
     ReadWriteExecute = Read | Write | Execute,
-    DontCare = BIT(28),
+    DontCare = ZTD_BIT(28),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(MemoryPermission)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(MemoryPermission)
 
 struct MemoryState {
     MemoryType type;

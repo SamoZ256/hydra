@@ -4,6 +4,23 @@
 
 namespace hydra::horizon::filesystem {
 
+class OwnedSparseStream : public ztd::io::SparseStream {
+  public:
+    // HACK: SparseStream takes a reference to the entries, so its okay to
+    // initialize entries after calling the base constructor
+    OwnedSparseStream(std::vector<Entry> entries_, u64 size) noexcept
+        : SparseStream(entries, size), entries{std::move(entries_)} {}
+    ~OwnedSparseStream() noexcept override {
+        for (auto entry : entries)
+            delete entry.stream;
+    }
+
+    ZTD_MAKE_NON_COPYABLE(OwnedSparseStream);
+
+  private:
+    std::vector<Entry> entries;
+};
+
 struct SparseFileEntry {
     u64 offset;
     IFile* file;
@@ -80,17 +97,17 @@ class SparseFile : public IFile {
         */
     }
 
-    io::IStream* Open(FileOpenFlags flags) override {
-        std::vector<io::SparseStream::Entry> streams;
+    ztd::io::IStream* Open(FileOpenFlags flags) override {
+        std::vector<ztd::io::SparseStream::Entry> streams;
         streams.reserve(entries.size());
         for (const auto& entry : entries) {
             streams.push_back(
-                {.range =
-                     Range(entry.offset, entry.offset + entry.file->GetSize()),
+                {.range = ztd::Range(entry.offset,
+                                     entry.offset + entry.file->GetSize()),
                  .stream = entry.file->Open(flags)});
         }
 
-        return new io::OwnedSparseStream(std::move(streams), size);
+        return new OwnedSparseStream(std::move(streams), size);
     }
 
     u64 GetSize() const override { return size; }

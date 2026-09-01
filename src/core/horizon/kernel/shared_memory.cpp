@@ -14,8 +14,8 @@ SharedMemory::SharedMemory(hw::tegra_x1::cpu::ICpu& cpu, u64 size,
 SharedMemory::~SharedMemory() { delete memory; }
 
 void SharedMemory::MapToRange(hw::tegra_x1::cpu::IMmu* mmu,
-                              const Range<uptr> range, MemoryPermission perm) {
-    mmu->Map(range.GetBegin(), memory,
+                              const ztd::Range<uptr> range, MemoryPermission perm) {
+    mmu->Map(range.getBegin(), memory,
              {.type = MemoryType::Shared,
               .attr = MemoryAttribute::None,
               .perm = perm});

@@ -6,12 +6,12 @@
 namespace hydra::horizon::services::nvdrv::ioctl {
 
 struct MapCmdBufferHandle {
-    handle_id_t in_map_handle_id;
+    Handle in_map_handle;
     u32 out_phys_addr;
 };
 
 struct UnmapCmdBufferHandle {
-    handle_id_t in_map_handle_id;
+    Handle in_map_handle;
     u32 _reserved_x4;
 };
 
@@ -97,9 +97,9 @@ class ChannelBase : public FdBase {
 } // namespace hydra::horizon::services::nvdrv::ioctl
 
 ENABLE_STRUCT_FORMATTING(
-    hydra::horizon::services::nvdrv::ioctl::MapCmdBufferHandle,
-    in_map_handle_id, "", "in map handle")
+    hydra::horizon::services::nvdrv::ioctl::MapCmdBufferHandle, in_map_handle,
+    "", "in map handle")
 
 ENABLE_STRUCT_FORMATTING(
-    hydra::horizon::services::nvdrv::ioctl::UnmapCmdBufferHandle,
-    in_map_handle_id, "", "in map handle")
+    hydra::horizon::services::nvdrv::ioctl::UnmapCmdBufferHandle, in_map_handle,
+    "", "in map handle")

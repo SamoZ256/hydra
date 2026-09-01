@@ -20,7 +20,7 @@ class IFile : public IEntry {
     }
     virtual void Flush() {}
 
-    virtual io::IStream* Open(FileOpenFlags flags) = 0;
+    virtual ztd::io::IStream* Open(FileOpenFlags flags) = 0;
 
     virtual u64 GetSize() const = 0;
 

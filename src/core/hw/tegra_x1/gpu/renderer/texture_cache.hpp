@@ -49,7 +49,7 @@ struct TextureMemInfo {
 };
 
 struct TextureMem {
-    Range<uptr> range;
+    ztd::Range<uptr> range;
     TextureMemInfo info;
     SmallCache<u32, TextureGroup> cache;
 
@@ -78,7 +78,7 @@ class TextureCache {
                        const TextureViewDescriptor& view_descriptor,
                        TextureUsage usage);
 
-    void InvalidateMemory(Range<uptr> range);
+    void InvalidateMemory(ztd::Range<uptr> range);
 
     // Debug
     usize GetMemoryCount() const { return entries.size(); }

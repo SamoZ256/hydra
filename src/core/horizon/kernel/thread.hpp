@@ -117,7 +117,7 @@ class IThread : public SynchronizationObject {
         mutex_wait_addr = 0x0;
         cond_var_wait_addr = 0x0;
         cond_var_wait_addr = 0x0;
-        mutex_wait_list.Clear();
+        mutex_wait_list.clear();
         supervisor_pause = false;
         guest_pause = false;
     }
@@ -133,10 +133,10 @@ class IThread : public SynchronizationObject {
 
     // Mutex and cond var
     uptr mutex_wait_addr{0x0};
-    u32 self_handle_for_mutex{0x0};
+    Handle self_handle_for_mutex{INVALID_HANDLE};
     uptr cond_var_wait_addr{0x0};
     std::mutex mutex_wait_mutex;
-    DoubleLinkedList<IThread*> mutex_wait_list;
+    ztd::DoublyLinkedList<IThread*> mutex_wait_list;
 
     // Synchronization
     bool supervisor_pause{false};
@@ -163,9 +163,7 @@ class IThread : public SynchronizationObject {
 
 inline thread_local IThread* tls_current_thread = nullptr;
 
-IThread* GetMutexOwner(Process* process, u32 mutex);
-inline IThread* GetMutexOwner(Process* process, u32* mutex_ptr) {
-    return GetMutexOwner(process, atomic_load(mutex_ptr));
-}
+std::optional<IThread*> GetMutexOwner(Process* process, u32 mutex);
+std::optional<IThread*> GetMutexOwner(Process* process, u32* mutex_ptr);
 
 } // namespace hydra::horizon::kernel

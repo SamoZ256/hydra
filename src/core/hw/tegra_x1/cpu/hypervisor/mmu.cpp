@@ -95,35 +95,35 @@ Mmu::Mmu(System& system)
 
 Mmu::~Mmu() { ReleasePageTableRegion(user_page_table.GetBase()); }
 
-void Mmu::Map(vaddr_t dst_va, Range<uptr> range,
+void Mmu::Map(vaddr_t dst_va, ztd::Range<uptr> range,
               const horizon::kernel::MemoryState state) {
     ASSERT_ALIGNMENT(dst_va, GUEST_PAGE_SIZE, Hypervisor, "destination VA");
-    ASSERT_ALIGNMENT(range.GetSize(), GUEST_PAGE_SIZE, Hypervisor, "size");
+    ASSERT_ALIGNMENT(range.getSize(), GUEST_PAGE_SIZE, Hypervisor, "size");
     user_page_table.Map(dst_va, range, state, ToApFlags(state.perm));
 }
 
 // HACK: this assumes that the whole src range is stored contiguously in
 // physical memory
-void Mmu::Map(vaddr_t dst_va, Range<vaddr_t> range) {
-    ASSERT_ALIGNMENT(range.GetBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
-    ASSERT_ALIGNMENT(range.GetEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
-    const auto region = user_page_table.QueryRegion(range.GetBegin());
-    paddr_t pa = region.UnmapAddr(range.GetBegin());
+void Mmu::Map(vaddr_t dst_va, ztd::Range<vaddr_t> range) {
+    ASSERT_ALIGNMENT(range.getBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
+    ASSERT_ALIGNMENT(range.getEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
+    const auto region = user_page_table.QueryRegion(range.getBegin());
+    paddr_t pa = region.UnmapAddr(range.getBegin());
     // TODO: also inherit flags
-    user_page_table.Map(dst_va, Range<uptr>::FromSize(pa, range.GetSize()),
+    user_page_table.Map(dst_va, ztd::Range<uptr>::fromSize(pa, range.getSize()),
                         region.state, ToApFlags(region.state.perm));
 }
 
-void Mmu::Unmap(Range<vaddr_t> range) {
-    ASSERT_ALIGNMENT(range.GetBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
-    ASSERT_ALIGNMENT(range.GetEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
+void Mmu::Unmap(ztd::Range<vaddr_t> range) {
+    ASSERT_ALIGNMENT(range.getBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
+    ASSERT_ALIGNMENT(range.getEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
     user_page_table.Unmap(range);
 }
 
-void Mmu::Protect(Range<vaddr_t> range,
+void Mmu::Protect(ztd::Range<vaddr_t> range,
                   horizon::kernel::MemoryPermission perm) {
-    ASSERT_ALIGNMENT(range.GetBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
-    ASSERT_ALIGNMENT(range.GetEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
+    ASSERT_ALIGNMENT(range.getBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
+    ASSERT_ALIGNMENT(range.getEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
     user_page_table.SetMemoryPermission(range, perm, ToApFlags(perm));
 }
 
@@ -139,27 +139,27 @@ MemoryRegion Mmu::QueryRegion(vaddr_t va) const {
     };
 }
 
-void Mmu::SetMemoryAttribute(Range<vaddr_t> range,
+void Mmu::SetMemoryAttribute(ztd::Range<vaddr_t> range,
                              horizon::kernel::MemoryAttribute mask,
                              horizon::kernel::MemoryAttribute value) {
     user_page_table.SetMemoryAttribute(range, mask, value);
 }
 
-void Mmu::SetWriteTrackingEnabled(Range<vaddr_t> range, bool enable) {
-    ASSERT_ALIGNMENT(range.GetBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
-    ASSERT_ALIGNMENT(range.GetEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
+void Mmu::SetWriteTrackingEnabled(ztd::Range<vaddr_t> range, bool enable) {
+    ASSERT_ALIGNMENT(range.getBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
+    ASSERT_ALIGNMENT(range.getEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
     user_page_table.SetWriteTrackingEnabled(range, enable);
 }
 
-bool Mmu::TrySuspendWriteTracking(Range<vaddr_t> range) {
-    ASSERT_ALIGNMENT(range.GetBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
-    ASSERT_ALIGNMENT(range.GetEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
+bool Mmu::TrySuspendWriteTracking(ztd::Range<vaddr_t> range) {
+    ASSERT_ALIGNMENT(range.getBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
+    ASSERT_ALIGNMENT(range.getEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
     return user_page_table.TrySuspendWriteTracking(range);
 }
 
-void Mmu::ResumeWriteTracking(Range<vaddr_t> range) {
-    ASSERT_ALIGNMENT(range.GetBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
-    ASSERT_ALIGNMENT(range.GetEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
+void Mmu::ResumeWriteTracking(ztd::Range<vaddr_t> range) {
+    ASSERT_ALIGNMENT(range.getBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
+    ASSERT_ALIGNMENT(range.getEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
     user_page_table.ResumeWriteTracking(range);
 }
 

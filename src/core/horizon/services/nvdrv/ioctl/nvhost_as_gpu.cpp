@@ -50,7 +50,7 @@ NvResult NvHostAsGpu::UnmapBuffer(gpu_vaddr_t addr) {
 NvResult NvHostAsGpu::MapBufferEX(System* system, kernel::Process* process,
                                   MapBufferFlags flags,
                                   hw::tegra_x1::gpu::NvKind kind,
-                                  handle_id_t nvmap_handle_id,
+                                  Handle nvmap_handle,
                                   [[maybe_unused]] u32 reserved,
                                   u64 buffer_offset, u64 mapping_size,
                                   InOutSingle<gpu_vaddr_t> inout_addr) {
@@ -63,18 +63,22 @@ NvResult NvHostAsGpu::MapBufferEX(System* system, kernel::Process* process,
         return NvResult::Success;
     }
 
-    const auto& map = system->GetGpu().GetMap(nvmap_handle_id);
+    ZTD_ASSIGN_OR(
+        const auto map, system->GetGpu().GetMap(nvmap_handle), ZTD_PASS({
+            LOG_WARN(Services, "Invalid nvmap handle {}", nvmap_handle);
+            return NvResult::BadParameter; /* TODO: correct? */
+        }));
 
     u64 size = mapping_size;
     if (size == 0x0)
-        size = map.size; // TODO: correct?
+        size = map->size; // TODO: correct?
 
     gpu_vaddr_t addr = invalid<uptr>();
     if (any(flags & MapBufferFlags::FixedOffset))
         addr = inout_addr;
 
     inout_addr = process->GetGMmu().MapBufferToAddressSpace(
-        Range<vaddr_t>::FromSize(map.addr + buffer_offset, size), addr);
+        ztd::Range<vaddr_t>::fromSize(map->addr + buffer_offset, size), addr);
     return NvResult::Success;
 }
 

@@ -19,8 +19,8 @@ namespace {
 uchar4* LoadImage(filesystem::IFile* file, u32& out_width, u32& out_height) {
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
 
-    std::vector<u8> raw_data(stream->GetSize());
-    stream->ReadToSpan(std::span(raw_data));
+    std::vector<u8> raw_data(stream->getSize());
+    stream->readToSpan(std::span(raw_data));
 
     delete stream;
 
@@ -45,8 +45,8 @@ uchar4* LoadGIF(filesystem::IFile* file,
                 u32& out_width, u32& out_height, u32& out_frame_count) {
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
 
-    std::vector<u8> raw_data(stream->GetSize());
-    stream->ReadToSpan(std::span(raw_data));
+    std::vector<u8> raw_data(stream->getSize());
+    stream->readToSpan(std::span(raw_data));
 
     delete stream;
 
@@ -131,11 +131,11 @@ horizon::services::ns::ApplicationControlProperty* ILoader::LoadNacp() {
 
     auto stream = nacp_file->Open(filesystem::FileOpenFlags::Read);
 
-    ASSERT(stream->GetSize() ==
+    ASSERT(stream->getSize() ==
                sizeof(horizon::services::ns::ApplicationControlProperty),
-           Loader, "Invalid NACP file size 0x{:x}", stream->GetSize());
+           Loader, "Invalid NACP file size 0x{:x}", stream->getSize());
     auto nacp = new horizon::services::ns::ApplicationControlProperty();
-    stream->ReadToRef(*nacp);
+    stream->readToRef(*nacp);
 
     delete stream;
 

@@ -72,8 +72,8 @@ struct Response {
     u32 num_move_handles;
     StaticDescriptor* statics;
     u32* data_words;
-    handle_id_t* copy_handles;
-    handle_id_t* move_handles;
+    Handle* copy_handles;
+    Handle* move_handles;
 };
 
 // From https://github.com/switchbrew/libnx
@@ -84,8 +84,8 @@ struct Request {
     BufferDescriptor* exch_buffers;
     u32* data_words;
     RecvListEntry* recv_list;
-    handle_id_t* copy_handles;
-    handle_id_t* move_handles;
+    Handle* copy_handles;
+    Handle* move_handles;
 };
 
 // From https://github.com/switchbrew/libnx
@@ -106,16 +106,16 @@ struct SpecialHeader {
 // From https://github.com/switchbrew/libnx
 inline Request calc_request_layout(Metadata meta, void* base) {
     // Copy handles
-    handle_id_t* copy_handles = nullptr;
+    Handle* copy_handles = nullptr;
     if (meta.num_copy_handles != 0) {
-        copy_handles = reinterpret_cast<handle_id_t*>(base);
+        copy_handles = reinterpret_cast<Handle*>(base);
         base = copy_handles + meta.num_copy_handles;
     }
 
     // Move handles
-    handle_id_t* move_handles = nullptr;
+    Handle* move_handles = nullptr;
     if (meta.num_move_handles != 0) {
-        move_handles = reinterpret_cast<handle_id_t*>(base);
+        move_handles = reinterpret_cast<Handle*>(base);
         base = move_handles + meta.num_move_handles;
     }
 
@@ -281,28 +281,28 @@ u8* get_list_entry_ptr(const hw::tegra_x1::cpu::IMmu* mmu,
         u8* ptr = get_##buffer_or_static##_ptr(                                \
             mmu, hipc_in.data.type##_##buffer_or_static##s[i], size);          \
         type##_##buffer_or_static##s_streams.push_back(                        \
-            ptr != nullptr                                                     \
-                ? std::make_optional<io::MemoryStream>(std::span(ptr, size))   \
-                : std::nullopt);                                               \
+            ptr != nullptr ? std::make_optional<ztd::io::MemoryStream>(        \
+                                 std::span(ptr, size))                         \
+                           : std::nullopt);                                    \
     }
 
 #define CREATE_STATIC_STREAMS(type) CREATE_STREAMS(static, type)
 #define CREATE_BUFFER_STREAMS(type) CREATE_STREAMS(buffer, type)
 
 struct Streams {
-    io::MemoryStream in_stream;
-    std::optional<io::MemoryStream> in_objects_stream{std::nullopt};
-    io::MemoryStream in_copy_handles_stream;
-    io::MemoryStream in_move_handles_stream;
-    io::MemoryStream out_stream;
-    io::MemoryStream out_objects_stream;
-    io::MemoryStream out_copy_handles_stream;
-    io::MemoryStream out_move_handles_stream;
-    std::vector<std::optional<io::MemoryStream>> send_statics_streams;
-    std::vector<std::optional<io::MemoryStream>> send_buffers_streams;
-    std::vector<std::optional<io::MemoryStream>> recv_list_streams;
-    std::vector<std::optional<io::MemoryStream>> recv_buffers_streams;
-    std::vector<std::optional<io::MemoryStream>> exch_buffers_streams;
+    ztd::io::MemoryStream in_stream;
+    std::optional<ztd::io::MemoryStream> in_objects_stream{std::nullopt};
+    ztd::io::MemoryStream in_copy_handles_stream;
+    ztd::io::MemoryStream in_move_handles_stream;
+    ztd::io::MemoryStream out_stream;
+    ztd::io::MemoryStream out_objects_stream;
+    ztd::io::MemoryStream out_copy_handles_stream;
+    ztd::io::MemoryStream out_move_handles_stream;
+    std::vector<std::optional<ztd::io::MemoryStream>> send_statics_streams;
+    std::vector<std::optional<ztd::io::MemoryStream>> send_buffers_streams;
+    std::vector<std::optional<ztd::io::MemoryStream>> recv_list_streams;
+    std::vector<std::optional<ztd::io::MemoryStream>> recv_buffers_streams;
+    std::vector<std::optional<ztd::io::MemoryStream>> exch_buffers_streams;
 
     Streams(const hw::tegra_x1::cpu::IMmu* mmu, ParsedRequest hipc_in,
             u8* scratch_buffer, u8* scratch_buffer_objects,
@@ -311,10 +311,10 @@ struct Streams {
                               hipc_in.meta.num_data_words * sizeof(u32))),
           in_copy_handles_stream(
               std::span(reinterpret_cast<u8*>(hipc_in.data.copy_handles),
-                        hipc_in.meta.num_copy_handles * sizeof(handle_id_t))),
+                        hipc_in.meta.num_copy_handles * sizeof(Handle))),
           in_move_handles_stream(
               std::span(reinterpret_cast<u8*>(hipc_in.data.move_handles),
-                        hipc_in.meta.num_move_handles * sizeof(handle_id_t))),
+                        hipc_in.meta.num_move_handles * sizeof(Handle))),
           out_stream(std::span(scratch_buffer, 0x1000)),
           out_objects_stream(std::span(scratch_buffer_objects, 0x1000)),
           out_copy_handles_stream(
@@ -329,9 +329,9 @@ struct Streams {
             u8* ptr = get_list_entry_ptr(mmu, hipc_in.data.recv_list[i], size);
             // TODO: should we continue or push std::nullopt in case of nullptr?
             recv_list_streams.push_back(
-                ptr != nullptr
-                    ? std::make_optional<io::MemoryStream>(std::span(ptr, size))
-                    : std::nullopt);
+                ptr != nullptr ? std::make_optional<ztd::io::MemoryStream>(
+                                     std::span(ptr, size))
+                               : std::nullopt);
         }
         CREATE_BUFFER_STREAMS(recv);
         CREATE_BUFFER_STREAMS(exch);

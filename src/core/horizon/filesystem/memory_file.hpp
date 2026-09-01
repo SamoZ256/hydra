@@ -11,8 +11,8 @@ class MemoryFile : public IFile {
 
     void Resize(u64 new_size) override { data.resize(new_size); }
 
-    io::IStream* Open([[maybe_unused]] FileOpenFlags flags) override {
-        return new io::MemoryStream(data);
+    ztd::io::IStream* Open([[maybe_unused]] FileOpenFlags flags) override {
+        return new ztd::io::MemoryStream(data);
     }
 
     u64 GetSize() const override { return data.size(); }
