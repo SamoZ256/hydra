@@ -141,7 +141,10 @@ include_directories(SYSTEM externals/elf/include)
 #add_subdirectory(externals/toml11 SYSTEM) # Hatch already uses toml11
 
 # dynarmic
+# HACK: dynarmic uses MCL for x86, which is known to break on C++23
+set(CMAKE_CXX_STANDARD 20)
 add_subdirectory(externals/dynarmic SYSTEM)
+set(CMAKE_CXX_STANDARD 23)
 
 # cubeb
 if (CUBEB_ENABLED)
