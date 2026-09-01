@@ -64,12 +64,13 @@ jobs:
                         echo "Installing Intel Homebrew"
                         NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
                       fi
+
+                      brew install llvm boost fmt sdl3 dylibbundler
                     '
                   else
                     echo "Installing arm64 deps"
+                    brew install llvm boost fmt sdl3 dylibbundler
                   fi
-
-                  brew install llvm boost fmt sdl3 dylibbundler
 
             - name: Verify CMake Version
               run: cmake --version
