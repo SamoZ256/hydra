@@ -2,7 +2,10 @@ name: macOS
 
 on:
     workflow_dispatch:
+
     push:
+        branches:
+            - main
         paths:
             - "**"
             - "!.github/**"
@@ -53,8 +56,11 @@ jobs:
 
             - name: Install Dependencies
               run: |
+                  echo "Installing dependencies"
+                  brew install llvm dylibbundler
+
                   if [[ "${{ matrix.suffix }}" == *"x86"* ]]; then
-                    echo "Installing x86_64 deps under Rosetta"
+                    echo "Installing x86_64 dependencies under Rosetta"
 
                     arch -x86_64 /bin/bash -c '
                       export HOMEBREW_PREFIX=/usr/local
@@ -64,12 +70,13 @@ jobs:
                         echo "Installing Intel Homebrew"
                         NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
                       fi
+
+                      brew install boost fmt sdl3
                     '
                   else
-                    echo "Installing arm64 deps"
+                    echo "Installing arm64 dependencies"
+                    brew install boost fmt sdl3
                   fi
-
-                  brew install llvm boost fmt sdl3 dylibbundler
 
             - name: Verify CMake Version
               run: cmake --version
@@ -87,7 +94,7 @@ jobs:
                     echo "FRONTEND_MODE=SDL3" >> $GITHUB_ENV
                   fi
                   if [[ ${{ matrix.suffix }} == *'x86'* ]]; then
-                        echo "ARCH=x86_64" >> $GITHUB_ENV
+                    echo "ARCH=x86_64" >> $GITHUB_ENV
                   else
                     echo "ARCH=arm64" >> $GITHUB_ENV
                   fi

@@ -1,6 +1,8 @@
 #pragma once
 
+// TODO: remove
 #include <chrono>
+#include <thread>
 
 #include "ztd/type_aliases.hpp"
 
@@ -21,6 +23,7 @@ inline auto getSystemTick() noexcept -> u64 {
     return res;
 }
 
+// TODO: rework
 inline auto getSystemFrequency() noexcept -> u64 {
     auto nsc_start = std::chrono::steady_clock::now().time_since_epoch();
     u64 tsc_start = getSystemTick();
