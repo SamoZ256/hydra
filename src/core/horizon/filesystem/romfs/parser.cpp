@@ -4,19 +4,19 @@
 
 namespace hydra::horizon::filesystem::romfs {
 
-Parser::Parser(io::IStream* stream, IFile* data_file_,
+Parser::Parser(ztd::io::IStream* stream, IFile* data_file_,
                const TableLocation& file_meta_loc,
                const TableLocation& directory_meta_loc)
     : data_file{data_file_} {
     // File meta
     file_meta.resize(file_meta_loc.size);
-    stream->SeekTo(file_meta_loc.offset);
-    stream->ReadToSpan(std::span(file_meta));
+    stream->seekTo(file_meta_loc.offset);
+    stream->readToSpan(std::span(file_meta));
 
     // Directory meta
     directory_meta.resize(directory_meta_loc.size);
-    stream->SeekTo(directory_meta_loc.offset);
-    stream->ReadToSpan(std::span(directory_meta));
+    stream->seekTo(directory_meta_loc.offset);
+    stream->readToSpan(std::span(directory_meta));
 }
 
 void Parser::LoadFile(Directory* parent, u32 offset) const {

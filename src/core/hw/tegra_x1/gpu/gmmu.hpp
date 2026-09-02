@@ -19,7 +19,7 @@ class GMmu : public GenericMmu<GMmu, AddressSpace> {
   public:
     GMmu(cpu::IMmu* mmu_) : mmu{mmu_} {}
 
-    u64 ImplGetSize(const AddressSpace& as) const { return as.size; }
+    static u64 ImplGetSize(const AddressSpace& as) { return as.size; }
 
     AddressSpace& UnmapAddrToAddressSpace(uptr gpu_addr) {
         uptr base;
@@ -39,14 +39,14 @@ class GMmu : public GenericMmu<GMmu, AddressSpace> {
                    [[maybe_unused]] AddressSpace as) {}
 
     // Address space
-    uptr CreateAddressSpace(Range<vaddr_t> range, uptr gpu_addr);
+    uptr CreateAddressSpace(ztd::Range<vaddr_t> range, uptr gpu_addr);
 
     uptr AllocatePrivateAddressSpace(u64 size, uptr gpu_addr) {
-        return CreateAddressSpace(Range<vaddr_t>::FromSize(0x0, size),
+        return CreateAddressSpace(ztd::Range<vaddr_t>::fromSize(0x0, size),
                                   gpu_addr);
     }
 
-    uptr MapBufferToAddressSpace(Range<vaddr_t> range, uptr gpu_addr) {
+    uptr MapBufferToAddressSpace(ztd::Range<vaddr_t> range, uptr gpu_addr) {
         return CreateAddressSpace(range, gpu_addr);
     }
 

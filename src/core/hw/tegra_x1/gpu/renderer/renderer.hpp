@@ -34,11 +34,11 @@ struct Info {
 
 enum class MemoryInvalidationScope {
     None = 0,
-    BufferCache = BIT(0),
-    TextureCache = BIT(1),
-    ShaderCache = BIT(2),
+    BufferCache = ZTD_BIT(0),
+    TextureCache = ZTD_BIT(1),
+    ShaderCache = ZTD_BIT(2),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(MemoryInvalidationScope)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(MemoryInvalidationScope)
 
 class IRenderer {
   public:
@@ -46,10 +46,10 @@ class IRenderer {
         : buffer_cache(*this), texture_cache(*this), sampler_cache(*this),
           render_pass_cache(*this), shader_cache(*this), pipeline_cache(*this),
           index_cache(*this) {}
-    virtual ~IRenderer() {}
+    virtual ~IRenderer() = default;
 
     void InvalidateMemory(
-        Range<uptr> range,
+        ztd::Range<uptr> range,
         MemoryInvalidationScope scope = MemoryInvalidationScope::BufferCache |
                                         MemoryInvalidationScope::TextureCache |
                                         MemoryInvalidationScope::ShaderCache) {

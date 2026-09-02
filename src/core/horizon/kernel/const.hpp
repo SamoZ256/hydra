@@ -2,17 +2,21 @@
 
 namespace hydra::horizon::kernel {
 
-constexpr handle_id_t CURRENT_PROCESS_PSEUDO_HANDLE = 0xffff8001;
-constexpr handle_id_t CURRENT_THREAD_PSEUDO_HANDLE = 0xffff8000;
+constexpr Handle CURRENT_PROCESS_PSEUDO_HANDLE = 0xffff8001;
+constexpr Handle CURRENT_THREAD_PSEUDO_HANDLE = 0xffff8000;
 
-constexpr Range<vaddr_t> ADDRESS_SPACE =
-    Range<vaddr_t>(0x10000000, 0x200000000);
-constexpr Range<vaddr_t> STACK_REGION = Range<vaddr_t>(0x10000000, 0x20000000);
-constexpr Range<vaddr_t> TLS_REGION = Range<vaddr_t>(0x20000000, 0x30000000);
-constexpr Range<vaddr_t> ALIAS_REGION = Range<vaddr_t>(0x30000000, 0x40000000);
-constexpr Range<vaddr_t> EXECUTABLE_REGION =
-    Range<vaddr_t>(0x40000000, 0x80000000);
-constexpr Range<vaddr_t> HEAP_REGION = Range<vaddr_t>(0x100000000, 0x200000000);
+constexpr ztd::Range<vaddr_t> ADDRESS_SPACE =
+    ztd::Range<vaddr_t>(0x10000000, 0x200000000);
+constexpr ztd::Range<vaddr_t> STACK_REGION =
+    ztd::Range<vaddr_t>(0x10000000, 0x20000000);
+constexpr ztd::Range<vaddr_t> TLS_REGION =
+    ztd::Range<vaddr_t>(0x20000000, 0x30000000);
+constexpr ztd::Range<vaddr_t> ALIAS_REGION =
+    ztd::Range<vaddr_t>(0x30000000, 0x40000000);
+constexpr ztd::Range<vaddr_t> EXECUTABLE_REGION =
+    ztd::Range<vaddr_t>(0x40000000, 0x80000000);
+constexpr ztd::Range<vaddr_t> HEAP_REGION =
+    ztd::Range<vaddr_t>(0x100000000, 0x200000000);
 
 constexpr u64 HEAP_MEM_ALIGNMENT = 0x200000;
 
@@ -281,14 +285,14 @@ enum class Error {
     NotDebugged = 520,
 };
 
-typedef u32 result_t;
+using result_t = u32;
 
 #define MAKE_RESULT(module, description)                                       \
     (((static_cast<u32>(::hydra::horizon::kernel::Module::module) & 0x1ff)) |  \
      (static_cast<u32>(description) & 0x1fff) << 9)
 
 #define GET_RESULT_MODULE(result)                                              \
-    static_cast<::hydra::horizon::kernel::Module>((result)&0x1ff)
+    static_cast<::hydra::horizon::kernel::Module>((result) & 0x1ff)
 
 #define GET_RESULT_DESCRIPTION(result) ((result) >> 9)
 
@@ -326,24 +330,24 @@ enum class MemoryType : u32 {
 
 enum class MemoryAttribute : u32 {
     None = 0,
-    Locked = BIT(0),
-    IpcLocked = BIT(1),
-    DeviceShared = BIT(2),
-    Uncached = BIT(3),
+    Locked = ZTD_BIT(0),
+    IpcLocked = ZTD_BIT(1),
+    DeviceShared = ZTD_BIT(2),
+    Uncached = ZTD_BIT(3),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(MemoryAttribute)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(MemoryAttribute)
 
 enum class MemoryPermission : u32 {
     None = 0x0,
-    Read = BIT(0),
-    Write = BIT(1),
-    Execute = BIT(2),
+    Read = ZTD_BIT(0),
+    Write = ZTD_BIT(1),
+    Execute = ZTD_BIT(2),
     ReadWrite = Read | Write,
     ReadExecute = Read | Execute,
     ReadWriteExecute = Read | Write | Execute,
-    DontCare = BIT(28),
+    DontCare = ZTD_BIT(28),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(MemoryPermission)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(MemoryPermission)
 
 struct MemoryState {
     MemoryType type;
@@ -359,9 +363,9 @@ struct MemoryInfo {
     u64 addr;
     u64 size;
     MemoryState state;
-    u32 ipc_ref_count;    // TODO: what
-    u32 device_ref_count; // TODO: what
-    u32 padding = 0;
+    u32 ipc_ref_count;
+    u32 device_ref_count;
+    u32 _padding = 0;
 };
 
 enum class BreakReasonType {
@@ -379,10 +383,9 @@ struct BreakReason {
     BreakReasonType type;
     bool notification_only;
 
-    BreakReason(u64 reg) {
-        notification_only = reg & 0x80000000;
-        type = static_cast<BreakReasonType>(reg & 0x7FFFFFFF);
-    }
+    BreakReason(u64 reg)
+        : type{static_cast<BreakReasonType>(reg & 0x7FFFFFFF)},
+          notification_only{static_cast<bool>(reg & 0x80000000)} {}
 };
 
 // From https://github.com/switchbrew/libnx
@@ -456,14 +459,14 @@ union FpuRegister {
 };
 
 struct ThreadContext {
-    CpuRegister cpu_gprs[29];
+    std::array<CpuRegister, 29> cpu_gprs;
     u64 fp;
     u64 lr;
     u64 sp;
     CpuRegister pc;
     u32 psr;
 
-    FpuRegister fpu_gprs[32];
+    std::array<FpuRegister, 32> fpu_gprs;
     u32 fpcr;
     u32 fpsr;
 
@@ -535,7 +538,7 @@ enum class LaunchParameterKind : u32 {
     Unknown0 = 3,
 };
 
-typedef u32 UserId;
+using UserId = u32;
 
 enum class CodeMemoryOperation {
     MapOwner = 0,

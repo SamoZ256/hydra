@@ -26,8 +26,8 @@ ITextureView* TextureCache::Find(ICommandBuffer* command_buffer,
                                  TextureUsage usage) {
     return Find(command_buffer, descriptor,
                 TextureViewDescriptor(descriptor.type, descriptor.format,
-                                      Range<u32>(0, descriptor.level_count),
-                                      Range<u32>(0, descriptor.layer_count),
+                                      ztd::Range<u32>(0, descriptor.level_count),
+                                      ztd::Range<u32>(0, descriptor.layer_count),
                                       SwizzleChannels()),
                 usage);
 }
@@ -39,11 +39,11 @@ ITextureView* TextureCache::Find(ICommandBuffer* command_buffer,
     const auto range = descriptor.GetRange();
 
     // Check for containing interval
-    auto it = entries.upper_bound(range.GetBegin());
+    auto it = entries.upper_bound(range.getBegin());
     if (it != entries.begin()) {
         auto prev = std::prev(it);
         auto& prev_mem = prev->second;
-        if (prev_mem.range.GetEnd() >= range.GetEnd()) {
+        if (prev_mem.range.getEnd() >= range.getEnd()) {
             // Fully contained
             return AddToMemory(command_buffer, prev_mem, descriptor,
                                view_descriptor, usage);
@@ -53,37 +53,37 @@ ITextureView* TextureCache::Find(ICommandBuffer* command_buffer,
     // Insert and merge
     TextureMem mem{.range = range};
 
-    it = entries.lower_bound(range.GetBegin());
+    it = entries.lower_bound(range.getBegin());
 
     // Merge with previous if overlapping
     if (it != entries.begin()) {
         auto prev = std::prev(it);
         auto& prev_mem = prev->second;
-        if (prev_mem.range.GetEnd() > mem.range.GetBegin()) {
+        if (prev_mem.range.getEnd() > mem.range.getBegin()) {
             MergeMemories(mem, prev_mem);
             it = entries.erase(prev);
         }
     }
 
     // Merge with following entries
-    while (it != entries.end() && it->first < mem.range.GetEnd()) {
+    while (it != entries.end() && it->first < mem.range.getEnd()) {
         auto& crnt_mem = it->second;
         MergeMemories(mem, crnt_mem);
         it = entries.erase(it);
     }
 
     // Insert merged interval
-    auto inserted = entries.emplace(mem.range.GetBegin(), std::move(mem));
+    auto inserted = entries.emplace(mem.range.getBegin(), std::move(mem));
     return AddToMemory(command_buffer, inserted.first->second, descriptor,
                        view_descriptor, usage);
 }
 
-void TextureCache::InvalidateMemory(Range<uptr> range) {
-    auto it = entries.upper_bound(range.GetBegin());
+void TextureCache::InvalidateMemory(ztd::Range<uptr> range) {
+    auto it = entries.upper_bound(range.getBegin());
     if (it != entries.begin())
         it--;
 
-    for (; it != entries.end() && it->first < range.GetEnd(); it++) {
+    for (; it != entries.end() && it->first < range.getEnd(); it++) {
         auto& mem = it->second;
 
         // We assume that textures that have been written to by the GPU are
@@ -92,13 +92,13 @@ void TextureCache::InvalidateMemory(Range<uptr> range) {
             continue;
 
         // Check if its in the range
-        if (mem.range.GetEnd() > range.GetBegin())
+        if (mem.range.getEnd() > range.getBegin())
             mem.info.MarkModified();
     }
 }
 
 void TextureCache::MergeMemories(TextureMem& mem, TextureMem& other) {
-    mem.range = mem.range.Union(other.range);
+    mem.range = mem.range.merged(other.range);
     mem.info = {
         .modified_timestamp = std::max(mem.info.modified_timestamp,
                                        other.info.modified_timestamp),
@@ -111,9 +111,9 @@ void TextureCache::MergeMemories(TextureMem& mem, TextureMem& other) {
     for (auto& [group_key, other_group] : other.cache) {
         auto group_opt = mem.cache.Find(group_key);
         auto& group =
-            (group_opt.has_value() ? **group_opt : mem.cache.Add(group_key));
+            (group_opt.has_value() ? **group_opt : mem.cache.Insert(group_key));
         for (auto& [storage_key, storage] : other_group.cache) {
-            group.cache.Add(storage_key, std::move(storage));
+            group.cache.Insert(storage_key, std::move(storage));
         }
     }
 }
@@ -141,10 +141,7 @@ bool CalculateLevelAndLayer(const TextureDescriptor& base_descriptor, uptr ptr,
     }
 
     // Check if level is aligned
-    if (crnt_level_offset != level_offset)
-        return false;
-
-    return true;
+    return crnt_level_offset == level_offset;
 }
 
 bool CalculateLevelAndLayer(const TextureDescriptor& base_descriptor,
@@ -201,10 +198,7 @@ bool CalculateLevelAndSlice(const TextureDescriptor& base_descriptor, uptr ptr,
     out_slice = slice_offset / slice_size;
 
     // Check if slice is aligned
-    if (out_slice * slice_size != slice_offset)
-        return false;
-
-    return true;
+    return out_slice * slice_size == slice_offset;
 }
 
 bool CalculateLevelAndSlice(const TextureDescriptor& base1_descriptor,
@@ -239,8 +233,8 @@ TextureCache::AddToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
     // Check if it is a new entry
     auto group_opt = mem.cache.Find(group_hash);
     if (!group_opt.has_value()) {
-        auto& group = mem.cache.Add(group_hash);
-        auto& storage = group.cache.Add(storage_hash);
+        auto& group = mem.cache.Insert(group_hash);
+        auto& storage = group.cache.Insert(storage_hash);
         return GetTexture(command_buffer, storage, mem, descriptor,
                           view_descriptor, usage);
     }
@@ -259,8 +253,9 @@ TextureCache::AddToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
     for (auto& [key, storage] : group.cache) {
         const auto& other_descriptor = storage.base->GetDescriptor();
         const auto other_range = other_descriptor.GetRange();
-        if (other_range.Contains(range)) {
-            u32 level, layer;
+        if (other_range.contains(range)) {
+            u32 level;
+            u32 layer;
             if (!CalculateLevelAndLayer(other_descriptor, descriptor, level,
                                         layer)) {
                 LOG_DEBUG(Gpu,
@@ -281,7 +276,7 @@ TextureCache::AddToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
                 auto new_descriptor = other_descriptor;
                 new_descriptor.level_count = min_levels;
                 auto& new_storage =
-                    group.cache.Add(new_descriptor.GetStorageHash());
+                    group.cache.Insert(new_descriptor.GetStorageHash());
                 UpdateStorage(command_buffer, new_storage, mem, new_descriptor,
                               usage);
 
@@ -299,12 +294,12 @@ TextureCache::AddToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
                 command_buffer, *actual_storage, mem,
                 TextureViewDescriptor(
                     view_descriptor.type, view_descriptor.format,
-                    Range<u32>::FromSize(level +
-                                             view_descriptor.levels.GetBegin(),
-                                         view_descriptor.levels.GetSize()),
-                    Range<u32>::FromSize(layer +
-                                             view_descriptor.layers.GetBegin(),
-                                         view_descriptor.layers.GetSize()),
+                    ztd::Range<u32>::fromSize(level +
+                                             view_descriptor.levels.getBegin(),
+                                         view_descriptor.levels.getSize()),
+                    ztd::Range<u32>::fromSize(layer +
+                                             view_descriptor.layers.getBegin(),
+                                         view_descriptor.layers.getSize()),
                     view_descriptor.swizzle_channels),
                 usage);
         }
@@ -326,10 +321,10 @@ TextureCache::AddToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
         auto& storage = it->second;
         const auto& other_descriptor = storage.base->GetDescriptor();
         const auto other_range = other_descriptor.GetRange();
-        if (range.Intersects(other_range)) {
+        if (range.intersects(other_range)) {
             u32 layer = 0;
             u32 level = 0;
-            if (other_range.GetBegin() >= range.GetBegin()) {
+            if (other_range.getBegin() >= range.getBegin()) {
                 if (!CalculateLevelAndLayer(descriptor, other_descriptor, level,
                                             layer)) {
                     LOG_DEBUG(Gpu,
@@ -367,7 +362,7 @@ TextureCache::AddToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
     new_descriptor.layer_count = layer_count;
 
     // Create a new storage
-    auto& storage = group.cache.Add(storage_hash);
+    auto& storage = group.cache.Insert(storage_hash);
     UpdateStorage(command_buffer, storage, mem, new_descriptor, usage);
 
     // Copy overlapping storages
@@ -390,7 +385,7 @@ void TextureCache::UpdateStorage(ICommandBuffer* command_buffer,
                                  TextureStorage& storage, TextureMem& mem,
                                  const TextureDescriptor& descriptor,
                                  TextureUsage usage) {
-    if (!storage.base) {
+    if (storage.base == nullptr) {
         storage.base = renderer.CreateTexture(descriptor);
         DecodeTexture(command_buffer, storage);
     }
@@ -405,7 +400,7 @@ TextureCache::GetTextureView(TextureStorage& storage,
         return **view_opt;
 
     auto view = storage.base->CreateView(view_descriptor);
-    storage.view_cache.Add(view_descriptor.GetHash(), view);
+    storage.view_cache.Insert(view_descriptor.GetHash(), view);
     return view;
 }
 
@@ -447,7 +442,7 @@ void TextureCache::Update(ICommandBuffer* command_buffer,
                     other_storage.base->GetDescriptor();
                 const auto other_range = other_descriptor.GetRange();
 
-                if (range.Intersects(other_range)) {
+                if (range.intersects(other_range)) {
                     const auto type_class =
                         GetTextureTypeClass(descriptor.type);
                     const auto other_type_class =
@@ -498,11 +493,14 @@ void TextureCache::Synchronize2DWith2D(ICommandBuffer* command_buffer,
     const auto& descriptor = storage.base->GetDescriptor();
     const auto& other_descriptor = other_storage.base->GetDescriptor();
     const auto copy_range =
-        descriptor.GetRange().ClampedTo(other_descriptor.GetRange());
+        descriptor.GetRange().clampedTo(other_descriptor.GetRange());
 
-    u32 level, layer, other_level, other_layer;
+    u32 level;
+    u32 layer;
+    u32 other_level;
+    u32 other_layer;
     if (!CalculateLevelAndLayer(descriptor, other_descriptor,
-                                copy_range.GetBegin(), level, layer,
+                                copy_range.getBegin(), level, layer,
                                 other_level, other_layer)) {
         LOG_DEBUG(Gpu, "Cannot synchronize 2D textures ({}) and ({})",
                   descriptor, other_descriptor);
@@ -524,11 +522,14 @@ void TextureCache::Synchronize3DWith3D(ICommandBuffer* command_buffer,
     const auto& descriptor = storage.base->GetDescriptor();
     const auto& other_descriptor = other_storage.base->GetDescriptor();
     const auto copy_range =
-        descriptor.GetRange().ClampedTo(other_descriptor.GetRange());
+        descriptor.GetRange().clampedTo(other_descriptor.GetRange());
 
-    u32 level, slice, other_level, other_slice;
+    u32 level;
+    u32 slice;
+    u32 other_level;
+    u32 other_slice;
     if (!CalculateLevelAndSlice(descriptor, other_descriptor,
-                                copy_range.GetBegin(), level, slice,
+                                copy_range.getBegin(), level, slice,
                                 other_level, other_slice)) {
         LOG_DEBUG(Gpu, "Cannot synchronize 3D textures ({}) and ({})",
                   descriptor, other_descriptor);
@@ -565,11 +566,11 @@ u32 TextureCache::GetDataHash(const ITexture* texture) {
     u64 mem_range = descriptor.size;
     u64 mem_step = std::max(mem_range / SAMPLE_COUNT, 1ull);
 
-    HashCode hash;
+    ztd::hash::XxHash32 hash;
     for (u64 offset = 0; offset < mem_range; offset += mem_step)
-        hash.Add(*reinterpret_cast<u64*>(descriptor.ptr + offset));
+        hash.add(*reinterpret_cast<u64*>(descriptor.ptr + offset));
 
-    return hash.ToHashCode();
+    return hash.toHashCode();
 }
 
 void TextureCache::DecodeTexture(ICommandBuffer* command_buffer,

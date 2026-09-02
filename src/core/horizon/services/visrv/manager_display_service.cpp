@@ -11,20 +11,23 @@ DEFINE_SERVICE_COMMAND_TABLE(IManagerDisplayService, 2010, CreateManagedLayer,
 // TODO: flags, display ID
 result_t IManagerDisplayService::CreateManagedLayer(System* system,
                                                     kernel::Process* process,
-                                                    aligned<u32, 8> flags,
+                                                    Aligned<u32, 8> flags,
                                                     u64 display_id, u64 aruid,
                                                     u64* out_layer_id) {
     (void)flags;
     (void)display_id;
     (void)aruid;
 
-    u32 binder_id = system->GetOS().GetDisplayDriver().CreateBinder();
+    const auto binder_handle =
+        system->GetOS().GetDisplayDriver().CreateBinder();
     // TODO: what's the display for?
     // auto& display =
     // system->GetOS().GetDisplayDriver().GetDisplay(display_id);
 
-    *out_layer_id =
-        system->GetOS().GetDisplayDriver().CreateLayer(process, binder_id);
+    *out_layer_id = system->GetOS()
+                        .GetDisplayDriver()
+                        .CreateLayer(process, binder_handle)
+                        .GetRaw();
     return RESULT_SUCCESS;
 }
 
@@ -35,7 +38,7 @@ result_t IManagerDisplayService::DestroyManagedLayer(System* system,
 }
 
 result_t IManagerDisplayService::CreateStrayLayer(
-    System* system, kernel::Process* process, aligned<u32, 8> flags,
+    System* system, kernel::Process* process, Aligned<u32, 8> flags,
     u64 display_id, u64* out_layer_id, u64* out_native_window_size,
     OutBuffer<BufferAttr::MapAlias> out_parcel_buffer) {
     return CreateStrayLayerImpl(*system, process, flags, display_id,

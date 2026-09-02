@@ -91,7 +91,6 @@ inline LanguageCode ToLanguageCode(SystemLanguage lang) {
     case SystemLanguage::BrazilianPortuguese:
         return LanguageCode::BrazilianPortuguese;
     case SystemLanguage::Polish:
-        return LanguageCode::AmericanEnglish; // No equivalent
     case SystemLanguage::Thai:
         return LanguageCode::AmericanEnglish; // No equivalent
     }

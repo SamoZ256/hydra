@@ -11,10 +11,9 @@ RomFS::RomFS(IFile* file) {
     auto stream = file->Open(FileOpenFlags::Read);
 
     // Header
-    const auto header = stream->Read<Header>();
-    ASSERT_THROWING(header.header_size == sizeof(Header), Filesystem,
-                    Error::InvalidHeaderSize,
-                    "Invalid romFS header size 0x{:x}", header.header_size);
+    const auto header = stream->read<Header>();
+    ASSERT(header.header_size == sizeof(Header), Filesystem,
+           "Invalid romFS header size 0x{:x}", header.header_size);
 
     // Content
     Parser parser(stream, new FileView(file, header.data_offset),
@@ -30,8 +29,8 @@ RomFS::RomFS(IFile* file) {
     ASSERT(res == FsResult::Success, Filesystem,
            "Failed to get root romFS directory: {}", res);
 
-    auto root_dir = dynamic_cast<Directory*>(root);
-    ASSERT(root_dir != nullptr, Filesystem, "Root entry is not a directory");
+    ASSERT(root->IsDirectory(), Filesystem, "Root entry is not a directory");
+    auto root_dir = static_cast<Directory*>(root);
 
     for (const auto& [name, entry] : root_dir->GetEntries()) {
         res = AddEntry(name, entry);
@@ -56,7 +55,7 @@ SparseFile* RomFS::Build() {
     u64 size = 0;
     for (const auto& chunk : chunks)
         size = std::max(size, chunk.offset + chunk.file->GetSize());
-    SparseFile* file = new SparseFile(chunks, size);
+    auto file = new SparseFile(chunks, size);
 
     return file;
 }

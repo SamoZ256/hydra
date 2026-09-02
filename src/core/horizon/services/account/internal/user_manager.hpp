@@ -7,18 +7,12 @@ namespace hydra::horizon::services::account::internal {
 
 struct Avatar {
     filesystem::IFile* file;
-    std::vector<uchar4> data{};
+    std::vector<uchar4> data;
     u32 dimensions{0};
 };
 
 class UserManager {
   public:
-    enum class Error {
-        InvalidHusrMagic,
-        InvalidHusrVersion,
-        InvalidHusrHeaderSize,
-    };
-
     UserManager();
     ~UserManager() { Flush(); }
 
@@ -65,8 +59,12 @@ class UserManager {
         return it->second;
     }
 
-    static std::string GetUserPath() {
+    static std::string GetUsersPath() {
         return fmt::format("{}/user", CONFIG_INSTANCE.GetAppDataPath());
+    }
+
+    static std::string GetUserPath(uuid_t user_id) {
+        return fmt::format("{}/{:032x}.husr", GetUsersPath(), user_id);
     }
 
     void Serialize(uuid_t user_id);
@@ -76,7 +74,7 @@ class UserManager {
         LoadImageFailed,
         ImageNotASquare,
     };
-    void PreloadAvatar(Avatar& avatar, bool is_compressed);
+    static void PreloadAvatar(Avatar& avatar, bool is_compressed);
 
   public:
     CONST_REF_GETTER(avatars, GetAvatars);

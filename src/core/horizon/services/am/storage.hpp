@@ -6,24 +6,22 @@ namespace hydra::horizon::services::am {
 
 class IStorage : public IService {
   public:
-    IStorage(std::span<u8> data_) : data{data_} {}
+    IStorage(std::vector<u8> data_) : data{std::move(data_)} {}
 
     template <typename T>
-    IStorage(T* ptr) : data(reinterpret_cast<u8*>(ptr), sizeof(T)) {}
-
-    ~IStorage() override {
-        // TODO: uncomment
-        // free(data.data());
+    IStorage(const T& data_) {
+        data.resize(sizeof(T));
+        std::memcpy(data.data(), &data_, sizeof(T));
     }
 
-    std::span<u8> GetData() const { return data; }
+    std::span<u8> GetData() { return data; }
 
   protected:
     result_t RequestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
-    std::span<u8> data;
+    std::vector<u8> data;
 
     // Commands
     result_t Open(RequestContext* ctx);

@@ -176,11 +176,6 @@ TextureFormat to_texture_format(const ImageFormatWord image_format_word,
 TextureFormat to_texture_format(ColorSurfaceFormat color_surface_format);
 TextureFormat to_texture_format(DepthSurfaceFormat depth_surface_format);
 
-enum class GetTextureFormatBppError {
-    InvalidFormat,
-    UnsupportedFormatForBpp,
-};
-
 u32 GetTextureFormatStride(const TextureFormat format, u32 width);
 u32 GetTextureFormatRows(const TextureFormat format, u32 height);
 u32 GetTextureFormatSliceStride(const TextureFormat format, u32 width,
@@ -249,12 +244,12 @@ struct TextureDescriptor {
           depth{depth_}, level_count{level_count_}, layer_count{layer_count_},
           block_width_gobs_log2{block_width_gobs_log2_},
           block_height_gobs_log2{block_height_gobs_log2_},
-          block_depth_gobs_log2{block_depth_gobs_log2_}, layer_size{
-                                                             layer_size_} {
+          block_depth_gobs_log2{block_depth_gobs_log2_},
+          layer_size{layer_size_} {
         CalculateSize();
     }
 
-    Range<uptr> GetRange() const { return Range<uptr>::FromSize(ptr, size); }
+    ztd::Range<uptr> GetRange() const { return ztd::Range<uptr>::fromSize(ptr, size); }
 
     u32 GetGroupHash() const;
     u32 GetStorageHash() const;
@@ -271,12 +266,12 @@ struct TextureDescriptor {
 struct TextureViewDescriptor {
     TextureType type;
     TextureFormat format;
-    Range<u32> levels;
-    Range<u32> layers;
+    ztd::Range<u32> levels;
+    ztd::Range<u32> layers;
     SwizzleChannels swizzle_channels;
 
     TextureViewDescriptor(TextureType type_, TextureFormat format_,
-                          Range<u32> levels_, Range<u32> layers_,
+                          ztd::Range<u32> levels_, ztd::Range<u32> layers_,
                           SwizzleChannels swizzle_channels_ = SwizzleChannels())
         : type{type_}, format{format_}, levels{levels_}, layers{layers_},
           swizzle_channels{swizzle_channels_} {}
@@ -373,7 +368,7 @@ struct Viewport {
     f32 depth_far;
 };
 
-typedef UIntRect2D Scissor;
+using Scissor = UIntRect2D;
 
 enum class ShaderType {
     Vertex,
@@ -389,8 +384,8 @@ struct ResourceMapping {
     // TODO: images
 
     ResourceMapping() {
-        for (u32 i = 0; i < CONST_BUFFER_BINDING_COUNT; i++)
-            uniform_buffers[i] = invalid<u32>();
+        for (auto& uniform_buffer : uniform_buffers)
+            uniform_buffer = invalid<u32>();
         // TODO: storage buffers
         // TODO: images
     }
@@ -428,7 +423,7 @@ struct ColorTargetState {
 };
 
 struct PipelineDescriptor {
-    ShaderBase* shaders[usize(ShaderType::Count)];
+    ShaderBase* shaders[static_cast<usize>(ShaderType::Count)];
     VertexState vertex_state;
     ColorTargetState color_target_states[COLOR_TARGET_COUNT];
 };

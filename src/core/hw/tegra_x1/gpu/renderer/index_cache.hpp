@@ -11,7 +11,7 @@ struct IndexDescriptor {
     engines::IndexType type;
     engines::PrimitiveType primitive_type;
     u32 count;
-    std::optional<Range<uptr>> mem_range{std::nullopt};
+    std::optional<ztd::Range<uptr>> mem_range{std::nullopt};
 };
 
 // TODO: memory invalidation
@@ -25,7 +25,7 @@ class IndexCache {
                       engines::IndexType& out_type,
                       engines::PrimitiveType& out_primitive_type,
                       u32& out_count);
-    u32 Hash(const IndexDescriptor& descriptor);
+    static u32 Hash(const IndexDescriptor& descriptor);
 
   private:
     IRenderer& renderer;

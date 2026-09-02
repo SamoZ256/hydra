@@ -1,6 +1,7 @@
 #include "core/horizon/filesystem/romfs/builder.hpp"
 
 #include <algorithm>
+#include <ranges>
 
 #include "core/horizon/filesystem/file_view.hpp"
 #include "core/horizon/filesystem/memory_file.hpp"
@@ -62,7 +63,7 @@ u64 Builder::CalcHashTableSize(u64 entries) {
 }
 
 void Builder::VisitDirectory(Directory* dir,
-                             std::shared_ptr<DirContext> parent) {
+                             const std::shared_ptr<DirContext>& parent) {
     for (const auto& [name, entry] : dir->GetEntries()) {
         if (entry->IsDirectory()) {
             auto ctx = std::make_shared<DirContext>();
@@ -107,10 +108,10 @@ std::vector<SparseFileEntry> Builder::Build() {
 
     VisitDirectory(root_dir, root);
 
-    std::sort(directories.begin(), directories.end(),
-              [](auto& a, auto& b) { return a->path < b->path; });
-    std::sort(files.begin(), files.end(),
-              [](auto& a, auto& b) { return a->path < b->path; });
+    std::ranges::sort(directories,
+                      [](auto& a, auto& b) { return a->path < b->path; });
+    std::ranges::sort(files,
+                      [](auto& a, auto& b) { return a->path < b->path; });
 
     // Assign file offsets
     u32 entry_offset = 0;
@@ -123,8 +124,7 @@ std::vector<SparseFileEntry> Builder::Build() {
             sizeof(FileEntry) + align(file->path_len - file->name_offset, 4u);
     }
     // Assign deferred parent/sibling ownership
-    for (auto it = files.rbegin(); it != files.rend(); ++it) {
-        auto& cur_file = *it;
+    for (auto& cur_file : std::views::reverse(files)) {
         cur_file->sibling = cur_file->parent->file;
         cur_file->parent->file = cur_file;
     }
@@ -166,23 +166,26 @@ std::vector<SparseFileEntry> Builder::Build() {
     Header header{};
     header.header_size = sizeof(Header);
     header.data_offset = DATA_OFFSET;
-    header.directory_hash = {align(header.data_offset + data_size, 4ull),
-                             dir_hash_table_size};
-    header.directory_meta = {header.directory_hash.offset +
-                                 header.directory_hash.size,
-                             dir_table_size};
-    header.file_hash = {header.directory_meta.offset +
-                            header.directory_meta.size,
-                        file_hash_table_size};
-    header.file_meta = {header.file_hash.offset + header.file_hash.size,
-                        file_table_size};
+    header.directory_hash = {.offset =
+                                 align(header.data_offset + data_size, 4ull),
+                             .size = dir_hash_table_size};
+    header.directory_meta = {.offset = header.directory_hash.offset +
+                                       header.directory_hash.size,
+                             .size = dir_table_size};
+    header.file_hash = {.offset = header.directory_meta.offset +
+                                  header.directory_meta.size,
+                        .size = file_hash_table_size};
+    header.file_meta = {.offset =
+                            header.file_hash.offset + header.file_hash.size,
+                        .size = file_table_size};
 
     std::vector<SparseFileEntry> out;
 
     // Header output
-    out.push_back({0, new MemoryFile(std::vector(
-                          reinterpret_cast<u8*>(&header),
-                          reinterpret_cast<u8*>(&header) + sizeof(Header)))});
+    out.push_back({.offset = 0,
+                   .file = new MemoryFile(std::vector(
+                       reinterpret_cast<u8*>(&header),
+                       reinterpret_cast<u8*>(&header) + sizeof(Header)))});
 
     // Populate file table
     for (const auto& file : files) {
@@ -211,7 +214,8 @@ std::vector<SparseFileEntry> Builder::Build() {
                     file->path.data() + file->name_offset, name_len);
 
         // Emit file data
-        out.push_back({DATA_OFFSET + file->offset, file->source});
+        out.push_back(
+            {.offset = DATA_OFFSET + file->offset, .file = file->source});
     }
 
     // Populate directory table
@@ -243,8 +247,8 @@ std::vector<SparseFileEntry> Builder::Build() {
     }
 
     // Metadata output
-    out.push_back(
-        {header.directory_hash.offset, new MemoryFile(std::move(metadata))});
+    out.push_back({.offset = header.directory_hash.offset,
+                   .file = new MemoryFile(std::move(metadata))});
 
     return out;
 }

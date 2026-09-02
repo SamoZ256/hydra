@@ -82,7 +82,7 @@ void Pfifo::SubmitEntries(GMmu& gmmu, std::span<const GpfifoEntry> entries,
     LOG_DEBUG(Gpu, "Flags: {}", flags);
 
     {
-        std::lock_guard lock(mutex);
+        std::scoped_lock lock(mutex);
         entry_lists.emplace(
             gmmu, std::vector<GpfifoEntry>(entries.begin(), entries.end()),
             flags);
@@ -140,14 +140,8 @@ void Pfifo::SubmitEntry(const GpfifoEntry entry) {
     uptr end = gpu_addr + entry.size * sizeof(u32);
 
     while (gpu_addr < end) {
-        try {
-            if (!SubmitCommand(gpu_addr))
-                break;
-        } catch (Gpu::GetEngineAtSubchannelError error) {
+        if (!SubmitCommand(gpu_addr))
             break;
-        } catch (engines::EngineBase::Error error) {
-            break;
-        }
     }
 }
 

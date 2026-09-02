@@ -1,6 +1,6 @@
 #include "core/input/device_manager.hpp"
 
-#ifdef PLATFORM_APPLE
+#ifdef ZTD_PLATFORM_APPLE
 #include "core/input/apple_gc/device_list.hpp"
 #endif
 
@@ -20,7 +20,7 @@ IDeviceList* CreateDeviceList() {
         LOG_FATAL(Input, "SDL not supported");
 #endif
     case InputBackend::AppleGameController:
-#ifdef PLATFORM_APPLE
+#ifdef ZTD_PLATFORM_APPLE
         return new apple_gc::DeviceList();
 #else
         LOG_FATAL(Input, "Apple GameController not supported");
@@ -57,7 +57,7 @@ DeviceManager::PollNpad(horizon::services::hid::internal::NpadIndex index) {
         std::scoped_lock lock(device_list->GetMutex());
 
         auto device = device_list->GetDevice(device_name);
-        if (!device)
+        if (device == nullptr)
             continue;
 
         // Buttons
@@ -116,7 +116,7 @@ std::map<u32, TouchState> DeviceManager::PollTouch() {
     const std::string device_name = "cursor";
 
     auto device = device_list->GetDevice(device_name);
-    if (!device)
+    if (device == nullptr)
         return state;
 
     // Process touches
@@ -139,7 +139,8 @@ std::map<u32, TouchState> DeviceManager::PollTouch() {
     for (const auto [touch_id, finger_id] : active_touches) {
         ASSERT_DEBUG(finger_id != invalid<u32>(), Input, "Invalid finger ID");
 
-        i32 x, y;
+        i32 x;
+        i32 y;
         device->GetTouchPosition(touch_id, x, y);
         // TODO: also clamp to guest screen size
         x = std::max(x, 0);
@@ -156,7 +157,7 @@ std::map<u32, TouchState> DeviceManager::PollTouch() {
 
 u32 DeviceManager::BeginTouch() {
     for (u32 i = 0; i < MAX_FINGER_COUNT; i++) {
-        if (available_finger_mask & (1 << i)) {
+        if ((available_finger_mask & (1 << i)) != 0) {
             available_finger_mask &= ~(1 << i);
             touch_count++;
             return i;

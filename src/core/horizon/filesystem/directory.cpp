@@ -9,14 +9,13 @@
 namespace hydra::horizon::filesystem {
 
 Directory::Directory(const std::string_view host_path) {
-    ASSERT_THROWING(std::filesystem::is_directory(host_path), Filesystem,
-                    InitError::NotADirectory, "\"{}\" is not a directory",
-                    host_path);
+    ASSERT(std::filesystem::is_directory(host_path), Filesystem,
+           "\"{}\" is not a directory", host_path);
 
     for (const auto& entry : std::filesystem::directory_iterator(host_path)) {
         const auto& entry_path = entry.path().string();
         const auto entry_name =
-            entry_path.substr(entry_path.find_last_of("/") + 1);
+            entry_path.substr(entry_path.find_last_of('/') + 1);
 
         // Ignore certain entries
         if (entry_name == ".DS_Store")
@@ -37,7 +36,7 @@ Directory::~Directory() {
 void Directory::Save(std::string_view host_path) const {
     std::filesystem::create_directories(host_path);
     for (const auto& entry : entries) {
-        if (!entry.second)
+        if (entry.second == nullptr)
             continue;
 
         entry.second->Save(fmt::format("{}/{}", host_path, entry.first));
@@ -47,25 +46,23 @@ void Directory::Save(std::string_view host_path) const {
 FsResult Directory::Delete(bool recursive) {
     if (!recursive) {
         for (const auto& entry : entries) {
-            if (entry.second && entry.second->IsDirectory())
+            if ((entry.second != nullptr) && entry.second->IsDirectory())
                 return FsResult::DirectoryNotEmpty;
         }
     }
 
     for (const auto& entry : entries) {
-        if (!entry.second)
+        if (entry.second == nullptr)
             continue;
 
         if (entry.second->IsDirectory()) {
-            auto dir = dynamic_cast<Directory*>(entry.second);
-            ASSERT_DEBUG(dir, Filesystem, "This should not happen");
+            auto dir = static_cast<Directory*>(entry.second);
             const auto res = dir->Delete(true);
             if (res != FsResult::Success)
                 return res;
             delete dir;
         } else {
-            auto file = dynamic_cast<IFile*>(entry.second);
-            ASSERT_DEBUG(file, Filesystem, "This should not happen");
+            auto file = static_cast<IFile*>(entry.second);
             const auto res = file->Delete();
             if (res != FsResult::Success)
                 return res;
@@ -133,9 +130,9 @@ FsResult Directory::GetFile(const std::string_view path,
     if (res != FsResult::Success)
         return res;
 
-    out_file = dynamic_cast<IFile*>(entry);
-    if (!out_file)
+    if (!entry->IsFile())
         return FsResult::NotAFile;
+    out_file = static_cast<IFile*>(entry);
 
     return FsResult::Success;
 }
@@ -147,9 +144,9 @@ FsResult Directory::GetDirectory(const std::string_view path,
     if (res != FsResult::Success)
         return res;
 
-    out_directory = dynamic_cast<Directory*>(entry);
-    if (!out_directory)
+    if (!entry->IsDirectory())
         return FsResult::NotADirectory;
+    out_directory = static_cast<Directory*>(entry);
 
     return FsResult::Success;
 }
@@ -159,14 +156,14 @@ FsResult Directory::AddEntryImpl(const std::span<std::string_view> path,
     const auto entry_name = path[0];
     auto& e = entries[std::string(entry_name)];
     if (path.size() == 1) {
-        if (e)
+        if (e != nullptr)
             return FsResult::AlreadyExists;
 
         entry->SetParent(this);
         e = entry;
         return FsResult::Success;
     } else {
-        if (!e) {
+        if (e == nullptr) {
             if (add_intermediate) {
                 e = new Directory();
                 e->SetParent(this);
@@ -175,9 +172,9 @@ FsResult Directory::AddEntryImpl(const std::span<std::string_view> path,
             }
         }
 
-        auto sub_dir = dynamic_cast<Directory*>(e);
-        if (!sub_dir)
+        if (!e->IsDirectory())
             return FsResult::NotADirectory;
+        auto sub_dir = static_cast<Directory*>(e);
 
         return sub_dir->AddEntryImpl(path.subspan(1), entry, add_intermediate);
     }
@@ -203,9 +200,9 @@ FsResult Directory::DeleteEntryImpl(const std::span<std::string_view> path,
         if (it == entries.end())
             return FsResult::DoesNotExist;
 
-        auto sub_dir = dynamic_cast<Directory*>(it->second);
-        if (!sub_dir)
+        if (!it->second->IsDirectory())
             return FsResult::NotADirectory;
+        auto sub_dir = static_cast<Directory*>(it->second);
 
         return sub_dir->DeleteEntryImpl(path.subspan(1), recursive);
     }
@@ -225,16 +222,16 @@ FsResult Directory::GetEntryImpl(const std::span<std::string_view> path,
         if (it == entries.end())
             return FsResult::DoesNotExist;
 
-        auto sub_dir = dynamic_cast<Directory*>(it->second);
-        if (!sub_dir)
+        if (!it->second->IsDirectory())
             return FsResult::NotADirectory;
+        auto sub_dir = static_cast<Directory*>(it->second);
 
         return sub_dir->GetEntryImpl(path.subspan(1), out_entry);
     }
 }
 
 void Directory::BreakPath(std::string_view path,
-                          std::vector<std::string_view>& out_path) const {
+                          std::vector<std::string_view>& out_path) {
     // Reserve the maximum possible count
     out_path.reserve(
         static_cast<usize>(std::count(path.begin(), path.end(), '/')));

@@ -11,15 +11,15 @@ RenderPassCache::Create(const RenderPassDescriptor& descriptor) {
 }
 
 u32 RenderPassCache::Hash(const RenderPassDescriptor& descriptor) {
-    HashCode hash;
+    ztd::hash::XxHash32 hash;
 
     // TODO: improve this
     // TODO: also hash metadata about clears
-    for (u32 i = 0; i < COLOR_TARGET_COUNT; i++)
-        hash.Add(descriptor.color_targets[i].texture);
-    hash.Add(descriptor.depth_stencil_target.texture);
+    for (const auto& color_target : descriptor.color_targets)
+        hash.add(color_target.texture);
+    hash.add(descriptor.depth_stencil_target.texture);
 
-    return hash.ToHashCode();
+    return hash.toHashCode();
 }
 
 void RenderPassCache::DestroyElement(RenderPassBase* render_pass) {

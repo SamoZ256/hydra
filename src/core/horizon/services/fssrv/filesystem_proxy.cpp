@@ -53,7 +53,7 @@ result_t IFileSystemProxy::OpenFileSystem(
     (void)type;
 
     // TODO: correct?
-    const auto mount = path_buffer.stream->ReadNullTerminatedString();
+    const auto mount = path_buffer.stream->readNullTerminatedString();
     LOG_DEBUG(Services, "Mount: {}", mount);
 
     AddService(*ctx, new IFileSystem(mount));
@@ -69,7 +69,7 @@ result_t IFileSystemProxy::OpenFileSystemWithIdObsolete(
     (void)program_id;
 
     // TODO: correct?
-    const auto mount = path_buffer.stream->ReadNullTerminatedString();
+    const auto mount = path_buffer.stream->readNullTerminatedString();
     LOG_DEBUG(Services, "Mount: {}", mount);
 
     AddService(*ctx, new IFileSystem(mount));
@@ -82,7 +82,7 @@ result_t IFileSystemProxy::OpenBisFileSystem(
     InBuffer<BufferAttr::HipcPointer> unknown_buffer) {
     const auto unknown =
         unknown_buffer.stream
-            ->ReadNullTerminatedString(); // TODO: what is this for?
+            ->readNullTerminatedString(); // TODO: what is this for?
 
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "partition ID: {}, unknown: {}",
                                partition_id, unknown);
@@ -114,7 +114,7 @@ result_t IFileSystemProxy::CreateSaveDataFileSystem(
 }
 
 result_t IFileSystemProxy::ReadSaveDataFileSystemExtraDataBySaveDataSpaceId(
-    aligned<SaveDataSpaceId, 8> space_id, u64 save_id,
+    Aligned<SaveDataSpaceId, 8> space_id, u64 save_id,
     OutBuffer<BufferAttr::MapAlias> out_buffer) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "space ID: {}, save ID: {}", space_id,
                                save_id);
@@ -122,21 +122,21 @@ result_t IFileSystemProxy::ReadSaveDataFileSystemExtraDataBySaveDataSpaceId(
     // TODO: why is the stream NULL?
     if (out_buffer.stream) {
         // HACK
-        out_buffer.stream->Write<SaveDataFileSystemExtraData>({});
+        out_buffer.stream->write<SaveDataFileSystemExtraData>({});
     }
     return RESULT_SUCCESS;
 }
 
 result_t IFileSystemProxy::OpenSaveDataFileSystem(
     RequestContext* ctx, System* system, kernel::Process* process,
-    aligned<SaveDataSpaceId, 8> space_id, SaveDataAttribute attr) {
+    Aligned<SaveDataSpaceId, 8> space_id, SaveDataAttribute attr) {
     return OpenSaveDataFileSystemImpl(ctx, system, process, space_id, attr,
                                       false);
 }
 
 result_t IFileSystemProxy::OpenReadOnlySaveDataFileSystem(
     RequestContext* ctx, System* system, kernel::Process* process,
-    aligned<SaveDataSpaceId, 8> space_id, SaveDataAttribute attr) {
+    Aligned<SaveDataSpaceId, 8> space_id, SaveDataAttribute attr) {
     return OpenSaveDataFileSystemImpl(ctx, system, process, space_id, attr,
                                       true);
 }
@@ -178,7 +178,7 @@ result_t IFileSystemProxy::OpenDataStorageByProgramId(RequestContext* ctx,
 
 result_t
 IFileSystemProxy::OpenDataStorageByDataId(RequestContext* ctx, System* system,
-                                          aligned<ncm::StorageID, 8> storage_id,
+                                          Aligned<ncm::StorageID, 8> storage_id,
                                           u64 data_id) {
     LOG_FUNC_NOT_IMPLEMENTED(Services);
 

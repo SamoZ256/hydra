@@ -24,8 +24,8 @@ class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
 
     void Run() override;
 
-    void NotifyMemoryChanged(Range<vaddr_t> mem_range) override {
-        jit->InvalidateCacheRange(mem_range.GetBegin(), mem_range.GetSize());
+    void NotifyMemoryChanged(ztd::Range<vaddr_t> mem_range) override {
+        jit->InvalidateCacheRange(mem_range.getBegin(), mem_range.getSize());
     }
 
     // Debug
@@ -62,9 +62,9 @@ class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
     void MemoryWrite64(u64 addr, u64 value) override;
     void MemoryWrite128(u64 addr, Dynarmic::A64::Vector value) override;
 
-    bool MemoryWriteExclusive8(u64 addr, u8 value, u8) override;
-    bool MemoryWriteExclusive16(u64 addr, u16 value, u16) override;
-    bool MemoryWriteExclusive32(u64 addr, u32 value, u32) override;
+    bool MemoryWriteExclusive8(u64 addr, u8 value, u8 /*unused*/) override;
+    bool MemoryWriteExclusive16(u64 addr, u16 value, u16 /*unused*/) override;
+    bool MemoryWriteExclusive32(u64 addr, u32 value, u32 /*unused*/) override;
     bool MemoryWriteExclusive64(u64 addr, u64 value, u64 expected) override;
     bool MemoryWriteExclusive128(u64 addr, Dynarmic::A64::Vector value,
                                  Dynarmic::A64::Vector expected) override;

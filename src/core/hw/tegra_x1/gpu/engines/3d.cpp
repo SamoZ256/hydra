@@ -58,7 +58,7 @@ constexpr u32 D3D11_BLEND_OP_MAX = 5;
 
 renderer::BlendOperation get_blend_operation(u32 blend_op) {
     switch (blend_op) {
-        // GL
+    // GL
     case GL_MIN:
         return renderer::BlendOperation::Min;
     case GL_MAX:
@@ -120,7 +120,7 @@ constexpr u32 D3D11_BLEND_FACTOR_INV_SRC1_ALPHA = 19;
 constexpr u32 GL_BLEND_FACTOR_BIT = 0x4000;
 
 renderer::BlendFactor get_blend_factor(u32 blend_factor) {
-    if (blend_factor & GL_BLEND_FACTOR_BIT) { // GL
+    if ((blend_factor & GL_BLEND_FACTOR_BIT) != 0u) { // GL
         u32 gl_blend_factor = blend_factor & ~GL_BLEND_FACTOR_BIT;
         switch (gl_blend_factor) {
         case GL_ZERO:
@@ -226,8 +226,8 @@ ThreeD::ThreeD(Gpu& gpu_) : gpu{gpu_}, macro_driver{CreateMacroDriver(*this)} {
 
     // Viewports
     // TODO: correct?
-    for (u32 i = 0; i < VIEWPORT_COUNT; i++) {
-        regs.viewport_transforms[i].swizzle = {
+    for (auto& viewport_transform : regs.viewport_transforms) {
+        viewport_transform.swizzle = {
             .x = ViewportSwizzle::PositiveX,
             .y = ViewportSwizzle::PositiveY,
             .z = ViewportSwizzle::PositiveZ,
@@ -237,8 +237,8 @@ ThreeD::ThreeD(Gpu& gpu_) : gpu{gpu_}, macro_driver{CreateMacroDriver(*this)} {
 
     // Color write masks
     // TODO: correct?
-    for (u32 i = 0; i < COLOR_TARGET_COUNT; i++)
-        regs.color_write_masks[i] = ColorWriteMask::All;
+    for (auto& color_write_mask : regs.color_write_masks)
+        color_write_mask = ColorWriteMask::All;
 
     // HACK
     regs.shader_programs[static_cast<u32>(ShaderStage::VertexB)].config.enable =
@@ -284,7 +284,7 @@ void ThreeD::DrawVertexArray(const u32 index, u32 count) {
     auto primitive_type = regs.begin.primitive_type;
     renderer::BufferView index_buffer;
     {
-        std::lock_guard buffer_cache_lock(
+        std::scoped_lock buffer_cache_lock(
             gpu.GetRenderer().GetBufferCache().GetMutex());
         if (!DrawInternal())
             return;
@@ -297,7 +297,7 @@ void ThreeD::DrawVertexArray(const u32 index, u32 count) {
             index_type, primitive_type, count);
     }
 
-    if (index_buffer.GetBase()) {
+    if (index_buffer.GetBase() != nullptr) {
         // Bind index buffer
         gpu.GetRenderer().BindIndexBuffer(index_buffer, index_type);
 
@@ -323,7 +323,7 @@ void ThreeD::DrawVertexElements(const u32 index, u32 count) {
     auto primitive_type = regs.begin.primitive_type;
     renderer::BufferView index_buffer;
     {
-        std::lock_guard buffer_cache_lock(
+        std::scoped_lock buffer_cache_lock(
             gpu.GetRenderer().GetBufferCache().GetMutex());
         if (!DrawInternal())
             return;
@@ -338,7 +338,7 @@ void ThreeD::DrawVertexElements(const u32 index, u32 count) {
                 regs.index_type); // u64(regs.index_buffer_limit_addr) + 1
                                   // - u64(regs.index_buffer_addr);
         const auto range =
-            Range<uptr>::FromSize(index_buffer_ptr, index_buffer_size);
+            ztd::Range<uptr>::fromSize(index_buffer_ptr, index_buffer_size);
 
         index_buffer = gpu.GetRenderer().GetIndexCache().Decode(
             tls_crnt_command_buffer,
@@ -372,7 +372,7 @@ void ThreeD::ClearBuffer(const u32 index, const ClearBufferData data) {
 
     // Regular clear
     {
-        std::lock_guard texture_cache_lock(
+        std::scoped_lock texture_cache_lock(
             gpu.GetRenderer().GetTextureCache().GetMutex());
         gpu.GetRenderer().BindRenderPass(GetRenderPass());
     }
@@ -418,7 +418,7 @@ void ThreeD::LoadConstBuffer(const u32 index, const u32 data) {
     // Invalidate
     // TODO: invalidate as a whole
     gpu.GetRenderer().InvalidateMemory(
-        Range<uptr>::FromSize(ptr, sizeof(u32)),
+        ztd::Range<uptr>::fromSize(ptr, sizeof(u32)),
         renderer::MemoryInvalidationScope::BufferCache);
 }
 
@@ -432,17 +432,17 @@ void ThreeD::BindGroup(const u32 index, const u32 data) {
         break;
     case 0x4: {
         const auto buffer_index = extract_bits(data, 4, 5);
-        bool valid = data & 0x1;
+        bool valid = (data & 0x1) != 0u;
         if (valid) {
             const uptr const_buffer_gpu_ptr =
                 tls_crnt_gmmu->UnmapAddr(regs.const_buffer_selector);
 
-            const auto range = Range<uptr>::FromSize(
+            const auto range = ztd::Range<uptr>::fromSize(
                 const_buffer_gpu_ptr, regs.const_buffer_selector_size);
             bound_const_buffers[shader_stage_index][buffer_index] = range;
         } else {
             bound_const_buffers[shader_stage_index][buffer_index] =
-                Range<uptr>();
+                ztd::Range<uptr>();
         }
         break;
     }
@@ -483,7 +483,8 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
 
     // Width and stride
     const bool is_linear = render_target.tile_mode.is_linear;
-    u32 width, stride;
+    u32 width;
+    u32 stride;
     if (is_linear) {
         width = render_target.width_or_stride /
                 renderer::get_texture_format_bpp(format);
@@ -547,8 +548,9 @@ renderer::RenderPassBase* ThreeD::GetRenderPass() const {
 
     // Depth stencil target
     descriptor.depth_stencil_target = {
-        .texture = (regs.depth_target_enabled ? GetDepthStencilTargetTexture()
-                                              : nullptr),
+        .texture =
+            ((regs.depth_target_enabled != 0u) ? GetDepthStencilTargetTexture()
+                                               : nullptr),
     };
 
     return gpu.GetRenderer().GetRenderPassCache().Find(descriptor);
@@ -568,16 +570,16 @@ renderer::Viewport ThreeD::GetViewport(u32 index) {
 
         // Swizzle
         // TODO: check for viewport swizzle support
-        if (transform.swizzle.x == engines::ViewportSwizzle::NegativeX)
+        if (transform.swizzle.x == engines::ViewportSwizzle::NegativeX) {
             scale_x = -scale_x;
-        else
+        } else
             ASSERT_DEBUG(transform.swizzle.x ==
                              engines::ViewportSwizzle::PositiveX,
                          Engines, "Unsupported X viewport swizzle {}",
                          transform.swizzle.x);
-        if (transform.swizzle.y == engines::ViewportSwizzle::NegativeY)
+        if (transform.swizzle.y == engines::ViewportSwizzle::NegativeY) {
             scale_y = -scale_y;
-        else
+        } else
             ASSERT_DEBUG(transform.swizzle.y ==
                              engines::ViewportSwizzle::PositiveY,
                          Engines, "Unsupported Y viewport swizzle {}",
@@ -623,7 +625,7 @@ renderer::Viewport ThreeD::GetViewport(u32 index) {
 
 renderer::Scissor ThreeD::GetScissor(u32 index) {
     const auto& scissor = regs.scissors[index];
-    if (scissor.enabled) {
+    if (scissor.enabled != 0u) {
         return renderer::Scissor(
             uint2({scissor.horizontal.min, scissor.vertical.min}),
             uint2({static_cast<u32>(scissor.horizontal.max -
@@ -636,7 +638,7 @@ renderer::Scissor ThreeD::GetScissor(u32 index) {
 }
 
 renderer::ShaderBase* ThreeD::GetShaderUnchecked(ShaderStage stage) const {
-    return active_shaders[u32(to_renderer_shader_type(stage))];
+    return active_shaders[static_cast<u32>(to_renderer_shader_type(stage))];
 }
 
 renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) {
@@ -668,7 +670,8 @@ renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) {
             renderer::to_color_data_type(regs.color_targets[i].format);
     }
 
-    auto& active_shader = active_shaders[u32(to_renderer_shader_type(stage))];
+    auto& active_shader =
+        active_shaders[static_cast<u32>(to_renderer_shader_type(stage))];
     active_shader = gpu.GetRenderer().GetShaderCache().Find(descriptor);
 
     return active_shader;
@@ -679,9 +682,9 @@ renderer::PipelineBase* ThreeD::GetPipeline() {
 
     // Shaders
     // TODO: add all shaders
-    descriptor.shaders[u32(renderer::ShaderType::Vertex)] =
+    descriptor.shaders[static_cast<u32>(renderer::ShaderType::Vertex)] =
         GetShader(ShaderStage::VertexB);
-    descriptor.shaders[u32(renderer::ShaderType::Fragment)] =
+    descriptor.shaders[static_cast<u32>(renderer::ShaderType::Fragment)] =
         GetShader(ShaderStage::Fragment);
 
     // Vertex state
@@ -730,7 +733,7 @@ renderer::PipelineBase* ThreeD::GetPipeline() {
         color_target.blend_enabled =
             static_cast<bool>(regs.color_blend_enabled[i]);
         if (color_target.blend_enabled) {
-            if (regs.independent_blend_enabled) {
+            if (regs.independent_blend_enabled != 0u) {
                 const auto& blend_state = regs.independent_blend_state[i];
                 color_target.rgb_op = get_blend_operation(blend_state.rgb_op);
                 color_target.src_rgb_factor =
@@ -767,16 +770,17 @@ renderer::BufferView ThreeD::GetVertexBuffer(u32 vertex_array_index) const {
     const auto& vertex_array = regs.vertex_arrays[vertex_array_index];
 
     // HACK
-    if (u64(vertex_array.addr) == 0x0) {
+    if (static_cast<u64>(vertex_array.addr) == 0x0) {
         ONCE(LOG_ERROR(Engines, "Invalid vertex buffer"));
-        return renderer::BufferView();
+        return {};
     }
 
     const auto ptr = tls_crnt_gmmu->UnmapAddr(vertex_array.addr);
-    const auto size = u64(regs.vertex_array_limits[vertex_array_index]) + 1 -
-                      u64(vertex_array.addr);
+    const auto size =
+        static_cast<u64>(regs.vertex_array_limits[vertex_array_index]) + 1 -
+        static_cast<u64>(vertex_array.addr);
     return gpu.GetRenderer().GetBufferCache().Get(
-        tls_crnt_command_buffer, Range<uptr>::FromSize(ptr, size));
+        tls_crnt_command_buffer, ztd::Range<uptr>::fromSize(ptr, size));
 }
 
 renderer::ITextureView*
@@ -829,7 +833,7 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
         level_count, layer_count, tic.sparse_tile_width_gobs_log2,
         tic.tile_height_gobs_log2, tic.tile_depth_gobs_log2);
     const renderer::TextureViewDescriptor view_descriptor(
-        type, format, Range<u32>(0, level_count), Range<u32>(0, layer_count),
+        type, format, ztd::Range<u32>(0, level_count), ztd::Range<u32>(0, layer_count),
         renderer::SwizzleChannels(
             format, tic.format_word.swizzle_x, tic.format_word.swizzle_y,
             tic.format_word.swizzle_z, tic.format_word.swizzle_w));
@@ -880,7 +884,7 @@ void ThreeD::ConfigureShaderStage(
 
         // TODO: analyze the shader to get the max possible size
         const auto range = bound_const_buffers[stage_index][i];
-        if (range.GetBegin() == 0x0) {
+        if (range.getBegin() == 0x0) {
             LOG_WARN(Engines, "Uniform buffer at index {} is not bound", index);
             continue;
         }
@@ -893,12 +897,12 @@ void ThreeD::ConfigureShaderStage(
     // TODO: storage buffers
 
     // Textures
-    if (tex_header_pool && tex_sampler_pool) {
+    if ((tex_header_pool != nullptr) && (tex_sampler_pool != nullptr)) {
         gpu.GetRenderer().UnbindTextures(shader_type);
         auto tex_const_buffer = reinterpret_cast<const u32*>(
             bound_const_buffers[stage_index]
                                [regs.bindless_texture_const_buffer_slot]
-                                   .GetBegin());
+                                   .getBegin());
         for (const auto [const_buffer_index, renderer_index] :
              resource_mapping.textures) {
             const auto texture_handle = tex_const_buffer[const_buffer_index];
@@ -913,7 +917,7 @@ void ThreeD::ConfigureShaderStage(
             const auto& tsc = tex_sampler_pool[sampler_handle];
             const auto sampler = GetSampler(tsc);
 
-            if (texture && sampler)
+            if ((texture != nullptr) && (sampler != nullptr))
                 gpu.GetRenderer().BindTexture(texture, sampler, shader_type,
                                               renderer_index);
         }
@@ -921,7 +925,7 @@ void ThreeD::ConfigureShaderStage(
 }
 
 bool ThreeD::DrawInternal() {
-    std::lock_guard texture_cache_lock(
+    std::scoped_lock texture_cache_lock(
         gpu.GetRenderer().GetTextureCache().GetMutex());
 
     // Flush tracked pages
@@ -937,8 +941,8 @@ bool ThreeD::DrawInternal() {
     gpu.GetRenderer().BindRenderPass(GetRenderPass());
     gpu.GetRenderer().BindPipeline(GetPipeline());
 
-    gpu.GetRenderer().SetDepthTestEnabled(regs.depth_test_enabled);
-    gpu.GetRenderer().SetDepthWriteEnabled(regs.depth_write_enabled);
+    gpu.GetRenderer().SetDepthTestEnabled(regs.depth_test_enabled != 0u);
+    gpu.GetRenderer().SetDepthWriteEnabled(regs.depth_write_enabled != 0u);
     gpu.GetRenderer().SetDepthCompareOp(regs.depth_compare_op);
 
     for (u32 i = 0; i < VIEWPORT_COUNT; i++) {

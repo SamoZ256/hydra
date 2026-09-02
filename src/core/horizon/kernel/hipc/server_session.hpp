@@ -20,14 +20,16 @@ struct SessionRequest {
 // TODO: should maintain a reference to the parent session
 class ServerSession : public SynchronizationObject {
   public:
-    ServerSession(const std::string_view debug_name = "Server session")
-        : SynchronizationObject(false, debug_name) {}
+    static constexpr AutoObjectTypeId TYPE_ID = AutoObjectTypeId::ServerSession;
+
+    ServerSession(std::string_view debug_name = "Server session")
+        : SynchronizationObject(TYPE_ID, false, debug_name) {}
     ~ServerSession() override;
 
     void OnClientClose();
 
     bool IsClientOpen() {
-        std::lock_guard lock(mutex);
+        std::scoped_lock lock(mutex);
         return client_open;
     }
 
@@ -36,13 +38,13 @@ class ServerSession : public SynchronizationObject {
     void Reply(uptr ptr);
 
     bool HasRequests() {
-        std::lock_guard lock(mutex);
+        std::scoped_lock lock(mutex);
         return !requests.empty();
     }
 
     // HACK
     kernel::Process* GetActiveRequestClientProcess() {
-        std::lock_guard lock(mutex);
+        std::scoped_lock lock(mutex);
         return active_request->client_process;
     }
 

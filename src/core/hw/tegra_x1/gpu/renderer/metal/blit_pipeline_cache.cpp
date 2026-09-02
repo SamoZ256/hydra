@@ -99,7 +99,7 @@ BlitPipelineCache::Create(const BlitPipelineDescriptor& descriptor) {
 
     NS::Error* error;
     auto pipeline = device->newRenderPipelineState(pipeline_descriptor, &error);
-    if (error) {
+    if (error != nullptr) {
         LOG_ERROR(MetalRenderer, "Failed to create blit pipeline: {}",
                   error->localizedDescription()->utf8String());
         return nullptr;

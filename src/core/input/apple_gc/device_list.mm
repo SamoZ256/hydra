@@ -16,7 +16,7 @@ using DeviceList = hydra::input::apple_gc::DeviceList;
 @implementation DeviceListImpl
 
 - (id)initWithParent:(DeviceList*)parent {
-    if (self = [super init]) {
+    if ((self = [super init]) != nullptr) {
         self.parent = parent;
 
         // Notifications
@@ -44,7 +44,7 @@ using DeviceList = hydra::input::apple_gc::DeviceList;
         // Connected keyboards
         if (@available(macOS 11.0, iOS 14.0, tvOS 14.0, *)) {
             GCKeyboard* keyboard = [GCKeyboard coalescedKeyboard];
-            if (keyboard) {
+            if (keyboard != nullptr) {
                 self.parent->AddKeyboard(keyboard);
             }
         }
@@ -64,24 +64,22 @@ using DeviceList = hydra::input::apple_gc::DeviceList;
 }
 
 - (void)controllerConnected:(NSNotification*)notification {
-    GCController* controller =
-        reinterpret_cast<GCController*>(notification.object);
+    auto controller = reinterpret_cast<GCController*>(notification.object);
     _parent->AddController(controller);
 }
 
 - (void)controllerDisconnected:(NSNotification*)notification {
-    GCController* controller =
-        reinterpret_cast<GCController*>(notification.object);
+    auto controller = reinterpret_cast<GCController*>(notification.object);
     _parent->RemoveController(controller);
 }
 
 - (void)keyboardConnected:(NSNotification*)notification {
-    GCKeyboard* keyboard = reinterpret_cast<GCKeyboard*>(notification.object);
+    auto keyboard = reinterpret_cast<GCKeyboard*>(notification.object);
     _parent->AddKeyboard(keyboard);
 }
 
 - (void)keyboardDisconnected:(NSNotification*)notification {
-    GCKeyboard* keyboard = reinterpret_cast<GCKeyboard*>(notification.object);
+    auto keyboard = reinterpret_cast<GCKeyboard*>(notification.object);
     _parent->RemoveKeyboard(keyboard);
 }
 
@@ -97,9 +95,7 @@ std::string GetDeviceName(id device) {
 
 } // namespace
 
-DeviceList::DeviceList() {
-    impl = [[DeviceListImpl alloc] initWithParent:this];
-}
+DeviceList::DeviceList() : impl([[DeviceListImpl alloc] initWithParent:this]) {}
 
 DeviceList::~DeviceList() { [impl release]; }
 

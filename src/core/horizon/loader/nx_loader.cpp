@@ -89,8 +89,8 @@ void NxLoader::ParseInfo() {
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
 
     std::string content;
-    content.resize(stream->GetSize());
-    stream->ReadToSpan(std::span(content));
+    content.resize(stream->getSize());
+    stream->readToSpan(std::span(content));
     const auto info = toml::parse_str(content);
     title_id = toml::find<u64>(info, "title_id");
 
@@ -107,13 +107,12 @@ void NxLoader::ParseNpdm() {
 
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
 
-    const auto meta = stream->Read<NpdmMeta>();
+    const auto meta = stream->read<NpdmMeta>();
 
     delete stream;
 
-    ASSERT_THROWING(meta.magic == make_magic4('M', 'E', 'T', 'A'), Loader,
-                    Error::InvalidNpdmMagic, "Invalid NPDM meta magic 0x{:08x}",
-                    meta.magic);
+    ASSERT(meta.magic == make_magic4('M', 'E', 'T', 'A'), Loader,
+           "Invalid NPDM meta magic 0x{:08x}", meta.magic);
 
     // TODO: support 32-bit games
     if (!any(meta.flags & NpdmFlags::Is64BitInstruction)) {
@@ -208,7 +207,7 @@ void NxLoader::FindIcon() {
 }
 
 void NxLoader::LoadCode(System& system, kernel::Process* process,
-                        filesystem::Directory* exefs_dir) {
+                        filesystem::Directory* exefs_dir) const {
     // HACK: if rtld is not present, use main as the entry point
     std::string entry_point = "rtld";
     filesystem::IEntry* e;
@@ -216,8 +215,8 @@ void NxLoader::LoadCode(System& system, kernel::Process* process,
         entry_point = "main";
 
     for (const auto& [filename, entry] : exefs_dir->GetEntries()) {
-        auto file = dynamic_cast<filesystem::IFile*>(entry);
-        ASSERT(file, Loader, "Code entry is not a file");
+        ASSERT(entry->IsFile(), Loader, "Code entry is not a file");
+        auto file = static_cast<filesystem::IFile*>(entry);
         if (filename == "main.npdm") {
             // Do nothing
         } else {

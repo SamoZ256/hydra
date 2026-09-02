@@ -1,9 +1,11 @@
 #pragma once
 
+#include <cstdlib>
+
 #include <fmt/ranges.h>
 
+#include "common/fmt_helper.hpp"
 #include "common/log.hpp"
-#include "common/platform.hpp"
 #include "common/types.hpp"
 
 #define CONFIG_INSTANCE Config::GetInstance()
@@ -91,9 +93,9 @@ class Config {
     void Log();
 
     // Paths
-    const std::string_view GetAppDataPath() const { return app_data_path; }
-    const std::string_view GetLogsPath() const { return logs_path; }
-    const std::string_view GetPicturesPath() const { return pictures_path; }
+    std::string_view GetAppDataPath() const { return app_data_path; }
+    std::string_view GetLogsPath() const { return logs_path; }
+    std::string_view GetPicturesPath() const { return pictures_path; }
 
     std::string GetConfigPath() const {
         return fmt::format("{}/config.toml", app_data_path);
@@ -104,7 +106,7 @@ class Config {
     static std::vector<LoaderPlugin> GetDefaultLoaderPlugins() { return {}; }
     static std::vector<std::string> GetDefaultPatchPaths() { return {}; }
     static InputBackend GetDefaultInputBackend() {
-#ifdef PLATFORM_APPLE
+#ifdef ZTD_PLATFORM_APPLE
         return InputBackend::AppleGameController;
 #else
         return InputBackend::Sdl;
@@ -121,7 +123,7 @@ class Config {
 #endif
     }
     static GpuRenderer GetDefaultGpuRenderer() {
-#ifdef PLATFORM_APPLE
+#ifdef ZTD_PLATFORM_APPLE
         return GpuRenderer::Metal;
 #else
         return GpuRenderer::Null;

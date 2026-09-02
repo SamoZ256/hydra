@@ -53,18 +53,11 @@ enum class ApFlags : u64 {
 constexpr u64 AP_FLAGS_MASK =
     (1ull << PNX_SHIFT) | (1ull << UXN_SHIFT) | (3ull << AP_SHIFT);
 
-enum class AllocateVmMemoryError {
-    AllocationFailed,
-    DeallocationFailed,
-};
-
-inline paddr_t AllocateVmMemory(u64 size) {
+inline uptr AllocateVmMemory(u64 size) {
     ASSERT_ALIGNMENT(size, APPLE_PAGE_SIZE, Hypervisor, "size")
 
     void* ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    ASSERT_THROWING(ptr != MAP_FAILED, Hypervisor,
-                    AllocateVmMemoryError::AllocationFailed,
-                    "Failed to allocate memory: {:#x}", errno);
+    ASSERT(ptr != MAP_FAILED, Hypervisor, "Failed to allocate memory: {:#x}", errno);
 
     return reinterpret_cast<uptr>(ptr);
 }
@@ -73,10 +66,7 @@ inline void FreeVmMemory(paddr_t addr, u64 size) {
     ASSERT_ALIGNMENT(size, APPLE_PAGE_SIZE, Hypervisor, "size")
 
     auto res = munmap(reinterpret_cast<void*>(addr), size);
-
-    ASSERT_THROWING(res == 0, Hypervisor,
-        AllocateVmMemoryError::DeallocationFailed,
-        "Failed to deallocate memory: {:#x}", res);
+    ASSERT(res == 0, Hypervisor, "Failed to deallocate memory: {:#x}", res);
 }
 
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor

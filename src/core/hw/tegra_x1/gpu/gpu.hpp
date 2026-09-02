@@ -9,6 +9,9 @@
 #include "core/hw/tegra_x1/gpu/pfifo.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/renderer.hpp"
 
+// TODO: remove dependency
+#include "core/horizon/handle_pool.hpp"
+
 namespace hydra::hw::tegra_x1::cpu {
 class IMmu;
 }
@@ -34,57 +37,46 @@ inline thread_local renderer::ICommandBuffer* tls_crnt_command_buffer = nullptr;
 
 class Gpu {
   public:
-    Gpu();
+    Gpu() noexcept;
+    ~Gpu() noexcept = default;
+
+    ZTD_MAKE_NON_COPYABLE(Gpu);
+    ZTD_MAKE_NON_MOVABLE(Gpu);
 
     // Memory map
-    u32 CreateMap(u64 size) {
-        handle_id_t handle_id = memory_maps.AllocateHandle();
-        MemoryMap& memory_map = memory_maps.Get(handle_id);
-        memory_map = {};
-        memory_map.size = size;
+    Handle CreateMap(u64 size) { return memory_maps.Insert(0, size).value(); }
 
-        // TODO: is this hack still needed?
-        // HACK: allocate one more index. Games are probably confused with
-        // handle IDs and IDs
-        memory_maps.AllocateHandle();
-
-        return handle_id;
+    void AllocateMap(Handle handle, uptr addr, bool write) {
+        // TODO: error?
+        ZTD_ASSIGN_OR_RETURN(auto memory_map, memory_maps.Get(handle));
+        memory_map->addr = addr;
+        memory_map->write = write;
     }
 
-    void AllocateMap(handle_id_t handle_id, uptr addr, bool write) {
-        MemoryMap& memory_map = memory_maps.Get(handle_id);
-        memory_map.addr = addr;
-        memory_map.write = write;
+    void FreeMap(Handle handle) {
+        ASSERT_DEBUG(memory_maps.Free(handle), Gpu, "Failed to free map {}",
+                     handle);
     }
 
-    void FreeMap(handle_id_t handle_id) { memory_maps.Free(handle_id); }
-
-    MemoryMap& GetMap(handle_id_t handle_id) {
-        return memory_maps.Get(handle_id);
+    std::optional<MemoryMap*> GetMap(Handle handle) {
+        return memory_maps.Get(handle);
     }
 
     // Engines
-    enum class GetEngineAtSubchannelError {
-        InvalidSubchannel,
-        NoEngineBound,
-    };
-    engines::EngineBase* GetEngineAtSubchannel(u32 subchannel) {
-        ASSERT_THROWING_DEBUG(subchannel <= SUBCHANNEL_COUNT, Gpu,
-                              GetEngineAtSubchannelError::InvalidSubchannel,
-                              "Invalid subchannel {}", subchannel);
-
-        auto engine = subchannels[subchannel];
-        ASSERT_THROWING_DEBUG(
-            engine, Gpu, GetEngineAtSubchannelError::NoEngineBound,
-            "Subchannel {} does not have a bound engine", subchannel);
-
-        return engine;
+    std::optional<engines::EngineBase*> GetEngineAtSubchannel(u32 subchannel) {
+        if (subchannel > SUBCHANNEL_COUNT)
+            return std::nullopt;
+        return subchannels[subchannel];
     }
 
     void SubchannelMethod(u32 subchannel, u32 method, u32 arg);
 
     void SubchannelFlushMacro(u32 subchannel) {
-        GetEngineAtSubchannel(subchannel)->FlushMacro();
+        const auto engine = GetEngineAtSubchannel(subchannel);
+        if (!engine)
+            LOG_FATAL(Gpu, "Invalid subchannel {}", subchannel);
+
+        (*engine)->FlushMacro();
     }
 
     // Texture
@@ -94,7 +86,7 @@ class Gpu {
 
     // Getters
     Pfifo& GetPfifo() { return pfifo; }
-    renderer::IRenderer& GetRenderer() const { return *renderer.get(); }
+    renderer::IRenderer& GetRenderer() const { return *renderer; }
 
   private:
     // Pfifo
@@ -106,13 +98,15 @@ class Gpu {
     engines::Inline inline_engine;
     engines::TwoD two_d_engine;
     engines::Copy copy_engine;
-    engines::EngineBase* subchannels[SUBCHANNEL_COUNT] = {nullptr};
+    std::optional<engines::EngineBase*> subchannels[SUBCHANNEL_COUNT] = {};
 
     // Renderer
     std::unique_ptr<renderer::IRenderer> renderer;
 
     // Memory
-    DynamicPool<MemoryMap> memory_maps;
+    // TODO: move to nvmap
+    // TODO: dynamic pool?
+    horizon::StaticHandlePool<MemoryMap, 2048> memory_maps;
 };
 
 } // namespace hydra::hw::tegra_x1::gpu

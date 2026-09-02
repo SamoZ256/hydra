@@ -33,13 +33,14 @@ class IAudioOutManager : public IService {
                      OutBuffer<BufferAttr::AutoSelect> out_device_name_buffer);
 
     // Impl
-    result_t ListAudioOutsImpl(u32* out_count, io::MemoryStream* out_stream);
-    result_t OpenAudioOutImpl(RequestContext* ctx, u32 sample_rate,
-                              u16 channel_count, u64 aruid,
-                              io::MemoryStream* in_device_name_stream,
-                              u32* out_sample_rate, u32* out_channel_count,
-                              PcmFormat* out_format, AudioOutState* out_state,
-                              io::MemoryStream* out_device_name_stream);
+    result_t ListAudioOutsImpl(u32* out_count,
+                               std::optional<ztd::io::MemoryStream> out_stream);
+    result_t OpenAudioOutImpl(
+        RequestContext* ctx, u32 sample_rate, u16 channel_count, u64 aruid,
+        std::optional<ztd::io::MemoryStream> in_device_name_stream,
+        u32* out_sample_rate, u32* out_channel_count, PcmFormat* out_format,
+        AudioOutState* out_state,
+        std::optional<ztd::io::MemoryStream> out_device_name_stream);
 };
 
 } // namespace hydra::horizon::services::audio

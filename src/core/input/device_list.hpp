@@ -6,10 +6,11 @@ namespace hydra::input {
 
 class IDeviceList {
   public:
-    virtual ~IDeviceList() {
-        for (auto [name, device] : devices)
-            delete device;
-    }
+    IDeviceList() noexcept = default;
+    virtual ~IDeviceList() noexcept = default;
+
+    ZTD_MAKE_NON_COPYABLE(IDeviceList);
+    ZTD_MAKE_NON_MOVABLE(IDeviceList);
 
     virtual void PumpEvents() {}
 
@@ -24,7 +25,6 @@ class IDeviceList {
         std::scoped_lock lock(mutex);
         const auto it = devices.find(name);
         ASSERT(it != devices.end(), Input, "{} not connected", name);
-        delete it->second;
         devices.erase(it);
         LOG_INFO(Input, "Device disconnected: {}", name);
     }
@@ -34,12 +34,12 @@ class IDeviceList {
         if (it == devices.end())
             return nullptr;
 
-        return it->second;
+        return it->second.get();
     }
 
   private:
     std::mutex mutex;
-    std::map<std::string, IDevice*, std::less<>> devices;
+    std::map<std::string, std::unique_ptr<IDevice>, std::less<>> devices;
 
   public:
     REF_GETTER(mutex, GetMutex);

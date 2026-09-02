@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/debugger/const.hpp"
+#include "core/debugger/gdb_server.hpp"
 
 namespace hydra {
 class System;
@@ -19,7 +19,7 @@ class IFile;
     if (!(condition)) {                                                        \
         /* TODO: log class? */                                                 \
         GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(                      \
-            f PASS_VA_ARGS(__VA_ARGS__));                                      \
+            f ZTD_PASS_VA_ARGS(__VA_ARGS__));                                  \
     }
 
 #ifdef HYDRA_DEBUG
@@ -33,7 +33,6 @@ class IFile;
 
 namespace hydra::debugger {
 
-class GdbServer;
 class Debugger;
 
 struct ResolvedStackFrame {
@@ -108,7 +107,7 @@ class Thread {
 
 struct Symbol {
     std::string name;
-    Range<vaddr_t> guest_mem_range;
+    ztd::Range<vaddr_t> guest_mem_range;
 };
 
 class SymbolTable {
@@ -117,7 +116,7 @@ class SymbolTable {
 
     std::string FindSymbol(vaddr_t addr) {
         for (const auto& symbol : symbols) {
-            if (symbol.guest_mem_range.Contains(addr))
+            if (symbol.guest_mem_range.contains(addr))
                 return symbol.name;
         }
 
@@ -138,7 +137,7 @@ class Debugger {
   public:
     Debugger(const std::string_view name_, horizon::kernel::Process* process_)
         : name{name_}, process{process_} {}
-    ~Debugger();
+    ~Debugger() noexcept = default;
 
     void RegisterExecutable(const std::string_view exe_name,
                             horizon::filesystem::IFile* executable) {
@@ -188,7 +187,7 @@ class Debugger {
     SymbolTable module_table;
     SymbolTable function_table;
 
-    GdbServer* gdb_server{nullptr};
+    std::optional<GdbServer> gdb_server;
 
     void LogOnThisThread(const LogMessage& msg);
     void BreakOnThisThreadImpl(const std::string_view reason);

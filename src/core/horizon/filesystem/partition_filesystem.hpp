@@ -21,7 +21,7 @@ struct HfsEntry {
     u32 string_offset;
     u32 hashed_region_size;
     u64 _reserved_x18;
-    u8 hash[0x20];
+    std::array<u8, 0x20> hash;
 };
 
 struct PfsHeader {
@@ -35,10 +35,6 @@ struct PfsHeader {
 
 class PartitionFilesystem final : public Directory {
   public:
-    enum class Error {
-        InvalidMagic,
-    };
-
     // HACK: need to use a method instead of a constructor, since we have a
     // template parameter
     template <bool is_hfs>
@@ -46,34 +42,32 @@ class PartitionFilesystem final : public Directory {
         auto stream = file->Open(FileOpenFlags::Read);
 
         // Header
-        const auto header = stream->Read<PfsHeader>();
+        const auto header = stream->read<PfsHeader>();
         if (!is_hfs) {
-            ASSERT_THROWING(header.magic == make_magic4('P', 'F', 'S', '0'),
-                            Filesystem, Error::InvalidMagic,
-                            "Invalid PFS0 magic 0x{:08x}", header.magic);
+            ASSERT(header.magic == make_magic4('P', 'F', 'S', '0'), Filesystem,
+                   "Invalid PFS0 magic 0x{:08x}", header.magic);
         } else {
-            ASSERT_THROWING(header.magic == make_magic4('H', 'F', 'S', '0'),
-                            Filesystem, Error::InvalidMagic,
-                            "Invalid HFS0 magic 0x{:08x}", header.magic);
+            ASSERT(header.magic == make_magic4('H', 'F', 'S', '0'), Filesystem,
+                   "Invalid HFS0 magic 0x{:08x}", header.magic);
         }
 
         using EntryType = std::conditional_t<is_hfs, HfsEntry, PfsEntry>;
 
         const u64 entries_offset = sizeof(PfsHeader);
         const u64 string_table_offset =
-            entries_offset + sizeof(EntryType) * header.entry_count;
+            entries_offset + (sizeof(EntryType) * header.entry_count);
         const u64 data_offset = string_table_offset + header.string_table_size;
 
         // String table
-        stream->SeekTo(string_table_offset);
+        stream->seekTo(string_table_offset);
         std::string string_table;
         string_table.resize(header.string_table_size);
-        stream->ReadToSpan(std::span(string_table));
+        stream->readToSpan(std::span(string_table));
 
         // Entries
-        stream->SeekTo(entries_offset);
+        stream->seekTo(entries_offset);
         for (u32 i = 0; i < header.entry_count; i++) {
-            const auto entry = stream->Read<EntryType>();
+            const auto entry = stream->read<EntryType>();
 
             const std::string entry_name(string_table.data() +
                                          entry.string_offset);

@@ -31,14 +31,14 @@ enum class InterruptType : u32 {
 };
 
 enum class SemaphoreReduction : u32 {
-    Imin,
-    Imax,
-    Ixor,
-    Iand,
-    Ior,
-    Iadd,
-    Inc,
-    Dec,
+    Imin = 0,
+    Imax = 1,
+    Ixor = 2,
+    Iand = 3,
+    Ior = 4,
+    Iadd = 5,
+    Inc = 6,
+    Dec = 7,
     Fadd = 10,
 };
 

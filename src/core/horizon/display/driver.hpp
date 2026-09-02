@@ -2,6 +2,7 @@
 
 #include "core/horizon/display/binder.hpp"
 #include "core/horizon/display/display.hpp"
+#include "core/horizon/handle_pool.hpp"
 
 namespace hydra::horizon::display {
 
@@ -10,12 +11,15 @@ class Driver {
     Driver(System& system_);
 
     // Displays
-    Display& GetDisplay(handle_id_t id) {
-        std::lock_guard lock(display_mutex);
-        return *display_pool.Get(id);
+    Display& GetDisplay(Handle handle) {
+        std::scoped_lock lock(display_mutex);
+        ZTD_ASSIGN_OR(auto display, display_pool.Get(handle),
+                      LOG_FATAL(Horizon, "Failed to get display {}", handle));
+        return *display;
     }
 
-    handle_id_t GetDisplayIDFromName(const std::string& name) {
+    Handle GetDisplayIDFromName(const std::string& name) {
+        (void)this;
         LOG_NOT_IMPLEMENTED(Horizon, "GetDisplayIDFromName (name: {})", name);
 
         // HACK
@@ -27,37 +31,42 @@ class Driver {
     }
 
     // Layers
-    u32 CreateLayer(kernel::Process* process, u32 binder_id) {
-        std::lock_guard lock(layer_mutex);
-        return layer_pool.Add(new Layer(system, process, binder_id));
+    Handle CreateLayer(kernel::Process* process, Handle binder_handle) {
+        std::scoped_lock lock(layer_mutex);
+        return layer_pool.Insert(std::ref(system), process, binder_handle)
+            .value();
     }
 
-    void DestroyLayer(u32 id) {
-        std::lock_guard lock(layer_mutex);
-        delete layer_pool.Get(id);
-        layer_pool.Free(id);
+    void DestroyLayer(Handle handle) {
+        std::scoped_lock lock(layer_mutex);
+        ASSERT_DEBUG(layer_pool.Free(handle), Horizon, "Invalid layer {}",
+                     handle);
     }
 
-    Layer& GetLayer(u32 id) {
-        std::lock_guard lock(layer_mutex);
-        return *layer_pool.Get(id);
+    Layer& GetLayer(Handle handle) {
+        std::scoped_lock lock(layer_mutex);
+        ZTD_ASSIGN_OR(auto layer, layer_pool.Get(handle),
+                      LOG_FATAL(Horizon, "Failed to get layer {}", handle));
+        return *layer;
     }
 
     // Binders
-    u32 CreateBinder() {
-        std::lock_guard lock(binder_mutex);
-        return binder_pool.Add(new Binder());
+    Handle CreateBinder() {
+        std::scoped_lock lock(binder_mutex);
+        return binder_pool.Insert().value();
     }
 
-    void DestroyBinder(u32 id) {
-        std::lock_guard lock(binder_mutex);
-        delete binder_pool.Get(id);
-        binder_pool.Free(id);
+    void DestroyBinder(Handle handle) {
+        std::scoped_lock lock(binder_mutex);
+        ASSERT_DEBUG(binder_pool.Free(handle), Horizon, "Invalid binder {}",
+                     handle);
     }
 
-    Binder& GetBinder(u32 id) {
-        std::lock_guard lock(binder_mutex);
-        return *binder_pool.Get(id);
+    Binder& GetBinder(Handle handle) {
+        std::scoped_lock lock(binder_mutex);
+        ZTD_ASSIGN_OR(auto binder, binder_pool.Get(handle),
+                      LOG_FATAL(Horizon, "Failed to get binder {}", handle));
+        return *binder;
     }
 
     // Presenting
@@ -74,11 +83,11 @@ class Driver {
     System& system;
 
     std::mutex display_mutex;
-    StaticPool<Display*, 8> display_pool;
+    StaticHandlePool<Display, 8> display_pool;
     std::mutex layer_mutex;
-    StaticPool<Layer*, 8> layer_pool;
+    StaticHandlePool<Layer, 8> layer_pool;
     std::mutex binder_mutex;
-    StaticPool<Binder*, 16> binder_pool;
+    StaticHandlePool<Binder, 16> binder_pool;
 };
 
 } // namespace hydra::horizon::display

@@ -8,22 +8,22 @@
 namespace hydra::horizon::kernel::hipc {
 
 Session::Session(ServerSession* server_side_, ClientSession* client_side_,
-                 const std::string_view debug_name)
-    : AutoObject(debug_name), server_side{server_side_}, client_side{
-                                                             client_side_} {
+                 std::string_view debug_name)
+    : AutoObject(TYPE_ID, debug_name), server_side{server_side_},
+      client_side{client_side_} {
     server_side->SetParent(this);
     client_side->SetParent(this);
 }
 
 void Session::OnServerClose() {
     server_side = nullptr;
-    if (client_side)
+    if (client_side != nullptr)
         client_side->OnServerClose();
 }
 
 void Session::OnClientClose() {
     client_side = nullptr;
-    if (server_side)
+    if (server_side != nullptr)
         server_side->OnClientClose();
 }
 

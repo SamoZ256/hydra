@@ -18,7 +18,7 @@ enum class FileSystemProxyType {
     RegisteredUpdate,
 };
 
-enum BisPartitionId : u32 {
+enum class BisPartitionId : u32 {
     BootPartition1Root = 0,
 
     BootPartition2Root = 10,
@@ -43,10 +43,10 @@ enum BisPartitionId : u32 {
 };
 
 enum class SaveDataFlags : u32 {
-    KeepAfterResettingSystemSaveData = BIT(0),
-    KeepAfterRefurbishment = BIT(1),
-    KeepAfterResettingSystemSaveDataWithoutUserSaveData = BIT(2),
-    NeedsSecureDelete = BIT(3),
+    KeepAfterResettingSystemSaveData = ZTD_BIT(0),
+    KeepAfterRefurbishment = ZTD_BIT(1),
+    KeepAfterResettingSystemSaveDataWithoutUserSaveData = ZTD_BIT(2),
+    NeedsSecureDelete = ZTD_BIT(3),
 };
 
 enum class SaveDataMetaType : u8 {
@@ -122,15 +122,15 @@ class IFileSystemProxy : public IService {
                                       SaveDataCreationInfo creation_info,
                                       SaveDataMetaInfo meta_info);
     result_t ReadSaveDataFileSystemExtraDataBySaveDataSpaceId(
-        aligned<SaveDataSpaceId, 8> space_id, u64 save_id,
+        Aligned<SaveDataSpaceId, 8> space_id, u64 save_id,
         OutBuffer<BufferAttr::MapAlias> out_buffer);
     result_t OpenSaveDataFileSystem(RequestContext* ctx, System* system,
                                     kernel::Process* process,
-                                    aligned<SaveDataSpaceId, 8> space_id,
+                                    Aligned<SaveDataSpaceId, 8> space_id,
                                     SaveDataAttribute attr);
     result_t OpenReadOnlySaveDataFileSystem(
         RequestContext* ctx, System* system, kernel::Process* process,
-        aligned<SaveDataSpaceId, 8> space_id, SaveDataAttribute attr);
+        Aligned<SaveDataSpaceId, 8> space_id, SaveDataAttribute attr);
     result_t OpenSaveDataInfoReaderBySaveDataSpaceId(RequestContext* ctx,
                                                      SaveDataSpaceId space_id);
     result_t OpenDataStorageByCurrentProcess(RequestContext* ctx,
@@ -139,7 +139,7 @@ class IFileSystemProxy : public IService {
     result_t OpenDataStorageByProgramId(RequestContext* ctx, System* system,
                                         u64 program_id);
     result_t OpenDataStorageByDataId(RequestContext* ctx, System* system,
-                                     aligned<ncm::StorageID, 8> storage_id,
+                                     Aligned<ncm::StorageID, 8> storage_id,
                                      u64 data_id);
     result_t OpenPatchDataStorageByCurrentProcess(RequestContext* ctx,
                                                   System* system);

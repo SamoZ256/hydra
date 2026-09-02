@@ -3,7 +3,7 @@
 namespace hydra::horizon::kernel::hipc {
 
 ServerSession* ServerPort::AcceptSession() {
-    std::lock_guard lock(mutex);
+    std::scoped_lock lock(mutex);
     ASSERT_DEBUG(!incomming_sessions.empty(), Kernel, "No incomming sessions");
     const auto session = incomming_sessions.front();
     incomming_sessions.pop();
@@ -16,7 +16,7 @@ ServerSession* ServerPort::AcceptSession() {
 }
 
 void ServerPort::ConnectSession(ServerSession* session) {
-    std::lock_guard lock(mutex);
+    std::scoped_lock lock(mutex);
     incomming_sessions.push(session);
 
     // Signal incomming session

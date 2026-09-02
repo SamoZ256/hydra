@@ -251,7 +251,6 @@ enum class NvKind : u32 {
     Invalid = 0xff,
 };
 
-// TODO: why do some formats have "_" in them?
 enum class NvColorFormat : u64 {
     Unspecified = 0x0000000000UL,
     NonColor8 = 0x0009200408UL,
@@ -531,25 +530,25 @@ enum class ImageFormat : u32 {
     Z24S8 = 0x29,
     X8Z24 = 0x2A,
     S8Z24 = 0x2B,
-    X4V4Z24__COV4R4V = 0x2C,
-    X4V4Z24__COV8R8V = 0x2D,
-    V8Z24__COV4R12V = 0x2E,
+    X4V4Z24_COV4R4V = 0x2C,
+    X4V4Z24_COV8R8V = 0x2D,
+    V8Z24_COV4R12V = 0x2E,
     ZF32 = 0x2F,
     ZF32_X24S8 = 0x30,
-    X8Z24_X20V4S8__COV4R4V = 0x31,
-    X8Z24_X20V4S8__COV8R8V = 0x32,
-    ZF32_X20V4X8__COV4R4V = 0x33,
-    ZF32_X20V4X8__COV8R8V = 0x34,
-    ZF32_X20V4S8__COV4R4V = 0x35,
-    ZF32_X20V4S8__COV8R8V = 0x36,
-    X8Z24_X16V8S8__COV4R12V = 0x37,
-    ZF32_X16V8X8__COV4R12V = 0x38,
-    ZF32_X16V8S8__COV4R12V = 0x39,
+    X8Z24_X20V4S8_COV4R4V = 0x31,
+    X8Z24_X20V4S8_COV8R8V = 0x32,
+    ZF32_X20V4X8_COV4R4V = 0x33,
+    ZF32_X20V4X8_COV8R8V = 0x34,
+    ZF32_X20V4S8_COV4R4V = 0x35,
+    ZF32_X20V4S8_COV8R8V = 0x36,
+    X8Z24_X16V8S8_COV4R12V = 0x37,
+    ZF32_X16V8X8_COV4R12V = 0x38,
+    ZF32_X16V8S8_COV4R12V = 0x39,
     Z16 = 0x3A,
-    V8Z24__COV8R24V = 0x3B,
-    X8Z24_X16V8S8__COV8R24V = 0x3C,
-    ZF32_X16V8X8__COV8R24V = 0x3D,
-    ZF32_X16V8S8__COV8R24V = 0x3E,
+    V8Z24_COV8R24V = 0x3B,
+    X8Z24_X16V8S8_COV8R24V = 0x3C,
+    ZF32_X16V8X8_COV8R24V = 0x3D,
+    ZF32_X16V8S8_COV8R24V = 0x3E,
     ASTC_2D_4X4 = 0x40,
     ASTC_2D_5X5 = 0x41,
     ASTC_2D_6X6 = 0x42,
@@ -682,6 +681,7 @@ enum class DepthSurfaceFormat : u32 {
     Z32S8C8X16Float = 0x1F,
 };
 
+#pragma pack(push, 1)
 struct NvSurface {
     u32 width;
     u32 height;
@@ -698,7 +698,7 @@ struct NvSurface {
     u64 flags;
     u64 size;
     u32 unk[6]; // compression related
-} PACKED;
+};
 
 struct NvGraphicsBuffer {
     i32 unk0;       // -1
@@ -718,7 +718,8 @@ struct NvGraphicsBuffer {
     u64 unused; // official sw writes a pointer to bookkeeping data here, but
                 // it's otherwise completely unused/overwritten during
                 // marshalling
-} PACKED;
+};
+#pragma pack(pop)
 
 struct Fence {
     u32 id;
@@ -727,14 +728,14 @@ struct Fence {
 
 enum class GpfifoFlags : u32 {
     None = 0,
-    FenceWait = BIT(0),
-    FenceGet = BIT(1),
-    HwFormat = BIT(2),
-    SyncFence = BIT(3),
-    SuppressWfi = BIT(4),
-    SkipBufferRefcounting = BIT(5),
+    FenceWait = ZTD_BIT(0),
+    FenceGet = ZTD_BIT(1),
+    HwFormat = ZTD_BIT(2),
+    SyncFence = ZTD_BIT(3),
+    SuppressWfi = ZTD_BIT(4),
+    SkipBufferRefcounting = ZTD_BIT(5),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(GpfifoFlags);
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(GpfifoFlags);
 
 struct GpfifoEntry {
     u64 gpu_addr_lo : 32;
@@ -1000,19 +1001,19 @@ ENABLE_ENUM_FORMATTING(
     E5BGR9_SHAREDEXP, "e5bgr9_sharedexp", B10GR11Float, "b10gr11float", GBGR8,
     "gbgr8", BGRG8, "bgrg8", DXT1, "dxt1", DXT23, "dxt23", DXT45, "dxt45", DXN1,
     "dxn1", DXN2, "dxn2", Z24S8, "z24s8", X8Z24, "x8z24", S8Z24, "s8z24",
-    X4V4Z24__COV4R4V, "x4v4z24__cov4r4v", X4V4Z24__COV8R8V, "x4v4z24__cov8r8v",
-    V8Z24__COV4R12V, "v8z24__cov4r12v", ZF32, "zf32", ZF32_X24S8, "zf32_x24s8",
-    X8Z24_X20V4S8__COV4R4V, "x8z24_x20v4s8__cov4r4v", X8Z24_X20V4S8__COV8R8V,
-    "x8z24_x20v4s8__cov8r8v", ZF32_X20V4X8__COV4R4V, "zf32_x20v4x8__cov4r4v",
-    ZF32_X20V4X8__COV8R8V, "zf32_x20v4x8__cov8r8v", ZF32_X20V4S8__COV4R4V,
-    "zf32_x20v4s8__cov4r4v", ZF32_X20V4S8__COV8R8V, "zf32_x20v4s8__cov8r8v",
-    X8Z24_X16V8S8__COV4R12V, "x8z24_x16v8s8__cov4r12v", ZF32_X16V8X8__COV4R12V,
-    "zf32_x16v8x8__cov4r12v", ZF32_X16V8S8__COV4R12V, "zf32_x16v8s8__cov4r12v",
-    Z16, "z16", V8Z24__COV8R24V, "v8z24__cov8r24v", X8Z24_X16V8S8__COV8R24V,
-    "x8z24_x16v8s8__cov8r24v", ZF32_X16V8X8__COV8R24V, "zf32_x16v8x8__cov8r24v",
-    ZF32_X16V8S8__COV8R24V, "zf32_x16v8s8__cov8r24v", ASTC_2D_4X4,
-    "astc_2d_4x4", ASTC_2D_5X5, "astc_2d_5x5", ASTC_2D_6X6, "astc_2d_6x6",
-    ASTC_2D_8X8, "astc_2d_8x8", ASTC_2D_10X10, "astc_2d_10x10", ASTC_2D_12X12,
+    X4V4Z24_COV4R4V, "x4v4z24__cov4r4v", X4V4Z24_COV8R8V, "x4v4z24__cov8r8v",
+    V8Z24_COV4R12V, "v8z24__cov4r12v", ZF32, "zf32", ZF32_X24S8, "zf32_x24s8",
+    X8Z24_X20V4S8_COV4R4V, "x8z24_x20v4s8__cov4r4v", X8Z24_X20V4S8_COV8R8V,
+    "x8z24_x20v4s8__cov8r8v", ZF32_X20V4X8_COV4R4V, "zf32_x20v4x8__cov4r4v",
+    ZF32_X20V4X8_COV8R8V, "zf32_x20v4x8__cov8r8v", ZF32_X20V4S8_COV4R4V,
+    "zf32_x20v4s8__cov4r4v", ZF32_X20V4S8_COV8R8V, "zf32_x20v4s8__cov8r8v",
+    X8Z24_X16V8S8_COV4R12V, "x8z24_x16v8s8__cov4r12v", ZF32_X16V8X8_COV4R12V,
+    "zf32_x16v8x8__cov4r12v", ZF32_X16V8S8_COV4R12V, "zf32_x16v8s8__cov4r12v",
+    Z16, "z16", V8Z24_COV8R24V, "v8z24__cov8r24v", X8Z24_X16V8S8_COV8R24V,
+    "x8z24_x16v8s8__cov8r24v", ZF32_X16V8X8_COV8R24V, "zf32_x16v8x8__cov8r24v",
+    ZF32_X16V8S8_COV8R24V, "zf32_x16v8s8__cov8r24v", ASTC_2D_4X4, "astc_2d_4x4",
+    ASTC_2D_5X5, "astc_2d_5x5", ASTC_2D_6X6, "astc_2d_6x6", ASTC_2D_8X8,
+    "astc_2d_8x8", ASTC_2D_10X10, "astc_2d_10x10", ASTC_2D_12X12,
     "astc_2d_12x12", ASTC_2D_5X4, "astc_2d_5x4", ASTC_2D_6X5, "astc_2d_6x5",
     ASTC_2D_8X6, "astc_2d_8x6", ASTC_2D_10X8, "astc_2d_10x8", ASTC_2D_12X10,
     "astc_2d_12x10", ASTC_2D_8X5, "astc_2d_8x5", ASTC_2D_10X5, "astc_2d_10x5",

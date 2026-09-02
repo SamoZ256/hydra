@@ -8,10 +8,6 @@ class IFile;
 
 class Directory : public IEntry {
   public:
-    enum class InitError {
-        NotADirectory,
-    };
-
     Directory() = default;
     Directory(const std::string_view host_path);
     ~Directory() override;
@@ -55,8 +51,8 @@ class Directory : public IEntry {
                           IEntry*& out_entry) const;
 
     // Helpers
-    void BreakPath(std::string_view path,
-                   std::vector<std::string_view>& out_path) const;
+    static void BreakPath(std::string_view path,
+                   std::vector<std::string_view>& out_path) ;
 };
 
 } // namespace hydra::horizon::filesystem

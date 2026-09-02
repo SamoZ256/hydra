@@ -20,7 +20,7 @@ if (FRONTEND STREQUAL "SDL3")
         sdl3/window.hpp
     )
 
-    target_link_libraries(hydra PRIVATE hydra_warnings SDL3::SDL3 "-framework Cocoa")
+    target_link_libraries(hydra PRIVATE hydra_compile_options SDL3::SDL3 "-framework Cocoa")
 elseif (FRONTEND STREQUAL "SwiftUI")
     message(STATUS "Using SwiftUI frontend")
 

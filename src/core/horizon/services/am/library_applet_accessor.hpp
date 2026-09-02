@@ -15,7 +15,7 @@ class IStorage;
 class ILibraryAppletAccessor : public IService {
   public:
     ILibraryAppletAccessor(const AppletId id, const LibraryAppletMode mode);
-    ~ILibraryAppletAccessor();
+    ~ILibraryAppletAccessor() override;
 
   protected:
     result_t RequestImpl([[maybe_unused]] RequestContext& context,

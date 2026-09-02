@@ -24,14 +24,14 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder {
 
 void Decoder::Decode() {
     crnt_block = &blocks[0x0];
-    while (crnt_block) {
+    while (crnt_block != nullptr) {
         ParseNextInstruction();
     }
 }
 
 void Decoder::ParseNextInstruction() {
     const u32 pc = GetPC();
-    const auto inst = context.code_stream->Read<instruction_t>();
+    const auto inst = context.code_stream->read<instruction_t>();
     if ((pc % 4) == 0) // Sched
         return;
 

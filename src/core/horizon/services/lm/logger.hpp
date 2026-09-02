@@ -10,6 +10,7 @@ struct Packet {
     std::string filename;
     std::string function;
     std::string module;
+    std::string process;
     std::string thread;
     u64 drop_count{0};
     u64 time{0};

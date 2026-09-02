@@ -1,10 +1,9 @@
 #include "core/horizon/loader/nso_loader.hpp"
 
-#include "common/elf.h"
-#include "common/lz4.hpp"
 #include "core/debugger/debugger_manager.hpp"
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/kernel/process.hpp"
+#include "elf.h"
 
 namespace hydra::horizon::loader {
 
@@ -13,14 +12,14 @@ namespace {
 enum class NsoFlags : u32 {
     None = 0,
 
-    TextCompressed = BIT(0),
-    RoCompressed = BIT(1),
-    DataCompressed = BIT(2),
-    TextHash = BIT(3),
-    RoHash = BIT(4),
-    DataHash = BIT(5),
+    TextCompressed = ZTD_BIT(0),
+    RoCompressed = ZTD_BIT(1),
+    DataCompressed = ZTD_BIT(2),
+    TextHash = ZTD_BIT(3),
+    RoHash = ZTD_BIT(4),
+    DataHash = ZTD_BIT(5),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(NsoFlags)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(NsoFlags)
 
 struct NsoHeader {
     u32 magic;
@@ -49,24 +48,24 @@ struct NsoHeader {
     u32 data_hash[0x8];
 };
 
-void read_segment(io::IStream* stream, uptr executable_mem_ptr,
+void read_segment(ztd::io::IStream* stream, uptr executable_mem_ptr,
                   const Segment& segment, const u64 segment_file_size,
                   bool is_compressed) {
     // Skip
-    stream->SeekTo(segment.file_offset);
+    stream->seekTo(segment.file_offset);
 
     u64 file_size = (is_compressed ? segment_file_size : segment.size);
 
     if (is_compressed) {
         // Decompress
         std::vector<u8> file(file_size);
-        stream->ReadToSpan(std::span(file));
-        DecompressLZ4(file,
-                      std::span(reinterpret_cast<u8*>(executable_mem_ptr +
-                                                      segment.memory_offset),
-                                segment.size));
+        stream->readToSpan(std::span(file));
+        ztd::compress::decompressLz4(
+            file, std::span(reinterpret_cast<u8*>(executable_mem_ptr +
+                                                  segment.memory_offset),
+                            segment.size));
     } else {
-        stream->ReadToSpan(std::span(
+        stream->readToSpan(std::span(
             reinterpret_cast<u8*>(executable_mem_ptr + segment.memory_offset),
             file_size));
     }
@@ -90,26 +89,29 @@ NsoLoader::NsoLoader(filesystem::IFile* file_, const std::string_view name_,
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
 
     // Header
-    const auto header = stream->Read<NsoHeader>();
-    ASSERT_THROWING(header.magic == make_magic4('N', 'S', 'O', '0'), Loader,
-                    Error::InvalidMagic, "Invalid NSO magic");
+    const auto header = stream->read<NsoHeader>();
+    ASSERT(header.magic == make_magic4('N', 'S', 'O', '0'), Loader,
+           "Invalid NSO magic");
 
     text_offset = header.text.memory_offset;
 
     // Segments
-    segments[0] = {header.text, header.text_file_size,
-                   any(header.flags & NsoFlags::TextCompressed)};
-    segments[1] = {header.ro, header.ro_file_size,
-                   any(header.flags & NsoFlags::RoCompressed)};
-    segments[2] = {header.data, header.data_file_size,
-                   any(header.flags & NsoFlags::DataCompressed)};
+    segments[0] = {.seg = header.text,
+                   .file_size = header.text_file_size,
+                   .compressed = any(header.flags & NsoFlags::TextCompressed)};
+    segments[1] = {.seg = header.ro,
+                   .file_size = header.ro_file_size,
+                   .compressed = any(header.flags & NsoFlags::RoCompressed)};
+    segments[2] = {.seg = header.data,
+                   .file_size = header.data_file_size,
+                   .compressed = any(header.flags & NsoFlags::DataCompressed)};
     segments[2].seg.size += header.bss_size;
 
     // Determine executable memory size
-    for (u32 i = 0; i < 3; i++) {
+    for (const auto& segment : segments) {
         executable_size = std::max(
-            executable_size, static_cast<u64>(segments[i].seg.memory_offset +
-                                              segments[i].seg.size));
+            executable_size,
+            static_cast<u64>(segment.seg.memory_offset + segment.seg.size));
     }
     LOG_DEBUG(Loader,
               "NSO: 0x{:08x} + 0x{:08x}, 0x{:08x} + 0x{:08x}, 0x{:08x} + "
@@ -135,21 +137,20 @@ void NsoLoader::LoadProcess(System& system, kernel::Process* process) {
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
 
     // Create executable memory
-    const auto set =
-        kernel::CodeSet{executable_size,
-                        Range<u64>::FromSize(segments[0].seg.memory_offset,
-                                             segments[0].seg.size),
-                        Range<u64>::FromSize(segments[1].seg.memory_offset,
+    const auto set = kernel::CodeSet{
+        .size = executable_size,
+        .code = ztd::Range<u64>::fromSize(segments[0].seg.memory_offset,
+                                          segments[0].seg.size),
+        .ro_data = ztd::Range<u64>::fromSize(segments[1].seg.memory_offset,
                                              segments[1].seg.size),
-                        Range<u64>::FromSize(segments[2].seg.memory_offset,
-                                             segments[2].seg.size)};
+        .data = ztd::Range<u64>::fromSize(segments[2].seg.memory_offset,
+                                          segments[2].seg.size)};
     vaddr_t base;
     auto ptr = process->CreateExecutableMemory(name, set, base);
     LOG_DEBUG(Loader, "Base: 0x{:08x}, size: 0x{:08x}", base, executable_size);
 
     // Segments
-    for (u32 i = 0; i < 3; i++) {
-        const auto& segment = segments[i];
+    for (const auto& segment : segments) {
         read_segment(stream, ptr, segment.seg, segment.file_size,
                      segment.compressed);
     }
@@ -207,10 +208,10 @@ void NsoLoader::LoadProcess(System& system, kernel::Process* process) {
         if (symbol.st_shndx != 0) {
             DEBUGGER_MANAGER_INSTANCE.GetDebugger(process)
                 .GetFunctionTable()
-                .RegisterSymbol(
-                    {demangle(std::string(symbol_name)),
-                     Range<vaddr_t>(base + symbol.st_value,
-                                    base + symbol.st_value + symbol.st_size)});
+                .RegisterSymbol({.name = demangle(std::string(symbol_name)),
+                                 .guest_mem_range = ztd::Range<vaddr_t>(
+                                     base + symbol.st_value,
+                                     base + symbol.st_value + symbol.st_size)});
         }
     }
 
@@ -223,13 +224,13 @@ void NsoLoader::LoadProcess(System& system, kernel::Process* process) {
         // Main thread
         auto main_thread = new kernel::GuestThread(
             system, process,
-            kernel::STACK_REGION.GetBegin() + main_thread_stack_size - 0x10,
+            kernel::STACK_REGION.getBegin() + main_thread_stack_size - 0x10,
             main_thread_priority);
-        const auto main_thread_handle_id = process->SetMainThread(main_thread);
+        const auto main_thread_handle = process->SetMainThread(main_thread);
 
         main_thread->SetEntryPoint(base + text_offset);
         main_thread->SetArg(0, 0x0);
-        main_thread->SetArg(1, main_thread_handle_id);
+        main_thread->SetArg(1, main_thread_handle.GetRaw());
     }
 }
 

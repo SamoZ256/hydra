@@ -6,69 +6,52 @@
 
 namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
-void Mmu::Map(vaddr_t dst_va, Range<uptr> range,
+void Mmu::Map(vaddr_t dst_va, ztd::Range<uptr> range,
               const horizon::kernel::MemoryState state) {
-    ASSERT_ALIGNMENT(range.GetSize(), GUEST_PAGE_SIZE, Dynarmic, "size");
+    ASSERT_ALIGNMENT(range.getSize(), GUEST_PAGE_SIZE, Dynarmic, "size");
 
     u64 va_page = dst_va / GUEST_PAGE_SIZE;
-    u64 size_page = range.GetSize() / GUEST_PAGE_SIZE;
+    u64 size_page = range.getSize() / GUEST_PAGE_SIZE;
     u64 va_page_end = va_page + size_page;
     for (u64 page = va_page; page < va_page_end; ++page) {
-        auto page_ptr = range.GetBegin() + ((page - va_page) * GUEST_PAGE_SIZE);
+        auto page_ptr = range.getBegin() + ((page - va_page) * GUEST_PAGE_SIZE);
         pages[page] = page_ptr;
         states[page] = state;
     }
 }
 
-void Mmu::Map(vaddr_t dst_va, Range<vaddr_t> range) {
-    ASSERT_ALIGNMENT(range.GetBegin(), GUEST_PAGE_SIZE, Dynarmic, "begin");
-    ASSERT_ALIGNMENT(range.GetEnd(), GUEST_PAGE_SIZE, Dynarmic, "end");
+void Mmu::Map(vaddr_t dst_va, ztd::Range<vaddr_t> range) {
+    ASSERT_ALIGNMENT(range.getBegin(), GUEST_PAGE_SIZE, Dynarmic, "begin");
+    ASSERT_ALIGNMENT(range.getEnd(), GUEST_PAGE_SIZE, Dynarmic, "end");
 
-    auto src_page = range.GetBegin() / GUEST_PAGE_SIZE;
+    auto src_page = range.getBegin() / GUEST_PAGE_SIZE;
     auto dst_page = dst_va / GUEST_PAGE_SIZE;
-    for (u64 i = 0; i < range.GetSize() / GUEST_PAGE_SIZE; i++) {
+    for (u64 i = 0; i < range.getSize() / GUEST_PAGE_SIZE; i++) {
         pages[dst_page + i] = pages[src_page + i];
         states[dst_page + i] = states[src_page + i];
     }
 }
 
-void Mmu::Unmap(Range<vaddr_t> range) {
-    ASSERT_ALIGNMENT(range.GetBegin(), GUEST_PAGE_SIZE, Dynarmic, "begin");
-    ASSERT_ALIGNMENT(range.GetEnd(), GUEST_PAGE_SIZE, Dynarmic, "end");
+void Mmu::Unmap(ztd::Range<vaddr_t> range) {
+    ASSERT_ALIGNMENT(range.getBegin(), GUEST_PAGE_SIZE, Dynarmic, "begin");
+    ASSERT_ALIGNMENT(range.getEnd(), GUEST_PAGE_SIZE, Dynarmic, "end");
 
-    for (u64 page = range.GetBegin() / GUEST_PAGE_SIZE;
-         page < range.GetEnd() / GUEST_PAGE_SIZE; ++page) {
+    for (u64 page = range.getBegin() / GUEST_PAGE_SIZE;
+         page < range.getEnd() / GUEST_PAGE_SIZE; ++page) {
         pages[page] = 0x0;
         states[page] = {.type = horizon::kernel::MemoryType::Free};
     }
 }
 
 // TODO: actually protect the memory
-void Mmu::Protect(Range<vaddr_t> range,
+void Mmu::Protect(ztd::Range<vaddr_t> range,
                   horizon::kernel::MemoryPermission perm) {
-    ASSERT_ALIGNMENT(range.GetBegin(), GUEST_PAGE_SIZE, Dynarmic, "begin");
-    ASSERT_ALIGNMENT(range.GetEnd(), GUEST_PAGE_SIZE, Dynarmic, "end");
+    ASSERT_ALIGNMENT(range.getBegin(), GUEST_PAGE_SIZE, Dynarmic, "begin");
+    ASSERT_ALIGNMENT(range.getEnd(), GUEST_PAGE_SIZE, Dynarmic, "end");
 
-    for (u64 page = range.GetBegin() / GUEST_PAGE_SIZE;
-         page < range.GetEnd() / GUEST_PAGE_SIZE; ++page) {
+    for (u64 page = range.getBegin() / GUEST_PAGE_SIZE;
+         page < range.getEnd() / GUEST_PAGE_SIZE; ++page) {
         states[page].perm = perm;
-    }
-}
-
-void Mmu::ResizeHeap(IMemory* heap_mem, vaddr_t va, u64 size) {
-    auto mem_impl = static_cast<Memory*>(heap_mem);
-
-    mem_impl->Resize(size);
-
-    auto memory_ptr = mem_impl->GetPtr();
-
-    u64 va_page = va / GUEST_PAGE_SIZE;
-    u64 size_page = size / GUEST_PAGE_SIZE;
-    u64 va_page_end = va_page + size_page;
-    for (u64 page = va_page; page < va_page_end; ++page) {
-        auto page_ptr = memory_ptr + ((page - va_page) * GUEST_PAGE_SIZE);
-        pages[page] = page_ptr;
-        states[page] = states[va_page];
     }
 }
 
@@ -98,14 +81,14 @@ MemoryRegion Mmu::QueryRegion(vaddr_t va) const {
     };
 }
 
-void Mmu::SetMemoryAttribute(Range<vaddr_t> range,
+void Mmu::SetMemoryAttribute(ztd::Range<vaddr_t> range,
                              horizon::kernel::MemoryAttribute mask,
                              horizon::kernel::MemoryAttribute value) {
-    ASSERT_ALIGNMENT(range.GetBegin(), GUEST_PAGE_SIZE, Dynarmic, "begin");
-    ASSERT_ALIGNMENT(range.GetEnd(), GUEST_PAGE_SIZE, Dynarmic, "end");
+    ASSERT_ALIGNMENT(range.getBegin(), GUEST_PAGE_SIZE, Dynarmic, "begin");
+    ASSERT_ALIGNMENT(range.getEnd(), GUEST_PAGE_SIZE, Dynarmic, "end");
 
-    for (u64 page = range.GetBegin() / GUEST_PAGE_SIZE;
-         page < range.GetEnd() / GUEST_PAGE_SIZE; ++page) {
+    for (u64 page = range.getBegin() / GUEST_PAGE_SIZE;
+         page < range.getEnd() / GUEST_PAGE_SIZE; ++page) {
         auto& state = states[page];
         state.attr = (state.attr & ~mask) | (value & mask);
     }

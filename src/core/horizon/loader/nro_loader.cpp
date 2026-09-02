@@ -47,12 +47,11 @@ NroLoader::NroLoader(filesystem::IFile* file_, const bool is_entry_point_)
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
 
     // Header
-    const auto header = stream->Read<NroHeader>();
+    const auto header = stream->read<NroHeader>();
 
     // Validate
-    ASSERT_THROWING(header.magic == make_magic4('N', 'R', 'O', '0'), Loader,
-                    Error::InvalidMagic, "Invalid NRO magic \"{}\"",
-                    header.magic);
+    ASSERT(header.magic == make_magic4('N', 'R', 'O', '0'), Loader,
+           "Invalid NRO magic \"{}\"", header.magic);
 
     size = header.size;
     sections[0] = header.GetSection(NroSectionType::Text);
@@ -70,15 +69,17 @@ void NroLoader::LoadProcess(System& system, kernel::Process* process) {
     // Create executable memory
     // TODO: is the size correct?
     const auto set = kernel::CodeSet{
-        GetExecutableSize() + 0x1000, // HACK: one extra page
-        Range<u64>::FromSize(sections[0].offset, sections[0].size),
-        Range<u64>::FromSize(sections[1].offset, sections[1].size),
-        Range<u64>::FromSize(sections[2].offset, sections[2].size)};
+        .size = GetExecutableSize() + 0x1000, // HACK: one extra page
+        .code = ztd::Range<u64>::fromSize(sections[0].offset, sections[0].size),
+        .ro_data =
+            ztd::Range<u64>::fromSize(sections[1].offset, sections[1].size),
+        .data =
+            ztd::Range<u64>::fromSize(sections[2].offset, sections[2].size)};
     // TODO: module name
     executable_ptr =
         process->CreateExecutableMemory("main.nro", set, executable_base);
-    stream->SeekTo(0);
-    stream->ReadToSpan(std::span(reinterpret_cast<u8*>(executable_ptr), size));
+    stream->seekTo(0);
+    stream->readToSpan(std::span(reinterpret_cast<u8*>(executable_ptr), size));
 
     // Debug symbols
     // TODO

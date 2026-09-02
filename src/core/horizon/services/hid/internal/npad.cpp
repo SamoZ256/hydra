@@ -128,7 +128,7 @@ void Npad::Setup(NpadStyleSet style_set) {
         state.applet_footer_ui_type = AppletFooterUiType::None;
         break;
     default:
-        throw Error::InvalidStyleSet;
+        LOG_FATAL(Services, "Unsupported style set {}", style_set);
     }
 }
 

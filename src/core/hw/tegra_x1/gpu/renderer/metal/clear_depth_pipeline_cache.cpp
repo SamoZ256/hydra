@@ -56,7 +56,7 @@ ClearDepthPipelineCache::Create(MTL::PixelFormat pixel_format) {
 
     NS::Error* error;
     auto pipeline = device->newRenderPipelineState(pipeline_descriptor, &error);
-    if (error) {
+    if (error != nullptr) {
         LOG_ERROR(MetalRenderer, "Failed to create clear depth pipeline: {}",
                   error->localizedDescription()->utf8String());
         return nullptr;

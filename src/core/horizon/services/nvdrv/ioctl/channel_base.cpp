@@ -45,7 +45,7 @@ NvResult ChannelBase::SetSubmitTimeout(u32 timeout) {
 
 NvResult ChannelBase::MapCmdBuffer(u32 num_handles,
                                    [[maybe_unused]] u32 _reserved_x4,
-                                   aligned<bool, 4> is_compressed,
+                                   Aligned<bool, 4> is_compressed,
                                    const MapCmdBufferHandle* handles) {
     std::span<const MapCmdBufferHandle> handle_span(handles, num_handles);
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "is compressed: {}, handles: [{}]",
@@ -55,7 +55,7 @@ NvResult ChannelBase::MapCmdBuffer(u32 num_handles,
 
 NvResult ChannelBase::UnmapCmdBuffer(u32 num_handles,
                                      [[maybe_unused]] u32 _reserved_x4,
-                                     aligned<bool, 4> is_compressed,
+                                     Aligned<bool, 4> is_compressed,
                                      const UnmapCmdBufferHandle* handles) {
     std::span<const UnmapCmdBufferHandle> handle_span(handles, num_handles);
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "is compressed: {}, handles: [{}]",

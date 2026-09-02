@@ -16,10 +16,10 @@ void AppletBase::Start(System& system) {
 
     // TODO: create process
 
-    thread = new std::thread([&]() {
+    thread.emplace([&]() {
         GET_CURRENT_PROCESS_DEBUGGER().RegisterThisThread("Applet");
         result = Run(system);
-        controller.GetStateChangedEvent()->Signal();
+        controller.GetStateChangedEvent().Signal();
         GET_CURRENT_PROCESS_DEBUGGER().UnregisterThisThread();
     });
 }

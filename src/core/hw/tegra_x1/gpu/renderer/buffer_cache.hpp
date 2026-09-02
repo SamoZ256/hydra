@@ -13,8 +13,8 @@ class IRenderer;
 // TODO: also release the buffer
 struct BufferEntry {
     BufferBase* buffer{nullptr};
-    Range<uptr> range;
-    std::optional<Range<uptr>> invalidation_range{};
+    ztd::Range<uptr> range;
+    std::optional<ztd::Range<uptr>> invalidation_range;
     bool inline_copy{false}; // TODO: implement
 };
 
@@ -24,9 +24,9 @@ class BufferCache {
     BufferCache(IRenderer& renderer_) : renderer{renderer_} {}
     ~BufferCache();
 
-    BufferView Get(ICommandBuffer* command_buffer, Range<uptr> range);
+    BufferView Get(ICommandBuffer* command_buffer, ztd::Range<uptr> range);
 
-    void InvalidateMemory(Range<uptr> range);
+    void InvalidateMemory(ztd::Range<uptr> range);
 
   private:
     IRenderer& renderer;
@@ -36,8 +36,8 @@ class BufferCache {
 
     // Helpers
     void UpdateRange(ICommandBuffer* command_buffer, BufferEntry& entry,
-                     Range<uptr> range);
-    BufferEntry& Find(Range<uptr> range);
+                     ztd::Range<uptr> range);
+    BufferEntry& Find(ztd::Range<uptr> range);
 
   public:
     REF_GETTER(mutex, GetMutex);

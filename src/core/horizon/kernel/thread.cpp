@@ -5,17 +5,14 @@
 
 namespace hydra::horizon::kernel {
 
-IThread::~IThread() {
-    if (thread) {
-        // Request stop
-        state = ThreadState::Stopping;
-        thread->join();
-        delete thread;
+IThread::~IThread() noexcept {
+    if (!IsStoppingOrStopped()) {
+        Stop();
     }
 }
 
 void IThread::Start() {
-    thread = new std::thread([&]() {
+    thread = std::jthread([&]() {
         tls_current_thread = this;
 
         GET_CURRENT_PROCESS_DEBUGGER().RegisterThisThread(GetDebugName());
@@ -64,7 +61,7 @@ bool IThread::ProcessMessages(i64 pause_timeout_ns) {
 }
 
 void IThread::SendMessage(ThreadMessage msg) {
-    std::lock_guard lock(msg_mutex);
+    std::scoped_lock lock(msg_mutex);
     msg_queue.push(msg);
     msg_cv.notify_all(); // TODO: notify one?
 }
@@ -110,31 +107,33 @@ bool IThread::ProcessMessagesImpl() {
 }
 
 void IThread::AddMutexWaiter(IThread* waiter) {
-    std::lock_guard<std::mutex> lock(mutex_wait_mutex);
-    mutex_wait_list.AddLast(waiter);
+    std::scoped_lock lock(mutex_wait_mutex);
+    ASSERT_DEBUG(mutex_wait_list.addLast(waiter).has_value(), Kernel,
+                 "Failed to add mutex waiter");
 }
 
 void IThread::RemoveMutexWaiter(IThread* waiter) {
-    std::lock_guard<std::mutex> lock(mutex_wait_mutex);
-    mutex_wait_list.Remove(waiter);
+    std::scoped_lock lock(mutex_wait_mutex);
+    mutex_wait_list.remove(waiter);
 }
 
 IThread* IThread::RelinquishMutex(uptr mutex_addr, u32& out_waiter_count) {
-    std::lock_guard<std::mutex> lock(mutex_wait_mutex);
+    std::scoped_lock lock(mutex_wait_mutex);
 
     // Find a new owner
     IThread* new_owner = nullptr;
     out_waiter_count = 0;
-    for (auto waiter_node = mutex_wait_list.GetHead();
-         waiter_node != nullptr;) {
-        auto waiter = waiter_node->Get();
+    for (auto waiter_node = mutex_wait_list.getHead();
+         waiter_node.has_value();) {
+        const auto waiter_node_ = waiter_node.value();
+        auto waiter = waiter_node_->get();
         if (waiter->mutex_wait_addr != mutex_addr) {
-            waiter_node = waiter_node->GetNext();
+            waiter_node = waiter_node_->getNext();
             continue;
         }
 
-        waiter_node = mutex_wait_list.Remove(waiter_node);
-        if (new_owner) {
+        waiter_node = mutex_wait_list.remove(waiter_node_);
+        if (new_owner != nullptr) {
             new_owner->AddMutexWaiter(waiter);
             out_waiter_count++;
         } else {
@@ -146,8 +145,16 @@ IThread* IThread::RelinquishMutex(uptr mutex_addr, u32& out_waiter_count) {
     return new_owner;
 }
 
-IThread* GetMutexOwner(Process* process, u32 mutex) {
-    return process->GetHandle<IThread>(mutex & ~MUTEX_WAIT_MASK);
+std::optional<IThread*> GetMutexOwner(Process* process, u32 mutex) {
+    // HACK
+    const auto thread = process->GetHandle<IThread>(mutex & ~MUTEX_WAIT_MASK);
+    return (thread != nullptr ? std::make_optional(thread) : std::nullopt);
+}
+
+std::optional<IThread*> GetMutexOwner(Process* process, u32* mutex_ptr) {
+    if (mutex_ptr == nullptr)
+        return std::nullopt;
+    return GetMutexOwner(process, atomic_load(mutex_ptr));
 }
 
 } // namespace hydra::horizon::kernel

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/horizon/loader/loader_base.hpp"
+#include "core/horizon/loader/loader.hpp"
 
 namespace hydra::horizon::loader {
 
@@ -9,12 +9,8 @@ struct NroSection {
     u32 size;
 };
 
-class NroLoader : public LoaderBase {
+class NroLoader : public ILoader {
   public:
-    enum class Error {
-        InvalidMagic,
-    };
-
     NroLoader(filesystem::IFile* file_, const bool is_entry_point_);
 
     void LoadProcess(System& system, kernel::Process* process) override;

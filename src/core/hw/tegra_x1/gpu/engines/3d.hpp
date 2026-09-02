@@ -177,10 +177,10 @@ enum class ViewportZClip : u32 {
 
 enum class WindowOriginFlags : u32 {
     None = 0,
-    LowerLeft = BIT(0),
-    FlipY = BIT(4), // Only for the purpose of figuring out polygon winding
+    LowerLeft = ZTD_BIT(0),
+    FlipY = ZTD_BIT(4), // Only for the purpose of figuring out polygon winding
 };
-ENABLE_ENUM_BITWISE_OPERATORS(WindowOriginFlags)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(WindowOriginFlags)
 
 enum class ViewportSwizzle : u32 {
     PositiveX = 0,
@@ -523,7 +523,7 @@ struct Regs3D {
         u32 padding1;
         u32 num_registers;
         u32 padding2[0xc];
-    } shader_programs[u32(ShaderStage::Count)];
+    } shader_programs[static_cast<u32>(ShaderStage::Count)];
 
     u32 padding_0x860[0x80];
 
@@ -544,7 +544,7 @@ struct Regs3D {
 
     // 0xd00
     u32 mme_scratch[0x80];
-} PACKED;
+};
 
 class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
   public:
@@ -571,8 +571,9 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
         renderer::ShaderType::Count)] = {nullptr};
 
     // State
-    Range<uptr> bound_const_buffers[static_cast<usize>(ShaderStage::Count) - 1]
-                                   [CONST_BUFFER_BINDING_COUNT];
+    ztd::Range<uptr>
+        bound_const_buffers[static_cast<usize>(ShaderStage::Count) - 1]
+                           [CONST_BUFFER_BINDING_COUNT];
 
     // Methods
     DEFINE_INLINE_ENGINE_METHODS;

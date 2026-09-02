@@ -13,9 +13,9 @@ ApplicationControlProperty::GetApplicationTitle(SystemLanguage lang) const {
         return titles[index];
 
     // Otherwise just return the first valid title
-    for (u32 i = 0; i < sizeof_array(titles); i++) {
-        if (titles[i].IsValid())
-            return titles[i];
+    for (const auto& title : titles) {
+        if (title.IsValid())
+            return title;
     }
 
     // Fallback to the first title

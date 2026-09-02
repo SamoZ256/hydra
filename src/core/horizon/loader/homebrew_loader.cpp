@@ -35,7 +35,7 @@ enum class ConfigEntryType : u32 {
 
 enum class ConfigEntryFlag : u32 {
     None = 0,
-    IsMandatory = BIT(0),
+    IsMandatory = ZTD_BIT(0),
 };
 
 struct ConfigEntry {
@@ -50,7 +50,7 @@ class HomebrewThread : public kernel::GuestThread {
     HomebrewThread(System& system_, kernel::Process* process,
                    std::string_view path_)
         : kernel::GuestThread(system_, process,
-                              kernel::STACK_REGION.GetBegin() +
+                              kernel::STACK_REGION.getBegin() +
                                   STACK_MEMORY_SIZE - 0x10,
                               0x2c, "Homebrew thread"),
           system{system_}, path{path_} {}
@@ -154,11 +154,12 @@ class HomebrewThread : public kernel::GuestThread {
     ADD_ENTRY(t, IsMandatory, value0, value1)
 
                 // Entries
-                ConfigEntry* entry = reinterpret_cast<ConfigEntry*>(
-                    executable_ptr + config_offset);
+                auto entry = reinterpret_cast<ConfigEntry*>(executable_ptr +
+                                                            config_offset);
 
-                ADD_ENTRY_OPTIONAL(MainThreadHandle, self_handle, 0);
-                ADD_ENTRY_OPTIONAL(ProcessHandle, self_process_handle, 0);
+                ADD_ENTRY_OPTIONAL(MainThreadHandle, self_handle.GetRaw(), 0);
+                ADD_ENTRY_OPTIONAL(ProcessHandle, self_process_handle.GetRaw(),
+                                   0);
                 ADD_ENTRY_OPTIONAL(
                     AppletType,
                     static_cast<u64>(kernel::AppletType::Application), 0);
@@ -176,11 +177,11 @@ class HomebrewThread : public kernel::GuestThread {
                 ADD_ENTRY_OPTIONAL(RandomSeed, gen(), gen());
                 ADD_ENTRY_OPTIONAL(UserIdStorage,
                                    state_base + USER_ID_STORAGE_OFFSET, 0);
-                ADD_ENTRY_OPTIONAL(HosVersion,
-                                   BIT(31) | (FIRMWARE_VERSION.major << 16) |
-                                       (FIRMWARE_VERSION.minor << 8) |
-                                       FIRMWARE_VERSION.micro,
-                                   0x41544d4f53504852ul); // "ATMOSPHR"
+                ADD_ENTRY_OPTIONAL(
+                    HosVersion,
+                    ZTD_BIT(31) | (FIRMWARE_VERSION.major << 16) |
+                        (FIRMWARE_VERSION.minor << 8) | FIRMWARE_VERSION.micro,
+                    0x41544d4f53504852ul); // "ATMOSPHR"
                 ADD_ENTRY_OPTIONAL(EndOfList, state_base + NOTICE_TEXT_OFFSET,
                                    sizeof(NOTICE_TEXT));
 
@@ -222,7 +223,7 @@ class HomebrewThread : public kernel::GuestThread {
     System& system;
     std::string path;
 
-    handle_id_t self_handle{INVALID_HANDLE_ID};
+    Handle self_handle{INVALID_HANDLE};
 
   public:
     SETTER(self_handle, SetSelfHandle);
@@ -242,10 +243,10 @@ void HomebrewLoader::LoadProcess(System& system, kernel::Process* process) {
     auto stream = nacp_file->Open(filesystem::FileOpenFlags::Read);
 
     // Create a virtual filename
-    const auto nacp = stream->Read<services::ns::ApplicationControlProperty>();
+    const auto nacp = stream->read<services::ns::ApplicationControlProperty>();
     std::string title_name =
         nacp.GetApplicationTitle(SystemLanguage::AmericanEnglish).name;
-    std::replace(title_name.begin(), title_name.end(), ' ', '_');
+    std::ranges::replace(title_name, ' ', '_');
 
     delete stream;
 
@@ -262,8 +263,8 @@ void HomebrewLoader::LoadProcess(System& system, kernel::Process* process) {
 
     // Main thread
     auto main_thread = new HomebrewThread(system, process, mapped_path);
-    const auto main_thread_handle_id = process->SetMainThread(main_thread);
-    main_thread->SetSelfHandle(main_thread_handle_id);
+    const auto main_thread_handle = process->SetMainThread(main_thread);
+    main_thread->SetSelfHandle(main_thread_handle);
 }
 
 namespace {
@@ -291,7 +292,7 @@ void HomebrewLoader::TryLoadAssetSection(filesystem::IFile* asset_file) {
     auto stream = asset_file->Open(filesystem::FileOpenFlags::Read);
 
     // Header
-    const auto header = stream->Read<AssetHeader>();
+    const auto header = stream->read<AssetHeader>();
     // TODO: is this the correct way to check if the asset section is present?
     if (header.magic != make_magic4('A', 'S', 'E', 'T')) {
         LOG_WARN(Loader, "Asset section not found");

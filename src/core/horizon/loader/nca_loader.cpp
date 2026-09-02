@@ -11,8 +11,8 @@
 
 namespace hydra::horizon::loader {
 
-NcaLoader::NcaLoader(const filesystem::ContentArchive& content_archive_)
-    : content_archive{content_archive_} {
+NcaLoader::NcaLoader(filesystem::ContentArchive content_archive_)
+    : content_archive{std::move(content_archive_)} {
     // Nintendo logo
     auto res = content_archive.GetFile(NINTENDO_LOGO_PATH, nintendo_logo_file);
     if (res != filesystem::FsResult::Success)
@@ -38,13 +38,12 @@ NcaLoader::NcaLoader(const filesystem::ContentArchive& content_archive_)
 
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
 
-    const auto meta = stream->Read<NpdmMeta>();
+    const auto meta = stream->read<NpdmMeta>();
 
     delete stream;
 
-    ASSERT_THROWING(meta.magic == make_magic4('M', 'E', 'T', 'A'), Loader,
-                    Error::InvalidNpdmMagic, "Invalid NPDM meta magic 0x{:08x}",
-                    meta.magic);
+    ASSERT(meta.magic == make_magic4('M', 'E', 'T', 'A'), Loader,
+           "Invalid NPDM meta magic 0x{:08x}", meta.magic);
 
     // TODO: support 32-bit games
     if (!any(meta.flags & NpdmFlags::Is64BitInstruction)) {
@@ -92,7 +91,7 @@ void NcaLoader::LoadProcess(System& system, kernel::Process* process) {
 }
 
 void NcaLoader::LoadCode(System& system, kernel::Process* process,
-                         filesystem::Directory* dir) {
+                         filesystem::Directory* dir) const {
     // HACK: if rtld is not present, use main as the entry point
     std::string entry_point = "rtld";
     filesystem::IEntry* e;
@@ -100,8 +99,8 @@ void NcaLoader::LoadCode(System& system, kernel::Process* process,
         entry_point = "main";
 
     for (const auto& [filename, entry] : dir->GetEntries()) {
-        auto file = dynamic_cast<filesystem::IFile*>(entry);
-        ASSERT(file, Loader, "Code entry is not a file");
+        ASSERT(entry->IsFile(), Loader, "Code entry is not a file");
+        auto file = static_cast<filesystem::IFile*>(entry);
         if (filename == "main.npdm") {
             // Do nothing
         } else {

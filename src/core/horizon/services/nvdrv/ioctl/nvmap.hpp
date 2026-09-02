@@ -20,16 +20,16 @@ class NvMap : public FdBase {
 
   private:
     // Ioctls
-    NvResult Create(System* system, u32 size, handle_id_t* out_handle_id);
-    NvResult FromId(u32 id, handle_id_t* out_handle_id);
-    NvResult Alloc(System* system, handle_id_t handle_id, u32 heap_mask,
-                   u32 flags, InOutSingle<u32> inout_alignment,
-                   aligned<u8, 8> kind, gpu_vaddr_t addr);
-    NvResult Free(System* system, aligned<handle_id_t, 8> handle_id,
+    NvResult Create(System* system, u32 size, Handle* out_handle);
+    NvResult FromId(u32 id, Handle* out_handle);
+    NvResult Alloc(System* system, Handle handle, u32 heap_mask, u32 flags,
+                   InOutSingle<u32> inout_alignment, Aligned<u8, 8> kind,
+                   gpu_vaddr_t addr);
+    NvResult Free(System* system, Aligned<Handle, 8> handle,
                   gpu_vaddr_t* out_addr, u64* out_size, u32* out_flags);
-    NvResult Param(System* system, handle_id_t handle_id, NvMapParamType type,
+    NvResult Param(System* system, Handle handle, NvMapParamType type,
                    u32* out_value);
-    NvResult GetId(u32* out_id, handle_id_t handle_id);
+    NvResult GetId(u32* out_id, Handle handle);
 };
 
 } // namespace hydra::horizon::services::nvdrv::ioctl

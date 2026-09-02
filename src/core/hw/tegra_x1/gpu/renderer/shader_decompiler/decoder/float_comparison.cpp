@@ -78,8 +78,9 @@ void EmitFsetC(DecoderContext& context, InstFsetC inst) {
         context, inst.base.pred, inst.base.pred_inv, inst.base.op,
         inst.base.b_op, inst.base.dst, inst.base.src_a, inst.base.abs_a,
         inst.base.neg_a,
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               ir::ScalarType::F32),
+        ir::Value::ConstMemory(
+            CMem(inst.cbuf_slot, RZ, static_cast<u64>(inst.cbuf_offset * 4)),
+            ir::ScalarType::F32),
         inst.base.abs_b, inst.base.neg_b, inst.base.src_pred,
         inst.base.src_pred_inv, inst.base.b_float);
 }
@@ -108,8 +109,9 @@ void EmitFsetpC(DecoderContext& context, InstFsetpC inst) {
         context, inst.base.pred, inst.base.pred_inv, inst.base.op,
         inst.base.b_op, inst.base.dst_pred, inst.base.dst_inv_pred,
         inst.base.src_a, inst.base.abs_a, inst.base.neg_a,
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               ir::ScalarType::F32),
+        ir::Value::ConstMemory(
+            CMem(inst.cbuf_slot, RZ, static_cast<u64>(inst.cbuf_offset * 4)),
+            ir::ScalarType::F32),
         inst.base.abs_b, inst.base.neg_b, inst.base.src_pred,
         inst.base.src_pred_inv);
 }

@@ -3,26 +3,18 @@
 #include "common/type_aliases.hpp"
 #include "core/debugger/debugger_manager.hpp"
 
-#define PTE_TYPE_MASK 0x3ull
-#define PTE_BLOCK(level) ((level == 2 ? 3ull : 1ull) << 0)
-#define PTE_TABLE (3ull << 0)           // For level 0 and 1 descriptors
-#define PTE_AF (1ull << 10)             // Access Flag
-#define PTE_RW (1ull << 6)              // Read write
-#define PTE_INNER_SHEREABLE (3ull << 8) // TODO: wht
-
-/*
-#define USER_RANGE_MEM_BASE 0x01000000
-#define USER_RANGE_MEM_SIZE 0x1000000
-
-#define KERNEL_RANGE_MEM_BASE 0x04000000
-#define KERNEL_RANGE_MEM_SIZE 0x1000000
-*/
-
 namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 namespace {
 
 constexpr u64 ENTRY_ADDR_MASK = 0x0000fffffffff000; // TODO: correct?
+
+constexpr u64 PTE_TYPE_MASK = 0x3ull;
+constexpr u64 GetPteBlock(u64 level) { return (level == 2 ? 3ull : 1ull) << 0; }
+constexpr u64 PTE_TABLE = 3ull << 0; // For level 0 and 1 descriptors
+constexpr u64 PTE_AF = 1ull << 10;   // Access Flag
+// constexpr u64 PTE_RW = 1ull << 6;    // Read write
+constexpr u64 PTE_INNER_SHEREABLE = 3ull << 8;
 
 } // namespace
 
@@ -31,7 +23,7 @@ PageTableLevel::PageTableLevel(u32 level_, const Page page_,
     : level{level_}, page{page_}, base_va{base_va_} {
     u64* table = reinterpret_cast<u64*>(page.ptr);
     for (u32 i = 0; i < ENTRY_COUNT; i++) {
-        table[i] = 0x0; // 0x200000000 | PTE_BLOCK(level);
+        table[i] = 0x0; // 0x200000000 | GetPteBlock(level);
     }
 }
 
@@ -39,7 +31,7 @@ PageTableLevel& PageTableLevel::GetNext(PageAllocator& allocator, u32 index) {
     ASSERT_DEBUG(level < 2, Hypervisor, "Level 2 is the last level");
 
     auto& next = next_levels[index].level;
-    if (!next) {
+    if (next == nullptr) {
         next = new PageTableLevel(level + 1, allocator.GetNextPage(),
                                   base_va + index * GetBlockSize());
         GetEntry(index) = next->page.pa | PTE_TABLE;
@@ -53,19 +45,20 @@ PageTable::PageTable(paddr_t base_pa)
 
 PageTable::~PageTable() = default;
 
-void PageTable::Map(vaddr_t va, Range<uptr> range,
+void PageTable::Map(vaddr_t va, ztd::Range<uptr> range,
                     const horizon::kernel::MemoryState state,
                     ApFlags ap_flags) {
     LOG_DEBUG(Hypervisor, "va: {:#x}, range: {:#x}", va, range);
 
     ASSERT_ALIGNMENT(va, GUEST_PAGE_SIZE, Hypervisor, "va");
-    ASSERT_ALIGNMENT(range.GetBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
-    ASSERT_ALIGNMENT(range.GetEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
+    ASSERT_ALIGNMENT(range.getBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
+    ASSERT_ALIGNMENT(range.getEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
 
-    MapLevel(top_level, va, range.GetBegin(), range.GetSize(), state, ap_flags);
+    MapLevel(top_level, va, range.getBegin(), range.getSize(), state, ap_flags);
 }
 
-void PageTable::Unmap(Range<vaddr_t> range) {
+void PageTable::Unmap(ztd::Range<vaddr_t> range) {
+    (void)this;
     LOG_FUNC_WITH_ARGS_NOT_IMPLEMENTED(Hypervisor, "range: {:#x}", range);
 }
 
@@ -87,7 +80,7 @@ PageRegion PageTable::QueryRegion(vaddr_t va) const {
     u32 index = top_level.VaToIndex(va);
     auto* level = &top_level;
     u64 entry = top_level.GetEntry(index);
-    while ((entry & PTE_TYPE_MASK) != PTE_BLOCK(level->GetLevel())) {
+    while ((entry & PTE_TYPE_MASK) != GetPteBlock(level->GetLevel())) {
         if ((entry & PTE_TYPE_MASK) != PTE_TABLE)
             return FREE_MEMORY(va & ~(level->GetBlockSize() - 1),
                                level->GetBlockSize());
@@ -106,10 +99,10 @@ PageRegion PageTable::QueryRegion(vaddr_t va) const {
     return region;
 }
 
-void PageTable::SetMemoryPermission(Range<vaddr_t> range,
+void PageTable::SetMemoryPermission(ztd::Range<vaddr_t> range,
                                     horizon::kernel::MemoryPermission perm,
                                     ApFlags ap_flags) {
-    ModifyRange(range, [perm, ap_flags]([[maybe_unused]] Range<vaddr_t> range,
+    ModifyRange(range, [perm, ap_flags]([[maybe_unused]] ztd::Range<vaddr_t> range,
                                         u64& entry,
                                         horizon::kernel::MemoryState& state,
                                         [[maybe_unused]] PageFlags flags) {
@@ -121,10 +114,10 @@ void PageTable::SetMemoryPermission(Range<vaddr_t> range,
     });
 }
 
-void PageTable::SetMemoryAttribute(Range<vaddr_t> range,
+void PageTable::SetMemoryAttribute(ztd::Range<vaddr_t> range,
                                    horizon::kernel::MemoryAttribute mask,
                                    horizon::kernel::MemoryAttribute value) {
-    ModifyRange(range, [mask, value]([[maybe_unused]] Range<vaddr_t> range,
+    ModifyRange(range, [mask, value]([[maybe_unused]] ztd::Range<vaddr_t> range,
                                      [[maybe_unused]] u64& entry,
                                      horizon::kernel::MemoryState& state,
                                      [[maybe_unused]] PageFlags flags) {
@@ -132,9 +125,9 @@ void PageTable::SetMemoryAttribute(Range<vaddr_t> range,
     });
 }
 
-void PageTable::SetWriteTrackingEnabled(Range<vaddr_t> range, bool enable) {
+void PageTable::SetWriteTrackingEnabled(ztd::Range<vaddr_t> range, bool enable) {
     ModifyRange(range,
-                [enable]([[maybe_unused]] Range<vaddr_t> range, u64& entry,
+                [enable]([[maybe_unused]] ztd::Range<vaddr_t> range, u64& entry,
                          [[maybe_unused]] horizon::kernel::MemoryState& state,
                          PageFlags& flags) {
                     // AP flags
@@ -151,10 +144,10 @@ void PageTable::SetWriteTrackingEnabled(Range<vaddr_t> range, bool enable) {
                 });
 }
 
-bool PageTable::TrySuspendWriteTracking(Range<vaddr_t> range) {
+bool PageTable::TrySuspendWriteTracking(ztd::Range<vaddr_t> range) {
     bool res = false;
     ModifyRange(range, [&res](
-                           [[maybe_unused]] Range<vaddr_t> range, u64& entry,
+                           [[maybe_unused]] ztd::Range<vaddr_t> range, u64& entry,
                            [[maybe_unused]] horizon::kernel::MemoryState& state,
                            [[maybe_unused]] PageFlags& flags) {
         bool enabled = any(flags & PageFlags::WriteTrackingEnabled);
@@ -168,8 +161,8 @@ bool PageTable::TrySuspendWriteTracking(Range<vaddr_t> range) {
     return res;
 }
 
-void PageTable::ResumeWriteTracking(Range<vaddr_t> range) {
-    ModifyRange(range, []([[maybe_unused]] Range<vaddr_t> range, u64& entry,
+void PageTable::ResumeWriteTracking(ztd::Range<vaddr_t> range) {
+    ModifyRange(range, []([[maybe_unused]] ztd::Range<vaddr_t> range, u64& entry,
                           [[maybe_unused]] horizon::kernel::MemoryState& state,
                           PageFlags& flags) {
         if (any(flags & PageFlags::WriteTrackingEnabled)) {
@@ -215,7 +208,7 @@ void PageTable::MapLevelNext(PageTableLevel& level, vaddr_t va, paddr_t pa,
     u32 index = level.VaToIndex(va);
     // TODO: uncomment
     if (/*size == level.GetBlockSize()*/ level.GetLevel() == 2) {
-        level.GetEntry(index) = pa | PTE_BLOCK(level.GetLevel()) | PTE_AF |
+        level.GetEntry(index) = pa | GetPteBlock(level.GetLevel()) | PTE_AF |
                                 PTE_INNER_SHEREABLE |
                                 static_cast<u64>(ap_flags);
         level.GetLevelState(index) = state;
@@ -226,16 +219,16 @@ void PageTable::MapLevelNext(PageTableLevel& level, vaddr_t va, paddr_t pa,
 }
 
 void PageTable::IterateRange(
-    Range<vaddr_t> range,
-    std::function<void(Range<vaddr_t>, u64, const horizon::kernel::MemoryState&,
-                       PageFlags)>
+    ztd::Range<vaddr_t> range,
+    const std::function<void(ztd::Range<vaddr_t>, u64,
+                             const horizon::kernel::MemoryState&, PageFlags)>&
         callback) const {
-    for (u64 page = range.GetBegin() / GUEST_PAGE_SIZE;
-         page < range.GetEnd() / GUEST_PAGE_SIZE; ++page) {
+    for (u64 page = range.getBegin() / GUEST_PAGE_SIZE;
+         page < range.getEnd() / GUEST_PAGE_SIZE; ++page) {
         u32 index = top_level.VaToIndex(page * GUEST_PAGE_SIZE);
         auto* level = &top_level;
         u64 entry = top_level.GetEntry(index);
-        while ((entry & PTE_TYPE_MASK) != PTE_BLOCK(level->GetLevel())) {
+        while ((entry & PTE_TYPE_MASK) != GetPteBlock(level->GetLevel())) {
             if ((entry & PTE_TYPE_MASK) != PTE_TABLE)
                 break;
 
@@ -248,7 +241,7 @@ void PageTable::IterateRange(
             continue;
 
         callback(
-            Range<vaddr_t>::FromSize(page * GUEST_PAGE_SIZE, GUEST_PAGE_SIZE),
+            ztd::Range<vaddr_t>::fromSize(page * GUEST_PAGE_SIZE, GUEST_PAGE_SIZE),
             level->GetEntry(index), level->GetLevelState(index),
             level->GetLevelFlags(index));
     }
@@ -256,16 +249,16 @@ void PageTable::IterateRange(
 
 // TODO: this should subdivide the table if necessary
 void PageTable::ModifyRange(
-    Range<vaddr_t> range,
-    std::function<void(Range<vaddr_t>, u64&, horizon::kernel::MemoryState&,
-                       PageFlags&)>
+    ztd::Range<vaddr_t> range,
+    const std::function<void(ztd::Range<vaddr_t>, u64&,
+                             horizon::kernel::MemoryState&, PageFlags&)>&
         callback) {
-    for (u64 page = range.GetBegin() / GUEST_PAGE_SIZE;
-         page < range.GetEnd() / GUEST_PAGE_SIZE; ++page) {
+    for (u64 page = range.getBegin() / GUEST_PAGE_SIZE;
+         page < range.getEnd() / GUEST_PAGE_SIZE; ++page) {
         u32 index = top_level.VaToIndex(page * GUEST_PAGE_SIZE);
         auto* level = &top_level;
         u64 entry = top_level.GetEntry(index);
-        while ((entry & PTE_TYPE_MASK) != PTE_BLOCK(level->GetLevel())) {
+        while ((entry & PTE_TYPE_MASK) != GetPteBlock(level->GetLevel())) {
             if ((entry & PTE_TYPE_MASK) != PTE_TABLE)
                 break;
 
@@ -278,7 +271,7 @@ void PageTable::ModifyRange(
             continue;
 
         callback(
-            Range<vaddr_t>::FromSize(page * GUEST_PAGE_SIZE, GUEST_PAGE_SIZE),
+            ztd::Range<vaddr_t>::fromSize(page * GUEST_PAGE_SIZE, GUEST_PAGE_SIZE),
             level->GetEntry(index), level->GetLevelState(index),
             level->GetLevelFlags(index));
     }

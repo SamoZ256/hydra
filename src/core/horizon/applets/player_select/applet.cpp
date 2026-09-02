@@ -7,7 +7,7 @@ namespace hydra::horizon::applets::player_select {
 
 result_t Applet::Run(System& system) {
     auto settings_reader = PopInDataRaw();
-    const auto settings = settings_reader.Read<UiSettings>();
+    const auto settings = settings_reader.read<UiSettings>();
     (void)settings;
 
     // This should give the user an option to select a profile to use. However,

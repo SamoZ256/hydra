@@ -61,7 +61,7 @@ class AppletResource {
     std::array<Npad, NPAD_COUNT> npads;
 
     // Helpers
-    inline bool ShouldAcceptInput() const { return active && input_enabled; }
+    bool ShouldAcceptInput() const { return active && input_enabled; }
 
   public:
     GETTER(shared_mem, GetSharedMemory);

@@ -16,8 +16,7 @@ namespace hydra::horizon::kernel {
 class GuestThread : public IThread {
   public:
     GuestThread(System& system_, Process* process, vaddr_t stack_top_addr_,
-                i32 priority,
-                const std::string_view debug_name = "Guest thread");
+                i32 priority, std::string_view debug_name = "Guest thread");
     ~GuestThread() override;
 
     void SetEntryPoint(vaddr_t entry_point_) { entry_point = entry_point_; }

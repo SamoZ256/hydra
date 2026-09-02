@@ -11,7 +11,7 @@
 #define DEFINE_IOCTL_TABLE_ENTRY_IMPL(fd, ioctl_suffix, type, ...)             \
     case type:                                                                 \
         switch (nr) {                                                          \
-            FOR_EACH_2_2(IOCTL_CASE, fd, ioctl_suffix, __VA_ARGS__)            \
+            ZTD_FOR_EACH_2_2(IOCTL_CASE, fd, ioctl_suffix, __VA_ARGS__)        \
         default:                                                               \
             LOG_WARN(Services, "Unknown ioctl nr 0x{:02x} for type 0x{:02x}",  \
                      nr, type);                                                \
@@ -54,10 +54,10 @@ namespace hydra::horizon::services::nvdrv::ioctl {
 struct IoctlContext {
     System& system;
     kernel::Process* process;
-    io::MemoryStream* in_stream;
-    io::MemoryStream* in_buffer_stream;
-    io::MemoryStream* out_stream;
-    io::MemoryStream* out_buffer_stream;
+    std::optional<ztd::io::MemoryStream> in_stream;
+    std::optional<ztd::io::MemoryStream> in_buffer_stream;
+    std::optional<ztd::io::MemoryStream> out_stream;
+    std::optional<ztd::io::MemoryStream> out_buffer_stream;
 };
 
 template <typename In, typename Out>
@@ -67,7 +67,10 @@ struct InOut {
     Out* out;
 
     operator In() const { return in; }
-    void operator=(const Out& other) { *out = other; }
+    InOut& operator=(const Out& other) {
+        *out = other;
+        return *this;
+    }
 
     In Get() const { return in; }
 };
@@ -77,7 +80,10 @@ struct InOutSingle {
     T* data;
 
     operator T() const { return *data; }
-    void operator=(const T& other) { *data = other; }
+    InOutSingle& operator=(const T& other) {
+        *data = other;
+        return *this;
+    }
 
     T Get() const { return *data; }
 };
@@ -171,9 +177,9 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
             return;
         } else if constexpr (traits::type == ArgumentType::In) {
             ASSERT_DEBUG(context.in_stream, Services, "No input stream");
-            arg = context.in_stream->Read<Arg>();
+            arg = context.in_stream->read<Arg>();
             if (context.out_stream)
-                context.out_stream->SeekBy(sizeof(Arg));
+                context.out_stream->seekBy(sizeof(Arg));
 
             // Next
             read_arg<CommandArguments, arg_index + 1>(context, args);
@@ -181,9 +187,9 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
         } else if constexpr (traits::type == ArgumentType::Out) {
             ASSERT_DEBUG(context.out_stream, Services, "No output stream");
             arg = context.out_stream
-                      ->WriteReturningPtr<typename traits::BaseType>();
+                      ->writeReturningPtr<typename traits::BaseType>();
             if (context.in_stream)
-                context.in_stream->SeekBy(sizeof(typename traits::BaseType));
+                context.in_stream->seekBy(sizeof(typename traits::BaseType));
 
             // Next
             read_arg<CommandArguments, arg_index + 1>(context, args);
@@ -191,9 +197,9 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
         } else if constexpr (traits::type == ArgumentType::InOut) {
             ASSERT_DEBUG(context.in_stream, Services, "No input stream");
             ASSERT_DEBUG(context.out_stream, Services, "No output stream");
-            arg.in = context.in_stream->Read<typename traits::In>();
+            arg.in = context.in_stream->read<typename traits::In>();
             arg.out =
-                context.out_stream->WriteReturningPtr<typename traits::Out>();
+                context.out_stream->writeReturningPtr<typename traits::Out>();
 
             // Next
             read_arg<CommandArguments, arg_index + 1>(context, args);
@@ -202,18 +208,19 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
             ASSERT_DEBUG(context.in_stream, Services, "No input stream");
             ASSERT_DEBUG(context.out_stream, Services, "No output stream");
             arg.data = context.out_stream
-                           ->WriteReturningPtr<typename traits::BaseType>();
-            *arg.data = context.in_stream->Read<typename traits::BaseType>();
+                           ->writeReturningPtr<typename traits::BaseType>();
+            *arg.data = context.in_stream->read<typename traits::BaseType>();
 
             // Next
             read_arg<CommandArguments, arg_index + 1>(context, args);
             return;
         } else /*if constexpr (traits::type == ArgumentType::InArray)*/ {
             ASSERT_DEBUG(context.in_stream, Services, "No input stream");
-            arg = context.in_stream->ReadPtr<typename traits::BaseType>();
+            arg = context.in_stream->readPtr<typename traits::BaseType>();
 
             // Next
-            static_assert(arg_index == std::tuple_size_v<CommandArguments> - 1,
+            static_assert(arg_index ==
+                              std::tuple_size_v < CommandArguments > -1,
                           "InArray must be the last argument");
             return;
         }
@@ -223,7 +230,7 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
 template <typename Class, typename... Args, usize... Is>
 NvResult invoke_command_with_args(IoctlContext& context, Class& instance,
                                   NvResult (Class::*func)(Args...),
-                                  std::index_sequence<Is...>) {
+                                  std::index_sequence<Is...> /*unused*/) {
     using traits = function_traits<decltype(func)>;
 
     auto args = std::tuple<typename traits::template arg<Is>::type...>();

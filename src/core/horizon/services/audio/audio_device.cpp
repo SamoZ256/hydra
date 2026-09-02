@@ -77,20 +77,19 @@ result_t IAudioDevice::GetActiveAudioDeviceNameAuto(
     return GetActiveAudioDeviceNameImpl(out_buffer.stream);
 }
 
-result_t IAudioDevice::ListAudioDeviceNameImpl(i32* out_count,
-                                               io::MemoryStream* out_stream) {
+result_t IAudioDevice::ListAudioDeviceNameImpl(
+    i32* out_count, std::optional<ztd::io::MemoryStream> out_stream) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK
     *out_count = 1;
-    out_stream->Write<DeviceName>({"Hydra audio device"});
+    out_stream->write<DeviceName>({"Hydra audio device"});
     return RESULT_SUCCESS;
 }
 
-result_t
-IAudioDevice::SetAudioDeviceOutputVolumeImpl(f32 volume,
-                                             io::MemoryStream* in_name_stream) {
-    const auto device_name_raw = in_name_stream->ReadPtr<DeviceName>();
+result_t IAudioDevice::SetAudioDeviceOutputVolumeImpl(
+    f32 volume, std::optional<ztd::io::MemoryStream> in_name_stream) {
+    const auto device_name_raw = in_name_stream->readPtr<DeviceName>();
     const std::string device_name(device_name_raw->name);
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "name: {}, volume: {}", device_name,
                                volume);
@@ -98,10 +97,9 @@ IAudioDevice::SetAudioDeviceOutputVolumeImpl(f32 volume,
     return RESULT_SUCCESS;
 }
 
-result_t
-IAudioDevice::GetAudioDeviceOutputVolumeImpl(io::MemoryStream* in_name_stream,
-                                             f32* out_volume) {
-    const auto device_name_raw = in_name_stream->ReadPtr<DeviceName>();
+result_t IAudioDevice::GetAudioDeviceOutputVolumeImpl(
+    std::optional<ztd::io::MemoryStream> in_name_stream, f32* out_volume) {
+    const auto device_name_raw = in_name_stream->readPtr<DeviceName>();
     const std::string device_name(device_name_raw->name);
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "name: {}", device_name);
 
@@ -110,12 +108,12 @@ IAudioDevice::GetAudioDeviceOutputVolumeImpl(io::MemoryStream* in_name_stream,
     return RESULT_SUCCESS;
 }
 
-result_t
-IAudioDevice::GetActiveAudioDeviceNameImpl(io::MemoryStream* out_stream) {
+result_t IAudioDevice::GetActiveAudioDeviceNameImpl(
+    std::optional<ztd::io::MemoryStream> out_stream) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK
-    out_stream->Write<DeviceName>({"Hydra audio device"});
+    out_stream->write<DeviceName>({"Hydra audio device"});
     return RESULT_SUCCESS;
 }
 

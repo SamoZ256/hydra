@@ -12,7 +12,7 @@ RenderPass::RenderPass(const RenderPassDescriptor& descriptor)
     // Color targets
     for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
         const auto& color_target = descriptor.color_targets[i];
-        if (!color_target.texture)
+        if (color_target.texture == nullptr)
             continue;
 
         auto color_attachment =
@@ -34,7 +34,7 @@ RenderPass::RenderPass(const RenderPassDescriptor& descriptor)
     }
 
     // Depth stencil target
-    if (descriptor.depth_stencil_target.texture) {
+    if (descriptor.depth_stencil_target.texture != nullptr) {
         const auto& depth_stencil_target = descriptor.depth_stencil_target;
         const auto& format_info = to_mtl_pixel_format_info(
             depth_stencil_target.texture->GetDescriptor().format);

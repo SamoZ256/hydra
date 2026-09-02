@@ -15,7 +15,7 @@ class Block {
     }
 
     Value CreateLocal(Type type) {
-        return Value::Local(local_t{label, u32(instructions.size())}, type);
+        return Value::Local(local_t{.label=label, .id=static_cast<u32>(instructions.size())}, type);
     }
 
   private:

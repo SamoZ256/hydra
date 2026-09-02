@@ -26,7 +26,7 @@ class IStorage : public IService {
 
   private:
     filesystem::IFile* file;
-    io::IStream* stream;
+    ztd::io::IStream* stream;
 };
 
 } // namespace hydra::horizon::services::fssrv

@@ -16,8 +16,9 @@
     struct from<std::optional<e>> {                                            \
         template <typename TC>                                                 \
         static std::optional<e> from_toml(const basic_value<TC>& v) {          \
-            const auto str = v.as_string();                                    \
-            FOR_EACH_1_2(TOML11_CONVERSION_TOML_TO_ENUM_CASE, e, __VA_ARGS__)  \
+            const auto& str = v.as_string();                                   \
+            ZTD_FOR_EACH_1_2(TOML11_CONVERSION_TOML_TO_ENUM_CASE, e,           \
+                             __VA_ARGS__)                                      \
             return std::nullopt;                                               \
         }                                                                      \
     };                                                                         \
@@ -26,8 +27,8 @@
         template <typename TC>                                                 \
         static basic_value<TC> into_toml(const e& obj) {                       \
             switch (obj) {                                                     \
-                FOR_EACH_1_2(TOML11_CONVERSION_ENUM_TO_TOML_CASE, e,           \
-                             __VA_ARGS__)                                      \
+                ZTD_FOR_EACH_1_2(TOML11_CONVERSION_ENUM_TO_TOML_CASE, e,       \
+                                 __VA_ARGS__)                                  \
             }                                                                  \
         }                                                                      \
     };                                                                         \
@@ -41,5 +42,5 @@
 
 #define ENABLE_STRUCT_FORMATTING_AND_TOML11(s, ...)                            \
     ENABLE_STRUCT_FORMATTING(                                                  \
-        s, FOR_EACH_0_1(STRUCT_DEFAULT_FMT_CASE, __VA_ARGS__))                 \
+        s, ZTD_FOR_EACH_0_1(STRUCT_DEFAULT_FMT_CASE, __VA_ARGS__))             \
     TOML11_DEFINE_CONVERSION_NON_INTRUSIVE(s, __VA_ARGS__)

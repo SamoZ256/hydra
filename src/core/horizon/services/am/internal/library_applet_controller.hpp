@@ -8,10 +8,14 @@ namespace hydra::horizon::services::am::internal {
 
 class StorageQueue {
   public:
-    ~StorageQueue() {
+    StorageQueue() noexcept = default;
+    ~StorageQueue() noexcept {
         for (auto data : queue)
             data->Release();
     }
+
+    ZTD_MAKE_NON_COPYABLE(StorageQueue);
+    ZTD_MAKE_DEFAULT_MOVABLE(StorageQueue);
 
     void PushData(IStorage* data) {
         data->Retain();
@@ -32,13 +36,16 @@ class StorageQueue {
 
 class LibraryAppletController {
   public:
-    LibraryAppletController(const LibraryAppletMode mode_)
-        : mode{mode_}, state_changed_event{new kernel::Event(
-                           false, "Library applet state changed event")},
-          interactive_in_data_event{new kernel::Event(
-              false, "Library applet interactive in data event")},
-          interactive_out_data_event{new kernel::Event(
-              false, "Library applet interactive out data event")} {}
+    LibraryAppletController(const LibraryAppletMode mode_) noexcept
+        : mode{mode_}, state_changed_event(std::make_unique<kernel::Event>(
+                           false, "Library applet state changed event")),
+          interactive_in_data_event(std::make_unique<kernel::Event>(
+              false, "Library applet interactive in data event")),
+          interactive_out_data_event(std::make_unique<kernel::Event>(
+              false, "Library applet interactive out data event")) {}
+
+    ZTD_MAKE_NON_COPYABLE(LibraryAppletController);
+    ZTD_MAKE_DEFAULT_MOVABLE(LibraryAppletController);
 
     // Data
 
@@ -65,23 +72,23 @@ class LibraryAppletController {
     IStorage* PopInteractiveOutData() { return interactive_out_data.PopData(); }
 
     // Events
-    kernel::Event* GetStateChangedEvent() { return state_changed_event; }
+    kernel::Event& GetStateChangedEvent() { return *state_changed_event; }
 
-    kernel::Event* GetInteractiveInDataEvent() {
-        return interactive_in_data_event;
+    kernel::Event& GetInteractiveInDataEvent() {
+        return *interactive_in_data_event;
     }
 
-    kernel::Event* GetInteractiveOutDataEvent() {
-        return interactive_out_data_event;
+    kernel::Event& GetInteractiveOutDataEvent() {
+        return *interactive_out_data_event;
     }
 
   private:
     // TODO: use
     [[maybe_unused]] LibraryAppletMode mode;
 
-    kernel::Event* state_changed_event;
-    kernel::Event* interactive_in_data_event;
-    kernel::Event* interactive_out_data_event;
+    std::unique_ptr<kernel::Event> state_changed_event;
+    std::unique_ptr<kernel::Event> interactive_in_data_event;
+    std::unique_ptr<kernel::Event> interactive_out_data_event;
 
     StorageQueue in_data;
     StorageQueue out_data;

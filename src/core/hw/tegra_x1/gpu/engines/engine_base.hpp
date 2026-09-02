@@ -14,7 +14,7 @@
             return;                                                            \
         }                                                                      \
         switch (method) {                                                      \
-            FOR_EACH_0_4(METHOD_CASE, __VA_ARGS__)                             \
+            ZTD_FOR_EACH_0_4(METHOD_CASE, __VA_ARGS__)                         \
         default:                                                               \
             WriteReg(method, arg);                                             \
             break;                                                             \
@@ -29,27 +29,20 @@ namespace hydra::hw::tegra_x1::gpu::engines {
 
 class EngineBase {
   public:
-    enum class Error {
-        InvalidRegister,
-        MacrosNotSupported,
-    };
-
     virtual ~EngineBase() = default;
 
     virtual void Method(u32 method, u32 arg) = 0;
 
     virtual void FlushMacro() {
-        LOG_ERROR(Engines, "This engine does not support macros");
-        throw Error::MacrosNotSupported;
+        LOG_FATAL(Engines, "This engine does not support macros");
     }
 
   protected:
     virtual void Macro(u32 method, u32 arg) {
-        LOG_ERROR(Engines,
+        LOG_FATAL(Engines,
                   "This engine does not support macros (method: 0x{:08x}, arg: "
                   "0x{:08x})",
                   method, arg);
-        throw Error::MacrosNotSupported;
     }
 };
 
@@ -59,8 +52,8 @@ class EngineWithRegsBase : public EngineBase {
 #define REG_COUNT (sizeof(RegsT) / sizeof(u32))
 
     u32 GetReg(u32 reg) const {
-        ASSERT_THROWING_DEBUG(reg < REG_COUNT, Engines, Error::InvalidRegister,
-                              "Invalid register 0x{:08x}", reg);
+        ASSERT_DEBUG(reg < REG_COUNT, Engines, "Invalid register 0x{:08x}",
+                     reg);
         return regs_raw[reg];
     }
 
@@ -71,8 +64,7 @@ class EngineWithRegsBase : public EngineBase {
     };
 
     void WriteReg(u32 reg, u32 value) {
-        ASSERT_THROWING_DEBUG(reg < REG_COUNT, Engines, Error::InvalidRegister,
-                              "Invalid reg 0x{:08x}", reg);
+        ASSERT_DEBUG(reg < REG_COUNT, Engines, "Invalid reg 0x{:08x}", reg);
         LOG_DEBUG(Engines, "Writing to reg 0x{:03x} (value: 0x{:08x})", reg,
                   value);
         regs_raw[reg] = value;

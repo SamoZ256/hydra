@@ -16,8 +16,8 @@ result_t IStorageAccessor::Write(i64 offset,
     // TODO: correct?
     const u64 size = data.size() - static_cast<u64>(offset);
 
-    const auto span = buffer.stream->ReadSpan<u8>(size);
-    std::copy(span.begin(), span.end(), data.data() + offset);
+    const auto span = buffer.stream->readSpan<u8>(size);
+    std::ranges::copy(span, data.data() + offset);
     return RESULT_SUCCESS;
 }
 
@@ -28,7 +28,7 @@ result_t IStorageAccessor::Read(i64 offset,
     // TODO: correct?
     const u64 size = data.size() - static_cast<u64>(offset);
 
-    out_buffer.stream->WriteSpan(
+    out_buffer.stream->writeSpan(
         std::span<const u8>(data.data() + offset, size));
     return RESULT_SUCCESS;
 }

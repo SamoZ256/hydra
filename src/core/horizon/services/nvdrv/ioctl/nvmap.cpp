@@ -9,47 +9,47 @@ DEFINE_IOCTL_TABLE(NvMap,
                                             FromId, 0x04, Alloc, 0x05, Free,
                                             0x09, Param, 0x0e, GetId))
 
-NvResult NvMap::Create(System* system, u32 size, handle_id_t* out_handle_id) {
-    *out_handle_id = system->GetGpu().CreateMap(size);
+NvResult NvMap::Create(System* system, u32 size, Handle* out_handle) {
+    *out_handle = system->GetGpu().CreateMap(size).GetRaw();
     return NvResult::Success;
 }
 
-NvResult NvMap::FromId(u32 id, handle_id_t* out_handle_id) {
+NvResult NvMap::FromId(u32 id, Handle* out_handle) {
     // Handle and ID are the same
-    *out_handle_id = id;
+    *out_handle = id;
     return NvResult::Success;
 }
 
 // TODO: heap mask, kind
-NvResult NvMap::Alloc(System* system, handle_id_t handle_id, u32 heap_mask,
-                      u32 flags, InOutSingle<u32> inout_alignment,
-                      aligned<u8, 8> kind, gpu_vaddr_t addr) {
+NvResult NvMap::Alloc(System* system, Handle handle, u32 heap_mask, u32 flags,
+                      InOutSingle<u32> inout_alignment, Aligned<u8, 8> kind,
+                      gpu_vaddr_t addr) {
     (void)heap_mask;
     (void)kind;
 
     // TODO: flags?
-    system->GetGpu().AllocateMap(handle_id, addr, flags == 1);
+    system->GetGpu().AllocateMap(handle, addr, flags == 1);
     inout_alignment = hw::tegra_x1::gpu::GPU_PAGE_SIZE; // TODO: correct?
     return NvResult::Success;
 }
 
-NvResult NvMap::Free(System* system, aligned<handle_id_t, 8> handle_id,
+NvResult NvMap::Free(System* system, Aligned<Handle, 8> handle,
                      gpu_vaddr_t* out_addr, u64* out_size, u32* out_flags) {
-    auto map = system->GetGpu().GetMap(handle_id);
-    system->GetGpu().FreeMap(handle_id);
+    auto map = system->GetGpu().GetMap(handle).value();
+    system->GetGpu().FreeMap(handle);
 
-    *out_addr = map.addr;
-    *out_size = map.size;
-    *out_flags = map.write ? 1 : 0; // TODO: correct?
+    *out_addr = map->addr;
+    *out_size = map->size;
+    *out_flags = map->write ? 1 : 0; // TODO: correct?
     return NvResult::Success;
 }
 
-NvResult NvMap::Param(System* system, handle_id_t handle_id,
-                      NvMapParamType type, u32* out_value) {
-    auto map = system->GetGpu().GetMap(handle_id);
+NvResult NvMap::Param(System* system, Handle handle, NvMapParamType type,
+                      u32* out_value) {
+    auto map = system->GetGpu().GetMap(handle).value();
     switch (type) {
     case NvMapParamType::Size:
-        *out_value = static_cast<u32>(map.size);
+        *out_value = static_cast<u32>(map->size);
         break;
     case NvMapParamType::Alignment:
         *out_value = hw::tegra_x1::gpu::GPU_PAGE_SIZE; // TODO: correct?
@@ -74,9 +74,9 @@ NvResult NvMap::Param(System* system, handle_id_t handle_id,
     return NvResult::Success;
 }
 
-NvResult NvMap::GetId(u32* out_id, handle_id_t handle_id) {
+NvResult NvMap::GetId(u32* out_id, Handle handle) {
     // Handle and ID are the same
-    *out_id = handle_id;
+    *out_id = handle.GetRaw();
     return NvResult::Success;
 }
 

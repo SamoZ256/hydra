@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/horizon/loader/loader_base.hpp"
+#include "core/horizon/loader/loader.hpp"
 
 namespace hydra::horizon::loader {
 
@@ -10,12 +10,8 @@ struct Segment {
     u32 size;
 };
 
-class NsoLoader : public LoaderBase {
+class NsoLoader : public ILoader {
   public:
-    enum class Error {
-        InvalidMagic,
-    };
-
     NsoLoader(filesystem::IFile* file_, const std::string_view name_ = "main",
               const bool is_entry_point_ = true);
 

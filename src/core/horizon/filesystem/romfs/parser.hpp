@@ -8,7 +8,7 @@ namespace hydra::horizon::filesystem::romfs {
 
 class Parser {
   public:
-    Parser(io::IStream* stream, IFile* data_file_,
+    Parser(ztd::io::IStream* stream, IFile* data_file_,
            const TableLocation& file_meta_loc,
            const TableLocation& directory_meta_loc);
 

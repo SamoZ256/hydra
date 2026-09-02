@@ -32,7 +32,7 @@ result_t ISystemDisplayService::SetLayerSize(System* system, u64 layer_id,
     system->GetOS()
         .GetDisplayDriver()
         .GetLayer(static_cast<u32>(layer_id))
-        .SetSize({u32(width), u32(height)});
+        .SetSize({static_cast<u32>(width), static_cast<u32>(height)});
     return RESULT_SUCCESS;
 }
 
@@ -45,7 +45,7 @@ result_t ISystemDisplayService::SetLayerZ(System* system, u64 layer_id, i64 z) {
 }
 
 result_t ISystemDisplayService::CreateStrayLayer(
-    System* system, kernel::Process* process, aligned<u32, 8> flags,
+    System* system, kernel::Process* process, Aligned<u32, 8> flags,
     u64 display_id, u64* out_layer_id, u64* out_native_window_size,
     OutBuffer<BufferAttr::MapAlias> out_parcel_buffer) {
     return CreateStrayLayerImpl(*system, process, flags, display_id,

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/horizon/handle_pool.hpp"
 #include "core/horizon/kernel/hipc/const.hpp"
 
 namespace hydra {
@@ -25,11 +26,16 @@ struct RequestContext {
 
 class IService {
   public:
+    IService() noexcept = default;
+    virtual ~IService() noexcept = default;
+
+    ZTD_MAKE_NON_COPYABLE(IService);
+
     void HandleRequest(System& system, kernel::Process* caller_process,
                        uptr ptr);
 
     void AddService(RequestContext& context, IService* service);
-    IService* GetService(RequestContext& context, handle_id_t handle_id);
+    IService* GetService(RequestContext& context, Handle handle);
 
     // Reference counting
     IService* Retain() {
@@ -42,24 +48,23 @@ class IService {
     }
 
   protected:
-    virtual ~IService();
-
     virtual result_t RequestImpl(RequestContext& context, u32 id) = 0;
 
-    u32 AddSubservice(IService* service) {
-        if (!service)
-            return INVALID_HANDLE_ID;
+    Handle AddSubservice(IService* service) {
+        if (service == nullptr)
+            return INVALID_HANDLE;
 
-        return parent->subservice_pool->Add(service);
+        return parent->subservice_pool->Insert(service).value();
     }
 
-    void FreeSubservice(handle_id_t handle_id) {
-        parent->subservice_pool->Get(handle_id)->Release();
-        parent->subservice_pool->Free(handle_id);
+    void FreeSubservice(Handle handle) {
+        parent->subservice_pool->Get(handle).value()->Release();
+        ASSERT_DEBUG(parent->subservice_pool->Free(handle), Services,
+                     "Failed to free subservice");
     }
 
-    IService* GetSubservice(handle_id_t handle_id) const {
-        return parent->subservice_pool->Get(handle_id);
+    IService* GetSubservice(Handle handle) const {
+        return parent->subservice_pool->Get(handle).value();
     }
 
   private:
@@ -70,7 +75,8 @@ class IService {
     // Domain
     bool is_domain{false};
     IService* parent{this};
-    DynamicPool<IService*>* subservice_pool{nullptr};
+    // TODO: dynamic pool?
+    std::optional<StaticHandlePool<IService*, 512>> subservice_pool;
 
     void Close();
     void Request(RequestContext& context);

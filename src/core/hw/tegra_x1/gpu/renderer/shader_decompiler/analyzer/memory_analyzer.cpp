@@ -57,7 +57,7 @@ void MemoryAnalyzer::Analyze(const ir::Module& modul) {
                     bool is_depth =
                         any(flags & TextureSampleFlags::DepthCompare);
                     HandleTextureAccess(const_buffer_index,
-                                        TextureInfo{type, is_depth});
+                                        TextureInfo{.type=type, .is_depth=is_depth});
                     break;
                 }
                 case ir::Opcode::TextureGather: {
@@ -65,7 +65,7 @@ void MemoryAnalyzer::Analyze(const ir::Module& modul) {
                         instruction.GetOperand(0).GetRawValue<u32>();
                     // TODO: is_depth
                     HandleTextureAccess(const_buffer_index,
-                                        TextureInfo{TextureType::_2D, false});
+                                        TextureInfo{.type=TextureType::_2D, .is_depth=false});
                     break;
                 }
                 // TODO: TextureQueryDimension?

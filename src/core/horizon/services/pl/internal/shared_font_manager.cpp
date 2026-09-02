@@ -19,9 +19,8 @@ struct SharedFontName {
 };
 
 #define SHARED_FONT_ENTRY(type, name, filename)                                \
-    [static_cast<u32>(SharedFontType::type)] = SharedFontName {                \
-        name, filename ".bfttf"                                                \
-    }
+    [static_cast<u32>(SharedFontType::type)] =                                 \
+        SharedFontName{name, filename ".bfttf"}
 
 constexpr SharedFontName shared_font_names[] = {
     SHARED_FONT_ENTRY(JapanUsEurope, "FontStandard", "nintendo_udsg-r_std_003"),
@@ -80,19 +79,20 @@ filesystem::IFile* GetSharedFontFile(filesystem::Filesystem& filesystem,
 constexpr u32 BFTTF_MAGIC = 0x18029a7f;
 constexpr u32 FONT_KEY = 0x06186249;
 
-result_t DecryptBFTTF(io::IStream* in_stream, io::IStream* out_stream) {
+result_t DecryptBFTTF(ztd::io::IStream* in_stream,
+                      ztd::io::IStream* out_stream) {
 #define KEY_XOR(x) (x ^ FONT_KEY)
 
-    const auto magic = KEY_XOR(in_stream->Read<u32>());
+    const auto magic = KEY_XOR(in_stream->read<u32>());
     if (magic != BFTTF_MAGIC) {
         LOG_ERROR(Services, "Invalid BFTTF magic");
         return MAKE_RESULT(Svc, 100); // TODO
     }
 
-    in_stream->SeekBy(4);
+    in_stream->seekBy(4);
 
-    for (u32 i = 0; i < (in_stream->GetSize() - 8) / sizeof(u32); i++)
-        out_stream->Write(KEY_XOR(in_stream->Read<u32>()));
+    for (u32 i = 0; i < (in_stream->getSize() - 8) / sizeof(u32); i++)
+        out_stream->write(KEY_XOR(in_stream->read<u32>()));
 
 #undef KEY_XOR
 
@@ -108,20 +108,20 @@ SharedFontManager::SharedFontManager(System& system_)
 SharedFontManager::~SharedFontManager() { delete shared_memory; }
 
 void SharedFontManager::LoadFonts() {
-    for (SharedFontType type = SharedFontType(0); type < SharedFontType::Total;
-         type++)
+    for (auto type = SharedFontType::JapanUsEurope;
+         type <= SharedFontType::NintendoExtended; type++)
         LoadFont(type);
 }
 
 void SharedFontManager::LoadFont(const SharedFontType type) {
     auto file = GetSharedFontFile(system.GetOS().GetFilesystem(), type);
-    if (!file)
+    if (file == nullptr)
         return;
 
     // Load
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
 
-    io::MemoryStream out_stream(std::span(
+    ztd::io::MemoryStream out_stream(std::span(
         reinterpret_cast<u8*>(shared_memory->GetPtr()) + shared_memory_offset,
         SHARED_MEMORY_SIZE - shared_memory_offset));
     const auto res = DecryptBFTTF(stream, &out_stream);
@@ -131,7 +131,7 @@ void SharedFontManager::LoadFont(const SharedFontType type) {
         return;
 
     // Set state
-    auto& state = states[u32(type)];
+    auto& state = states[static_cast<u32>(type)];
     state.shared_memory_offset = shared_memory_offset;
     state.size = file->GetSize();
     shared_memory_offset += file->GetSize();

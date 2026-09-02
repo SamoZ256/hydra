@@ -16,7 +16,7 @@ ServerSession::~ServerSession() {
 }
 
 void ServerSession::OnClientClose() {
-    std::lock_guard lock(mutex);
+    std::scoped_lock lock(mutex);
     client_open = false;
 
     // Signal the server that client has closed
@@ -24,7 +24,7 @@ void ServerSession::OnClientClose() {
 }
 
 void ServerSession::Receive(IThread* crnt_thread) {
-    std::lock_guard lock(mutex);
+    std::scoped_lock lock(mutex);
     ASSERT_DEBUG(!requests.empty(), Kernel, "No requests");
     active_request = requests.front();
     requests.pop();
@@ -40,7 +40,7 @@ void ServerSession::Receive(IThread* crnt_thread) {
 }
 
 void ServerSession::Reply(uptr ptr) {
-    std::lock_guard lock(mutex);
+    std::scoped_lock lock(mutex);
 
     // Copy the message to client TLS
     memcpy(reinterpret_cast<void*>(active_request->client_thread->GetTlsPtr()),
@@ -54,8 +54,8 @@ void ServerSession::Reply(uptr ptr) {
 
 void ServerSession::EnqueueRequest(Process* client_process,
                                    IThread* client_thread, uptr ptr) {
-    std::lock_guard lock(mutex);
-    requests.push({client_process, client_thread, ptr});
+    std::scoped_lock lock(mutex);
+    requests.push({.client_process=client_process, .client_thread=client_thread, .ptr=ptr});
 
     // Signal the server to process the request
     Signal();

@@ -17,7 +17,6 @@ class IApplicationDisplayService : public DisplayServiceBase {
     result_t RequestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
-  protected:
     // Commands
     result_t GetRelayService(RequestContext* ctx, System* system);
     result_t GetSystemDisplayService(RequestContext* ctx);
@@ -38,7 +37,7 @@ class IApplicationDisplayService : public DisplayServiceBase {
     result_t CloseLayer(System* system, u64 layer_id);
     result_t
     CreateStrayLayer(System* system, kernel::Process* process,
-                     aligned<u32, 8> flags, u64 display_id, u64* out_layer_id,
+                     Aligned<u32, 8> flags, u64 display_id, u64* out_layer_id,
                      u64* out_native_window_size,
                      OutBuffer<BufferAttr::MapAlias> out_parcel_buffer);
     result_t DestroyStrayLayer(System* system, u64 layer_id);

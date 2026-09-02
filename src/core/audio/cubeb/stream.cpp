@@ -1,5 +1,7 @@
 #include "core/audio/cubeb/stream.hpp"
 
+#include <utility>
+
 #include "core/audio/cubeb/core.hpp"
 
 namespace hydra::audio::cubeb {
@@ -29,7 +31,8 @@ cubeb_channel_layout to_cubeb_layout(u16 channel_count) {
 Stream::Stream(Core& core_, PcmFormat format, u32 sample_rate,
                u16 channel_count,
                buffer_finished_callback_fn_t buffer_finished_callback)
-    : IStream(format, sample_rate, channel_count, buffer_finished_callback),
+    : IStream(format, sample_rate, channel_count,
+              std::move(buffer_finished_callback)),
       core{core_} {
     // TODO: allow different channel counts
     if (channel_count != 2)
@@ -48,8 +51,8 @@ Stream::Stream(Core& core_, PcmFormat format, u32 sample_rate,
         core.context, &stream, "Hydra stream", nullptr, nullptr, nullptr,
         &params, 512, &Stream::DataCallback, &Stream::StateCallback, this);
     // TODO: format result
-    ASSERT_THROWING(res == CUBEB_OK, Cubeb, Error::InitializationFailed,
-                    "Failed to initialize cubeb stream: {}", res);
+    ASSERT(res == CUBEB_OK, Cubeb, "Failed to initialize cubeb stream: {}",
+           res);
 }
 
 Stream::~Stream() { cubeb_stream_destroy(stream); }
@@ -63,7 +66,7 @@ void Stream::Stop() {
 
 void Stream::EnqueueBuffer(buffer_id_t id, std::span<const u8> buffer) {
     std::unique_lock lock(buffer_mutex);
-    buffer_queue.push({id, buffer});
+    buffer_queue.emplace(id, buffer);
 }
 
 long Stream::DataCallback(cubeb_stream* stream, void* user_data,

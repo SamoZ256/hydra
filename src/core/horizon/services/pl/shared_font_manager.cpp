@@ -55,12 +55,12 @@ result_t ISharedFontManager::GetSharedFontInOrderOfPriority(
     // TODO: sort by priority
     (void)language_code;
     for (SharedFontType type = SharedFontType::JapanUsEurope;
-         type < SharedFontType::Total; type++) {
+         type <= SharedFontType::NintendoExtended; type++) {
         const auto& state =
             system->GetOS().GetSharedFontManager().GetState(type);
-        out_types_buffer.stream->Write(type);
-        out_offsets_buffer.stream->Write<u32>(state.shared_memory_offset);
-        out_sizes_buffer.stream->Write(static_cast<u32>(state.size));
+        out_types_buffer.stream->write(type);
+        out_offsets_buffer.stream->write<u32>(state.shared_memory_offset);
+        out_sizes_buffer.stream->write(static_cast<u32>(state.size));
 
         (*out_loaded)++;
         (*out_count)++;
@@ -75,9 +75,10 @@ result_t ISharedFontManager::GetSharedFontInOrderOfPriorityForSystem(
     OutBuffer<BufferAttr::MapAlias> out_offsets_buffer,
     OutBuffer<BufferAttr::MapAlias> out_sizes_buffer) {
     // TODO: how is this different from GetSharedFontInOrderOfPriority?
-    return GetSharedFontInOrderOfPriority(system, language_code, out_loaded,
-                                          out_count, out_types_buffer,
-                                          out_offsets_buffer, out_sizes_buffer);
+    return GetSharedFontInOrderOfPriority(
+        system, language_code, out_loaded, out_count,
+        std::move(out_types_buffer), std::move(out_offsets_buffer),
+        std::move(out_sizes_buffer));
 }
 
 } // namespace hydra::horizon::services::pl

@@ -9,11 +9,6 @@
 
 namespace hydra::horizon::services {
 
-IService::~IService() {
-    if (subservice_pool)
-        delete subservice_pool;
-}
-
 void IService::HandleRequest(System& system, kernel::Process* caller_process,
                              uptr ptr) {
     // HIPC header
@@ -24,7 +19,7 @@ void IService::HandleRequest(System& system, kernel::Process* caller_process,
         (command_type >= kernel::hipc::cmif::CommandType::TipcCommandRegion);
     if (!is_tipc)
         hipc_in.data.data_words =
-            kernel::hipc::cmif::align_data_start(hipc_in.data.data_words);
+            kernel::hipc::cmif::AlignDataStart(hipc_in.data.data_words);
 
     // Scratch memory
     u8 scratch_buffer[0x200];
@@ -38,9 +33,9 @@ void IService::HandleRequest(System& system, kernel::Process* caller_process,
                                   scratch_buffer_copy_handles,
                                   scratch_buffer_move_handles);
     RequestContext context{
-        system,
-        caller_process,
-        streams,
+        .system = system,
+        .process = caller_process,
+        .streams = streams,
     };
 
     // Dispatch
@@ -86,11 +81,11 @@ void IService::HandleRequest(System& system, kernel::Process* caller_process,
     if (should_respond) {
         // HIPC header
 #define GET_ARRAY_SIZE(stream)                                                 \
-    static_cast<u32>(align(streams.stream.GetSeek(), 4ull) / sizeof(u32))
+    static_cast<u32>(align(streams.stream.getSeek(), 4ull) / sizeof(u32))
 
 #define WRITE_ARRAY(stream, ptr)                                               \
     if (ptr) {                                                                 \
-        memcpy(ptr, streams.stream.GetPtr(), streams.stream.GetSeek());        \
+        memcpy(ptr, streams.stream.getPtr(), streams.stream.getSeek());        \
     }
 
         kernel::hipc::Metadata meta{
@@ -103,19 +98,19 @@ void IService::HandleRequest(System& system, kernel::Process* caller_process,
             kernel::hipc::make_request(reinterpret_cast<void*>(ptr), meta);
         if (!is_tipc)
             response.data_words =
-                kernel::hipc::cmif::align_data_start(response.data_words);
+                kernel::hipc::cmif::AlignDataStart(response.data_words);
 
         u8* data_start = reinterpret_cast<u8*>(response.data_words);
         if (command_type <
             kernel::hipc::cmif::CommandType::TipcCommandRegion) // TODO: is this
                                                                 // really how it
                                                                 // works?
-            data_start = align_ptr(data_start, 0x10);
+            data_start = AlignPtr(data_start, 0x10);
         WRITE_ARRAY(out_stream, data_start);
-        if (streams.out_objects_stream.GetSeek() != 0) {
+        if (streams.out_objects_stream.getSeek() != 0) {
             memcpy(data_start + GET_ARRAY_SIZE(out_stream) * sizeof(u32),
-                   streams.out_objects_stream.GetPtr(),
-                   streams.out_objects_stream.GetSeek());
+                   streams.out_objects_stream.getPtr(),
+                   streams.out_objects_stream.getSeek());
         }
         WRITE_ARRAY(out_copy_handles_stream, response.copy_handles);
         WRITE_ARRAY(out_move_handles_stream, response.move_handles);
@@ -132,8 +127,8 @@ void IService::AddService(RequestContext& context, IService* service) {
         service->is_domain = true;
         service->parent = parent;
 
-        const auto handle_id = AddSubservice(service);
-        context.streams.out_objects_stream.Write(handle_id);
+        const auto handle = AddSubservice(service);
+        context.streams.out_objects_stream.write(handle);
     } else {
         // Create new session
         auto server_session = new kernel::hipc::ServerSession();
@@ -144,18 +139,17 @@ void IService::AddService(RequestContext& context, IService* service) {
         server->RegisterSession(server_session, service);
 
         // Register client side
-        const auto handle_id =
-            context.process->AddHandleNoRetain(client_session);
-        context.streams.out_move_handles_stream.Write(handle_id);
+        const auto handle = context.process->AddHandleNoRetain(client_session);
+        context.streams.out_move_handles_stream.write(handle);
     }
 }
 
-IService* IService::GetService(RequestContext& context, handle_id_t handle_id) {
+IService* IService::GetService(RequestContext& context, Handle handle) {
     if (is_domain) {
-        return GetSubservice(handle_id);
+        return GetSubservice(handle);
     } else {
         return server->GetServiceForSession(
-            context.process->GetHandle<kernel::hipc::ClientSession>(handle_id)
+            context.process->GetHandle<kernel::hipc::ClientSession>(handle)
                 ->GetParent()
                 ->GetServerSide());
     }
@@ -170,17 +164,16 @@ void IService::Request(RequestContext& context) {
     if (is_domain) {
         // Domain in
         auto cmif_in = context.streams.in_stream
-                           .Read<kernel::hipc::cmif::DomainInHeader>();
+                           .read<kernel::hipc::cmif::DomainInHeader>();
         // LOG_DEBUG(Services, "Object ID: 0x{:08x}", cmif_in.object_id);
         auto subservice = GetSubservice(cmif_in.object_id);
 
         if (cmif_in.num_in_objects != 0) {
-            auto objects = context.streams.in_stream.GetPtr() +
-                           context.streams.in_stream.GetSeek() +
+            auto objects = context.streams.in_stream.getPtr() +
+                           context.streams.in_stream.getSeek() +
                            cmif_in.data_size;
-            context.streams.in_objects_stream = io::MemoryStream(
-                std::span(reinterpret_cast<u8*>(objects),
-                          cmif_in.num_in_objects * sizeof(handle_id_t)));
+            context.streams.in_objects_stream.emplace(
+                std::span(objects, cmif_in.num_in_objects * sizeof(Handle)));
         }
 
         kernel::hipc::cmif::write_domain_out_header(context.streams.out_stream);
@@ -205,7 +198,7 @@ void IService::Request(RequestContext& context) {
 
 void IService::CmifRequest(RequestContext& context) {
     auto cmif_in =
-        context.streams.in_stream.Read<kernel::hipc::cmif::InHeader>();
+        context.streams.in_stream.read<kernel::hipc::cmif::InHeader>();
     ASSERT_DEBUG(cmif_in.magic == kernel::hipc::cmif::IN_HEADER_MAGIC, Services,
                  "Invalid CMIF in magic 0x{:08x}", cmif_in.magic);
 
@@ -216,7 +209,7 @@ void IService::CmifRequest(RequestContext& context) {
 
 void IService::Control(RequestContext& context) {
     auto cmif_in =
-        context.streams.in_stream.Read<kernel::hipc::cmif::InHeader>();
+        context.streams.in_stream.read<kernel::hipc::cmif::InHeader>();
     ASSERT_DEBUG(cmif_in.magic == kernel::hipc::cmif::IN_HEADER_MAGIC, Kernel,
                  "Invalid CMIF in magic 0x{:08x}", cmif_in.magic);
 
@@ -229,9 +222,9 @@ void IService::Control(RequestContext& context) {
     switch (command) {
     case kernel::hipc::cmif::ControlCommandType::ConvertCurrentObjectToDomain: {
         is_domain = true;
-        subservice_pool = new DynamicPool<IService*>();
-        const auto handle_id = AddSubservice(this->Retain());
-        context.streams.out_stream.Write(handle_id);
+        subservice_pool.emplace();
+        const auto handle = AddSubservice(this->Retain());
+        context.streams.out_stream.write(handle);
         *result = RESULT_SUCCESS;
         break;
     }
@@ -241,10 +234,10 @@ void IService::Control(RequestContext& context) {
         break;
     case kernel::hipc::cmif::ControlCommandType::QueryPointerBufferSize:
         // TODO: let the server specify this
-        context.streams.out_stream.Write<u16>(
+        context.streams.out_stream.write<u16>(
             0x8000); // The highest known pointer buffer
                      // size (used by nvservices)
-                     // *result = RESULT_SUCCESS;
+        *result = RESULT_SUCCESS;
         break;
     case kernel::hipc::cmif::ControlCommandType::CloneCurrentObjectEx:
         // TODO: u32 tag
@@ -267,15 +260,15 @@ void IService::Clone(RequestContext& context) {
     server->RegisterSession(server_session, this);
 
     // Register client side
-    const auto handle_id = context.process->AddHandleNoRetain(client_session);
-    context.streams.out_move_handles_stream.Write(handle_id);
+    const auto handle = context.process->AddHandleNoRetain(client_session);
+    context.streams.out_move_handles_stream.write(handle);
 }
 
 void IService::TipcRequest(RequestContext& context, const u32 command_id) {
     ASSERT_DEBUG(!is_domain, Kernel,
                  "TIPC is not supported for domain services");
     const auto result = RequestImpl(context, command_id);
-    context.streams.out_stream.Write(result);
+    context.streams.out_stream.write(result);
 }
 
 } // namespace hydra::horizon::services

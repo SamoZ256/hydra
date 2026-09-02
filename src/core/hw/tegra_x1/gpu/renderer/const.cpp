@@ -384,8 +384,8 @@ u32 GetTextureFormatSliceStride(const TextureFormat format, u32 width,
 
 u32 get_texture_format_bpp(const TextureFormat format) {
     const auto& info = GetTextureFormatInfo(format);
-    if (info.block_width != 1 || info.block_height != 1)
-        throw GetTextureFormatBppError::UnsupportedFormatForBpp;
+    ASSERT_DEBUG(info.block_width == 1 && info.block_height == 1, Gpu,
+                 "BPP not supported for format {}", format);
 
     return info.bytes_per_block;
 }
@@ -622,33 +622,33 @@ SwizzleChannels::SwizzleChannels(const TextureFormat format,
 }
 
 u32 TextureDescriptor::GetGroupHash() const {
-    HashCode hash;
-    hash.Add(GetTextureTypeClass(type));
+    ztd::hash::XxHash32 hash;
+    hash.add(GetTextureTypeClass(type));
 
     const auto& format_info = GetTextureFormatInfo(format);
     // TODO: make sure BC and ASTC formats are incompatible
-    hash.Add(format_info.bytes_per_block);
-    hash.Add(format_info.block_width);
-    hash.Add(format_info.block_height);
-    hash.Add(format_info.is_depth_stencil);
+    hash.add(format_info.bytes_per_block);
+    hash.add(format_info.block_width);
+    hash.add(format_info.block_height);
+    hash.add(format_info.is_depth_stencil);
 
-    return hash.ToHashCode();
+    return hash.toHashCode();
 }
 
 u32 TextureDescriptor::GetStorageHash() const {
-    HashCode hash;
-    hash.Add(ptr);
+    ztd::hash::XxHash32 hash;
+    hash.add(ptr);
     if (is_linear)
-        hash.Add(linear_stride);
-    hash.Add(width);
-    hash.Add(height);
-    hash.Add(depth);
-    hash.Add(level_count);
-    hash.Add(layer_count);
+        hash.add(linear_stride);
+    hash.add(width);
+    hash.add(height);
+    hash.add(depth);
+    hash.add(level_count);
+    hash.add(layer_count);
     // TODO: block size?
-    hash.Add(layer_size);
+    hash.add(layer_size);
 
-    return hash.ToHashCode();
+    return hash.toHashCode();
 }
 
 namespace {
@@ -759,19 +759,19 @@ void TextureDescriptor::CalculateSize() {
 }
 
 u32 TextureViewDescriptor::GetHash() const {
-    HashCode hash;
-    hash.Add(type);
-    hash.Add(format);
-    hash.Add(levels.GetBegin());
-    hash.Add(levels.GetEnd());
-    hash.Add(layers.GetBegin());
-    hash.Add(layers.GetEnd());
-    hash.Add(swizzle_channels.r);
-    hash.Add(swizzle_channels.g);
-    hash.Add(swizzle_channels.b);
-    hash.Add(swizzle_channels.a);
+    ztd::hash::XxHash32 hash;
+    hash.add(type);
+    hash.add(format);
+    hash.add(levels.getBegin());
+    hash.add(levels.getEnd());
+    hash.add(layers.getBegin());
+    hash.add(layers.getEnd());
+    hash.add(swizzle_channels.r);
+    hash.add(swizzle_channels.g);
+    hash.add(swizzle_channels.b);
+    hash.add(swizzle_channels.a);
 
-    return hash.ToHashCode();
+    return hash.toHashCode();
 }
 
 usize get_vertex_format_size(engines::VertexAttribSize size) {

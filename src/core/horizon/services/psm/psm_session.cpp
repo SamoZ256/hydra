@@ -15,15 +15,15 @@ DEFINE_SERVICE_COMMAND_TABLE(IPsmSession, 0, BindStateChangeEvent, 1,
 result_t
 IPsmSession::BindStateChangeEvent(kernel::Process* process,
                                   OutHandle<HandleAttr::Copy> out_handle) {
-    event_handle_id = process->AddHandle(
+    event_handle = process->AddHandle(
         new kernel::Event(false, "IPsmSession state change event"));
-    out_handle = event_handle_id;
+    out_handle = event_handle;
     return RESULT_SUCCESS;
 }
 
 result_t IPsmSession::UnbindStateChangeEvent(kernel::Process* process) {
-    process->FreeHandle(event_handle_id);
-    event_handle_id = INVALID_HANDLE_ID;
+    process->FreeHandle(event_handle);
+    event_handle = INVALID_HANDLE;
     return RESULT_SUCCESS;
 }
 

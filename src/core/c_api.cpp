@@ -16,11 +16,11 @@
 namespace {
 
 hydra_string hydra_string_from_string_view(std::string_view str) {
-    return hydra_string{str.data(), str.size()};
+    return hydra_string{.data = str.data(), .size = str.size()};
 }
 
 std::string_view string_view_from_hydra_string(hydra_string str) {
-    return std::string_view(str.data, str.size);
+    return {str.data, str.size};
 }
 
 } // namespace
@@ -56,8 +56,8 @@ HYDRA_EXPORT void hydra_string_list_set(void* list, uint32_t index,
 }
 
 HYDRA_EXPORT void hydra_string_list_append(void* list, hydra_string value) {
-    reinterpret_cast<std::vector<std::string>*>(list)->push_back(
-        std::string(string_view_from_hydra_string(value)));
+    reinterpret_cast<std::vector<std::string>*>(list)->emplace_back(
+        string_view_from_hydra_string(value));
 }
 
 // String view list
@@ -471,67 +471,68 @@ HYDRA_EXPORT hydra_string hydra_time_zone_manager_get_location(void* manager,
 // Loader
 HYDRA_EXPORT void* hydra_create_loader_from_path(hydra_string path,
                                                  void* plugin_manager) {
-    try {
-        return hydra::horizon::loader::LoaderBase::CreateFromPath(
-            string_view_from_hydra_string(path),
-            reinterpret_cast<hydra::horizon::loader::plugins::Manager*>(
-                plugin_manager));
-    } catch (...) {
-        // TODO: return an error
-        return nullptr;
-    }
+    // TODO: return the error
+    return hydra::horizon::loader::ILoader::CreateFromPath(
+               string_view_from_hydra_string(path),
+               (plugin_manager != nullptr)
+                   ? std::make_optional(
+                         reinterpret_cast<
+                             hydra::horizon::loader::plugins::Manager*>(
+                             plugin_manager))
+                   : std::nullopt)
+        .value_or(nullptr);
 }
 
 HYDRA_EXPORT void hydra_loader_destroy(void* loader) {
-    delete reinterpret_cast<hydra::horizon::loader::LoaderBase*>(loader);
+    delete reinterpret_cast<hydra::horizon::loader::ILoader*>(loader);
 }
 
 HYDRA_EXPORT uint64_t hydra_loader_get_title_id(void* loader) {
-    return reinterpret_cast<hydra::horizon::loader::LoaderBase*>(loader)
+    return reinterpret_cast<hydra::horizon::loader::ILoader*>(loader)
         ->GetTitleID();
 }
 
 HYDRA_EXPORT void* hydra_loader_load_nacp(void* loader) {
-    return reinterpret_cast<hydra::horizon::loader::LoaderBase*>(loader)
+    return reinterpret_cast<hydra::horizon::loader::ILoader*>(loader)
         ->LoadNacp();
 }
 
 HYDRA_EXPORT void* hydra_loader_load_icon(void* loader, uint32_t* width,
                                           uint32_t* height) {
-    return reinterpret_cast<hydra::horizon::loader::LoaderBase*>(loader)
-        ->LoadIcon(*width, *height);
+    return reinterpret_cast<hydra::horizon::loader::ILoader*>(loader)->LoadIcon(
+        *width, *height);
 }
 
 HYDRA_EXPORT bool hydra_loader_has_icon(const void* loader) {
-    return reinterpret_cast<const hydra::horizon::loader::LoaderBase*>(loader)
+    return reinterpret_cast<const hydra::horizon::loader::ILoader*>(loader)
         ->HasIcon();
 }
 
 HYDRA_EXPORT void hydra_loader_extract_icon(const void* loader,
                                             hydra_string path) {
-    reinterpret_cast<const hydra::horizon::loader::LoaderBase*>(loader)
+    reinterpret_cast<const hydra::horizon::loader::ILoader*>(loader)
         ->ExtractIcon(string_view_from_hydra_string(path));
 }
 
 HYDRA_EXPORT bool hydra_loader_has_exefs(const void* loader) {
-    return reinterpret_cast<const hydra::horizon::loader::LoaderBase*>(loader)
+    return reinterpret_cast<const hydra::horizon::loader::ILoader*>(loader)
         ->HasExeFs();
 }
 
 HYDRA_EXPORT void hydra_loader_extract_exefs(const void* loader,
                                              hydra_string path) {
-    reinterpret_cast<const hydra::horizon::loader::LoaderBase*>(loader)
+    reinterpret_cast<const hydra::horizon::loader::ILoader*>(loader)
         ->ExtractExeFs(string_view_from_hydra_string(path));
 }
 
 HYDRA_EXPORT bool hydra_loader_has_romfs(const void* loader) {
-    return reinterpret_cast<const hydra::horizon::loader::LoaderBase*>(loader)
+    return reinterpret_cast<const hydra::horizon::loader::ILoader*>(loader)
         ->HasRomFs();
 }
 
 HYDRA_EXPORT void hydra_loader_extract_romfs(const void* loader,
                                              hydra_string path) {
-    reinterpret_cast<const hydra::horizon::loader::LoaderBase*>(loader)
+    reinterpret_cast<const hydra::horizon::loader::ILoader*>(loader)
         ->ExtractRomFs(string_view_from_hydra_string(path));
 }
 
@@ -566,13 +567,18 @@ HYDRA_EXPORT void hydra_loader_plugin_manager_refresh(void* manager) {
 
 // Plugin
 HYDRA_EXPORT void* hydra_create_loader_plugin(hydra_string path) {
-    try {
-        return new hydra::horizon::loader::plugins::Plugin(
-            std::string(string_view_from_hydra_string(path)));
-    } catch (...) {
-        // TODO: return an error
-        return nullptr;
-    }
+    // TODO: return the error
+    return hydra::horizon::loader::plugins::Plugin::Create(
+               std::string(string_view_from_hydra_string(path)))
+        .transform([](hydra::horizon::loader::plugins::Plugin plugin) {
+            // HACK
+            auto ptr =
+                reinterpret_cast<hydra::horizon::loader::plugins::Plugin*>(
+                    malloc(sizeof(hydra::horizon::loader::plugins::Plugin)));
+            *ptr = std::move(plugin);
+            return ptr;
+        })
+        .value_or(nullptr);
 }
 
 HYDRA_EXPORT void hydra_loader_plugin_destroy(void* plugin) {
@@ -820,7 +826,7 @@ HYDRA_EXPORT void hydra_system_set_surface(void* system, void* surface) {
 
 HYDRA_EXPORT void hydra_system_load_and_start(void* system, void* loader) {
     reinterpret_cast<hydra::System*>(system)->LoadAndStart(
-        reinterpret_cast<hydra::horizon::loader::LoaderBase*>(loader));
+        reinterpret_cast<hydra::horizon::loader::ILoader*>(loader));
 }
 
 HYDRA_EXPORT void hydra_system_request_stop(void* system) {

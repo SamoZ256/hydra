@@ -8,20 +8,22 @@ namespace hydra::horizon::services::visrv {
 result_t DisplayServiceBase::CreateStrayLayerImpl(
     System& system, kernel::Process* process, u32 flags, u64 display_id,
     u64* out_layer_id, u64* out_native_window_size,
-    io::MemoryStream* out_parcel_stream) {
+    std::optional<ztd::io::MemoryStream> out_parcel_stream) {
     (void)flags;
     (void)display_id;
 
-    u32 binder_id = system.GetOS().GetDisplayDriver().CreateBinder();
+    const auto binder_handle = system.GetOS().GetDisplayDriver().CreateBinder();
     // TODO: what's the display for?
     // auto& display = system.GetOS().GetDisplayDriver().GetDisplay(display_id);
 
-    *out_layer_id =
-        system.GetOS().GetDisplayDriver().CreateLayer(process, binder_id);
+    *out_layer_id = system.GetOS()
+                        .GetDisplayDriver()
+                        .CreateLayer(process, binder_handle)
+                        .GetRaw();
 
     // Parcel
-    hosbinder::ParcelWriter parcel_writer(out_parcel_stream);
-    parcel_writer.WriteObject(binder_id, "dispdrv"_u64);
+    hosbinder::ParcelWriter parcel_writer(out_parcel_stream.value());
+    parcel_writer.WriteObject(binder_handle.GetRaw(), "dispdrv"_u64);
     parcel_writer.Finish();
 
     *out_native_window_size = parcel_writer.GetWrittenSize();

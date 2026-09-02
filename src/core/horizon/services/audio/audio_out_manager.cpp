@@ -44,8 +44,8 @@ result_t IAudioOutManager::OpenAudioOutAuto(
                             out_device_name_buffer.stream);
 }
 
-result_t IAudioOutManager::ListAudioOutsImpl(u32* out_count,
-                                             io::MemoryStream* out_stream) {
+result_t IAudioOutManager::ListAudioOutsImpl(
+    u32* out_count, std::optional<ztd::io::MemoryStream> out_stream) {
     (void)out_stream;
 
     LOG_FUNC_STUBBED(Services);
@@ -57,13 +57,14 @@ result_t IAudioOutManager::ListAudioOutsImpl(u32* out_count,
 
 result_t IAudioOutManager::OpenAudioOutImpl(
     RequestContext* ctx, u32 sample_rate, u16 channel_count, u64 aruid,
-    io::MemoryStream* in_device_name_stream, u32* out_sample_rate,
-    u32* out_channel_count, PcmFormat* out_format, AudioOutState* out_state,
-    io::MemoryStream* out_device_name_stream) {
+    std::optional<ztd::io::MemoryStream> in_device_name_stream,
+    u32* out_sample_rate, u32* out_channel_count, PcmFormat* out_format,
+    AudioOutState* out_state,
+    std::optional<ztd::io::MemoryStream> out_device_name_stream) {
     (void)aruid;
 
     [[maybe_unused]] const auto device_name_in =
-        in_device_name_stream->ReadNullTerminatedString();
+        in_device_name_stream->readNullTerminatedString();
     LOG_DEBUG(Services, "Sample rate: {}, channel count: {}, device name: {}",
               sample_rate, channel_count, device_name_in);
 
@@ -84,7 +85,7 @@ result_t IAudioOutManager::OpenAudioOutImpl(
 
     // TODO: is this somehow connected to device name in?
     std::string device_name_out = "Hydra audio device";
-    out_device_name_stream->WriteNullTerminatedString(device_name_out);
+    out_device_name_stream->writeNullTerminatedString(device_name_out);
 
     AddService(*ctx,
                new IAudioOut(ctx->system, format, sample_rate, channel_count));

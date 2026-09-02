@@ -34,23 +34,24 @@ struct Buffer {
 struct NvFence {
     u32 id;
     u32 value;
-} PACKED;
+};
 
+#pragma pack(push, 1)
 struct NvMultiFence {
     u32 num_fences;
     NvFence fences[4];
-} PACKED;
+};
 
 enum class TransformFlags : u32 {
     None = 0,
-    FlipH = BIT(0),
-    FlipV = BIT(1),
-    Rot90 = BIT(2),
-    InverseDisplay = BIT(3),
-    NoVSyncCapability = BIT(4),
-    ReturnFrameNumber = BIT(5),
+    FlipH = ZTD_BIT(0),
+    FlipV = ZTD_BIT(1),
+    Rot90 = ZTD_BIT(2),
+    InverseDisplay = ZTD_BIT(3),
+    NoVSyncCapability = ZTD_BIT(4),
+    ReturnFrameNumber = ZTD_BIT(5),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(TransformFlags)
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(TransformFlags)
 
 struct BqBufferInput {
     i64 timestamp;
@@ -67,14 +68,15 @@ struct BqBufferInput {
     u32 _unknown;
     u32 swap_interval; // TODO: float?
     NvMultiFence fence;
-} PACKED;
+};
 
 struct BqBufferOutput {
     u32 width;
     u32 height;
     u32 transform_hint;
     u32 num_pending_buffers;
-} PACKED;
+};
+#pragma pack(pop)
 
 constexpr usize MAX_BINDER_BUFFER_COUNT = 8; // TODO: what should this be?
 
@@ -85,9 +87,10 @@ struct AccumulatedTime {
     explicit operator bool() const { return sample_count != 0; }
 
     explicit operator f32() const {
-        return f32(std::chrono::duration_cast<std::chrono::duration<f32>>(value)
+        return static_cast<f32>(
+                   std::chrono::duration_cast<std::chrono::duration<f32>>(value)
                        .count()) /
-               f32(sample_count);
+               static_cast<f32>(sample_count);
     }
 
     AccumulatedTime& operator+=(const std::chrono::nanoseconds other) {
@@ -121,7 +124,7 @@ struct Binder {
     void UnqueueAllBuffers();
 
     const GraphicBuffer& GetBuffer(i32 slot) {
-        std::lock_guard lock(queue_mutex);
+        std::scoped_lock lock(queue_mutex);
         return buffers[slot].buffer;
     }
 

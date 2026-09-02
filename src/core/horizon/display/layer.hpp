@@ -12,13 +12,12 @@ namespace hydra::horizon::display {
 
 class Driver;
 
-#define LAYER_SIZE_AUTO                                                        \
-    uint2 { 0, 0 }
+#define LAYER_SIZE_AUTO uint2{0, 0}
 
 class Layer {
   public:
-    Layer(System& system_, kernel::Process* process_, u32 binder_id_)
-        : system{system_}, process{process_}, binder_id{binder_id_} {}
+    Layer(System& system_, kernel::Process* process_, Handle binder_handle_)
+        : system{system_}, process{process_}, binder_handle{binder_handle_} {}
 
     // TODO
     void Open() {}
@@ -36,19 +35,19 @@ class Layer {
   private:
     System& system;
     kernel::Process* process;
-    u32 binder_id;
+    Handle binder_handle;
 
     float2 position{0, 0};
     uint2 size{LAYER_SIZE_AUTO};
     i64 z{0};
 
     // Present
-    hw::tegra_x1::gpu::renderer::ITextureView* present_texture{nullptr};
+    std::optional<hw::tegra_x1::gpu::renderer::ITextureView*> present_texture;
     IntRect2D src_rect;
 
   public:
     GETTER(process, GetProcess);
-    GETTER(binder_id, GetBinderID);
+    GETTER(binder_handle, GetBinderHandle);
     SETTER(position, SetPosition);
     SETTER(size, SetSize);
     GETTER_AND_SETTER(z, GetZ, SetZ);

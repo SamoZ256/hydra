@@ -17,7 +17,7 @@ class ISystemDisplayService : public DisplayServiceBase {
     result_t SetLayerZ(System* system, u64 layer_id, i64 z);
     result_t
     CreateStrayLayer(System* system, kernel::Process* process,
-                     aligned<u32, 8> flags, u64 display_id, u64* out_layer_id,
+                     Aligned<u32, 8> flags, u64 display_id, u64* out_layer_id,
                      u64* out_native_window_size,
                      OutBuffer<BufferAttr::MapAlias> out_parcel_buffer);
     result_t SetLayerVisibility(u64 layer_id, bool visible);

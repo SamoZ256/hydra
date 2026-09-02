@@ -15,7 +15,7 @@
 
 #define LOG(level, c, ...)                                                     \
     LOGGER_INSTANCE.Log(LogLevel::level, LogClass::c,                          \
-                        trim_source_path(__FILE__), __LINE__, __func__,        \
+                        TrimSourcePath(__FILE__), __LINE__, __func__,          \
                         __VA_ARGS__)
 
 #ifdef HYDRA_DEBUG
@@ -30,7 +30,7 @@
 
 #define LOG_INFO(c, ...) LOG(Info, c, __VA_ARGS__)
 #define LOG_STUBBED(c, f, ...)                                                 \
-    LOG(Stub, c, f " stubbed" PASS_VA_ARGS(__VA_ARGS__))
+    LOG(Stub, c, f " stubbed" ZTD_PASS_VA_ARGS(__VA_ARGS__))
 #define LOG_WARN(c, ...) LOG(Warning, c, __VA_ARGS__)
 #define LOG_ERROR(c, ...) LOG(Error, c, __VA_ARGS__)
 #ifdef HYDRA_DEBUG
@@ -43,14 +43,14 @@
     {                                                                          \
         LOG(Fatal, c, __VA_ARGS__);                                            \
         abort();                                                               \
-        builtin_unreachable();                                                 \
+        ztd::builtin::unreachable();                                           \
     }
 
 #define LOG_FUNC_STUBBED(c) LOG_STUBBED(c, "{}", __func__)
 #define LOG_FUNC_WITH_ARGS_STUBBED(c, f, ...)                                  \
     LOG_STUBBED(c, "{} (" f ")", __func__, __VA_ARGS__)
 #define LOG_NOT_IMPLEMENTED(c, f, ...)                                         \
-    LOG_WARN(c, f " not implemented" PASS_VA_ARGS(__VA_ARGS__))
+    LOG_WARN(c, f " not implemented" ZTD_PASS_VA_ARGS(__VA_ARGS__))
 #define LOG_FUNC_WITH_ARGS_NOT_IMPLEMENTED(c, f, ...)                          \
     LOG_NOT_IMPLEMENTED(c, "{} (" f ")", __func__, __VA_ARGS__)
 #define LOG_FUNC_NOT_IMPLEMENTED(c) LOG_NOT_IMPLEMENTED(c, "{}", __func__)
@@ -58,11 +58,6 @@
 #define ASSERT(condition, c, ...)                                              \
     if (!(condition)) {                                                        \
         LOG_FATAL(c, __VA_ARGS__);                                             \
-    }
-#define ASSERT_THROWING(condition, c, err, ...)                                \
-    if (!(condition)) {                                                        \
-        LOG_ERROR_ON_DEBUG(c, __VA_ARGS__);                                    \
-        throw err;                                                             \
     }
 
 #define ASSERT_ALIGNMENT(value, alignment, c, name)                            \
@@ -72,30 +67,23 @@
 
 #ifdef HYDRA_DEBUG
 #define ASSERT_DEBUG(condition, c, ...) ASSERT(condition, c, __VA_ARGS__)
-#define ASSERT_THROWING_DEBUG(condition, c, err, ...)                          \
-    ASSERT_THROWING(condition, c, err, __VA_ARGS__)
 #define ASSERT_ALIGNMENT_DEBUG(value, alignment, c, name)                      \
     ASSERT_ALIGNMENT(value, alignment, c, name)
 #else
 // TODO: should the condition be evaluated?
-#define ASSERT_DEBUG(condition, c, ...)                                        \
-    if (condition) {                                                           \
-    }
-#define ASSERT_THROWING_DEBUG(condition, c, err, ...)                          \
-    if (condition) {                                                           \
-    }
+#define ASSERT_DEBUG(condition, c, ...) (void)(condition)
 #define ASSERT_ALIGNMENT_DEBUG(value, alignment, c, name)
 #endif
 
 #define INDENT_FMT "{:{}}"
-#define PASS_INDENT(indent) "", ((indent)*4)
+#define PASS_INDENT(indent) "", ((indent) * 4)
 
 namespace hydra {
 
 // From yuzu
-constexpr const char* trim_source_path(std::string_view source) {
+constexpr const char* TrimSourcePath(std::string_view source) {
     const auto rfind = [source](const std::string_view match) {
-        return source.rfind(match) == source.npos
+        return source.rfind(match) == std::string_view::npos
                    ? 0
                    : (source.rfind(match) + match.size());
     };
@@ -170,7 +158,7 @@ struct LogMessage {
     std::string str;
 };
 
-typedef std::function<void(const LogMessage&)> log_callback_fn_t;
+using log_callback_fn_t = std::function<void(const LogMessage&)>;
 
 class Logger {
   public:
@@ -179,9 +167,13 @@ class Logger {
         return instance;
     }
 
-    ~Logger();
+    Logger() noexcept = default;
+    ~Logger() noexcept = default;
 
-    void InstallCallback(log_callback_fn_t callback_) {
+    ZTD_MAKE_NON_COPYABLE(Logger);
+    ZTD_MAKE_NON_MOVABLE(Logger);
+
+    void InstallCallback(const log_callback_fn_t& callback_) {
         std::lock_guard lock(mutex);
         callback = callback_;
     }
@@ -271,9 +263,6 @@ class Logger {
 
                 break;
             }
-            default:
-                throw std::runtime_error("Invalid logging output");
-                break;
             }
         }
 
@@ -291,10 +280,10 @@ class Logger {
     }
 
   private:
-    typedef std::chrono::high_resolution_clock clock_t;
+    using clock_t = std::chrono::high_resolution_clock;
 
     std::mutex mutex;
-    std::ofstream* ofs{nullptr};
+    std::optional<std::ofstream> ofs{};
 
     std::optional<log_callback_fn_t> callback{};
     LogOutput output{LogOutput::StdOut};

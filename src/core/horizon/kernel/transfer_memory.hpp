@@ -6,9 +6,13 @@ namespace hydra::horizon::kernel {
 
 class TransferMemory : public AutoObject {
   public:
+    static constexpr AutoObjectTypeId TYPE_ID =
+        AutoObjectTypeId::TransferMemory;
+
     TransferMemory(vaddr_t addr_, u64 size_, MemoryPermission perm_,
-                   const std::string_view debug_name = "TransferMemory")
-        : AutoObject(debug_name), addr{addr_}, size{size_}, perm{perm_} {}
+                   std::string_view debug_name = "TransferMemory")
+        : AutoObject(TYPE_ID, debug_name), addr{addr_}, size{size_},
+          perm{perm_} {}
 
   private:
     vaddr_t addr;

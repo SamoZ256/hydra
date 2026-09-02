@@ -58,7 +58,7 @@ std::string ValueToString(DeviceType device_type, u32 value) {
 }
 
 std::optional<Code> ToCode(const std::string_view str) {
-    const auto slash_pos = str.find("/");
+    const auto slash_pos = str.find('/');
     if (slash_pos == std::string::npos) {
         LOG_ERROR(Input, "Invalid input code format: {}", str);
         return std::nullopt;
@@ -86,21 +86,21 @@ std::optional<Code> ToCode(const std::string_view str) {
 AnalogStickAxis ToAnalogStickAxis(const std::string_view str) {
     // TODO: clean this up?
     if (str == "l_right") {
-        return {true, AnalogStickDirection::Right};
+        return {.is_left = true, .direction = AnalogStickDirection::Right};
     } else if (str == "l_left") {
-        return {true, AnalogStickDirection::Left};
+        return {.is_left = true, .direction = AnalogStickDirection::Left};
     } else if (str == "l_up") {
-        return {true, AnalogStickDirection::Up};
+        return {.is_left = true, .direction = AnalogStickDirection::Up};
     } else if (str == "l_down") {
-        return {true, AnalogStickDirection::Down};
+        return {.is_left = true, .direction = AnalogStickDirection::Down};
     } else if (str == "r_right") {
-        return {false, AnalogStickDirection::Right};
+        return {.is_left = false, .direction = AnalogStickDirection::Right};
     } else if (str == "r_left") {
-        return {false, AnalogStickDirection::Left};
+        return {.is_left = false, .direction = AnalogStickDirection::Left};
     } else if (str == "r_up") {
-        return {false, AnalogStickDirection::Up};
+        return {.is_left = false, .direction = AnalogStickDirection::Up};
     } else if (str == "r_down") {
-        return {false, AnalogStickDirection::Down};
+        return {.is_left = false, .direction = AnalogStickDirection::Down};
     } else {
         LOG_ERROR(Input, "Invalid analog stick axis \"{}\"", str);
         return {};
@@ -187,104 +187,113 @@ void Profile::LoadDefaults() {
     switch (index) {
     case horizon::services::hid::internal::NpadIndex::No1: {
         // Devices
-#ifdef PLATFORM_MACOS
+#ifdef ZTD_PLATFORM_MACOS
         device_names = {"Generic Keyboard"};
-#elif defined(PLATFORM_IOS)
+#elifdef ZTD_PLATFORM_IOS
         device_names = {"Apple Touch Controller"};
 #endif
 
         // Buttons
         button_mappings = {
             // Controller
-            {Code(DeviceType::Controller, ControllerInput::Plus),
-             horizon::services::hid::NpadButtons::Plus},
-            {Code(DeviceType::Controller, ControllerInput::Minus),
-             horizon::services::hid::NpadButtons::Minus},
-            {Code(DeviceType::Controller, ControllerInput::Left),
-             horizon::services::hid::NpadButtons::Left},
-            {Code(DeviceType::Controller, ControllerInput::Right),
-             horizon::services::hid::NpadButtons::Right},
-            {Code(DeviceType::Controller, ControllerInput::Up),
-             horizon::services::hid::NpadButtons::Up},
-            {Code(DeviceType::Controller, ControllerInput::Down),
-             horizon::services::hid::NpadButtons::Down},
-            {Code(DeviceType::Controller, ControllerInput::A),
-             horizon::services::hid::NpadButtons::A},
-            {Code(DeviceType::Controller, ControllerInput::B),
-             horizon::services::hid::NpadButtons::B},
-            {Code(DeviceType::Controller, ControllerInput::X),
-             horizon::services::hid::NpadButtons::X},
-            {Code(DeviceType::Controller, ControllerInput::Y),
-             horizon::services::hid::NpadButtons::Y},
-            {Code(DeviceType::Controller, ControllerInput::L),
-             horizon::services::hid::NpadButtons::L},
-            {Code(DeviceType::Controller, ControllerInput::R),
-             horizon::services::hid::NpadButtons::R},
-            {Code(DeviceType::Controller, ControllerInput::ZL),
-             horizon::services::hid::NpadButtons::ZL},
-            {Code(DeviceType::Controller, ControllerInput::ZR),
-             horizon::services::hid::NpadButtons::ZR},
+            {.code = Code(DeviceType::Controller, ControllerInput::Plus),
+             .npad_buttons = horizon::services::hid::NpadButtons::Plus},
+            {.code = Code(DeviceType::Controller, ControllerInput::Minus),
+             .npad_buttons = horizon::services::hid::NpadButtons::Minus},
+            {.code = Code(DeviceType::Controller, ControllerInput::Left),
+             .npad_buttons = horizon::services::hid::NpadButtons::Left},
+            {.code = Code(DeviceType::Controller, ControllerInput::Right),
+             .npad_buttons = horizon::services::hid::NpadButtons::Right},
+            {.code = Code(DeviceType::Controller, ControllerInput::Up),
+             .npad_buttons = horizon::services::hid::NpadButtons::Up},
+            {.code = Code(DeviceType::Controller, ControllerInput::Down),
+             .npad_buttons = horizon::services::hid::NpadButtons::Down},
+            {.code = Code(DeviceType::Controller, ControllerInput::A),
+             .npad_buttons = horizon::services::hid::NpadButtons::A},
+            {.code = Code(DeviceType::Controller, ControllerInput::B),
+             .npad_buttons = horizon::services::hid::NpadButtons::B},
+            {.code = Code(DeviceType::Controller, ControllerInput::X),
+             .npad_buttons = horizon::services::hid::NpadButtons::X},
+            {.code = Code(DeviceType::Controller, ControllerInput::Y),
+             .npad_buttons = horizon::services::hid::NpadButtons::Y},
+            {.code = Code(DeviceType::Controller, ControllerInput::L),
+             .npad_buttons = horizon::services::hid::NpadButtons::L},
+            {.code = Code(DeviceType::Controller, ControllerInput::R),
+             .npad_buttons = horizon::services::hid::NpadButtons::R},
+            {.code = Code(DeviceType::Controller, ControllerInput::ZL),
+             .npad_buttons = horizon::services::hid::NpadButtons::ZL},
+            {.code = Code(DeviceType::Controller, ControllerInput::ZR),
+             .npad_buttons = horizon::services::hid::NpadButtons::ZR},
 
             // Keyboard
-            {Code(DeviceType::Keyboard, Key::Enter),
-             horizon::services::hid::NpadButtons::Plus},
-            {Code(DeviceType::Keyboard, Key::Tab),
-             horizon::services::hid::NpadButtons::Minus},
-            {Code(DeviceType::Keyboard, Key::ArrowLeft),
-             horizon::services::hid::NpadButtons::Left},
-            {Code(DeviceType::Keyboard, Key::ArrowRight),
-             horizon::services::hid::NpadButtons::Right},
-            {Code(DeviceType::Keyboard, Key::ArrowUp),
-             horizon::services::hid::NpadButtons::Up},
-            {Code(DeviceType::Keyboard, Key::ArrowDown),
-             horizon::services::hid::NpadButtons::Down},
-            {Code(DeviceType::Keyboard, Key::L),
-             horizon::services::hid::NpadButtons::A},
-            {Code(DeviceType::Keyboard, Key::K),
-             horizon::services::hid::NpadButtons::B},
-            {Code(DeviceType::Keyboard, Key::I),
-             horizon::services::hid::NpadButtons::X},
-            {Code(DeviceType::Keyboard, Key::J),
-             horizon::services::hid::NpadButtons::Y},
-            {Code(DeviceType::Keyboard, Key::U),
-             horizon::services::hid::NpadButtons::L},
-            {Code(DeviceType::Keyboard, Key::O),
-             horizon::services::hid::NpadButtons::R},
-            {Code(DeviceType::Keyboard, Key::Y),
-             horizon::services::hid::NpadButtons::ZL},
-            {Code(DeviceType::Keyboard, Key::P),
-             horizon::services::hid::NpadButtons::ZR},
+            {.code = Code(DeviceType::Keyboard, Key::Enter),
+             .npad_buttons = horizon::services::hid::NpadButtons::Plus},
+            {.code = Code(DeviceType::Keyboard, Key::Tab),
+             .npad_buttons = horizon::services::hid::NpadButtons::Minus},
+            {.code = Code(DeviceType::Keyboard, Key::ArrowLeft),
+             .npad_buttons = horizon::services::hid::NpadButtons::Left},
+            {.code = Code(DeviceType::Keyboard, Key::ArrowRight),
+             .npad_buttons = horizon::services::hid::NpadButtons::Right},
+            {.code = Code(DeviceType::Keyboard, Key::ArrowUp),
+             .npad_buttons = horizon::services::hid::NpadButtons::Up},
+            {.code = Code(DeviceType::Keyboard, Key::ArrowDown),
+             .npad_buttons = horizon::services::hid::NpadButtons::Down},
+            {.code = Code(DeviceType::Keyboard, Key::L),
+             .npad_buttons = horizon::services::hid::NpadButtons::A},
+            {.code = Code(DeviceType::Keyboard, Key::K),
+             .npad_buttons = horizon::services::hid::NpadButtons::B},
+            {.code = Code(DeviceType::Keyboard, Key::I),
+             .npad_buttons = horizon::services::hid::NpadButtons::X},
+            {.code = Code(DeviceType::Keyboard, Key::J),
+             .npad_buttons = horizon::services::hid::NpadButtons::Y},
+            {.code = Code(DeviceType::Keyboard, Key::U),
+             .npad_buttons = horizon::services::hid::NpadButtons::L},
+            {.code = Code(DeviceType::Keyboard, Key::O),
+             .npad_buttons = horizon::services::hid::NpadButtons::R},
+            {.code = Code(DeviceType::Keyboard, Key::Y),
+             .npad_buttons = horizon::services::hid::NpadButtons::ZL},
+            {.code = Code(DeviceType::Keyboard, Key::P),
+             .npad_buttons = horizon::services::hid::NpadButtons::ZR},
         };
 
         // Analog sticks
         analog_mappings = {
             // Controller
-            {Code(DeviceType::Controller, ControllerInput::StickLRight),
-             {true, AnalogStickDirection::Right}},
-            {Code(DeviceType::Controller, ControllerInput::StickLLeft),
-             {true, AnalogStickDirection::Left}},
-            {Code(DeviceType::Controller, ControllerInput::StickLUp),
-             {true, AnalogStickDirection::Up}},
-            {Code(DeviceType::Controller, ControllerInput::StickLDown),
-             {true, AnalogStickDirection::Down}},
-            {Code(DeviceType::Controller, ControllerInput::StickRRight),
-             {false, AnalogStickDirection::Right}},
-            {Code(DeviceType::Controller, ControllerInput::StickRLeft),
-             {false, AnalogStickDirection::Left}},
-            {Code(DeviceType::Controller, ControllerInput::StickRUp),
-             {false, AnalogStickDirection::Up}},
-            {Code(DeviceType::Controller, ControllerInput::StickRDown),
-             {false, AnalogStickDirection::Down}},
+            {.code = Code(DeviceType::Controller, ControllerInput::StickLRight),
+             .axis = {.is_left = true,
+                      .direction = AnalogStickDirection::Right}},
+            {.code = Code(DeviceType::Controller, ControllerInput::StickLLeft),
+             .axis = {.is_left = true,
+                      .direction = AnalogStickDirection::Left}},
+            {.code = Code(DeviceType::Controller, ControllerInput::StickLUp),
+             .axis = {.is_left = true, .direction = AnalogStickDirection::Up}},
+            {.code = Code(DeviceType::Controller, ControllerInput::StickLDown),
+             .axis = {.is_left = true,
+                      .direction = AnalogStickDirection::Down}},
+            {.code = Code(DeviceType::Controller, ControllerInput::StickRRight),
+             .axis = {.is_left = false,
+                      .direction = AnalogStickDirection::Right}},
+            {.code = Code(DeviceType::Controller, ControllerInput::StickRLeft),
+             .axis = {.is_left = false,
+                      .direction = AnalogStickDirection::Left}},
+            {.code = Code(DeviceType::Controller, ControllerInput::StickRUp),
+             .axis = {.is_left = false, .direction = AnalogStickDirection::Up}},
+            {.code = Code(DeviceType::Controller, ControllerInput::StickRDown),
+             .axis = {.is_left = false,
+                      .direction = AnalogStickDirection::Down}},
 
             // Keyboard
-            {Code(DeviceType::Keyboard, Key::D),
-             {true, AnalogStickDirection::Right}},
-            {Code(DeviceType::Keyboard, Key::A),
-             {true, AnalogStickDirection::Left}},
-            {Code(DeviceType::Keyboard, Key::W),
-             {true, AnalogStickDirection::Up}},
-            {Code(DeviceType::Keyboard, Key::S),
-             {true, AnalogStickDirection::Down}},
+            {.code = Code(DeviceType::Keyboard, Key::D),
+             .axis = {.is_left = true,
+                      .direction = AnalogStickDirection::Right}},
+            {.code = Code(DeviceType::Keyboard, Key::A),
+             .axis = {.is_left = true,
+                      .direction = AnalogStickDirection::Left}},
+            {.code = Code(DeviceType::Keyboard, Key::W),
+             .axis = {.is_left = true, .direction = AnalogStickDirection::Up}},
+            {.code = Code(DeviceType::Keyboard, Key::S),
+             .axis = {.is_left = true,
+                      .direction = AnalogStickDirection::Down}},
         };
 
         break;
@@ -327,7 +336,7 @@ void Profile::Serialize() {
             auto& button = buttons[npad_buttons_str];
             if (!has_entry)
                 button = toml::array{};
-            button.as_array().push_back(mapping.code);
+            button.as_array().emplace_back(mapping.code);
         }
     }
 
@@ -340,7 +349,7 @@ void Profile::Serialize() {
             auto& axis = analog[axis_str];
             if (!has_entry)
                 axis = toml::array{};
-            axis.as_array().push_back(mapping.code);
+            axis.as_array().emplace_back(mapping.code);
         }
     }
 
@@ -381,7 +390,8 @@ void Profile::Deserialize() {
                 if (!code)
                     continue;
 
-                button_mappings.push_back({code.value(), button.value()});
+                button_mappings.push_back(
+                    {.code = code.value(), .npad_buttons = button.value()});
             }
         }
     }
@@ -396,7 +406,7 @@ void Profile::Deserialize() {
                 if (!code)
                     continue;
 
-                analog_mappings.push_back({code.value(), axis});
+                analog_mappings.push_back({.code = code.value(), .axis = axis});
             }
         }
     }

@@ -13,9 +13,9 @@ class Kernel;
 #pragma pack(push, 1)
 struct AccountHeader {
     u32 magic;
-    aligned<u8, 4> unk_x4;
+    Aligned<u8, 4> unk_x4;
     uuid_t user_id;
-    u8 unk_x18[0x70]; // Unused
+    std::array<u8, 0x70> unk_x18; // Unused
 };
 #pragma pack(pop)
 
@@ -37,7 +37,7 @@ class AppletState {
     AppletMessage ReceiveMessage();
     AppletFocusState GetFocusState() { return focus_state; }
     bool IsExitLocked() { return exit_locked; }
-    std::span<u8> PopLaunchParameter(const LaunchParameterKind kind);
+    std::vector<u8> PopLaunchParameter(const LaunchParameterKind kind);
 
   private:
     Kernel& kernel;

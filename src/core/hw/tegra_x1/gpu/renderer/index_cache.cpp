@@ -139,28 +139,29 @@ BufferView IndexCache::Decode(ICommandBuffer* command_buffer,
     PRIMITIVE_TYPE_SWITCH(GET_PARAMS, GET_PARAMS_U8_INDEX)
 
     switch (out_count) {
-    case 0 ... 0xff:
+    case 0u ... 0xffu:
         // TODO: check for u8 support
         out_type = engines::IndexType::UInt16;
         break;
-    case 0x100 ... 0xffff:
+    case 0x100u ... 0xffffu:
         out_type = engines::IndexType::UInt16;
         break;
-    case 0x10000 ... 0xffffffff:
+    case 0x10000u ... 0xffffffffu:
         out_type = engines::IndexType::UInt32;
         break;
     }
 
     const auto hash = Hash(descriptor);
     auto& index_buffer = cache[hash];
-    if (index_buffer)
+    if (index_buffer != nullptr)
         return index_buffer;
 
     const auto index_size = get_index_type_size(out_type);
-    index_buffer = renderer.AllocateTemporaryBuffer(out_count * index_size);
+    index_buffer = renderer.AllocateTemporaryBuffer(
+        static_cast<u64>(out_count * index_size));
     uptr in_ptr = 0x0;
     if (descriptor.mem_range)
-        in_ptr = descriptor.mem_range->GetBegin();
+        in_ptr = descriptor.mem_range->getBegin();
     auto out_ptr = index_buffer->GetPtr();
 
 #define DECODE(name) decode_##name(in_ptr, out_ptr, out_type, descriptor.count)
@@ -178,19 +179,19 @@ BufferView IndexCache::Decode(ICommandBuffer* command_buffer,
         PRIMITIVE_TYPE_SWITCH(DECODE_MACRO_AUTO, DECODE_MACRO_AUTO_U8_INDEX)
     }
 
-    return BufferView(index_buffer);
+    return {index_buffer};
 } // namespace hydra::hw::tegra_x1::gpu::renderer
 
 u32 IndexCache::Hash(const IndexDescriptor& descriptor) {
-    HashCode hash;
-    hash.Add(descriptor.type);
-    hash.Add(descriptor.primitive_type);
+    ztd::hash::XxHash32 hash;
+    hash.add(descriptor.type);
+    hash.add(descriptor.primitive_type);
     if (descriptor.mem_range) {
-        hash.Add(descriptor.mem_range->GetBegin());
-        hash.Add(descriptor.mem_range->GetEnd());
+        hash.add(descriptor.mem_range->getBegin());
+        hash.add(descriptor.mem_range->getEnd());
     }
-    hash.Add(descriptor.count);
-    return hash.ToHashCode();
+    hash.add(descriptor.count);
+    return hash.toHashCode();
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

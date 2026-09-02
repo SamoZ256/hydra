@@ -10,6 +10,7 @@ namespace hydra::hw::tegra_x1::gpu::engines {
 
 void InlineBase::LaunchDMAImpl(Gpu& gpu, RegsInline& regs, const u32 index,
                                const u32 data) {
+    (void)this;
     LOG_FUNC_WITH_ARGS_STUBBED(Engines, "index: {}, data: {:#x}", index, data);
 }
 
@@ -18,7 +19,7 @@ void InlineBase::LoadInlineDataImpl(Gpu& gpu, RegsInline& regs, const u32 index,
     inline_data.push_back(data);
     // TODO: correct?
     if (inline_data.size() * sizeof(u32) ==
-        regs.line_length_in * regs.line_count) {
+        static_cast<usize>(regs.line_length_in * regs.line_count)) {
         // Flush
         // TODO: determine what type of copy this is based on launch DMA args
 
@@ -30,7 +31,7 @@ void InlineBase::LoadInlineDataImpl(Gpu& gpu, RegsInline& regs, const u32 index,
 
         // Invalidate
         gpu.GetRenderer().InvalidateMemory(
-            Range<uptr>::FromSize(dst_ptr, inline_data.size() * sizeof(u32)));
+            ztd::Range<uptr>::fromSize(dst_ptr, inline_data.size() * sizeof(u32)));
     }
 }
 

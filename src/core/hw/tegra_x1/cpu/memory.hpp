@@ -9,6 +9,9 @@ class IMemory {
     IMemory(u64 size_) : size{align(size_, GUEST_PAGE_SIZE)} {}
     virtual ~IMemory() = default;
 
+    ZTD_MAKE_NON_COPYABLE(IMemory);
+    ZTD_MAKE_NON_MOVABLE(IMemory);
+
     // The memory needs to be unmapped before resizing
     void Resize(u64 new_size) {
         size = new_size;

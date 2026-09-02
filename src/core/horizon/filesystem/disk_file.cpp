@@ -7,9 +7,8 @@ DiskFile::DiskFile(const std::string_view path_, bool is_mutable_)
     if (std::filesystem::exists(path)) {
         // size = std::filesystem::file_size(host_path);
     } else {
-        ASSERT_THROWING(is_mutable, Filesystem,
-                        InitError::ImmutableFileDoesNotExist,
-                        "Immutable file \"{}\" does not exist", path);
+        ASSERT(is_mutable, Filesystem, "Immutable file \"{}\" does not exist",
+               path);
 
         // Intermediate directories
         std::filesystem::create_directories(
@@ -51,16 +50,16 @@ void DiskFile::Flush() {
     // LOG_FS_ACCESS(host_path, "file flushed");
 }
 
-io::IStream* DiskFile::Open(FileOpenFlags flags) {
-    std::ios::openmode std_flags = std::ios::binary;
+ztd::io::IStream* DiskFile::Open(FileOpenFlags flags) {
+    auto ztd_flags = ztd::fs::File::OpenFlags::None;
     if (any(flags & FileOpenFlags::Read))
-        std_flags |= std::ios::in;
+        ztd_flags |= ztd::fs::File::OpenFlags::Read;
     if (any(flags & FileOpenFlags::Write))
-        std_flags |= std::ios::out;
+        ztd_flags |= ztd::fs::File::OpenFlags::Write;
     if (any(flags & FileOpenFlags::Append))
-        std_flags |= std::ios::app;
+        ztd_flags |= ztd::fs::File::OpenFlags::Append;
 
-    return new DiskStream(path, std_flags);
+    return new DiskStream(path, ztd_flags);
 }
 
 u64 DiskFile::GetSize() const {

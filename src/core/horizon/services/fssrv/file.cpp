@@ -14,36 +14,36 @@ IFile::IFile(filesystem::IFile* file_, filesystem::FileOpenFlags flags)
 IFile::~IFile() { delete stream; }
 
 // TODO: option
-result_t IFile::Read(aligned<u32, 8> option, u64 offset, u64 size,
+result_t IFile::Read(Aligned<u32, 8> option, u64 offset, u64 size,
                      u64* out_written_size,
                      OutBuffer<BufferAttr::MapAlias> out_buffer) {
     (void)option;
 
     LOG_DEBUG(Services, "Offset: 0x{:08x}, size: 0x{:08x}", offset, size);
 
-    const auto max_size = stream->GetSize() - offset;
+    const auto max_size = stream->getSize() - offset;
     if (size > max_size) {
         LOG_WARN(Services, "Reading {} bytes, but maximum readable size is {}",
                  size, max_size);
         size = max_size;
     }
 
-    stream->SeekTo(offset);
-    stream->ReadToSpan(out_buffer.stream->WriteReturningSpan<u8>(size));
+    stream->seekTo(offset);
+    stream->readToSpan(out_buffer.stream->writeReturningSpan<u8>(size));
 
     *out_written_size = size;
     return RESULT_SUCCESS;
 }
 
 // TODO: option
-result_t IFile::Write(aligned<u32, 8> option, u64 offset, u64 size,
+result_t IFile::Write(Aligned<u32, 8> option, u64 offset, u64 size,
                       InBuffer<BufferAttr::MapAlias> in_buffer) {
     (void)option;
 
     LOG_DEBUG(Services, "Offset: 0x{:08x}, size: 0x{:08x}", offset, size);
 
-    stream->SeekTo(offset);
-    stream->WriteSpan(in_buffer.stream->ReadSpan<u8>(size));
+    stream->seekTo(offset);
+    stream->writeSpan(in_buffer.stream->readSpan<u8>(size));
 
     return RESULT_SUCCESS;
 }

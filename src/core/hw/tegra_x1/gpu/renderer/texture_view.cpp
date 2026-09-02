@@ -5,21 +5,21 @@
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
 void ITextureView::CopyFrom(ICommandBuffer* command_buffer,
-                            const BufferBase* src, const Range<u32> dst_levels,
-                            const Range<u32> dst_layers) {
+                            const BufferBase* src, const ztd::Range<u32> dst_levels,
+                            const ztd::Range<u32> dst_layers) {
     base->CopyFrom(command_buffer, src,
-                   Range<u32>::FromSize(descriptor.levels.GetBegin() +
-                                            dst_levels.GetBegin(),
-                                        dst_levels.GetSize()),
-                   Range<u32>::FromSize(descriptor.layers.GetBegin() +
-                                            dst_layers.GetBegin(),
-                                        dst_layers.GetSize()));
+                   ztd::Range<u32>::fromSize(descriptor.levels.getBegin() +
+                                            dst_levels.getBegin(),
+                                        dst_levels.getSize()),
+                   ztd::Range<u32>::fromSize(descriptor.layers.getBegin() +
+                                            dst_layers.getBegin(),
+                                        dst_layers.getSize()));
 }
 
 void ITextureView::CopyFrom(ICommandBuffer* command_buffer,
                             const BufferBase* src) {
-    CopyFrom(command_buffer, src, Range<u32>(0, descriptor.levels.GetSize()),
-             Range<u32>(0, descriptor.layers.GetSize()));
+    CopyFrom(command_buffer, src, ztd::Range<u32>(0, descriptor.levels.getSize()),
+             ztd::Range<u32>(0, descriptor.layers.getSize()));
 }
 
 void ITextureView::CopyFrom(ICommandBuffer* command_buffer,
@@ -28,10 +28,10 @@ void ITextureView::CopyFrom(ICommandBuffer* command_buffer,
                             const u32 dst_layer, const u32 level_count,
                             const u32 layer_count) {
     base->CopyFrom(command_buffer, src->GetBase(),
-                   src->GetDescriptor().levels.GetBegin() + src_level,
-                   src->GetDescriptor().layers.GetBegin() + src_layer,
-                   descriptor.levels.GetBegin() + dst_level,
-                   descriptor.layers.GetBegin() + dst_layer, level_count,
+                   src->GetDescriptor().levels.getBegin() + src_level,
+                   src->GetDescriptor().layers.getBegin() + src_layer,
+                   descriptor.levels.getBegin() + dst_level,
+                   descriptor.layers.getBegin() + dst_layer, level_count,
                    layer_count);
 }
 

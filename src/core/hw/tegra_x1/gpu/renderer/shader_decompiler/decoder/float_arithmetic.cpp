@@ -100,8 +100,9 @@ void EmitFaddC(DecoderContext& context, InstFaddC inst) {
     EmitFadd(
         context, inst.base.pred, inst.base.pred_inv, inst.base.sat,
         inst.base.dst, inst.base.src_a, inst.base.abs_a, inst.base.neg_a,
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               ir::ScalarType::F32),
+        ir::Value::ConstMemory(
+            CMem(inst.cbuf_slot, RZ, static_cast<u64>(inst.cbuf_offset * 4)),
+            ir::ScalarType::F32),
         inst.base.abs_b, inst.base.neg_b);
 }
 
@@ -130,8 +131,9 @@ void EmitFmulC(DecoderContext& context, InstFmulC inst) {
     EmitFmul(
         context, inst.base.pred, inst.base.pred_inv, inst.base.scale,
         inst.base.sat, inst.base.dst, inst.base.src_a,
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               ir::ScalarType::F32),
+        ir::Value::ConstMemory(
+            CMem(inst.cbuf_slot, RZ, static_cast<u64>(inst.cbuf_offset * 4)),
+            ir::ScalarType::F32),
         inst.base.neg_b);
 }
 
@@ -161,8 +163,9 @@ void EmitFfmaRC(DecoderContext& context, InstFfmaRC inst) {
         context, inst.base.pred, inst.base.pred_inv, inst.base.sat,
         inst.base.dst, inst.base.src_a, false,
         ir::Value::Register(inst.src_b, ir::ScalarType::F32), inst.base.neg_b,
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               ir::ScalarType::F32),
+        ir::Value::ConstMemory(
+            CMem(inst.cbuf_slot, RZ, static_cast<u64>(inst.cbuf_offset * 4)),
+            ir::ScalarType::F32),
         inst.base.neg_c);
 }
 
@@ -170,8 +173,9 @@ void EmitFfmaC(DecoderContext& context, InstFfmaC inst) {
     EmitFfma(
         context, inst.base.pred, inst.base.pred_inv, inst.base.sat,
         inst.base.dst, inst.base.src_a, false,
-        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               ir::ScalarType::F32),
+        ir::Value::ConstMemory(
+            CMem(inst.cbuf_slot, RZ, static_cast<u64>(inst.cbuf_offset * 4)),
+            ir::ScalarType::F32),
         inst.base.neg_b, ir::Value::Register(inst.src_c, ir::ScalarType::F32),
         inst.base.neg_c);
 }

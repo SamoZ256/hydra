@@ -1,0 +1,128 @@
+name: Build
+
+on:
+    workflow_dispatch:
+    push:
+        branches:
+            - main
+        paths:
+            - "**"
+            - "!.github/**"
+            - ".github/workflows/ci.yml"
+            - "!**.md"
+
+    pull_request:
+        paths:
+            - "**"
+            - "!.github/**"
+            - ".github/workflows/ci.yml"
+            - "!**.md"
+
+jobs:
+    build-macos:
+        permissions:
+            contents: read
+
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - suffix: macOS ARM64 - SwiftUI - Release
+                    - suffix: macOS ARM64 - SwiftUI - Debug
+                    - suffix: macOS ARM64 - SDL - Release
+                    - suffix: macOS x86-64 - SwiftUI - Release
+
+        runs-on: macos-latest
+
+        steps:
+            - name: Set Xcode version
+              uses: maxim-lobanov/setup-xcode@v1
+              with:
+                  xcode-version: latest-stable
+
+            - name: Checkout Hydra
+              uses: actions/checkout@v6
+              with:
+                  repository: SamoZ256/hydra
+                  submodules: recursive
+                  path: hydra
+                  persist-credentials: true
+                  token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Install dependencies
+              run: |
+                  echo "Installing dependencies"
+                  brew install llvm dylibbundler
+
+                  if [[ "${{ matrix.suffix }}" == *"x86-64"* ]]; then
+                    echo "Installing x86-64 dependencies under Rosetta"
+
+                    arch -x86_64 /bin/bash -c '
+                      export HOMEBREW_PREFIX=/usr/local
+                      export PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+
+                      if ! command -v brew >/dev/null; then
+                        echo "Installing Intel Homebrew"
+                        NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                      fi
+
+                      brew install boost fmt sdl3
+                    '
+                  else
+                    echo "Installing ARM64 dependencies"
+                    brew install boost fmt sdl3
+                  fi
+
+            - name: Verify CMake version
+              run: cmake --version
+
+            - name: Set build flags
+              run: |
+                  if [[ "${{ matrix.suffix }}" == *"Release"* ]]; then
+                    echo "BUILD_MODE=Release" >> $GITHUB_ENV
+                  else
+                    echo "BUILD_MODE=Debug" >> $GITHUB_ENV
+                  fi
+                  if [[ "${{ matrix.suffix }}" == *"SwiftUI"* ]]; then
+                    echo "FRONTEND_MODE=SwiftUI" >> $GITHUB_ENV
+                  else
+                    echo "FRONTEND_MODE=SDL3" >> $GITHUB_ENV
+                  fi
+                  if [[ "${{ matrix.suffix }}" == *"x86-64"* ]]; then
+                    echo "ARCH=x86_64" >> $GITHUB_ENV
+                  else
+                    echo "ARCH=arm64" >> $GITHUB_ENV
+                  fi
+
+            - name: Build Hydra
+              run: |
+                  cmake hydra -B build \
+                    -DCMAKE_OSX_ARCHITECTURES=${{ env.ARCH }} \
+                    -DCMAKE_BUILD_TYPE=${{ env.BUILD_MODE }} \
+                    -DCLANG_TIDY_ENABLED=OFF \
+                    -DMACOS_BUNDLE=ON \
+                    -DFRONTEND=${{ env.FRONTEND_MODE }} \
+                    -GNinja
+                  ninja -C build
+                  dylibbundler -of -cd -b -x build/bin/Hydra.app/Contents/MacOS/Hydra -d build/bin/Hydra.app/Contents/libs
+                  while install_name_tool -delete_rpath @executable_path/../libs/ build/bin/Hydra.app/Contents/MacOS/Hydra 2>/dev/null; do :; done
+                  install_name_tool -add_rpath @executable_path/../libs/ build/bin/Hydra.app/Contents/MacOS/Hydra
+                  codesign --force --deep --preserve-metadata=entitlements,requirements,flags,runtime --sign - build/bin/Hydra.app/Contents/MacOS/Hydra
+
+            - name: Create archive
+              run: |
+                  mkdir image
+                  ln -s /Applications image/Applications
+                  if [[ "${{ matrix.suffix }}" == *"SwiftUI"* ]]; then
+                    mv build/bin/Hydra.app image/Hydra.app
+                  else
+                    mv build/bin/Hydra.app image/HydraSDL.app
+                  fi
+                  hdiutil create -volname "Hydra" -srcfolder image "Hydra - ${{ matrix.suffix }}.dmg"
+
+            - name: Upload artifacts - ${{ matrix.suffix }}
+              uses: actions/upload-artifact@v4
+              with:
+                  name: Hydra - ${{ matrix.suffix }}
+                  path: Hydra - ${{ matrix.suffix }}.dmg
+                  if-no-files-found: error

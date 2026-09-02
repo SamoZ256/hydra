@@ -127,14 +127,14 @@ result_t IHOSBinderDriver::TransactParcelAuto(
 }
 
 // TODO: flags
-void IHOSBinderDriver::TransactParcelImpl(System& system, i32 binder_id,
-                                          TransactCode code, u32 flags,
-                                          io::MemoryStream* in_stream,
-                                          io::MemoryStream* out_stream) {
+void IHOSBinderDriver::TransactParcelImpl(
+    System& system, i32 binder_id, TransactCode code, u32 flags,
+    std::optional<ztd::io::MemoryStream> in_stream,
+    std::optional<ztd::io::MemoryStream> out_stream) {
     (void)flags;
 
-    ParcelReader parcel_reader(in_stream);
-    ParcelWriter parcel_writer(out_stream);
+    ParcelReader parcel_reader(in_stream.value());
+    ParcelWriter parcel_writer(out_stream.value());
 
     // Binder
     auto& binder = system.GetOS().GetDisplayDriver().GetBinder(
@@ -243,7 +243,7 @@ void IHOSBinderDriver::TransactParcelImpl(System& system, i32 binder_id,
 
         // Input buffer
         auto buffer = parcel_reader.ReadStrongPointer<display::GraphicBuffer>();
-        if (!buffer) {
+        if (buffer == nullptr) {
             LOG_ERROR(Services, "No graphic buffer");
             break;
         }

@@ -7,16 +7,17 @@ namespace hydra::horizon::services::hid::internal {
 template <typename T, usize max_entries = 17>
 struct RingLifo {
   public:
-    enum class Error {
-        NoStorage,
-    };
-
     void Clear() {
         atomic_store(&index, 0ull);
         atomic_store(&count, 0ull);
     }
 
-    T& GetCurrentStorage() { return GetCurrentAtomicStorage().data; }
+    std::optional<T*> GetCurrentStorage() {
+        return GetCurrentAtomicStorage().transform(
+            [](AtomicStorage* atomic_storage) {
+                return &atomic_storage->data;
+            });
+    }
 
     void Write(const T& data) {
         const auto next_index = (ReadIndex() + 1) % max_entries;
@@ -32,12 +33,11 @@ struct RingLifo {
 
     void WriteNext(const T& data) {
         // HACK: const cast
-        try {
-            const_cast<T&>(data).sampling_number =
-                GetCurrentStorage().sampling_number + 1;
-        } catch (Error error) {
-            const_cast<T&>(data).sampling_number = 0;
-        }
+        const_cast<T&>(data).sampling_number =
+            GetCurrentStorage()
+                .transform(
+                    [](T* storage) { return storage->sampling_number + 1; })
+                .value_or(0);
         Write(data);
     }
 
@@ -66,12 +66,11 @@ struct RingLifo {
     u64 ReadIndex() { return atomic_load(&index); }
     u64 ReadCount() { return atomic_load(&count); }
 
-    AtomicStorage& GetCurrentAtomicStorage() {
+    std::optional<AtomicStorage*> GetCurrentAtomicStorage() {
         const auto count_ =
             std::min(ReadCount(), 1ull); // TODO: why limit to 1?
-        if (count_ == 0) {
-            throw Error::NoStorage; // TODO: what to do?
-        }
+        if (count_ == 0)
+            return std::nullopt;
 
         auto index_ = ReadIndex();
         const auto storage_index =
@@ -79,7 +78,7 @@ struct RingLifo {
         auto& storage = storages[storage_index];
         // TODO: verify sampling numbers
 
-        return storage;
+        return &storage;
     }
 };
 

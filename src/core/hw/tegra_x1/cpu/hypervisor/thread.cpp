@@ -21,7 +21,7 @@ constexpr u32 MDSCR_EL1_MDE = (1u << 15);
 constexpr u32 DBGBCR_E = (1u << 0);     // Enable bit
 constexpr u32 DBGBCR_BAS = (0xfu << 5); // Byte address select
 
-constexpr u64 INTERRUPT_TIME = 16 * 1000 * 1000; // 16ms
+constexpr u64 INTERRUPT_TIME = 16ull * 1000ull * 1000ull; // 16ms
 
 enum class ExceptionClass {
     Unknown = 0b000000,
@@ -102,7 +102,7 @@ Thread::Thread(WallClock& wall_clock, Cpu& cpu_, IMmu* mmu,
                vaddr_t tls_mem_base)
     : IThread(wall_clock, mmu, callbacks, tls_mem), cpu{cpu_} {
     // Create
-    HV_ASSERT_SUCCESS(hv_vcpu_create(&vcpu, &exit, NULL));
+    HV_ASSERT_SUCCESS(hv_vcpu_create(&vcpu, &exit, nullptr));
 
     // TODO: find out what this does
     SetReg(HV_REG_CPSR, 0x3c0);
@@ -179,7 +179,7 @@ void Thread::Run() {
                 case ExceptionClass::DataAbortLowerEl: {
                     // TODO: use the correct size
                     if (far < ADDRESS_SPACE_SIZE &&
-                        MMU.TrackWrite(Range<vaddr_t>::FromSize(far, 8)))
+                        MMU.TrackWrite(ztd::Range<vaddr_t>::fromSize(far, 8)))
                         break;
 
                     bool far_valid = (esr & 0x00000400) == 0;
@@ -355,7 +355,7 @@ void Thread::InstructionTrap(u32 esr) {
 }
 
 void Thread::ProcessMessages() {
-    std::lock_guard<std::mutex> lock(msg_mutex);
+    std::scoped_lock lock(msg_mutex);
     while (!msg_queue.empty()) {
         auto message = msg_queue.front();
         msg_queue.pop();

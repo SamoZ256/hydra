@@ -216,7 +216,7 @@ class LangEmitter : public Emitter {
         case ir::TypeKind::Scalar: {
             switch (type.GetScalarType()) {
             case ir::ScalarType::Bool:
-                return GetConstantStr<bool>(imm & 0x1);
+                return GetConstantStr<bool>((imm & 0x1) != 0u);
             case ir::ScalarType::U8:
                 return GetConstantStr<u32>(imm & 0xff);
             case ir::ScalarType::U16:
@@ -233,7 +233,7 @@ class LangEmitter : public Emitter {
                 return GetConstantStr<i32>(std::bit_cast<i32>(imm));
             case ir::ScalarType::F16:
                 return fmt::format("as_type<f16>((u16)0x{:04x})",
-                                   u16(imm & 0xffff));
+                                   static_cast<u16>(imm & 0xffff));
             case ir::ScalarType::F32:
                 return GetConstantStr<f32>(std::bit_cast<f32>(imm));
             }
@@ -245,7 +245,7 @@ class LangEmitter : public Emitter {
         }
     }
 
-    std::string GetLocalStr(local_t local) {
+    static std::string GetLocalStr(local_t local) {
         return fmt::format("local0x{:x}_{}", u32(local.label), local.id);
     }
 
@@ -329,14 +329,14 @@ class LangEmitter : public Emitter {
         }
     }
 
-    char GetComponentStrFromIndex(u8 component_index) {
+    static char GetComponentStrFromIndex(u8 component_index) {
         ASSERT_DEBUG(component_index < 4, ShaderDecompiler,
                      "Invalid component index {}", component_index);
 
         return "xyzw"[component_index];
     }
 
-    const std::string GetTypeSuffixStr(ir::Type type) {
+    static std::string GetTypeSuffixStr(ir::Type type) {
         switch (type.GetKind()) {
         case ir::TypeKind::Scalar: {
             switch (type.GetScalarType()) {

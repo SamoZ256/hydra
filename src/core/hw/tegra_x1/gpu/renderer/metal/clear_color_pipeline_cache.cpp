@@ -73,13 +73,13 @@ MTL::RenderPipelineState* ClearColorPipelineCache::Create(
     color_attachment->setPixelFormat(descriptor.pixel_format);
 
     MTL::ColorWriteMask mask = MTL::ColorWriteMaskNone;
-    if (descriptor.mask & BIT(0))
+    if ((descriptor.mask & ZTD_BIT(0)) != 0u)
         mask |= MTL::ColorWriteMaskRed;
-    if (descriptor.mask & BIT(1))
+    if ((descriptor.mask & ZTD_BIT(1)) != 0u)
         mask |= MTL::ColorWriteMaskGreen;
-    if (descriptor.mask & BIT(2))
+    if ((descriptor.mask & ZTD_BIT(2)) != 0u)
         mask |= MTL::ColorWriteMaskBlue;
-    if (descriptor.mask & BIT(3))
+    if ((descriptor.mask & ZTD_BIT(3)) != 0u)
         mask |= MTL::ColorWriteMaskAlpha;
     color_attachment->setWriteMask(mask);
 
@@ -87,7 +87,7 @@ MTL::RenderPipelineState* ClearColorPipelineCache::Create(
 
     NS::Error* error;
     auto pipeline = device->newRenderPipelineState(pipeline_descriptor, &error);
-    if (error) {
+    if (error != nullptr) {
         LOG_ERROR(MetalRenderer, "Failed to create clear color pipeline: {}",
                   error->localizedDescription()->utf8String());
         return nullptr;
@@ -98,11 +98,11 @@ MTL::RenderPipelineState* ClearColorPipelineCache::Create(
 
 u32 ClearColorPipelineCache::Hash(
     const ClearColorPipelineDescriptor& descriptor) {
-    HashCode hash;
-    hash.Add(descriptor.pixel_format);
-    hash.Add(descriptor.render_target_id);
-    hash.Add(descriptor.mask);
-    return hash.ToHashCode();
+    ztd::hash::XxHash32 hash;
+    hash.add(descriptor.pixel_format);
+    hash.add(descriptor.render_target_id);
+    hash.add(descriptor.mask);
+    return hash.toHashCode();
 }
 
 void ClearColorPipelineCache::DestroyElement(

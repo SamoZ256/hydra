@@ -17,9 +17,9 @@ constexpr u64 ADDRESS_SPACE_SIZE = 1ull << GET_BLOCK_SHIFT(-1);
 
 enum class PageFlags : u8 {
     None = 0,
-    WriteTrackingEnabled = BITL(0),
+    WriteTrackingEnabled = ZTD_BITL(0),
 };
-ENABLE_ENUM_BITWISE_OPERATORS(PageFlags);
+ZTD_ENABLE_ENUM_BITWISE_OPERATORS(PageFlags);
 
 struct PageTableLevel {
     PageTableLevel(u32 level_, const Page page_, const vaddr_t base_va_);
@@ -34,13 +34,8 @@ struct PageTableLevel {
         return static_cast<u32>((va - base_va) >> GET_BLOCK_SHIFT(level));
     }
 
-    u64& GetEntry(u32 index) {
+    u64& GetEntry(u32 index) const {
         u64* table = reinterpret_cast<u64*>(page.ptr);
-        return table[index];
-    }
-
-    const u64& GetEntry(u32 index) const {
-        const u64* table = reinterpret_cast<const u64*>(page.ptr);
         return table[index];
     }
 
@@ -102,23 +97,23 @@ class PageTable {
     PageTable(paddr_t base_pa);
     ~PageTable();
 
-    void Map(vaddr_t va, Range<uptr> range,
+    void Map(vaddr_t va, ztd::Range<uptr> range,
              const horizon::kernel::MemoryState state, ApFlags ap_flags);
-    void Unmap(Range<vaddr_t> range);
+    void Unmap(ztd::Range<vaddr_t> range);
 
     // State
     PageRegion QueryRegion(vaddr_t va) const;
-    void SetMemoryPermission(Range<vaddr_t> range,
+    void SetMemoryPermission(ztd::Range<vaddr_t> range,
                              horizon::kernel::MemoryPermission perm,
                              ApFlags ap_flags);
-    void SetMemoryAttribute(Range<vaddr_t> range,
+    void SetMemoryAttribute(ztd::Range<vaddr_t> range,
                             horizon::kernel::MemoryAttribute mask,
                             horizon::kernel::MemoryAttribute value);
 
     // Write tracking
-    void SetWriteTrackingEnabled(Range<vaddr_t> range, bool enable);
-    bool TrySuspendWriteTracking(Range<vaddr_t> range);
-    void ResumeWriteTracking(Range<vaddr_t> range);
+    void SetWriteTrackingEnabled(ztd::Range<vaddr_t> range, bool enable);
+    bool TrySuspendWriteTracking(ztd::Range<vaddr_t> range);
+    void ResumeWriteTracking(ztd::Range<vaddr_t> range);
 
     paddr_t UnmapAddr(vaddr_t va) const;
 
@@ -134,16 +129,15 @@ class PageTable {
                       const horizon::kernel::MemoryState state,
                       ApFlags ap_flags);
 
-    void IterateRange(
-        Range<vaddr_t> range,
-        std::function<void(Range<vaddr_t>, u64,
-                           const horizon::kernel::MemoryState&, PageFlags)>
-            callback) const;
     void
-    ModifyRange(Range<vaddr_t> range,
-                std::function<void(Range<vaddr_t>, u64&,
-                                   horizon::kernel::MemoryState&, PageFlags&)>
-                    callback);
+    IterateRange(ztd::Range<vaddr_t> range,
+                 const std::function<void(ztd::Range<vaddr_t>, u64,
+                                          const horizon::kernel::MemoryState&,
+                                          PageFlags)>& callback) const;
+    void ModifyRange(ztd::Range<vaddr_t> range,
+                     const std::function<void(ztd::Range<vaddr_t>, u64&,
+                                              horizon::kernel::MemoryState&,
+                                              PageFlags&)>& callback);
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor

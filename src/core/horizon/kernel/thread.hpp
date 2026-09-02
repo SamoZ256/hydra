@@ -41,11 +41,13 @@ class IThread : public SynchronizationObject {
     friend class Kernel;
 
   public:
+    static constexpr AutoObjectTypeId TYPE_ID = AutoObjectTypeId::Thread;
+
     IThread(Process* process_, i32 priority_,
-            const std::string_view debug_name = "Thread")
-        : SynchronizationObject(false, debug_name), process{process_},
+            std::string_view debug_name = "Thread") noexcept
+        : SynchronizationObject(TYPE_ID, false, debug_name), process{process_},
           priority{priority_} {}
-    virtual ~IThread() override;
+    ~IThread() noexcept override;
 
     void Start();
 
@@ -97,6 +99,10 @@ class IThread : public SynchronizationObject {
         return true;
     }
 
+    bool IsStoppingOrStopped() const {
+        return state == ThreadState::Stopping || state == ThreadState::Stopped;
+    }
+
     virtual uptr GetTlsPtr() const = 0;
 
   protected:
@@ -111,15 +117,13 @@ class IThread : public SynchronizationObject {
         mutex_wait_addr = 0x0;
         cond_var_wait_addr = 0x0;
         cond_var_wait_addr = 0x0;
-        mutex_wait_list.Clear();
+        mutex_wait_list.clear();
         supervisor_pause = false;
         guest_pause = false;
     }
 
   private:
     i32 priority;
-
-    std::thread* thread{nullptr};
 
     ThreadState state{ThreadState::Created}; // TODO: atomic?
 
@@ -129,15 +133,17 @@ class IThread : public SynchronizationObject {
 
     // Mutex and cond var
     uptr mutex_wait_addr{0x0};
-    u32 self_handle_for_mutex{0x0};
+    Handle self_handle_for_mutex{INVALID_HANDLE};
     uptr cond_var_wait_addr{0x0};
     std::mutex mutex_wait_mutex;
-    DoubleLinkedList<IThread*> mutex_wait_list;
+    ztd::DoublyLinkedList<IThread*> mutex_wait_list;
 
     // Synchronization
     bool supervisor_pause{false};
     bool guest_pause{false};
     std::optional<ThreadSyncInfo> sync_info{std::nullopt};
+
+    std::jthread thread;
 
     // Helpers
 
@@ -157,9 +163,7 @@ class IThread : public SynchronizationObject {
 
 inline thread_local IThread* tls_current_thread = nullptr;
 
-IThread* GetMutexOwner(Process* process, u32 mutex);
-inline IThread* GetMutexOwner(Process* process, u32* mutex_ptr) {
-    return GetMutexOwner(process, atomic_load(mutex_ptr));
-}
+std::optional<IThread*> GetMutexOwner(Process* process, u32 mutex);
+std::optional<IThread*> GetMutexOwner(Process* process, u32* mutex_ptr);
 
 } // namespace hydra::horizon::kernel

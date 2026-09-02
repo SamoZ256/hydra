@@ -120,22 +120,22 @@ enum class KeyAreaEncryptionKeyIndex : u8 {
 
 enum class KeyGeneration : u8 {
     _3_0_1 = 3,
-    _4_0_0,
-    _5_0_0,
-    _6_0_0,
-    _6_2_0,
-    _7_0_0,
-    _8_1_0,
-    _9_0_0,
-    _9_1_0,
-    _12_1_0,
-    _13_0_0,
-    _14_0_0,
-    _15_0_0,
-    _16_0_0,
-    _17_0_0,
-    _18_0_0,
-    _19_0_0,
+    _4_0_0 = 4,
+    _5_0_0 = 5,
+    _6_0_0 = 6,
+    _6_2_0 = 7,
+    _7_0_0 = 8,
+    _8_1_0 = 9,
+    _9_0_0 = 10,
+    _9_1_0 = 11,
+    _12_1_0 = 12,
+    _13_0_0 = 13,
+    _14_0_0 = 14,
+    _15_0_0 = 15,
+    _16_0_0 = 16,
+    _17_0_0 = 17,
+    _18_0_0 = 18,
+    _19_0_0 = 19,
 
     Invalid = 0xff,
 };
@@ -203,11 +203,10 @@ ContentArchive::ContentArchive(IFile* file) {
     auto stream = file->Open(FileOpenFlags::Read);
 
     // Header
-    const auto header = stream->Read<Header>();
+    const auto header = stream->read<Header>();
     // TODO: allow other NCA versions as well
-    ASSERT_THROWING(header.magic == make_magic4('N', 'C', 'A', '3'), Filesystem,
-                    Error::InvalidMagic, "Invalid NCA magic 0x{:08x}",
-                    header.magic);
+    ASSERT(header.magic == make_magic4('N', 'C', 'A', '3'), Filesystem,
+           "Invalid NCA magic 0x{:08x}", header.magic);
 
     content_type = header.content_type;
     title_id = header.program_id;
@@ -234,10 +233,9 @@ ContentArchive::ContentArchive(IFile* file) {
         switch (type) {
         case SectionType::Code:
         case SectionType::Logo: {
-            ASSERT_THROWING(
-                fs_header.hash_type == HashType::HierarchicalSha256Hash,
-                Filesystem, Error::UnsupportedHashType,
-                "Invalid hash type \"{}\" for PFS0", fs_header.hash_type);
+            ASSERT(fs_header.hash_type == HashType::HierarchicalSha256Hash,
+                   Filesystem, "Invalid hash type \"{}\" for PFS0",
+                   fs_header.hash_type);
             const auto& layer_region =
                 fs_header.hierarchical_sha_256_data.pfs0_region;
 

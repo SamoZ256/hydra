@@ -32,10 +32,10 @@ struct NeighborDetectionClientConfiguration {
     NeighborDetectionGroupConfiguration receivable_group_configurations[0x10];
 };
 
-typedef struct {
+struct JitConfiguration {
     u64 flags;
     u64 memory_size;
-} JitConfiguration;
+};
 
 // TODO: adjust this according to switchbrew
 struct ApplicationControlProperty {

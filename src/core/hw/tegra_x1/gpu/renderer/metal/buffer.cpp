@@ -6,9 +6,9 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
-Buffer::Buffer(MTL::Device* device, u64 size) : BufferBase(size) {
-    buffer = device->newBuffer(size, MTL::ResourceStorageModePrivate);
-}
+Buffer::Buffer(MTL::Device* device, u64 size)
+    : BufferBase(size),
+      buffer{device->newBuffer(size, MTL::ResourceStorageModePrivate)} {}
 
 Buffer::Buffer(MTL::Buffer* buffer_)
     : BufferBase(buffer_->allocatedSize()), buffer{buffer_} {}
@@ -17,7 +17,7 @@ Buffer::~Buffer() { buffer->release(); }
 
 void Buffer::CopyFrom(ICommandBuffer* command_buffer, ITextureView* src,
                       const uint3 src_origin, const uint3 src_size,
-                      const Range<u32> src_levels, const Range<u32> src_layers,
+                      const ztd::Range<u32> src_levels, const ztd::Range<u32> src_layers,
                       u64 dst_offset) {
     const auto command_buffer_impl =
         static_cast<CommandBuffer*>(command_buffer);
@@ -26,9 +26,9 @@ void Buffer::CopyFrom(ICommandBuffer* command_buffer, ITextureView* src,
     auto blit_encoder = command_buffer_impl->GetBlitCommandEncoder();
     // TODO: bytes per image
     // TODO: calculate the stride for the Metal pixel format
-    for (u32 layer = src_layers.GetBegin(); layer < src_layers.GetEnd();
+    for (u32 layer = src_layers.getBegin(); layer < src_layers.getEnd();
          layer++) {
-        for (u32 level = src_levels.GetBegin(); level < src_levels.GetEnd();
+        for (u32 level = src_levels.getBegin(); level < src_levels.getEnd();
              level++) {
             blit_encoder->copyFromTexture(
                 src_impl->GetTexture(), layer, level,

@@ -1,6 +1,6 @@
 #include "core/horizon/services/timesrv/internal/time_zone_manager.hpp"
 
-#include "date/tz.h"
+#include <date/tz.h>
 
 #include "core/horizon/filesystem/content_archive.hpp"
 #include "core/horizon/filesystem/file.hpp"
@@ -44,8 +44,8 @@ TimeZoneManager::TimeZoneManager(filesystem::Filesystem& filesystem_)
     const auto stream = list_file->Open(filesystem::FileOpenFlags::Read);
     char buffer[256];
     u32 str_size = 0;
-    while (stream->GetRemainingSize()) {
-        const auto c = stream->Read<char>();
+    while (stream->getRemainingSize() != 0u) {
+        const auto c = stream->read<char>();
         switch (c) {
         case '\n': {
             std::string_view str(buffer, str_size);

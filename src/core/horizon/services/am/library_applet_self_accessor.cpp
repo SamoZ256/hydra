@@ -17,32 +17,28 @@ DEFINE_SERVICE_COMMAND_TABLE(ILibraryAppletSelfAccessor, 0, PopInData, 1,
 
 result_t ILibraryAppletSelfAccessor::PopInData(RequestContext* ctx,
                                                System* system) {
-    AddService(*ctx, CONTROLLER->PopInData()->Retain());
+    AddService(*ctx, CONTROLLER.PopInData()->Retain());
     return RESULT_SUCCESS;
 }
 
 result_t ILibraryAppletSelfAccessor::PushOutData(System* system,
                                                  IService* storage_) {
-    auto storage = dynamic_cast<IStorage*>(storage_);
-    ASSERT_DEBUG(storage, Services, "Storage is not of type IStorage");
-
-    CONTROLLER->PushOutData(storage);
+    auto storage = static_cast<IStorage*>(storage_);
+    CONTROLLER.PushOutData(storage);
     return RESULT_SUCCESS;
 }
 
 result_t ILibraryAppletSelfAccessor::PopInteractiveInData(RequestContext* ctx,
                                                           System* system) {
-    AddService(*ctx, CONTROLLER->PopInteractiveInData()->Retain());
+    AddService(*ctx, CONTROLLER.PopInteractiveInData()->Retain());
     return RESULT_SUCCESS;
 }
 
 result_t
 ILibraryAppletSelfAccessor::PushInteractiveOutData(System* system,
                                                    IService* storage_) {
-    auto storage = dynamic_cast<IStorage*>(storage_);
-    ASSERT_DEBUG(storage, Services, "Storage is not of type IStorage");
-
-    CONTROLLER->PushInteractiveOutData(storage);
+    auto storage = static_cast<IStorage*>(storage_);
+    CONTROLLER.PushInteractiveOutData(storage);
     return RESULT_SUCCESS;
 }
 

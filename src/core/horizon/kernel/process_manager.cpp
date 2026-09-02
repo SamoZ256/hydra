@@ -17,23 +17,22 @@ ProcessManager::~ProcessManager() {
 }
 
 Process* ProcessManager::CreateProcess(const std::string_view name) {
-    std::lock_guard lock(mutex);
-    Process* process = new Process(system, name);
+    std::scoped_lock lock(mutex);
+    auto process = new Process(system, name);
     processes.push_back(process);
     return process;
 }
 
 void ProcessManager::DestroyProcess(Process* process) {
-    std::lock_guard lock(mutex);
-    processes.erase(std::remove(processes.begin(), processes.end(), process),
-                    processes.end());
+    std::scoped_lock lock(mutex);
+    std::erase(processes, process);
     ASSERT(process->Release(), Kernel,
            "Attempting to destroy {} which has active references",
            process->GetDebugName());
 }
 
 bool ProcessManager::HasRunningProcesses() {
-    std::lock_guard lock(mutex);
+    std::scoped_lock lock(mutex);
     for (auto process : processes) {
         if (process->IsRunning())
             return true;

@@ -75,11 +75,10 @@ result_t IAudioOut::GetReleasedAudioOutBuffersAuto(
     return GetReleasedAudioOutBuffersImpl(out_count, out_buffers_buffer.stream);
 }
 
-result_t
-IAudioOut::AppendAudioOutBufferImpl(kernel::Process* process,
-                                    u64 buffer_client_ptr,
-                                    io::MemoryStream* in_buffer_stream) {
-    const auto buffer = in_buffer_stream->Read<Buffer>();
+result_t IAudioOut::AppendAudioOutBufferImpl(
+    kernel::Process* process, u64 buffer_client_ptr,
+    std::optional<ztd::io::MemoryStream> in_buffer_stream) {
+    const auto buffer = in_buffer_stream->read<Buffer>();
     // TODO: correct?
     const auto ptr = reinterpret_cast<u8*>(
         process->GetMmu()->UnmapAddr(buffer.sample_buffer_ptr));
@@ -90,16 +89,16 @@ IAudioOut::AppendAudioOutBufferImpl(kernel::Process* process,
 }
 
 result_t IAudioOut::GetReleasedAudioOutBuffersImpl(
-    u32* out_count, io::MemoryStream* out_buffers_stream) {
+    u32* out_count, std::optional<ztd::io::MemoryStream> out_buffers_stream) {
     std::unique_lock lock(buffer_mutex);
 
     *out_count = static_cast<u32>(released_buffers.size());
 
     if (released_buffers.empty()) {
-        out_buffers_stream->Write<u64>(0);
+        out_buffers_stream->write<u64>(0);
     } else {
         for (const auto client_ptr : released_buffers)
-            out_buffers_stream->Write(client_ptr);
+            out_buffers_stream->write(client_ptr);
         released_buffers.clear();
     }
 
