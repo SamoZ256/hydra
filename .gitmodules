@@ -3,7 +3,7 @@
 	url = https://github.com/bkaradzic/metal-cpp.git
 [submodule "externals/dynarmic"]
 	path = externals/dynarmic
-	url = https://github.com/xinitrcn1/dynarmic.git
+	url = https://github.com/azahar-emu/dynarmic.git
 [submodule "externals/toml11"]
 	path = externals/toml11
 	url = https://github.com/ToruNiina/toml11.git
