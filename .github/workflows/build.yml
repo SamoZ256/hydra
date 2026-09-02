@@ -79,17 +79,17 @@ jobs:
 
             - name: Set build flags
               run: |
-                  if [[ ${{ matrix.suffix }} == *'Release'* ]]; then
+                  if [[ "${{ matrix.suffix }}" == *"Release"* ]]; then
                     echo "BUILD_MODE=Release" >> $GITHUB_ENV
                   else
                     echo "BUILD_MODE=Debug" >> $GITHUB_ENV
                   fi
-                  if [[ ${{ matrix.suffix }} == *'SwiftUI'* ]]; then
+                  if [[ "${{ matrix.suffix }}" == *"SwiftUI"* ]]; then
                     echo "FRONTEND_MODE=SwiftUI" >> $GITHUB_ENV
                   else
                     echo "FRONTEND_MODE=SDL3" >> $GITHUB_ENV
                   fi
-                  if [[ ${{ matrix.suffix }} == *'x86'* ]]; then
+                  if [[ "${{ matrix.suffix }}" == *"x86-64"* ]]; then
                     echo "ARCH=x86_64" >> $GITHUB_ENV
                   else
                     echo "ARCH=arm64" >> $GITHUB_ENV
