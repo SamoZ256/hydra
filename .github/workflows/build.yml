@@ -2,7 +2,6 @@ name: Build
 
 on:
     workflow_dispatch:
-
     push:
         branches:
             - main
@@ -114,16 +113,16 @@ jobs:
               run: |
                   mkdir image
                   ln -s /Applications image/Applications
-                  if [[ ${{ matrix.suffix }} == *'SwiftUI'* ]]; then
+                  if [[ "${{ matrix.suffix }}" == *"SwiftUI"* ]]; then
                     mv build/bin/Hydra.app image/Hydra.app
                   else
                     mv build/bin/Hydra.app image/HydraSDL.app
                   fi
-                  hdiutil create -volname "Hydra" -srcfolder image Hydra-${{ matrix.suffix }}
+                  hdiutil create -volname "Hydra" -srcfolder image "Hydra - ${{ matrix.suffix }}.dmg"
 
             - name: Upload artifacts - ${{ matrix.suffix }}
-              uses: actions/upload-artifact@v6
+              uses: actions/upload-artifact@v4
               with:
-                  name: Hydra-${{ matrix.suffix }}
-                  path: Hydra-${{ matrix.suffix }}.dmg
+                  name: Hydra - ${{ matrix.suffix }}
+                  path: Hydra - ${{ matrix.suffix }}.dmg
                   if-no-files-found: error
