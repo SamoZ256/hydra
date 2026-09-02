@@ -37,7 +37,7 @@ jobs:
                     - suffix: x86-SDL-Release
                     - suffix: x86-SDL-Debug
 
-        runs-on: macos-15
+        runs-on: macos-latest
 
         steps:
             - name: Set Xcode version
