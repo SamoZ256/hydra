@@ -1,4 +1,4 @@
-name: macOS
+name: Build
 
 on:
     workflow_dispatch:
@@ -20,7 +20,7 @@ on:
             - "!**.md"
 
 jobs:
-    macOS:
+    build-macos:
         permissions:
             contents: read
 
@@ -40,7 +40,7 @@ jobs:
         runs-on: macos-15
 
         steps:
-            - name: Set Xcode Version
+            - name: Set Xcode version
               uses: maxim-lobanov/setup-xcode@v1
               with:
                   xcode-version: latest-stable
@@ -54,7 +54,7 @@ jobs:
                   persist-credentials: true
                   token: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Install Dependencies
+            - name: Install dependencies
               run: |
                   echo "Installing dependencies"
                   brew install llvm dylibbundler
@@ -78,10 +78,10 @@ jobs:
                     brew install boost fmt sdl3
                   fi
 
-            - name: Verify CMake Version
+            - name: Verify CMake version
               run: cmake --version
 
-            - name: Set Build Flags
+            - name: Set build flags
               run: |
                   if [[ ${{ matrix.suffix }} == *'Release'* ]]; then
                     echo "BUILD_MODE=Release" >> $GITHUB_ENV
@@ -114,7 +114,7 @@ jobs:
                   install_name_tool -add_rpath @executable_path/../libs/ build/bin/Hydra.app/Contents/MacOS/Hydra
                   codesign --force --deep --preserve-metadata=entitlements,requirements,flags,runtime --sign - build/bin/Hydra.app/Contents/MacOS/Hydra
 
-            - name: Create Archive
+            - name: Create archive
               run: |
                   mkdir image
                   ln -s /Applications image/Applications
@@ -125,7 +125,7 @@ jobs:
                   fi
                   hdiutil create -volname "Hydra" -srcfolder image Hydra-${{ matrix.suffix }}
 
-            - name: Upload Artifacts - ${{ matrix.suffix }}
+            - name: Upload artifacts - ${{ matrix.suffix }}
               uses: actions/upload-artifact@v6
               with:
                   name: Hydra-${{ matrix.suffix }}
