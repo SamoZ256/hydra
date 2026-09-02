@@ -57,7 +57,7 @@ jobs:
             - name: Install Dependencies
               run: |
                   echo "Installing dependencies"
-                  brew install llvm@19 dylibbundler
+                  brew install llvm dylibbundler
 
                   if [[ "${{ matrix.suffix }}" == *"x86"* ]]; then
                     echo "Installing x86_64 dependencies under Rosetta"
