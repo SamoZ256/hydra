@@ -28,14 +28,10 @@ jobs:
             fail-fast: false
             matrix:
                 include:
-                    - suffix: Arm-SwiftUI-Release
-                    - suffix: Arm-SwiftUI-Debug
-                    - suffix: Arm-SDL-Release
-                    - suffix: Arm-SDL-Debug
-                    - suffix: x86-SwiftUI-Release
-                    - suffix: x86-SwiftUI-Debug
-                    - suffix: x86-SDL-Release
-                    - suffix: x86-SDL-Debug
+                    - suffix: macOS ARM64 - SwiftUI - Release
+                    - suffix: macOS ARM64 - SwiftUI - Debug
+                    - suffix: macOS ARM64 - SDL - Release
+                    - suffix: macOS x86-64 - SwiftUI - Release
 
         runs-on: macos-latest
 
@@ -59,8 +55,8 @@ jobs:
                   echo "Installing dependencies"
                   brew install llvm dylibbundler
 
-                  if [[ "${{ matrix.suffix }}" == *"x86"* ]]; then
-                    echo "Installing x86_64 dependencies under Rosetta"
+                  if [[ "${{ matrix.suffix }}" == *"x86-64"* ]]; then
+                    echo "Installing x86-64 dependencies under Rosetta"
 
                     arch -x86_64 /bin/bash -c '
                       export HOMEBREW_PREFIX=/usr/local
@@ -74,7 +70,7 @@ jobs:
                       brew install boost fmt sdl3
                     '
                   else
-                    echo "Installing arm64 dependencies"
+                    echo "Installing ARM64 dependencies"
                     brew install boost fmt sdl3
                   fi
 
