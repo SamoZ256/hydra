@@ -36,7 +36,7 @@ class StorageQueue {
 
 class LibraryAppletController {
   public:
-    LibraryAppletController(const LibraryAppletMode mode_) noexcept
+    explicit LibraryAppletController(const LibraryAppletMode mode_) noexcept
         : mode{mode_}, state_changed_event(std::make_unique<kernel::Event>(
                            false, "Library applet state changed event")),
           interactive_in_data_event(std::make_unique<kernel::Event>(

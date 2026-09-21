@@ -21,7 +21,7 @@ struct BufferEntry {
 // TODO: optional data hashing
 class BufferCache {
   public:
-    BufferCache(IRenderer& renderer_) : renderer{renderer_} {}
+    explicit BufferCache(IRenderer& renderer_) : renderer{renderer_} {}
     ~BufferCache();
 
     BufferView Get(ICommandBuffer* command_buffer, ztd::Range<uptr> range);

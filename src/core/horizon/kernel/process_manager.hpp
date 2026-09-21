@@ -10,7 +10,7 @@ class Process;
 
 class ProcessManager {
   public:
-    ProcessManager(System& system_) : system{system_} {}
+    explicit ProcessManager(System& system_) : system{system_} {}
     ~ProcessManager();
 
     Process* CreateProcess(const std::string_view name);

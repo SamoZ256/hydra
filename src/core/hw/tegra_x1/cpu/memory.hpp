@@ -6,7 +6,7 @@ namespace hydra::hw::tegra_x1::cpu {
 
 class IMemory {
   public:
-    IMemory(u64 size_) : size{align(size_, GUEST_PAGE_SIZE)} {}
+    explicit IMemory(u64 size_) : size{align(size_, GUEST_PAGE_SIZE)} {}
     virtual ~IMemory() = default;
 
     ZTD_MAKE_NON_COPYABLE(IMemory);

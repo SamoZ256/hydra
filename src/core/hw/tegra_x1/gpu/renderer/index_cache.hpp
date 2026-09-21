@@ -17,7 +17,7 @@ struct IndexDescriptor {
 // TODO: memory invalidation
 class IndexCache {
   public:
-    IndexCache(IRenderer& renderer_) : renderer{renderer_} {}
+    explicit IndexCache(IRenderer& renderer_) : renderer{renderer_} {}
     ~IndexCache();
 
     BufferView Decode(ICommandBuffer* command_buffer,

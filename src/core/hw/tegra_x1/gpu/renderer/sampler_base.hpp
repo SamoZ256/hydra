@@ -6,7 +6,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer {
 
 class SamplerBase {
   public:
-    SamplerBase(const SamplerDescriptor& descriptor_)
+    explicit SamplerBase(const SamplerDescriptor& descriptor_)
         : descriptor{descriptor_} {}
     virtual ~SamplerBase() = default;
 

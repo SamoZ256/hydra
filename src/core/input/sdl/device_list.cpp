@@ -17,7 +17,7 @@ bool EWWrapper(void* userdata, SDL_Event* e) {
 } // namespace
 
 DeviceList::DeviceList() {
-    has_frontend = SDL_WasInit(SDL_INIT_VIDEO);
+    has_frontend = SDL_WasInit(SDL_INIT_VIDEO) != 0;
 
     // Initialize
     if (!SDL_InitSubSystem(SDL_INIT_GAMEPAD)) {

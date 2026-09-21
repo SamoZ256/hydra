@@ -14,7 +14,7 @@ class ClearColorPipelineCache
     : public CacheBase<ClearColorPipelineCache, MTL::RenderPipelineState*,
                        ClearColorPipelineDescriptor> {
   public:
-    ClearColorPipelineCache(MTL::Device* device_);
+    explicit ClearColorPipelineCache(MTL::Device* device_);
 
     void Destroy();
 

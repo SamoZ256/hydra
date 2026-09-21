@@ -14,8 +14,9 @@ class ISaveDataInfoReader : public IService {
     u32 entry_index{0};
 
     // Commands
-    result_t ReadSaveDataInfo(i64* out_entry_count,
-                              OutBuffer<BufferAttr::MapAlias> out_entry_buffer);
+    result_t
+    ReadSaveDataInfo(i64* out_entry_count,
+                     OutBuffer<BufferAttr::MapAlias> out_entry_buffer) const;
 };
 
 } // namespace hydra::horizon::services::fssrv

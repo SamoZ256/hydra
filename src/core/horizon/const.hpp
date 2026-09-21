@@ -4,7 +4,7 @@
 
 namespace hydra::horizon {
 
-using result_t = kernel::result_t;
+using kernel::result_t;
 
 struct FirmwareVersion {
     u8 major;

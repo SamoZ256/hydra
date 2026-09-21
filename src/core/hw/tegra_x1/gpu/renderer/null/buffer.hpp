@@ -6,7 +6,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::null {
 
 class Buffer final : public BufferBase {
   public:
-    Buffer(u64 size);
+    explicit Buffer(u64 size);
     ~Buffer() override;
 
     uptr GetPtr() const override { return reinterpret_cast<uptr>(buffer); }

@@ -24,13 +24,12 @@ DiskFile::DiskFile(const std::string_view path_, bool is_mutable_)
     }
 }
 
-DiskFile::~DiskFile() {
-    // Resize the file to the requested size
-    // if (is_mutable && std::filesystem::exists(host_path)) {
-    //    if (std::filesystem::file_size(host_path) != size)
-    //        std::filesystem::resize_file(host_path, size);
-    //}
-}
+// Resize the file to the requested size
+// if (is_mutable && std::filesystem::exists(host_path)) {
+//    if (std::filesystem::file_size(host_path) != size)
+//        std::filesystem::resize_file(host_path, size);
+//}
+DiskFile::~DiskFile() = default;
 
 void DiskFile::Resize(u64 new_size) {
     ASSERT(is_mutable, Filesystem, "Immutable file cannot be resized");

@@ -68,7 +68,7 @@ NvResult ChannelBase::SetUserData(u64 data) {
     return NvResult::Success;
 }
 
-NvResult ChannelBase::GetUserData(u64* out_data) {
+NvResult ChannelBase::GetUserData(u64* out_data) const {
     *out_data = user_data;
     return NvResult::Success;
 }

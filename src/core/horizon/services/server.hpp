@@ -20,7 +20,7 @@ using create_service_fn_t = std::function<IService*()>;
 
 class Server {
   public:
-    Server(System& system_) : system{system_} {}
+    explicit Server(System& system_) : system{system_} {}
     ~Server() { Stop(); }
 
     ZTD_MAKE_NON_COPYABLE(Server);

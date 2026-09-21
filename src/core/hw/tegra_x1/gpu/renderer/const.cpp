@@ -207,7 +207,9 @@ TextureFormat to_texture_format(const ImageFormatWord image_format_word,
              image_format_word.component_g == ImageComponent::c_g &&           \
              image_format_word.component_b == ImageComponent::c_b &&           \
              image_format_word.component_a == ImageComponent::c_a &&           \
-             is_srgb == is_srgb_) return TextureFormat::texture_format;
+             is_srgb == is_srgb_) {                                            \
+        return TextureFormat::texture_format;                                  \
+    }
 
 #define IMAGE_FORMAT_CASE(img_format, c_r, c_g, c_b, c_a, texture_format)      \
     IMAGE_FORMAT_CASE_IMPL(img_format, c_r, c_g, c_b, c_a, texture_format,     \
@@ -217,8 +219,9 @@ TextureFormat to_texture_format(const ImageFormatWord image_format_word,
 
     // TODO: more formats
     // TODO: check
-    if (image_format_word.image_format == ImageFormat::Invalid)
+    if (image_format_word.image_format == ImageFormat::Invalid) {
         return TextureFormat::Invalid;
+    }
     IMAGE_FORMAT_CASE(R16, Float, Float, Float, Float, R16Float)
     IMAGE_FORMAT_CASE(R32, Float, Float, Float, Float, R32Float)
     IMAGE_FORMAT_CASE(ARGB8, Unorm, Unorm, Unorm, Unorm, RGBA8Unorm)

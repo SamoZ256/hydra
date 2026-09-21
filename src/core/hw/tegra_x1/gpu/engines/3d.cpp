@@ -408,7 +408,8 @@ void ThreeD::FirmwareCall4(const u32 index, const u32 data) {
 }
 
 void ThreeD::LoadConstBuffer(const u32 index, const u32 data) {
-    const uptr const_buffer_gpu_addr = u64(regs.const_buffer_selector);
+    const uptr const_buffer_gpu_addr =
+        static_cast<u64>(regs.const_buffer_selector);
     const uptr gpu_addr = const_buffer_gpu_addr + regs.load_const_buffer_offset;
     const auto ptr = tls_crnt_gmmu->UnmapAddr(gpu_addr);
 
@@ -458,7 +459,7 @@ renderer::ITextureView*
 ThreeD::GetColorTargetTexture(u32 render_target_index) const {
     const auto& render_target = regs.color_targets[render_target_index];
 
-    const auto gpu_addr = u64(render_target.addr);
+    const auto gpu_addr = static_cast<u64>(render_target.addr);
     if (gpu_addr == 0x0) {
         // TODO: is this really an error?
         LOG_ERROR(Engines, "Invalid color render target at index {}",
@@ -510,7 +511,7 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
 }
 
 renderer::ITextureView* ThreeD::GetDepthStencilTargetTexture() const {
-    const auto gpu_addr = u64(regs.depth_target_addr);
+    const auto gpu_addr = static_cast<u64>(regs.depth_target_addr);
     if (gpu_addr == 0x0) {
         // TODO: is this really an error?
         LOG_ERROR(Engines, "Invalid depth render target");
@@ -561,6 +562,7 @@ renderer::Viewport ThreeD::GetViewport(u32 index) {
 
     const auto& extent = regs.viewports[index];
     const auto& transform = regs.viewport_transforms[index];
+    // NOLINTNEXTLINE(readability-simplify-boolean-expr)
     if (/*regs.viewport_transform_enabled*/ true) { // HACK
         auto scale_x = transform.scale_x;
         auto scale_y = transform.scale_y;
@@ -572,18 +574,20 @@ renderer::Viewport ThreeD::GetViewport(u32 index) {
         // TODO: check for viewport swizzle support
         if (transform.swizzle.x == engines::ViewportSwizzle::NegativeX) {
             scale_x = -scale_x;
-        } else
+        } else {
             ASSERT_DEBUG(transform.swizzle.x ==
                              engines::ViewportSwizzle::PositiveX,
                          Engines, "Unsupported X viewport swizzle {}",
                          transform.swizzle.x);
+        }
         if (transform.swizzle.y == engines::ViewportSwizzle::NegativeY) {
             scale_y = -scale_y;
-        } else
+        } else {
             ASSERT_DEBUG(transform.swizzle.y ==
                              engines::ViewportSwizzle::PositiveY,
                          Engines, "Unsupported Y viewport swizzle {}",
                          transform.swizzle.y);
+        }
         ASSERT_DEBUG(transform.swizzle.z == engines::ViewportSwizzle::PositiveZ,
                      Engines, "Unsupported Z viewport swizzle {}",
                      transform.swizzle.z);
@@ -646,7 +650,8 @@ renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) {
     if (!program.config.enable)
         return nullptr;
 
-    uptr gpu_addr = u64(regs.shader_program_region) + program.offset;
+    uptr gpu_addr =
+        static_cast<u64>(regs.shader_program_region) + program.offset;
     uptr ptr = tls_crnt_gmmu->UnmapAddr(gpu_addr);
 
     renderer::GuestShaderDescriptor descriptor{
@@ -662,7 +667,7 @@ renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) {
     // Color target formats
     for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
         const auto& render_target = regs.color_targets[i];
-        const auto addr = u64(render_target.addr);
+        const auto addr = static_cast<u64>(render_target.addr);
         if (addr == 0x0)
             continue;
 
@@ -964,8 +969,10 @@ bool ThreeD::DrawInternal() {
     }
 
     // Configure stages
-    const auto tex_header_pool_gpu_addr = u64(regs.tex_header_pool);
-    const auto tex_sampler_pool_gpu_addr = u64(regs.tex_sampler_pool);
+    const auto tex_header_pool_gpu_addr =
+        static_cast<u64>(regs.tex_header_pool);
+    const auto tex_sampler_pool_gpu_addr =
+        static_cast<u64>(regs.tex_sampler_pool);
     const auto tex_header_pool =
         tex_header_pool_gpu_addr != 0x0
             ? reinterpret_cast<TextureImageControl*>(

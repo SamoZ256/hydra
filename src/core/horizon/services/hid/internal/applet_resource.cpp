@@ -7,7 +7,8 @@
 
 namespace hydra::horizon::services::hid::internal {
 
-#define NPAD_INTERNAL_STATE(i) SHARED_MEMORY.npad.entries[i].internal_state
+#define NPAD_INTERNAL_STATE(i)                                                 \
+    Npad { SHARED_MEMORY.npad.entries[i].internal_state }
 
 AppletResource::AppletResource(System& system)
     : shared_mem{new kernel::SharedMemory(system.GetCpu(), sizeof(SharedMemory),
@@ -51,6 +52,9 @@ void AppletResource::SetupNpads() {
             break;
         case 9:
             style_set = NpadStyleSet::Palma;
+            break;
+        default:
+            style_set = NpadStyleSet::None;
             break;
         }
 

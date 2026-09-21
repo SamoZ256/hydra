@@ -14,7 +14,7 @@ class IRenderer;
 class SamplerCache
     : public CacheBase<SamplerCache, SamplerBase*, SamplerDescriptor> {
   public:
-    SamplerCache(IRenderer& renderer_) : renderer{renderer_} {}
+    explicit SamplerCache(IRenderer& renderer_) : renderer{renderer_} {}
 
     void Destroy() {}
 

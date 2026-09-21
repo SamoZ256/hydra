@@ -117,7 +117,7 @@ class Value {
         }
     }
 
-  public: // TODO: private?
+    // TODO: private?
     ValueKind kind;
     Type type;
 
@@ -138,7 +138,6 @@ class Value {
                      "Invalid value kind (expected {}, got {})", kind_, kind);
     }
 
-  public:
     GETTER(kind, GetKind);
     GETTER(type, GetType);
 

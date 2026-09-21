@@ -81,7 +81,7 @@ struct Regs2D {
 
 class TwoD : public EngineWithRegsBase<Regs2D> {
   public:
-    TwoD(Gpu& gpu_) : gpu{gpu_} {}
+    explicit TwoD(Gpu& gpu_) : gpu{gpu_} {}
 
     void Method(u32 method, u32 arg) override;
 

@@ -38,7 +38,7 @@ class Process : public SynchronizationObject {
   public:
     static constexpr AutoObjectTypeId TYPE_ID = AutoObjectTypeId::Process;
 
-    Process(System& system_, std::string_view debug_name = "Process");
+    explicit Process(System& system_, std::string_view debug_name = "Process");
     ~Process() override;
 
     // Memory

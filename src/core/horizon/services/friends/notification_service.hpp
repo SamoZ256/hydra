@@ -10,7 +10,7 @@ namespace hydra::horizon::services::friends {
 
 class INotificationService : public IService {
   public:
-    INotificationService(uuid_t user_id_);
+    explicit INotificationService(uuid_t user_id_);
 
   protected:
     result_t RequestImpl([[maybe_unused]] RequestContext& context,

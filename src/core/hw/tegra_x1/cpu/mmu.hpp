@@ -21,7 +21,7 @@ struct MemoryRegion {
 // each process has its own
 class IMmu {
   public:
-    IMmu(System& system_) : system{system_} {}
+    explicit IMmu(System& system_) : system{system_} {}
     virtual ~IMmu() = default;
 
     virtual void Map(vaddr_t dst_va, ztd::Range<uptr> range,

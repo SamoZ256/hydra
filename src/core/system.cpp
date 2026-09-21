@@ -83,12 +83,6 @@ audio::ICore* CreateAudioCore() {
 
 } // namespace
 
-CombinedTextureView::~CombinedTextureView() {
-    // TODO: uncomment
-    // delete view;
-    // delete base;
-}
-
 System::System(horizon::ui::IHandler& ui_handler_)
     : ui_handler{ui_handler_}, cpu{CreateCpu()}, audio_core{CreateAudioCore()},
       os(*this) {
@@ -598,7 +592,7 @@ void System::TakeScreenshot() {
 
     ZTD_ASSIGN_OR_RETURN(auto texture, layer->GetPresentTexture());
 
-    std::thread thread([layer, texture, this]() {
+    std::thread thread([layer, texture, this] {
         // Get the image data
         auto rect = layer->GetSrcRect();
 

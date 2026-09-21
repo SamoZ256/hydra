@@ -10,7 +10,7 @@ class IRenderer;
 class PipelineCache
     : public CacheBase<PipelineCache, PipelineBase*, PipelineDescriptor> {
   public:
-    PipelineCache(IRenderer& renderer_) : renderer{renderer_} {}
+    explicit PipelineCache(IRenderer& renderer_) : renderer{renderer_} {}
 
     void Destroy() {}
 

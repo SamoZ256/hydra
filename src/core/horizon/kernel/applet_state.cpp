@@ -53,6 +53,7 @@ AppletMessage AppletState::ReceiveMessage() {
 std::vector<u8>
 AppletState::PopLaunchParameter(const LaunchParameterKind kind) {
     std::scoped_lock lock(mutex);
+    // NOLINTNEXTLINE(readability-trivial-switch)
     switch (kind) {
     case LaunchParameterKind::PreselectedUser: {
         if (user_ids.empty()) {

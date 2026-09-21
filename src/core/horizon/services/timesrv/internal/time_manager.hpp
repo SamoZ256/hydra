@@ -13,7 +13,7 @@ namespace hydra::horizon::services::timesrv::internal {
 
 class TimeManager {
   public:
-    TimeManager(System& system_);
+    explicit TimeManager(System& system_);
 
   private:
     System& system;

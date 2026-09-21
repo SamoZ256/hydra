@@ -21,7 +21,7 @@ struct AccountHeader {
 
 class AppletState {
   public:
-    AppletState(Kernel& kernel_);
+    explicit AppletState(Kernel& kernel_);
     ~AppletState();
 
     // Send

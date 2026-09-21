@@ -9,7 +9,7 @@ class ITexture;
 
 class BufferBase {
   public:
-    BufferBase(u64 size_) : size{size_} {}
+    explicit BufferBase(u64 size_) : size{size_} {}
     virtual ~BufferBase() = default;
 
     virtual uptr GetPtr() const = 0;

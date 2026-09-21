@@ -29,7 +29,7 @@ BufferView BufferCache::Get(ICommandBuffer* command_buffer, ztd::Range<uptr> ran
         UpdateRange(command_buffer, entry, entry.range);
     }
 
-    return {entry.buffer, range.getBegin() - entry.range.getBegin(),
+    return BufferView{entry.buffer, range.getBegin() - entry.range.getBegin(),
                       range.getSize()};
 }
 

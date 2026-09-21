@@ -8,6 +8,8 @@
 extern "C" {
 #endif
 
+// NOLINTBEGIN(cppcoreguidelines-use-enum-class)
+
 // Types
 typedef struct {
     uint64_t lo;
@@ -602,6 +604,8 @@ uint32_t hydra_texture_descriptor_get_block_height_gobs(const void* descriptor);
 uint32_t hydra_texture_descriptor_get_block_depth_gobs(const void* descriptor);
 uint64_t hydra_texture_descriptor_get_layer_size(const void* descriptor);
 uint64_t hydra_texture_descriptor_get_size(const void* descriptor);
+
+// NOLINTEND(cppcoreguidelines-use-enum-class)
 
 #ifdef __cplusplus
 }

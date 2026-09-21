@@ -107,8 +107,10 @@ class VectorType {
 class Type {
   public:
     Type() : kind{TypeKind::Undefined} {}
+    // NOLINTBEGIN(cppcoreguidelines-explicit-constructor)
     Type(ScalarType scalar_) : kind{TypeKind::Scalar}, scalar{scalar_} {}
     Type(VectorType vector_) : kind{TypeKind::Vector}, vector{vector_} {}
+    // NOLINTEND(cppcoreguidelines-explicit-constructor)
 
     static Type Undefined() { return {}; }
     static Type Scalar(ScalarType scalar) { return {scalar}; }

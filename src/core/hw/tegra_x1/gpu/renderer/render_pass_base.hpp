@@ -6,7 +6,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer {
 
 class RenderPassBase {
   public:
-    RenderPassBase(const RenderPassDescriptor& descriptor_)
+    explicit RenderPassBase(const RenderPassDescriptor& descriptor_)
         : descriptor{descriptor_} {}
     virtual ~RenderPassBase() = default;
 

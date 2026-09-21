@@ -383,7 +383,7 @@ struct BreakReason {
     BreakReasonType type;
     bool notification_only;
 
-    BreakReason(u64 reg)
+    explicit BreakReason(u64 reg)
         : type{static_cast<BreakReasonType>(reg & 0x7FFFFFFF)},
           notification_only{static_cast<bool>(reg & 0x80000000)} {}
 };

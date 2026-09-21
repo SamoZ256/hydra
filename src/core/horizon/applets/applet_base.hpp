@@ -7,7 +7,8 @@ namespace hydra::horizon::applets {
 
 class AppletBase {
   public:
-    AppletBase(services::am::internal::LibraryAppletController& controller_)
+    explicit AppletBase(
+        services::am::internal::LibraryAppletController& controller_)
         : controller{controller_} {}
     virtual ~AppletBase() noexcept = default;
 

@@ -66,6 +66,7 @@ struct InOut {
     In in;
     Out* out;
 
+    // NOLINTNEXTLINE(cppcoreguidelines-explicit-constructor)
     operator In() const { return in; }
     InOut& operator=(const Out& other) {
         *out = other;
@@ -79,6 +80,7 @@ template <typename T>
 struct InOutSingle {
     T* data;
 
+    // NOLINTNEXTLINE(cppcoreguidelines-explicit-constructor)
     operator T() const { return *data; }
     InOutSingle& operator=(const T& other) {
         *data = other;
@@ -227,9 +229,9 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
     }
 }
 
-template <typename Class, typename... Args, usize... Is>
+template <typename Class, typename Func, usize... Is>
 NvResult invoke_command_with_args(IoctlContext& context, Class& instance,
-                                  NvResult (Class::*func)(Args...),
+                                  Func func,
                                   std::index_sequence<Is...> /*unused*/) {
     using traits = function_traits<decltype(func)>;
 
@@ -243,9 +245,8 @@ NvResult invoke_command_with_args(IoctlContext& context, Class& instance,
     return std::apply(callable, args);
 }
 
-template <typename Class, typename... Args>
-NvResult invoke_ioctl(IoctlContext& context, Class& instance,
-                      NvResult (Class::*func)(Args...)) {
+template <typename Class, typename Func>
+NvResult invoke_ioctl(IoctlContext& context, Class& instance, Func func) {
     using traits = function_traits<decltype(func)>;
 
     constexpr auto indices = std::make_index_sequence<traits::arg_count>{};

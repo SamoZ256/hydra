@@ -13,6 +13,7 @@ void EmitTextureQuery(DecoderContext& context, pred_t pred, bool pred_inv,
 
     const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
 
+    // NOLINTNEXTLINE(readability-trivial-switch)
     switch (query) {
     case TextureQuery::Dimensions:
         for (u32 i = 0, mask = write_mask; mask != 0x0; i++, mask >>= 1) {

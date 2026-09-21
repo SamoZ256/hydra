@@ -94,7 +94,7 @@ struct PageRegion {
 
 class PageTable {
   public:
-    PageTable(paddr_t base_pa);
+    explicit PageTable(paddr_t base_pa);
     ~PageTable();
 
     void Map(vaddr_t va, ztd::Range<uptr> range,

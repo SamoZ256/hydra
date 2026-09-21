@@ -14,7 +14,7 @@ struct FontState {
 
 class SharedFontManager {
   public:
-    SharedFontManager(System& system_);
+    explicit SharedFontManager(System& system_);
     ~SharedFontManager();
 
     void LoadFonts();

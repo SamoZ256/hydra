@@ -23,7 +23,7 @@ struct GuestShaderDescriptor {
 class ShaderCache
     : public CacheBase<ShaderCache, ShaderBase*, GuestShaderDescriptor> {
   public:
-    ShaderCache(IRenderer& renderer_) : renderer{renderer_} {}
+    explicit ShaderCache(IRenderer& renderer_) : renderer{renderer_} {}
 
     void Destroy() {}
 

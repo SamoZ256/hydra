@@ -10,7 +10,7 @@ namespace hydra::horizon::loader {
 
 class HomebrewLoader : public ILoader {
   public:
-    HomebrewLoader(filesystem::IFile* file_);
+    explicit HomebrewLoader(filesystem::IFile* file_);
 
     void LoadProcess(System& system, kernel::Process* process) override;
 

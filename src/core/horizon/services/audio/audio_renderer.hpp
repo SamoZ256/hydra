@@ -40,7 +40,7 @@ class IAudioRenderer : public IService {
     result_t QuerySystemEvent(kernel::Process* process,
                               OutHandle<HandleAttr::Copy> out_handle);
     result_t SetRenderingTimeLimit(u32 time_limit);
-    result_t GetRenderingTimeLimit(u32* out_time_limit);
+    result_t GetRenderingTimeLimit(u32* out_time_limit) const;
     result_t
     RequestUpdateAuto(InBuffer<BufferAttr::AutoSelect> in_buffer,
                       OutBuffer<BufferAttr::AutoSelect> out_buffer,

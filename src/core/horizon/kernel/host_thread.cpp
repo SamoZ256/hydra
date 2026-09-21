@@ -5,7 +5,7 @@
 namespace hydra::horizon::kernel {
 
 void HostThread::Run() {
-    run_callback([this]() {
+    run_callback([this] {
         ProcessMessages();
         return GetState() == ThreadState::Stopping;
     });

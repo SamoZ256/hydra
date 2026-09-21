@@ -12,7 +12,7 @@ enum class PermissionLevel {
 
 class INfp : public IService {
   public:
-    INfp(PermissionLevel perm_level_);
+    explicit INfp(PermissionLevel perm_level_);
 
   private:
     // TODO: use

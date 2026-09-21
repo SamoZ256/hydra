@@ -79,7 +79,7 @@ struct Sv {
     u8 index;
     // TODO: more?
 
-    Sv(SvSemantic semantic_, u8 index_ = invalid<u8>())
+    explicit Sv(SvSemantic semantic_, u8 index_ = invalid<u8>())
         : semantic{semantic_}, index{index_} {}
 
     bool operator==(const Sv& o) const {

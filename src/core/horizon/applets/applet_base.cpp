@@ -16,7 +16,7 @@ void AppletBase::Start(System& system) {
 
     // TODO: create process
 
-    thread.emplace([&]() {
+    thread.emplace([&] {
         GET_CURRENT_PROCESS_DEBUGGER().RegisterThisThread("Applet");
         result = Run(system);
         controller.GetStateChangedEvent().Signal();

@@ -32,7 +32,7 @@ class CodeMemory;
 
 class Kernel {
   public:
-    Kernel(System& system_);
+    explicit Kernel(System& system_);
 
     void SupervisorCall(Process* crnt_process, IThread* crnt_thread,
                         hw::tegra_x1::cpu::IThread* guest_thread, u64 id);
@@ -177,7 +177,7 @@ class Kernel {
 
 class CriticalSectionLock {
   public:
-    CriticalSectionLock(Kernel& kernel_) : kernel{kernel_} {
+    explicit CriticalSectionLock(Kernel& kernel_) : kernel{kernel_} {
         kernel.GetCriticalSectionMutex().lock();
     }
 

@@ -166,6 +166,7 @@ void MslEmitter::EmitDeclarations() {
     if (context.type == ShaderType::Vertex)
         Write("float4 position [[position, invariant]];");
     for (const auto sv_semantic : memory_analyzer.GetOutputSVs()) {
+        // NOLINTNEXTLINE(readability-trivial-switch)
         switch (sv_semantic) {
         case SvSemantic::Position:
             // Write("float4 position [[position]];");

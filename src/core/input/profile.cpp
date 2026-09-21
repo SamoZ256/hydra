@@ -184,6 +184,7 @@ Profile::Profile(horizon::services::hid::internal::NpadIndex index_,
 }
 
 void Profile::LoadDefaults() {
+    // NOLINTNEXTLINE(readability-trivial-switch)
     switch (index) {
     case horizon::services::hid::internal::NpadIndex::No1: {
         // Devices

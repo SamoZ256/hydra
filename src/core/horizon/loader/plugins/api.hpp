@@ -36,17 +36,19 @@ struct Slice {
 
     Slice() : data{nullptr}, size{0} {}
     Slice(T* data_, u64 size_) : data{data_}, size{size_} {}
-    Slice(std::span<T> span) : data{span.data()}, size{span.size()} {}
-    Slice(std::string_view str)
+    explicit Slice(std::span<T> span) : data{span.data()}, size{span.size()} {}
+    explicit Slice(std::string_view str)
         requires std::is_same_v<T, char> || std::is_same_v<T, const char>
         : data{str.data()}, size{str.size()} {}
 
+    // NOLINTBEGIN(cppcoreguidelines-explicit-constructor)
     operator std::span<T>() const { return std::span<T>(data, size); }
     operator std::string_view() const
         requires std::is_same_v<T, char> || std::is_same_v<T, const char>
     {
         return std::string_view(data, size);
     }
+    // NOLINTEND(cppcoreguidelines-explicit-constructor)
 };
 
 using GetApiVersionFnT = u32 (*)();

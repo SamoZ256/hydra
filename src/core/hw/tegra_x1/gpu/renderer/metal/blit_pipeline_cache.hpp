@@ -19,7 +19,7 @@ class BlitPipelineCache
     : public CacheBase<BlitPipelineCache, MTL::RenderPipelineState*,
                        BlitPipelineDescriptor> {
   public:
-    BlitPipelineCache(MTL::Device* device_);
+    explicit BlitPipelineCache(MTL::Device* device_);
 
     void Destroy();
 

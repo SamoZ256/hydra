@@ -6,7 +6,7 @@ namespace hydra::horizon::services::nvdrv::ioctl {
 
 class NvDispDisp : public FdBase {
   public:
-    NvDispDisp(u32 display_index_) : display_index{display_index_} {}
+    explicit NvDispDisp(u32 display_index_) : display_index{display_index_} {}
 
     NvResult Ioctl([[maybe_unused]] IoctlContext& context, u32 type,
                    u32 nr) override;

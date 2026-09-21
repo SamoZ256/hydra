@@ -148,7 +148,7 @@ void LangEmitter::EmitFunction(const ir::Function& func) {
     EnterScope("enum class Block_{}", func.GetName());
     Write("None = -1,");
     for (const auto& [label, block] : func.GetBlocks()) {
-        Write("{} = {},", label, u32(label));
+        Write("{} = {},", label, static_cast<u32>(label));
     }
     ExitScopeEmpty(true);
     WriteNewline();

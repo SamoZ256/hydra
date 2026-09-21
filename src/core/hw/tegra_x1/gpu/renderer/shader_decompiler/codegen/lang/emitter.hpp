@@ -134,7 +134,7 @@ class LangEmitter : public Emitter {
         WriteWithIndent("{}\n", FMT);
     }
 
-    void WriteNewline() { code_str += "\n"; }
+    void WriteNewline() { code_str += '\n'; }
 
     template <typename... T>
     void WriteStatement(WRITE_ARGS) {
@@ -212,6 +212,7 @@ class LangEmitter : public Emitter {
     }
 
     std::string GetConstantStr(const u32 imm, ir::Type type) {
+        // NOLINTNEXTLINE(readability-trivial-switch)
         switch (type.GetKind()) {
         case ir::TypeKind::Scalar: {
             switch (type.GetScalarType()) {
@@ -246,7 +247,8 @@ class LangEmitter : public Emitter {
     }
 
     static std::string GetLocalStr(local_t local) {
-        return fmt::format("local0x{:x}_{}", u32(local.label), local.id);
+        return fmt::format("local0x{:x}_{}", static_cast<u32>(local.label),
+                           local.id);
     }
 
     template <bool load = true>
@@ -254,7 +256,8 @@ class LangEmitter : public Emitter {
         if (load && reg == RZ)
             return GetConstantStr(0, type);
 
-        return fmt::format("state.r[{}].{}", u32(reg), GetTypeSuffixStr(type));
+        return fmt::format("state.r[{}].{}", static_cast<u32>(reg),
+                           GetTypeSuffixStr(type));
     }
 
     template <bool load = true>
@@ -262,7 +265,7 @@ class LangEmitter : public Emitter {
         if (load && pred == PT)
             return GetConstantStr(true);
 
-        return fmt::format("state.p[{}]", u32(pred));
+        return fmt::format("state.p[{}]", static_cast<u32>(pred));
     }
 
     std::string GetAttrMemoryStr(const AMem amem,

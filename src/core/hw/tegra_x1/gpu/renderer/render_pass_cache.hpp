@@ -10,7 +10,7 @@ class IRenderer;
 class RenderPassCache
     : public CacheBase<RenderPassCache, RenderPassBase*, RenderPassDescriptor> {
   public:
-    RenderPassCache(IRenderer& renderer_) : renderer{renderer_} {}
+    explicit RenderPassCache(IRenderer& renderer_) : renderer{renderer_} {}
 
     void Destroy() {}
 

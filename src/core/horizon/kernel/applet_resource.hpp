@@ -29,7 +29,7 @@ class AppletResourcePool {
     using ResourceArray = std::array<std::optional<T>, MAX_APPLET_RESOURCES>;
 
   public:
-    AppletResourcePool(System& system_) : system{system_} {}
+    explicit AppletResourcePool(System& system_) : system{system_} {}
 
     ResourceArray::iterator begin() { return resources.begin(); }
 

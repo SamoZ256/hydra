@@ -387,8 +387,8 @@ void Renderer::DrawIndexed(ICommandBuffer* command_buffer,
         static_cast<Buffer*>(state.index_buffer.GetBase())->GetBuffer();
     // TODO: is start used correctly?
     const auto index_buffer_offset =
-        static_cast<u32>(start *
-                         engines::get_index_type_size(state.index_type)) +
+        static_cast<u64>(start) *
+            engines::get_index_type_size(state.index_type) +
         state.index_buffer.GetOffset();
     encoder->drawIndexedPrimitives(to_mtl_primitive_type(primitive_type), count,
                                    to_mtl_index_type(state.index_type),

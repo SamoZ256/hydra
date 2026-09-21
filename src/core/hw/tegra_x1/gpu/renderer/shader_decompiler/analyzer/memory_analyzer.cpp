@@ -22,6 +22,7 @@ void MemoryAnalyzer::Analyze(const ir::Module& modul) {
                 // Dst
                 if (instruction.HasDst()) {
                     const auto& dst = instruction.GetDst();
+                    // NOLINTNEXTLINE(readability-trivial-switch)
                     switch (dst.GetKind()) {
                     case ir::ValueKind::AttrMemory:
                         HandleAMemStore(dst.GetAttrMemory());
@@ -98,12 +99,10 @@ void MemoryAnalyzer::HandleAMemStore(const AMem amem) {
 void MemoryAnalyzer::HandleTextureAccess(u32 const_buffer_index,
                                          const TextureInfo& info) {
     const auto res = textures.emplace(const_buffer_index, info);
-    if (!res.second) {
-        if (res.first->second.type != info.type ||
-            res.first->second.is_depth != info.is_depth) {
-            // TODO: handle this
-            LOG_WARN(ShaderDecompiler, "Texture type mismatch");
-        }
+    if (!res.second && (res.first->second.type != info.type ||
+                        res.first->second.is_depth != info.is_depth)) {
+        // TODO: handle this
+        LOG_WARN(ShaderDecompiler, "Texture type mismatch");
     }
 }
 

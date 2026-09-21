@@ -11,7 +11,7 @@ enum class PermissionLevel {
 
 class INfc : public IService {
   public:
-    INfc(PermissionLevel perm_level_) : perm_level{perm_level_} {}
+    explicit INfc(PermissionLevel perm_level_) : perm_level{perm_level_} {}
 
   protected:
     // Commands

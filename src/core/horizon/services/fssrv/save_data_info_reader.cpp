@@ -23,7 +23,8 @@ struct SaveDataInfo {
 DEFINE_SERVICE_COMMAND_TABLE(ISaveDataInfoReader, 0, ReadSaveDataInfo)
 
 result_t ISaveDataInfoReader::ReadSaveDataInfo(
-    i64* out_entry_count, OutBuffer<BufferAttr::MapAlias> out_entry_buffer) {
+    i64* out_entry_count,
+    OutBuffer<BufferAttr::MapAlias> out_entry_buffer) const {
     // TODO: don't hardcode the entries
     static SaveDataInfo entries[0] = {};
 

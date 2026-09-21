@@ -8,7 +8,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 class Buffer final : public BufferBase {
   public:
     Buffer(MTL::Device* device, u64 size);
-    Buffer(MTL::Buffer* buffer_);
+    explicit Buffer(MTL::Buffer* buffer_);
     ~Buffer() override;
 
     uptr GetPtr() const override {

@@ -12,7 +12,7 @@ IThread::~IThread() noexcept {
 }
 
 void IThread::Start() {
-    thread = std::jthread([&]() {
+    thread = std::jthread([&] {
         tls_current_thread = this;
 
         GET_CURRENT_PROCESS_DEBUGGER().RegisterThisThread(GetDebugName());

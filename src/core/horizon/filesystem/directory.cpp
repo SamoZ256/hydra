@@ -27,11 +27,10 @@ Directory::Directory(const std::string_view host_path) {
     }
 }
 
-Directory::~Directory() {
-    // TODO: when should entries be deleted?
-    // for (const auto [name, entry] : entries)
-    //   delete entry;
-}
+// TODO: when should entries be deleted?
+// for (const auto [name, entry] : entries)
+//   delete entry;
+Directory::~Directory() = default;
 
 void Directory::Save(std::string_view host_path) const {
     std::filesystem::create_directories(host_path);

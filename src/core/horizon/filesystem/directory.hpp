@@ -9,7 +9,7 @@ class IFile;
 class Directory : public IEntry {
   public:
     Directory() = default;
-    Directory(const std::string_view host_path);
+    explicit Directory(const std::string_view host_path);
     ~Directory() override;
 
     bool IsDirectory() const override { return true; }

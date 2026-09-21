@@ -11,7 +11,7 @@ namespace hydra::horizon::loader {
 
 class NxLoader : public ILoader {
   public:
-    NxLoader(const filesystem::Directory& dir_);
+    explicit NxLoader(const filesystem::Directory& dir_);
 
     u64 GetTitleID() const override { return title_id; }
 

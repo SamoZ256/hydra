@@ -13,7 +13,7 @@ class Process;
 
 namespace hydra::horizon::services {
 
-using result_t = kernel::result_t;
+using kernel::result_t;
 
 class Server;
 class IService;

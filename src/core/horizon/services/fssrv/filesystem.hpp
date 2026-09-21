@@ -22,7 +22,7 @@ struct TimeStampRaw {
 
 class IFileSystem : public IService {
   public:
-    IFileSystem(const std::string_view mount_) : mount{mount_} {}
+    explicit IFileSystem(const std::string_view mount_) : mount{mount_} {}
 
   protected:
     result_t RequestImpl([[maybe_unused]] RequestContext& context,

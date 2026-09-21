@@ -8,6 +8,7 @@ struct Iova {
     u32 hi;
     u32 lo;
 
+    // NOLINTNEXTLINE(cppcoreguidelines-explicit-constructor)
     operator u64() const {
         return static_cast<u64>(hi) << 32 | static_cast<u64>(lo);
     }

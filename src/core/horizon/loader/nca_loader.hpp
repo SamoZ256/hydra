@@ -11,9 +11,9 @@ namespace hydra::horizon::loader {
 
 class NcaLoader : public ILoader {
   public:
-    NcaLoader(filesystem::IFile* file)
+    explicit NcaLoader(filesystem::IFile* file)
         : NcaLoader(filesystem::ContentArchive(file)) {}
-    NcaLoader(filesystem::ContentArchive content_archive_);
+    explicit NcaLoader(filesystem::ContentArchive content_archive_);
 
     u64 GetTitleID() const override { return content_archive.GetTitleID(); }
 

@@ -9,21 +9,21 @@ DEFINE_SERVICE_COMMAND_TABLE(IProfile, 0, Get, 1, GetBase, 10, GetImageSize, 11,
 
 result_t
 IProfile::Get(System* system, ProfileBase* out_base,
-              OutBuffer<BufferAttr::HipcPointer> out_user_data_buffer) {
+              OutBuffer<BufferAttr::HipcPointer> out_user_data_buffer) const {
     const auto& user = system->GetOS().GetUserManager().GetUser(user_id);
     *out_base = user.GetBase();
     out_user_data_buffer.stream->write(user.GetData());
     return RESULT_SUCCESS;
 }
 
-result_t IProfile::GetBase(System* system, ProfileBase* out_base) {
+result_t IProfile::GetBase(System* system, ProfileBase* out_base) const {
     const auto& user = system->GetOS().GetUserManager().GetUser(user_id);
     *out_base = user.GetBase();
     return RESULT_SUCCESS;
 }
 
 // TODO: get the size without loading the whole image?
-result_t IProfile::GetImageSize(System* system, u32* out_size) {
+result_t IProfile::GetImageSize(System* system, u32* out_size) const {
     const auto& user = system->GetOS().GetUserManager().GetUser(user_id);
 
     std::vector<u8> data;
@@ -36,7 +36,7 @@ result_t IProfile::GetImageSize(System* system, u32* out_size) {
 
 result_t IProfile::LoadImage(System* system,
                              OutBuffer<BufferAttr::MapAlias> out_buffer,
-                             u32* out_size) {
+                             u32* out_size) const {
     const auto& user = system->GetOS().GetUserManager().GetUser(user_id);
 
     // Load image

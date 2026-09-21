@@ -17,7 +17,7 @@ struct AddressSpace {
 // TODO: free memory
 class GMmu : public GenericMmu<GMmu, AddressSpace> {
   public:
-    GMmu(cpu::IMmu* mmu_) : mmu{mmu_} {}
+    explicit GMmu(cpu::IMmu* mmu_) : mmu{mmu_} {}
 
     static u64 ImplGetSize(const AddressSpace& as) { return as.size; }
 

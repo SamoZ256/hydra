@@ -548,7 +548,7 @@ struct Regs3D {
 
 class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
   public:
-    ThreeD(Gpu& gpu_);
+    explicit ThreeD(Gpu& gpu_);
 
     void Method(u32 method, u32 arg) override;
 

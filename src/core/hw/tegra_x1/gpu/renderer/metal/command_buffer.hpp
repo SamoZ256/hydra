@@ -40,7 +40,7 @@ struct EncoderState {
 
 class CommandBuffer final : public ICommandBuffer {
   public:
-    CommandBuffer(MTL::CommandQueue* command_queue);
+    explicit CommandBuffer(MTL::CommandQueue* command_queue);
     ~CommandBuffer() override;
 
     MTL::RenderCommandEncoder* GetRenderCommandEncoderUnchecked() {

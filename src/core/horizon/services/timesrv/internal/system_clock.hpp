@@ -6,7 +6,7 @@ class SteadyClock;
 
 class SystemClock {
   public:
-    SystemClock(SteadyClock& steady_clock_);
+    explicit SystemClock(SteadyClock& steady_clock_);
 
     u64 UpdateOffset();
     u64 GetTimePoint() const;

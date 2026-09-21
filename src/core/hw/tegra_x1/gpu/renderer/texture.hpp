@@ -10,7 +10,8 @@ class ITextureView;
 
 class ITexture {
   public:
-    ITexture(const TextureDescriptor& descriptor_) : descriptor{descriptor_} {}
+    explicit ITexture(const TextureDescriptor& descriptor_)
+        : descriptor{descriptor_} {}
     virtual ~ITexture() = default;
 
     virtual ITextureView*

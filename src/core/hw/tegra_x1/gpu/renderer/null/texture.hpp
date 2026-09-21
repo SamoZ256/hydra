@@ -7,7 +7,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::null {
 
 class Texture final : public ITexture {
   public:
-    Texture(const TextureDescriptor& descriptor);
+    explicit Texture(const TextureDescriptor& descriptor);
     ~Texture() override;
 
     ITextureView*

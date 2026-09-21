@@ -6,7 +6,7 @@ namespace hydra::horizon::services::account::baas {
 
 class IManagerForApplication : public IService {
   public:
-    IManagerForApplication(uuid_t user_id_) : user_id{user_id_} {}
+    explicit IManagerForApplication(uuid_t user_id_) : user_id{user_id_} {}
 
   protected:
     result_t RequestImpl([[maybe_unused]] RequestContext& context,

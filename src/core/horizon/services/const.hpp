@@ -37,7 +37,7 @@ class SharedMemory;
 
 namespace hydra::horizon::services {
 
-using result_t = kernel::result_t;
+using kernel::result_t;
 
 enum class BufferAttr {
     AutoSelect,
@@ -53,7 +53,7 @@ class InBuffer {
     std::optional<ztd::io::MemoryStream> stream;
 
     InBuffer() : stream{std::nullopt} {}
-    InBuffer(std::optional<ztd::io::MemoryStream> stream_)
+    explicit InBuffer(std::optional<ztd::io::MemoryStream> stream_)
         : stream{std::move(stream_)} {}
 
     bool IsValid() const { return stream.has_value(); }
@@ -67,7 +67,7 @@ class OutBuffer {
     std::optional<ztd::io::MemoryStream> stream;
 
     OutBuffer() : stream{std::nullopt} {}
-    OutBuffer(std::optional<ztd::io::MemoryStream> stream_)
+    explicit OutBuffer(std::optional<ztd::io::MemoryStream> stream_)
         : stream{std::move(stream_)} {}
 
     bool IsValid() const { return stream.has_value(); }
@@ -84,8 +84,9 @@ class InHandle {
     static constexpr HandleAttr attr = attr_;
 
     InHandle() : handle{INVALID_HANDLE} {}
-    InHandle(Handle handle_) : handle{handle_} {}
+    explicit InHandle(Handle handle_) : handle{handle_} {}
 
+    // NOLINTNEXTLINE(cppcoreguidelines-explicit-constructor)
     operator Handle() const { return handle; }
 
   private:
@@ -98,8 +99,9 @@ class OutHandle {
     static constexpr HandleAttr attr = attr_;
 
     OutHandle() : handle{nullptr} {}
-    OutHandle(Handle* handle_) : handle{handle_} {}
+    explicit OutHandle(Handle* handle_) : handle{handle_} {}
 
+    // NOLINTNEXTLINE(cppcoreguidelines-explicit-constructor)
     operator Handle&() { return *handle; }
 
     OutHandle& operator=(Handle other) {
@@ -343,9 +345,9 @@ void read_arg(RequestContext& context, Class& instance,
     }
 }
 
-template <typename Class, typename MethodClass, typename... Args, usize... Is>
+template <typename Class, typename Func, usize... Is>
 result_t invoke_command_with_args(RequestContext& context, Class& instance,
-                                  result_t (MethodClass::*func)(Args...),
+                                  Func func,
                                   std::index_sequence<Is...> /*unused*/) {
     using traits = function_traits<decltype(func)>;
 
@@ -359,9 +361,8 @@ result_t invoke_command_with_args(RequestContext& context, Class& instance,
     return std::apply(callable, args);
 }
 
-template <typename Class, typename MethodClass, typename... Args>
-result_t invoke_command(RequestContext& context, Class& instance,
-                        result_t (MethodClass::*func)(Args...)) {
+template <typename Class, typename Func>
+result_t invoke_command(RequestContext& context, Class& instance, Func func) {
     using traits = function_traits<decltype(func)>;
 
     constexpr auto indices = std::make_index_sequence<traits::arg_count>{};

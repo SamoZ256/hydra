@@ -19,7 +19,7 @@ struct GpfifoEntryList {
 
 class Pfifo {
   public:
-    Pfifo(Gpu& gpu_);
+    explicit Pfifo(Gpu& gpu_);
     ~Pfifo();
 
     void SubmitEntries(GMmu& gmmu, std::span<const GpfifoEntry> entries,

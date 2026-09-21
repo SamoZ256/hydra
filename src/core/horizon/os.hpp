@@ -22,7 +22,7 @@ class IHandler;
 
 class OS {
   public:
-    OS(System& system_);
+    explicit OS(System& system_);
 
     void NotifyOperationModeChanged();
 

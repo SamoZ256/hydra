@@ -21,8 +21,9 @@ enum class AutoObjectTypeId {
 
 class AutoObject {
   public:
-    AutoObject(AutoObjectTypeId type_id_,
-               const std::string_view debug_name_ = "AutoObject") noexcept
+    explicit AutoObject(
+        AutoObjectTypeId type_id_,
+        const std::string_view debug_name_ = "AutoObject") noexcept
         : type_id{type_id_},
           debug_name{fmt::format("{} {}", debug_name_,
                                  reinterpret_cast<void*>(this))} {}

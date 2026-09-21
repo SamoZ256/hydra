@@ -6,7 +6,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir {
 
 class Function {
   public:
-    Function(const std::string_view name_) : name{name_} {}
+    explicit Function(const std::string_view name_) : name{name_} {}
 
     Block& GetBlock(label_t label) {
         auto it = blocks.find(label);

@@ -12,7 +12,7 @@ enum class TransactionOption {
 
 class ISession : public IService {
   public:
-    ISession(I2cDevice device_) : device{device_} {}
+    explicit ISession(I2cDevice device_) : device{device_} {}
 
   protected:
     result_t RequestImpl([[maybe_unused]] RequestContext& context,

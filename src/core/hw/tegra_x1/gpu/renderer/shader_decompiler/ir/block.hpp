@@ -6,7 +6,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir {
 
 class Block {
   public:
-    Block(const label_t label_) : label{label_} {}
+    explicit Block(const label_t label_) : label{label_} {}
 
     void AddInstruction(Opcode opcode,
                         const std::optional<Value> dst = std::nullopt,

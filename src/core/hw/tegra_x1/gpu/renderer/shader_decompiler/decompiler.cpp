@@ -146,6 +146,7 @@ void Decompile(ztd::io::MemoryStream& code_stream, const ShaderType type,
     // Decompile
     codegen::Emitter* emitter;
     out_backend = CONFIG_INSTANCE.GetShaderBackend();
+    // NOLINTNEXTLINE(readability-trivial-switch)
     switch (out_backend) {
     case ShaderBackend::Msl: {
         emitter = new codegen::lang::msl::MslEmitter(

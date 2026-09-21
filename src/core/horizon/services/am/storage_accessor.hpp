@@ -6,7 +6,7 @@ namespace hydra::horizon::services::am {
 
 class IStorageAccessor : public IService {
   public:
-    IStorageAccessor(std::span<u8> data_) : data{data_} {}
+    explicit IStorageAccessor(std::span<u8> data_) : data{data_} {}
 
   protected:
     result_t RequestImpl([[maybe_unused]] RequestContext& context,

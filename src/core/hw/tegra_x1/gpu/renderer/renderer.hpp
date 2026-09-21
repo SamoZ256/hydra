@@ -23,6 +23,7 @@ struct Info {
     bool supports_quads_primitive;
 
     bool IsPrimitiveSupported(engines::PrimitiveType primitive_type) const {
+        // NOLINTNEXTLINE(readability-trivial-switch)
         switch (primitive_type) {
         case engines::PrimitiveType::Quads:
             return supports_quads_primitive;

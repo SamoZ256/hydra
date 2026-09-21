@@ -8,7 +8,7 @@ namespace hydra::input::sdl {
 
 class Controller : public IController {
   public:
-    Controller(SDL_Gamepad* handle_) : handle{handle_} {}
+    explicit Controller(SDL_Gamepad* handle_) : handle{handle_} {}
     ~Controller() override { SDL_CloseGamepad(handle); }
 
   protected:

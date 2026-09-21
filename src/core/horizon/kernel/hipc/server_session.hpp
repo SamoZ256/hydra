@@ -22,7 +22,7 @@ class ServerSession : public SynchronizationObject {
   public:
     static constexpr AutoObjectTypeId TYPE_ID = AutoObjectTypeId::ServerSession;
 
-    ServerSession(std::string_view debug_name = "Server session")
+    explicit ServerSession(std::string_view debug_name = "Server session")
         : SynchronizationObject(TYPE_ID, false, debug_name) {}
     ~ServerSession() override;
 

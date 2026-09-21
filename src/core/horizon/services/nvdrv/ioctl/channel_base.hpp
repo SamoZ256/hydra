@@ -36,7 +36,7 @@ class ChannelBase : public FdBase {
                             Aligned<bool, 4> is_compressed,
                             const UnmapCmdBufferHandle* handles);
     NvResult SetUserData(u64 data);
-    NvResult GetUserData(u64* out_data);
+    NvResult GetUserData(u64* out_data) const;
     NvResult SetNvMapFd(u32 fd_id);
     NvResult SetTimeout(u32 timeout);
     virtual NvResult

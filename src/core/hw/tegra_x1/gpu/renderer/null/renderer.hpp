@@ -20,25 +20,25 @@ class CommandBuffer final : public ICommandBuffer {
 
 class Sampler final : public SamplerBase {
   public:
-    Sampler(const SamplerDescriptor& descriptor);
+    explicit Sampler(const SamplerDescriptor& descriptor);
     ~Sampler() override;
 };
 
 class RenderPass final : public RenderPassBase {
   public:
-    RenderPass(const RenderPassDescriptor& descriptor);
+    explicit RenderPass(const RenderPassDescriptor& descriptor);
     ~RenderPass() override;
 };
 
 class Pipeline final : public PipelineBase {
   public:
-    Pipeline(const PipelineDescriptor& descriptor);
+    explicit Pipeline(const PipelineDescriptor& descriptor);
     ~Pipeline() override;
 };
 
 class Shader final : public ShaderBase {
   public:
-    Shader(const ShaderDescriptor& descriptor);
+    explicit Shader(const ShaderDescriptor& descriptor);
     ~Shader() override;
 };
 

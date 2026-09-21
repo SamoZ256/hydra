@@ -121,7 +121,7 @@ struct RegsCopy {
 
 class Copy : public EngineWithRegsBase<RegsCopy> {
   public:
-    Copy(Gpu& gpu_) : gpu{gpu_} {}
+    explicit Copy(Gpu& gpu_) : gpu{gpu_} {}
 
     void Method(u32 method, u32 arg) override;
 

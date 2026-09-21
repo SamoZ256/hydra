@@ -73,7 +73,7 @@ class Thread {
     friend class Debugger;
 
   public:
-    Thread(const std::string_view name_);
+    explicit Thread(const std::string_view name_);
 
     // API
     void Lock() { msg_mutex.lock(); }

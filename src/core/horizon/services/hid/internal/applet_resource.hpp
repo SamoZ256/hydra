@@ -16,7 +16,7 @@ namespace hydra::horizon::services::hid::internal {
 
 class AppletResource {
   public:
-    AppletResource(System& system);
+    explicit AppletResource(System& system);
     ~AppletResource();
 
     // Npad setup

@@ -31,7 +31,7 @@ class DiskStream : public ztd::io::FileStream {
 
 class DiskFile : public IFile {
   public:
-    DiskFile(const std::string_view path_, bool is_mutable_ = false);
+    explicit DiskFile(const std::string_view path_, bool is_mutable_ = false);
     ~DiskFile() override;
 
     void Resize(u64 new_size) override;

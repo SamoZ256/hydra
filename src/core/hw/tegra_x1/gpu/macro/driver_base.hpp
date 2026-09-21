@@ -19,7 +19,7 @@ struct result_t {
 
 class DriverBase {
   public:
-    DriverBase(engines::ThreeD& engine_3d_) : engine_3d{engine_3d_} {}
+    explicit DriverBase(engines::ThreeD& engine_3d_) : engine_3d{engine_3d_} {}
     virtual ~DriverBase() = default;
 
     void Execute();

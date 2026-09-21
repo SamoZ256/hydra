@@ -68,7 +68,7 @@ struct TextureMem {
 // TODO: texture readback
 class TextureCache {
   public:
-    TextureCache(IRenderer& renderer_) : renderer{renderer_} {}
+    explicit TextureCache(IRenderer& renderer_) : renderer{renderer_} {}
     ~TextureCache();
 
     ITextureView* Find(ICommandBuffer* command_buffer,

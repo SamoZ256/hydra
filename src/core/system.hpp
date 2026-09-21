@@ -15,14 +15,17 @@ struct CombinedTextureView {
     hw::tegra_x1::gpu::renderer::ITexture* base;
     hw::tegra_x1::gpu::renderer::ITextureView* view;
 
-    ~CombinedTextureView();
+    // TODO: uncomment
+    // delete view;
+    // delete base;
+    ~CombinedTextureView() = default;
 };
 
 class System {
     using clock_t = std::chrono::steady_clock;
 
   public:
-    System(horizon::ui::IHandler& ui_handler_);
+    explicit System(horizon::ui::IHandler& ui_handler_);
     ~System();
 
     void SetSurface(void* surface) { gpu.GetRenderer().SetSurface(surface); }

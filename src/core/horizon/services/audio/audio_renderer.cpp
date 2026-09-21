@@ -162,7 +162,7 @@ IAudioRenderer::IAudioRenderer(const AudioRendererParameters& params_,
     voices.resize(params.voice_count);
 
     // HACK: create a thread that signals the handle every so often
-    new std::thread([&]() {
+    new std::thread([&] {
         GET_CURRENT_PROCESS_DEBUGGER().RegisterThisThread("Audren signal");
         while (true) {
             event->Signal();
@@ -192,7 +192,7 @@ result_t IAudioRenderer::SetRenderingTimeLimit(u32 time_limit) {
     return RESULT_SUCCESS;
 }
 
-result_t IAudioRenderer::GetRenderingTimeLimit(u32* out_time_limit) {
+result_t IAudioRenderer::GetRenderingTimeLimit(u32* out_time_limit) const {
     *out_time_limit = rendering_time_limit;
     return RESULT_SUCCESS;
 }
@@ -284,6 +284,7 @@ result_t IAudioRenderer::RequestUpdateImpl(
     // TODO
 
     // Effects
+    // NOLINTNEXTLINE(readability-simplify-boolean-expr)
     if (false) {
         // header->effects_size = TODO;
         // TODO
@@ -315,6 +316,7 @@ result_t IAudioRenderer::RequestUpdateImpl(
 
     // Render info
     // TODO: if elapsed frame count supported
+    // NOLINTNEXTLINE(readability-simplify-boolean-expr)
     if (false) {
         header->render_info_size = sizeof(RenderInfoOut);
         header->total_size += header->render_info_size;

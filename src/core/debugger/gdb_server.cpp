@@ -595,6 +595,7 @@ void GdbServer::HandleInsertBreakpoint(std::string_view command) {
     const auto addr = std::stoull(command.substr(addr_pos).data(), nullptr, 16);
     const auto size = std::stoull(command.substr(size_pos).data(), nullptr, 16);
 
+    // NOLINTNEXTLINE(readability-trivial-switch)
     switch (type) {
     case BreakpointType::Software:
         ASSERT_DEBUG(size == 4, Debugger,
@@ -629,6 +630,7 @@ void GdbServer::HandleRemoveBreakpoint(std::string_view command) {
     const auto addr = std::stoull(command.substr(addr_pos).data(), nullptr, 16);
     const auto size = std::stoull(command.substr(size_pos).data(), nullptr, 16);
 
+    // NOLINTNEXTLINE(readability-trivial-switch)
     switch (type) {
     case BreakpointType::Software:
         ASSERT_DEBUG(size == 4, Debugger,
@@ -693,7 +695,7 @@ void GdbServer::HandleGetExecutables() {
         output += fmt::format("\"{}\":{:#x}", path,
                               module_.guest_mem_range.getBegin());
         if (i < debugger.GetModuleTable().GetSymbols().size() - 1)
-            output += ";";
+            output += ';';
 
         // Save the executable
         if (std::filesystem::exists(path)) {

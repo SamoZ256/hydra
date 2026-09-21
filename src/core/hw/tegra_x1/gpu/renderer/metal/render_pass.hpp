@@ -7,7 +7,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 class RenderPass final : public RenderPassBase {
   public:
-    RenderPass(const RenderPassDescriptor& descriptor);
+    explicit RenderPass(const RenderPassDescriptor& descriptor);
     ~RenderPass() override;
 
     // Getters

@@ -13,7 +13,7 @@ enum class SystemClockType {
 
 class ISystemClock : public IService {
   public:
-    ISystemClock(SystemClockType type_) : type{type_} {}
+    explicit ISystemClock(SystemClockType type_) : type{type_} {}
 
   protected:
     result_t RequestImpl([[maybe_unused]] RequestContext& context,

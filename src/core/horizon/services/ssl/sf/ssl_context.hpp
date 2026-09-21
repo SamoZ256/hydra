@@ -17,7 +17,7 @@ enum class InternalPki : u32 {
 
 class ISslContext : public IService {
   public:
-    ISslContext(const SslVersion version_) : version{version_} {}
+    explicit ISslContext(const SslVersion version_) : version{version_} {}
 
   protected:
     result_t RequestImpl([[maybe_unused]] RequestContext& context,

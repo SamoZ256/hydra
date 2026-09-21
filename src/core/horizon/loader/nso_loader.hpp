@@ -12,8 +12,9 @@ struct Segment {
 
 class NsoLoader : public ILoader {
   public:
-    NsoLoader(filesystem::IFile* file_, const std::string_view name_ = "main",
-              const bool is_entry_point_ = true);
+    explicit NsoLoader(filesystem::IFile* file_,
+                       const std::string_view name_ = "main",
+                       const bool is_entry_point_ = true);
 
     void SetMainThreadParams(u8 priority, u8 core_number, u32 stack_size) {
         main_thread_priority = priority;

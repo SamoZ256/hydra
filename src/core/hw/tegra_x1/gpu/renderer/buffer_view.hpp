@@ -7,7 +7,8 @@ namespace hydra::hw::tegra_x1::gpu::renderer {
 struct BufferView {
   public:
     BufferView() = default;
-    BufferView(BufferBase* base_, u64 offset_ = 0, u64 size_ = invalid<u64>())
+    explicit BufferView(BufferBase* base_, u64 offset_ = 0,
+                        u64 size_ = invalid<u64>())
         : base{base_}, offset{offset_}, size{size_} {
         if (size == invalid<u64>())
             size = base->GetSize() - offset;

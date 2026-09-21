@@ -19,7 +19,7 @@ struct Block {
 
 class Decoder {
   public:
-    Decoder(const DecoderContext& context_) : context{context_} {}
+    explicit Decoder(const DecoderContext& context_) : context{context_} {}
 
     void Decode();
 

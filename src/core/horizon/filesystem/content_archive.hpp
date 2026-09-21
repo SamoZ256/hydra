@@ -16,7 +16,7 @@ enum class ContentArchiveContentType : u8 {
 
 class ContentArchive final : public Directory {
   public:
-    ContentArchive(IFile* file);
+    explicit ContentArchive(IFile* file);
 
   private:
     ContentArchiveContentType content_type;

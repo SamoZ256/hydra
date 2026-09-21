@@ -12,7 +12,7 @@ namespace hydra::horizon::services::timesrv::internal {
 
 class TimeZoneManager {
   public:
-    TimeZoneManager(filesystem::Filesystem& filesystem_);
+    explicit TimeZoneManager(filesystem::Filesystem& filesystem_);
 
     std::string_view GetDeviceLocationName();
     void LoadRule(std::string_view location_name, TimeZoneRule& out_rule) const;

@@ -8,7 +8,7 @@ class ClearDepthPipelineCache
     : public CacheBase<ClearDepthPipelineCache, MTL::RenderPipelineState*,
                        MTL::PixelFormat> {
   public:
-    ClearDepthPipelineCache(MTL::Device* device_);
+    explicit ClearDepthPipelineCache(MTL::Device* device_);
 
     void Destroy();
 

@@ -13,7 +13,7 @@ enum class AccountServiceType {
 
 class IAccountService : public IService {
   public:
-    IAccountService(AccountServiceType type_) : type{type_} {}
+    explicit IAccountService(AccountServiceType type_) : type{type_} {}
 
   protected:
     // Commands

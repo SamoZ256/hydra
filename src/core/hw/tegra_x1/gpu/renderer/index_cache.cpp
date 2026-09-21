@@ -146,7 +146,7 @@ BufferView IndexCache::Decode(ICommandBuffer* command_buffer,
     case 0x100u ... 0xffffu:
         out_type = engines::IndexType::UInt16;
         break;
-    case 0x10000u ... 0xffffffffu:
+    default:
         out_type = engines::IndexType::UInt32;
         break;
     }
@@ -154,7 +154,7 @@ BufferView IndexCache::Decode(ICommandBuffer* command_buffer,
     const auto hash = Hash(descriptor);
     auto& index_buffer = cache[hash];
     if (index_buffer != nullptr)
-        return index_buffer;
+        return BufferView{index_buffer};
 
     const auto index_size = get_index_type_size(out_type);
     index_buffer = renderer.AllocateTemporaryBuffer(
@@ -179,7 +179,7 @@ BufferView IndexCache::Decode(ICommandBuffer* command_buffer,
         PRIMITIVE_TYPE_SWITCH(DECODE_MACRO_AUTO, DECODE_MACRO_AUTO_U8_INDEX)
     }
 
-    return {index_buffer};
+    return BufferView{index_buffer};
 } // namespace hydra::hw::tegra_x1::gpu::renderer
 
 u32 IndexCache::Hash(const IndexDescriptor& descriptor) {

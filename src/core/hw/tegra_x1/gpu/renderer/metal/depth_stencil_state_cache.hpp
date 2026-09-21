@@ -15,7 +15,7 @@ class DepthStencilStateCache
     : public CacheBase<DepthStencilStateCache, MTL::DepthStencilState*,
                        DepthStencilStateDescriptor> {
   public:
-    DepthStencilStateCache(MTL::Device* device_) : device{device_} {}
+    explicit DepthStencilStateCache(MTL::Device* device_) : device{device_} {}
 
     void Destroy() {}
 

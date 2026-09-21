@@ -200,7 +200,7 @@ struct CfgBasicBlock {
 
         Walk([&os](CfgBasicBlock* b) {
             fmt::print(os, "    {} [label=\"{:x}\"];\n", b->label,
-                       u32(b->label));
+                       static_cast<u32>(b->label));
             switch (b->edge.type) {
             case CfgBlockEdgeType::Branch:
                 fmt::print(os, "    {} -> {} [label=\"\"];\n", b->label,

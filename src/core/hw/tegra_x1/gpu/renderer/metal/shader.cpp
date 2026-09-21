@@ -9,8 +9,10 @@ Shader::Shader(MTL::Device* device, const ShaderDescriptor& descriptor)
     // Options
     NS_STACK_SCOPED MTL::CompileOptions* options =
         MTL::CompileOptions::alloc()->init();
+    // NOLINTNEXTLINE(readability-simplify-boolean-expr)
     if (false) // TODO: make this configurable
         options->setFastMathEnabled(true);
+    // NOLINTNEXTLINE(readability-simplify-boolean-expr)
     if (true) // TODO: make this configurable
         options->setPreserveInvariance(true);
 

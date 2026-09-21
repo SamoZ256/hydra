@@ -8,7 +8,7 @@ class Directory;
 
 class Device {
   public:
-    Device(Directory* root_) : root{root_} {}
+    explicit Device(Directory* root_) : root{root_} {}
     ~Device();
 
     [[nodiscard]] FsResult AddEntry(const std::string_view path, IEntry* entry,

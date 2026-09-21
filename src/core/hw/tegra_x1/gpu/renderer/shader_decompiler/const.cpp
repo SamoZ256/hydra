@@ -19,15 +19,15 @@ SvAccess get_sv_access_from_addr(u64 addr) {
 
     for (const auto& base : bases) {
         if (addr >= base.base_addr) {
-            return SvAccess(Sv(base.semantic,
-                               static_cast<u8>((addr - base.base_addr) >> 4)),
-                            static_cast<u8>((addr >> 2) & 0x3));
+            return {Sv(base.semantic,
+                       static_cast<u8>((addr - base.base_addr) >> 4)),
+                    static_cast<u8>((addr >> 2) & 0x3)};
         }
     }
 
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "SV address 0x{:02x}", addr);
 
-    return SvAccess(Sv(SvSemantic::Invalid), invalid<u8>());
+    return {Sv(SvSemantic::Invalid), invalid<u8>()};
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp

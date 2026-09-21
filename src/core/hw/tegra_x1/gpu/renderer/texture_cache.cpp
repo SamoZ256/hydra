@@ -213,10 +213,8 @@ bool CalculateLevelAndSlice(const TextureDescriptor& base1_descriptor,
 
     const auto dims1 = base1_descriptor.GetLevelDimensions(out_level1);
     const auto dims2 = base2_descriptor.GetLevelDimensions(out_level2);
-    if (dims1.x() != dims2.x() || dims1.y() != dims2.y()) // Z can differ
-        return false;
-
-    return true;
+    // Z can differ
+    return dims1.x() == dims2.x() && dims1.y() == dims2.y();
 }
 
 } // namespace

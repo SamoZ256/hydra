@@ -6,7 +6,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir {
 
 class Builder {
   public:
-    Builder(Module& modul_) : modul{modul_} {
+    explicit Builder(Module& modul_) : modul{modul_} {
         SetInsertFunction("main");
         SetInsertBlock(0x0);
     }

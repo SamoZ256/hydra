@@ -14,6 +14,7 @@ result_t Applet::Run(System& system) {
     // TODO: context (if present)
 
     ReturnValue ret;
+    // NOLINTNEXTLINE(readability-trivial-switch)
     switch (param_common.type) {
     case ErrorType::ApplicationError: {
         const auto param = param_reader.read<ParamForApplicationError>();

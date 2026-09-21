@@ -177,10 +177,9 @@ Plugin::Create(const std::string& path,
         [=](Plugin plugin) -> std::expected<Plugin, Error> {
             // Verify that all required options are present
             for (const auto& config : plugin.option_configs) {
-                if (config.is_required) {
-                    if (!options.contains(std::string(config.name)))
-                        return std::unexpected(Error::InvalidOptions);
-                }
+                if (config.is_required &&
+                    !options.contains(std::string(config.name)))
+                    return std::unexpected(Error::InvalidOptions);
             }
 
             // Create context

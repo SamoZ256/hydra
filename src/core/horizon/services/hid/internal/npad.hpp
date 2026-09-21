@@ -12,7 +12,7 @@ namespace hydra::horizon::services::hid::internal {
 
 class Npad {
   public:
-    Npad(NpadInternalState& state_);
+    explicit Npad(NpadInternalState& state_);
     ~Npad();
 
     void Setup(NpadStyleSet style_set);

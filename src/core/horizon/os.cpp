@@ -151,7 +151,7 @@ OS::OS(System& system_)
 
     // SM
     RegisterServiceToPort<std::string>(
-        &others_server, kernel.GetServiceManager(), "sm:", [this]() {
+        &others_server, kernel.GetServiceManager(), "sm:", [this] {
             auto s = new services::sm::IUserInterface();
             s->SetServer(&others_server);
             return s;

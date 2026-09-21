@@ -25,7 +25,8 @@ struct ParcelFlattenedBinder {
 
 class ParcelReader {
   public:
-    ParcelReader(ztd::io::MemoryStream stream_) : stream{std::move(stream_)} {
+    explicit ParcelReader(ztd::io::MemoryStream stream_)
+        : stream{std::move(stream_)} {
         auto header = Read<ParcelHeader>();
         stream.seekTo(header.data_offset);
     }
@@ -99,7 +100,8 @@ class ParcelReader {
 
 class ParcelWriter {
   public:
-    ParcelWriter(ztd::io::MemoryStream stream_) : stream{std::move(stream_)} {
+    explicit ParcelWriter(ztd::io::MemoryStream stream_)
+        : stream{std::move(stream_)} {
         header = stream.writeReturningPtr<ParcelHeader>({
             .data_size = 0x0,
             .data_offset = sizeof(ParcelHeader),

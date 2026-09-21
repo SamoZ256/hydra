@@ -8,7 +8,7 @@ namespace hydra::horizon::display {
 
 class Driver {
   public:
-    Driver(System& system_);
+    explicit Driver(System& system_);
 
     // Displays
     Display& GetDisplay(Handle handle) {

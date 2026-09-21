@@ -161,6 +161,7 @@ bool Pfifo::SubmitCommand(uptr& gpu_addr) {
     switch (header.secondary_opcode) {
     case SecondaryOpcode::Grp0UseTert: {
         const auto tert = static_cast<TertiaryOpcode>(header.arg & 0x3);
+        // NOLINTNEXTLINE(readability-trivial-switch)
         switch (tert) {
         default:
             ONCE(LOG_NOT_IMPLEMENTED(Gpu, "Tertiary opcode {}", tert));
@@ -174,6 +175,7 @@ bool Pfifo::SubmitCommand(uptr& gpu_addr) {
         break;
     case SecondaryOpcode::Grp2UseTert: {
         const auto tert = static_cast<TertiaryOpcode>(header.arg & 0x3);
+        // NOLINTNEXTLINE(readability-trivial-switch)
         switch (tert) {
         default:
             ONCE(LOG_NOT_IMPLEMENTED(Gpu, "Tertiary opcode {}", tert));

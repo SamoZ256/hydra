@@ -6,7 +6,7 @@ namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
 class Memory : public IMemory {
   public:
-    Memory(u64 size) : IMemory(size) { Allocate(); }
+    explicit Memory(u64 size) : IMemory(size) { Allocate(); }
     ~Memory() override { Free(); }
 
     uptr GetPtr() const override { return ptr; }

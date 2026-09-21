@@ -8,7 +8,7 @@ namespace hydra::horizon::services::timesrv::internal {
 
 class SteadyClock {
   public:
-    SteadyClock(hw::WallClock& wall_clock_);
+    explicit SteadyClock(hw::WallClock& wall_clock_);
 
     u64 UpdateOffset();
     u64 GetTimePoint() const;

@@ -186,6 +186,7 @@ IFileSystemProxy::OpenDataStorageByDataId(RequestContext* ctx, System* system,
               data_id);
 
     filesystem::IFile* file;
+    // NOLINTNEXTLINE(readability-trivial-switch)
     switch (storage_id.Get()) {
     case ncm::StorageID::BuiltInSystem: {
         // TODO: correct?
