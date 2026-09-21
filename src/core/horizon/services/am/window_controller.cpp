@@ -4,12 +4,12 @@
 
 namespace hydra::horizon::services::am {
 
-DEFINE_SERVICE_COMMAND_TABLE(IWindowController, 1, GetAppletResourceUserId, 10,
-                             AcquireForegroundRights)
+DEFINE_SERVICE_COMMAND_TABLE(IWindowController, 1, getAppletResourceUserId, 10,
+                             acquireForegroundRights)
 
-result_t IWindowController::GetAppletResourceUserId(kernel::Process* process,
+result_t IWindowController::getAppletResourceUserId(kernel::Process* process,
                                                     u64* out_aruid) {
-    *out_aruid = process->GetAppletState().GetAppletResourceUserId();
+    *out_aruid = process->getAppletState().getAppletResourceUserId();
     return RESULT_SUCCESS;
 }
 

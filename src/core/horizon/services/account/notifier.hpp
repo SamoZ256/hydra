@@ -14,14 +14,14 @@ class INotifier : public IService {
     INotifier();
 
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     kernel::Event* event;
 
     // Commands
-    result_t GetSystemEvent(kernel::Process* process,
+    result_t getSystemEvent(kernel::Process* process,
                             OutHandle<HandleAttr::Copy> out_handle);
 };
 

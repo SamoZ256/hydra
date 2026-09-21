@@ -47,6 +47,6 @@ union InstLop32I {
     BitField64<bool, 57, 1> x;
 };
 
-void EmitLop32I(DecoderContext& context, InstLop32I inst);
+void emitLop32I(DecoderContext& context, InstLop32I inst);
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

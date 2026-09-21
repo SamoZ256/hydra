@@ -22,7 +22,7 @@ class Pfifo {
     explicit Pfifo(Gpu& gpu_);
     ~Pfifo();
 
-    void SubmitEntries(GMmu& gmmu, std::span<const GpfifoEntry> entries,
+    void submitEntries(GMmu& gmmu, std::span<const GpfifoEntry> entries,
                        GpfifoFlags flags);
 
   private:
@@ -36,13 +36,13 @@ class Pfifo {
 
     std::thread thread; // TODO: jthread
 
-    void ThreadFunc();
+    void threadFunc();
 
-    void SubmitEntry(const GpfifoEntry entry);
-    bool SubmitCommand(uptr& gpu_addr); // TODO: return void
+    void submitEntry(const GpfifoEntry entry);
+    bool submitCommand(uptr& gpu_addr); // TODO: return void
 
     // Helpers
-    void ProcessMethodArg(u32 subchannel, uptr& gpu_addr, u32& method,
+    void processMethodArg(u32 subchannel, uptr& gpu_addr, u32& method,
                           bool increment);
 };
 

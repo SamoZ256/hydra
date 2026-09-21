@@ -21,7 +21,7 @@ class Decoder {
   public:
     explicit Decoder(const DecoderContext& context_) : context{context_} {}
 
-    void Decode();
+    void decode();
 
   private:
     DecoderContext context;
@@ -30,18 +30,18 @@ class Decoder {
     std::map<label_t, Block> blocks;
     Block* crnt_block{nullptr};
 
-    void ParseNextInstruction();
+    void parseNextInstruction();
 
     // Helpers
-    void Jump(u32 target) const {
+    void jump(u32 target) const {
         context.code_stream->seekTo(target * sizeof(instruction_t));
     }
-    u32 GetPC() const {
+    u32 getPc() const {
         return static_cast<u32>(context.code_stream->getSeek() /
                                 sizeof(instruction_t));
     }
 
-    void EndBlock() {
+    void endBlock() {
         crnt_block->status = BlockStatus::Visited;
         crnt_block = nullptr;
         while (!to_visit_queue.empty()) {
@@ -51,14 +51,14 @@ class Decoder {
             auto block = &blocks[label];
             if (block->status == BlockStatus::Unvisited) {
                 crnt_block = block;
-                context.builder.SetInsertBlock(label);
-                Jump(label);
+                context.builder.setInsertBlock(label);
+                jump(label);
                 break;
             }
         }
     }
 
-    Block& EnsureBlock(label_t label) {
+    Block& ensureBlock(label_t label) {
         auto& block = blocks[label];
         if (block.status == BlockStatus::Unvisited)
             to_visit_queue.push(label);
@@ -66,12 +66,12 @@ class Decoder {
         return block;
     }
 
-    void PushSyncPoint(label_t sync_point) {
+    void pushSyncPoint(label_t sync_point) {
         crnt_block->sync_point_stack.push(sync_point);
     }
 
-    void InheritSyncPoints(label_t label) {
-        auto& block = EnsureBlock(label);
+    void inheritSyncPoints(label_t label) {
+        auto& block = ensureBlock(label);
         // TODO: if the block already has sync points, make sure they match
         block.sync_point_stack = crnt_block->sync_point_stack;
     }

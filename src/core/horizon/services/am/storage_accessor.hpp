@@ -9,16 +9,16 @@ class IStorageAccessor : public IService {
     explicit IStorageAccessor(std::span<u8> data_) : data{data_} {}
 
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     std::span<u8> data;
 
     // Commands
-    result_t GetSize(i64* out_size);
-    result_t Write(i64 offset, InBuffer<BufferAttr::AutoSelect> buffer);
-    result_t Read(i64 offset, OutBuffer<BufferAttr::AutoSelect> out_buffer);
+    result_t getSize(i64* out_size);
+    result_t write(i64 offset, InBuffer<BufferAttr::AutoSelect> buffer);
+    result_t read(i64 offset, OutBuffer<BufferAttr::AutoSelect> out_buffer);
 };
 
 } // namespace hydra::horizon::services::am

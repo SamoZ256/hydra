@@ -6,10 +6,10 @@ namespace hydra::input::apple_gc {
 
 class Keyboard : public IKeyboard {
   public:
-    Keyboard(id handle_) : handle{handle_} {}
+    explicit Keyboard(id handle_) : handle{handle_} {}
 
   protected:
-    bool IsPressedImpl(Key key) override;
+    bool isPressedImpl(Key key) override;
 
   private:
     id handle;

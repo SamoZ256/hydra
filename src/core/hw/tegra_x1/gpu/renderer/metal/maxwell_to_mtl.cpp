@@ -2,7 +2,7 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
-MTL::TextureType ToMtlTextureType(TextureType type) {
+MTL::TextureType toMtlTextureType(TextureType type) {
     switch (type) {
     case TextureType::_1D:
         return MTL::TextureType1D;
@@ -355,7 +355,7 @@ swizzle COLOR_PIXEL_FORMAT_ENTRY_RGBA(A16B16G16R16_sRGB, Invalid),
 };
 */
 
-const PixelFormatInfo& to_mtl_pixel_format_info(TextureFormat format) {
+const PixelFormatInfo& toMtlPixelFormatInfo(TextureFormat format) {
     auto it = pixel_format_lut.find(format);
     ASSERT_DEBUG(it != pixel_format_lut.end(), MetalRenderer,
                  "Unknown format {}", format);
@@ -367,7 +367,7 @@ const PixelFormatInfo& to_mtl_pixel_format_info(TextureFormat format) {
     return info;
 }
 
-MTL::CullMode ToMtlCullMode(const engines::CullFaceMode mode) {
+MTL::CullMode toMtlCullMode(const engines::CullFaceMode mode) {
     switch (mode) {
     case engines::CullFaceMode::Front:
         return MTL::CullModeFront;
@@ -379,7 +379,7 @@ MTL::CullMode ToMtlCullMode(const engines::CullFaceMode mode) {
     }
 }
 
-MTL::Winding ToMtlWinding(const engines::Winding winding) {
+MTL::Winding toMtlWinding(const engines::Winding winding) {
     switch (winding) {
     case engines::Winding::Clockwise:
         return MTL::WindingClockwise;
@@ -389,7 +389,7 @@ MTL::Winding ToMtlWinding(const engines::Winding winding) {
 }
 
 MTL::PrimitiveType
-to_mtl_primitive_type(const engines::PrimitiveType primitive_type) {
+toMtlPrimitiveType(const engines::PrimitiveType primitive_type) {
     switch (primitive_type) {
     case engines::PrimitiveType::Points:
         return MTL::PrimitiveTypePoint;
@@ -407,7 +407,7 @@ to_mtl_primitive_type(const engines::PrimitiveType primitive_type) {
     }
 }
 
-MTL::IndexType to_mtl_index_type(engines::IndexType index_type) {
+MTL::IndexType toMtlIndexType(engines::IndexType index_type) {
     switch (index_type) {
     case engines::IndexType::UInt16:
         return MTL::IndexTypeUInt16;
@@ -419,9 +419,8 @@ MTL::IndexType to_mtl_index_type(engines::IndexType index_type) {
     }
 }
 
-MTL::VertexFormat to_mtl_vertex_format(engines::VertexAttribType type,
-                                       engines::VertexAttribSize size,
-                                       bool bgra) {
+MTL::VertexFormat toMtlVertexFormat(engines::VertexAttribType type,
+                                    engines::VertexAttribSize size, bool bgra) {
     ASSERT_DEBUG(!bgra || (type == engines::VertexAttribType::Unorm &&
                            size == engines::VertexAttribSize::_4x8),
                  MetalRenderer,
@@ -686,7 +685,7 @@ MTL::VertexFormat to_mtl_vertex_format(engines::VertexAttribType type,
     }
 }
 
-MTL::CompareFunction to_mtl_compare_func(engines::CompareOp depth_compare_op) {
+MTL::CompareFunction toMtlCompareFunc(engines::CompareOp depth_compare_op) {
     switch (depth_compare_op) {
     case engines::CompareOp::Never:
         return MTL::CompareFunctionNever;
@@ -711,7 +710,7 @@ MTL::CompareFunction to_mtl_compare_func(engines::CompareOp depth_compare_op) {
     }
 }
 
-MTL::TextureSwizzle to_mtl_swizzle(const ImageSwizzle swizzle) {
+MTL::TextureSwizzle toMtlSwizzle(const ImageSwizzle swizzle) {
     switch (swizzle) {
     case ImageSwizzle::Zero:
         return MTL::TextureSwizzleZero;
@@ -729,7 +728,7 @@ MTL::TextureSwizzle to_mtl_swizzle(const ImageSwizzle swizzle) {
     }
 }
 
-MTL::BlendOperation to_mtl_blend_operation(const BlendOperation blend_op) {
+MTL::BlendOperation toMtlBlendOperation(const BlendOperation blend_op) {
     switch (blend_op) {
     case BlendOperation::Add:
         return MTL::BlendOperationAdd;
@@ -744,7 +743,7 @@ MTL::BlendOperation to_mtl_blend_operation(const BlendOperation blend_op) {
     }
 }
 
-MTL::BlendFactor to_mtl_blend_factor(const BlendFactor blend_factor) {
+MTL::BlendFactor toMtlBlendFactor(const BlendFactor blend_factor) {
     switch (blend_factor) {
     case BlendFactor::Zero:
         return MTL::BlendFactorZero;
@@ -787,8 +786,7 @@ MTL::BlendFactor to_mtl_blend_factor(const BlendFactor blend_factor) {
     }
 }
 
-MTL::SamplerMinMagFilter
-to_mtl_sampler_min_mag_filter(const SamplerFilter filter) {
+MTL::SamplerMinMagFilter toMtlSamplerMinMagFilter(const SamplerFilter filter) {
     switch (filter) {
     case SamplerFilter::Nearest:
         return MTL::SamplerMinMagFilterNearest;
@@ -797,7 +795,7 @@ to_mtl_sampler_min_mag_filter(const SamplerFilter filter) {
     }
 }
 
-MTL::SamplerMipFilter to_mtl_sampler_mip_filter(const SamplerMipFilter filter) {
+MTL::SamplerMipFilter toMtlSamplerMipFilter(const SamplerMipFilter filter) {
     switch (filter) {
     case SamplerMipFilter::NotMipmapped:
         return MTL::SamplerMipFilterNotMipmapped;
@@ -809,7 +807,7 @@ MTL::SamplerMipFilter to_mtl_sampler_mip_filter(const SamplerMipFilter filter) {
 }
 
 MTL::SamplerAddressMode
-to_mtl_sampler_address_mode(const SamplerAddressMode address_mode) {
+toMtlSamplerAddressMode(const SamplerAddressMode address_mode) {
     switch (address_mode) {
     case SamplerAddressMode::Repeat:
         return MTL::SamplerAddressModeRepeat;

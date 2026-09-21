@@ -20,7 +20,7 @@ class Manager;
 
 class ILoader {
   public:
-    static std::optional<ILoader*> CreateFromPath(
+    static std::optional<ILoader*> createFromPath(
         std::string_view path,
         std::optional<plugins::Manager*> plugin_manager_opt = std::nullopt);
 
@@ -30,24 +30,24 @@ class ILoader {
     ZTD_MAKE_NON_COPYABLE(ILoader);
     ZTD_MAKE_DEFAULT_MOVABLE(ILoader);
 
-    virtual u64 GetTitleID() const { return invalid<u64>(); }
+    virtual u64 getTitleId() const { return invalid<u64>(); }
 
-    virtual void LoadProcess(System& system, kernel::Process* process) = 0;
-    horizon::services::ns::ApplicationControlProperty* LoadNacp();
+    virtual void loadProcess(System& system, kernel::Process* process) = 0;
+    horizon::services::ns::ApplicationControlProperty* loadNacp();
     // TODO: return a vector
-    uchar4* LoadIcon(u32& out_width, u32& out_height);
-    uchar4* LoadNintendoLogo(u32& out_width, u32& out_height);
-    uchar4* LoadStartupMovie(std::vector<std::chrono::milliseconds>& out_delays,
+    uchar4* loadIcon(u32& out_width, u32& out_height);
+    uchar4* loadNintendoLogo(u32& out_width, u32& out_height);
+    uchar4* loadStartupMovie(std::vector<std::chrono::milliseconds>& out_delays,
                              u32& out_width, u32& out_height,
                              u32& out_frame_count);
 
     // Extracting
-    bool HasIcon() const { return icon_file != nullptr; }
-    void ExtractIcon(std::string_view path) const;
-    bool HasExeFs() const { return exefs_dir != nullptr; }
-    void ExtractExeFs(std::string_view path) const;
-    bool HasRomFs() const { return romfs_entry != nullptr; }
-    void ExtractRomFs(std::string_view path) const;
+    bool hasIcon() const { return icon_file != nullptr; }
+    void extractIcon(std::string_view path) const;
+    bool hasExeFs() const { return exefs_dir != nullptr; }
+    void extractExeFs(std::string_view path) const;
+    bool hasRomFs() const { return romfs_entry != nullptr; }
+    void extractRomFs(std::string_view path) const;
 
   protected:
     filesystem::IFile* nacp_file{nullptr};

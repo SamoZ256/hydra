@@ -20,17 +20,17 @@ class Layer {
         : system{system_}, process{process_}, binder_handle{binder_handle_} {}
 
     // TODO
-    void Open() {}
-    void Close() {}
+    void open() {}
+    void close() {}
 
-    bool AcquirePresentTexture(
+    bool acquirePresentTexture(
         hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer);
-    void Present(hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer,
+    void present(hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer,
                  hw::tegra_x1::gpu::renderer::ISurfaceCompositor* compositor,
                  FloatRect2D dst_rect, f32 dst_scale, bool transparent);
 
     // Time
-    AccumulatedTime GetAccumulatedDT();
+    AccumulatedTime getAccumulatedDt();
 
   private:
     System& system;
@@ -46,13 +46,13 @@ class Layer {
     IntRect2D src_rect;
 
   public:
-    GETTER(process, GetProcess);
-    GETTER(binder_handle, GetBinderHandle);
-    SETTER(position, SetPosition);
-    SETTER(size, SetSize);
-    GETTER_AND_SETTER(z, GetZ, SetZ);
-    GETTER(present_texture, GetPresentTexture);
-    CONST_REF_GETTER(src_rect, GetSrcRect);
+    GETTER(process, getProcess);
+    GETTER(binder_handle, getBinderHandle);
+    SETTER(position, setPosition);
+    SETTER(size, setSize);
+    GETTER_AND_SETTER(z, getZ, setZ);
+    GETTER(present_texture, getPresentTexture);
+    CONST_REF_GETTER(src_rect, getSrcRect);
 };
 
 } // namespace hydra::horizon::display

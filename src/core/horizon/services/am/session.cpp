@@ -2,10 +2,10 @@
 
 namespace hydra::horizon::services::am {
 
-DEFINE_SERVICE_COMMAND_TABLE(ISession, 0, SetPerformanceConfiguration, 1,
-                             GetPerformanceConfiguration)
+DEFINE_SERVICE_COMMAND_TABLE(ISession, 0, setPerformanceConfiguration, 1,
+                             getPerformanceConfiguration)
 
-result_t ISession::SetPerformanceConfiguration(PerformanceMode mode,
+result_t ISession::setPerformanceConfiguration(PerformanceMode mode,
                                                u32 config) {
     LOG_DEBUG(Services, "Mode: {}, configuration: 0x{:08x}", mode, config);
 
@@ -15,7 +15,7 @@ result_t ISession::SetPerformanceConfiguration(PerformanceMode mode,
     return RESULT_SUCCESS;
 }
 
-result_t ISession::GetPerformanceConfiguration(PerformanceMode mode,
+result_t ISession::getPerformanceConfiguration(PerformanceMode mode,
                                                u32* out_config) {
     LOG_DEBUG(Services, "Mode: {}", mode);
 

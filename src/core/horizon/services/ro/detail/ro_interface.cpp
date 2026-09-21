@@ -5,20 +5,21 @@
 
 namespace hydra::horizon::services::ro::detail {
 
-DEFINE_SERVICE_COMMAND_TABLE(IRoInterface, 0, MapManualLoadModuleMemory, 2,
-                             RegisterModuleInfo, 4, RegisterProcessHandle)
+DEFINE_SERVICE_COMMAND_TABLE(IRoInterface, 0, mapManualLoadModuleMemory, 2,
+                             registerModuleInfo, 4, registerProcessHandle)
 
-result_t IRoInterface::MapManualLoadModuleMemory(kernel::Process* process,
+result_t IRoInterface::mapManualLoadModuleMemory(kernel::Process* process,
                                                  u64 pid_reserved, u64 nro_addr,
                                                  u64 nro_size, u64 bss_addr,
                                                  u64 bss_size, u64* out_addr) {
     (void)pid_reserved;
 
-    auto mmu = process->GetMmu();
+    auto mmu = process->getMmu();
     const auto base =
-        mmu->FindFreeMemory(kernel::EXECUTABLE_REGION, nro_size + bss_size);
-    mmu->Map(base, ztd::Range<vaddr_t>::fromSize(nro_addr, nro_size));
-    mmu->Map(base + nro_size, ztd::Range<vaddr_t>::fromSize(bss_addr, bss_size));
+        mmu->findFreeMemory(kernel::EXECUTABLE_REGION, nro_size + bss_size);
+    mmu->map(base, ztd::Range<vaddr_t>::fromSize(nro_addr, nro_size));
+    mmu->map(base + nro_size,
+             ztd::Range<vaddr_t>::fromSize(bss_addr, bss_size));
 
     *out_addr = base;
     return RESULT_SUCCESS;

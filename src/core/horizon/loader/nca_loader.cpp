@@ -14,29 +14,29 @@ namespace hydra::horizon::loader {
 NcaLoader::NcaLoader(filesystem::ContentArchive content_archive_)
     : content_archive{std::move(content_archive_)} {
     // Nintendo logo
-    auto res = content_archive.GetFile(NINTENDO_LOGO_PATH, nintendo_logo_file);
+    auto res = content_archive.getFile(NINTENDO_LOGO_PATH, nintendo_logo_file);
     if (res != filesystem::FsResult::Success)
         LOG_WARN(Loader, "Failed to get " NINTENDO_LOGO_PATH ": {}", res);
 
     // Startup movie
-    res = content_archive.GetFile(STARTUP_MOVIE_PATH, startup_movie_file);
+    res = content_archive.getFile(STARTUP_MOVIE_PATH, startup_movie_file);
     if (res != filesystem::FsResult::Success)
         LOG_WARN(Loader, "Failed to get " STARTUP_MOVIE_PATH ": {}", res);
 
     // ExeFS
-    res = content_archive.GetDirectory("code", exefs_dir);
+    res = content_archive.getDirectory("code", exefs_dir);
     ASSERT(res == filesystem::FsResult::Success, Loader,
            "Failed to get ExeFS directory: {}", res);
 
     // NPDM
     filesystem::IFile* file;
-    res = content_archive.GetFile("code/main.npdm", file);
+    res = content_archive.getFile("code/main.npdm", file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Loader, "Failed to load main.npdm: {}", res);
         return;
     }
 
-    auto stream = file->Open(filesystem::FileOpenFlags::Read);
+    auto stream = file->open(filesystem::FileOpenFlags::Read);
 
     const auto meta = stream->read<NpdmMeta>();
 
@@ -69,51 +69,51 @@ NcaLoader::NcaLoader(filesystem::ContentArchive content_archive_)
 
     // RomFS
     filesystem::IFile* romfs_file = nullptr;
-    res = content_archive.GetFile("data", romfs_file);
+    res = content_archive.getFile("data", romfs_file);
     // TODO: why doesn't Animal Well have romFS?
     if (res != filesystem::FsResult::Success)
         LOG_WARN(Loader, "Failed to get romFS file: {}", res);
     romfs_entry = romfs_file;
 }
 
-void NcaLoader::LoadProcess(System& system, kernel::Process* process) {
+void NcaLoader::loadProcess(System& system, kernel::Process* process) {
     // Title ID
-    process->SetTitleID(content_archive.GetTitleID());
+    process->setTitleId(content_archive.getTitleId());
 
     // ExeFS
-    LoadCode(system, process, exefs_dir);
+    loadCode(system, process, exefs_dir);
 
     // RomFS
-    const auto res = system.GetOS().GetFilesystem().AddEntry(
+    const auto res = system.getOs().getFilesystem().addEntry(
         FS_SD_MOUNT "/rom/romFS", romfs_entry, true);
     ASSERT(res == filesystem::FsResult::Success, Loader,
            "Failed to add romFS file: {}", res);
 }
 
-void NcaLoader::LoadCode(System& system, kernel::Process* process,
+void NcaLoader::loadCode(System& system, kernel::Process* process,
                          filesystem::Directory* dir) const {
     // HACK: if rtld is not present, use main as the entry point
     std::string entry_point = "rtld";
     filesystem::IEntry* e;
-    if (dir->GetEntry("rtld", e) == filesystem::FsResult::DoesNotExist)
+    if (dir->getEntry("rtld", e) == filesystem::FsResult::DoesNotExist)
         entry_point = "main";
 
-    for (const auto& [filename, entry] : dir->GetEntries()) {
-        ASSERT(entry->IsFile(), Loader, "Code entry is not a file");
+    for (const auto& [filename, entry] : dir->getEntries()) {
+        ASSERT(entry->isFile(), Loader, "Code entry is not a file");
         auto file = static_cast<filesystem::IFile*>(entry);
         if (filename == "main.npdm") {
             // Do nothing
         } else {
             LOG_DEBUG(Loader, "Loading {}", filename);
             NsoLoader loader(file, filename, filename == entry_point);
-            loader.SetMainThreadParams(main_thread_priority,
+            loader.setMainThreadParams(main_thread_priority,
                                        main_thread_core_number,
                                        main_thread_stack_size);
-            loader.LoadProcess(system, process);
+            loader.loadProcess(system, process);
         }
     }
 
-    process->SetSystemResourceSize(system_resource_size);
+    process->setSystemResourceSize(system_resource_size);
 
     // TODO: ACI and ACID
 }

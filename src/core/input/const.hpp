@@ -21,10 +21,10 @@ struct Code {
     Code(DeviceType device_type_, T value_)
         : device_type{device_type_}, value{u32(value_)} {}
 
-    GETTER(device_type, GetDeviceType);
+    GETTER(device_type, getDeviceType);
 
     template <typename T = u32>
-    T GetValue() const {
+    T getValue() const {
         return static_cast<T>(value);
     }
 };

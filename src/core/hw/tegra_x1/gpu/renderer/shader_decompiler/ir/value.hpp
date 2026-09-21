@@ -20,74 +20,78 @@ class Value {
   public:
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-    static Value Undefined() { return Value{.kind = ValueKind::Undefined}; }
+    static Value createUndefined() {
+        return Value{.kind = ValueKind::Undefined};
+    }
 #pragma GCC diagnostic pop
     template <typename T>
-    static Value RawValue(const T raw_value) {
+    static Value createRawValue(const T raw_value) {
         return Value{.kind = ValueKind::RawValue,
                      .raw_value = static_cast<u64>(raw_value)};
     }
-    static Value Constant(const u32 constant, const ScalarType type) {
+    static Value createConstant(const u32 constant, const ScalarType type) {
         return Value{
             .kind = ValueKind::Constant, .type = type, .constant = constant};
     }
-    static Value ConstantB(const bool constant) {
-        return Constant(static_cast<u32>(constant), ScalarType::Bool);
+    static Value createConstantB(const bool constant) {
+        return createConstant(static_cast<u32>(constant), ScalarType::Bool);
     }
-    static Value ConstantU(const u32 constant,
-                           const ScalarType type = ScalarType::U32) {
-        return Constant(constant, type);
+    static Value createConstantU(const u32 constant,
+                                 const ScalarType type = ScalarType::U32) {
+        return createConstant(constant, type);
     }
-    static Value ConstantI(const i32 constant,
-                           const ScalarType type = ScalarType::I32) {
-        return Constant(std::bit_cast<u32>(constant), type);
+    static Value createConstantI(const i32 constant,
+                                 const ScalarType type = ScalarType::I32) {
+        return createConstant(std::bit_cast<u32>(constant), type);
     }
-    static Value ConstantF(const f32 constant,
-                           const ScalarType type = ScalarType::F32) {
-        return Constant(std::bit_cast<u32>(constant), type);
+    static Value createConstantF(const f32 constant,
+                                 const ScalarType type = ScalarType::F32) {
+        return createConstant(std::bit_cast<u32>(constant), type);
     }
     template <typename T>
-    static Value Constant(const T constant) {
+    static Value createConstant(const T constant) {
         if constexpr (std::is_same_v<T, bool>)
-            return ConstantB(constant);
+            return createConstantB(constant);
         else if constexpr (std::is_same_v<T, u8>)
-            return ConstantU(constant, ScalarType::U8);
+            return createConstantU(constant, ScalarType::U8);
         else if constexpr (std::is_same_v<T, u16>)
-            return ConstantU(constant, ScalarType::U16);
+            return createConstantU(constant, ScalarType::U16);
         else if constexpr (std::is_same_v<T, u32>)
-            return ConstantU(constant, ScalarType::U32);
+            return createConstantU(constant, ScalarType::U32);
         else if constexpr (std::is_same_v<T, i8>)
-            return ConstantI(constant, ScalarType::I8);
+            return createConstantI(constant, ScalarType::I8);
         else if constexpr (std::is_same_v<T, i16>)
-            return ConstantI(constant, ScalarType::I16);
+            return createConstantI(constant, ScalarType::I16);
         else if constexpr (std::is_same_v<T, i32>)
-            return ConstantI(constant, ScalarType::I32);
+            return createConstantI(constant, ScalarType::I32);
         else if constexpr (std::is_same_v<T, f32>)
-            return ConstantF(constant, ScalarType::F32);
+            return createConstantF(constant, ScalarType::F32);
         else
-            static_assert(always_false<T>::value, "Unsupported type");
+            static_assert(always_false<T>::constant, "Unsupported type");
     }
-    static Value Local(const local_t local, const Type type = ScalarType::U32) {
+    static Value createLocal(const local_t local,
+                             const Type type = ScalarType::U32) {
         return Value{.kind = ValueKind::Local, .type = type, .local = local};
     }
-    static Value Register(const reg_t reg, const Type type = ScalarType::U32) {
+    static Value createRegister(const reg_t reg,
+                                const Type type = ScalarType::U32) {
         return Value{.kind = ValueKind::Register, .type = type, .reg = reg};
     }
-    static Value Predicate(const pred_t pred) {
+    static Value createPredicate(const pred_t pred) {
         return Value{.kind = ValueKind::Predicate,
                      .type = ScalarType::Bool,
                      .pred = pred};
     }
-    static Value AttrMemory(const AMem& amem,
-                            const Type type = ScalarType::U32) {
+    static Value createAttrMemory(const AMem& amem,
+                                  const Type type = ScalarType::U32) {
         return Value{.kind = ValueKind::AttrMemory, .type = type, .amem = amem};
     }
-    static Value ConstMemory(const CMem& cmem,
-                             const Type type = ScalarType::U32) {
+    static Value createConstMemory(const CMem& cmem,
+                                   const Type type = ScalarType::U32) {
         return Value{
             .kind = ValueKind::ConstMemory, .type = type, .cmem = cmem};
     }
-    static Value Label(const label_t label) {
+    static Value createLabel(const label_t label) {
         return Value{.kind = ValueKind::Label, .label = label};
     }
 
@@ -133,45 +137,45 @@ class Value {
     };
 
     template <ValueKind kind_>
-    void AssertKind() const {
+    void assertKind() const {
         ASSERT_DEBUG(kind == kind_, ShaderDecompiler,
                      "Invalid value kind (expected {}, got {})", kind_, kind);
     }
 
-    GETTER(kind, GetKind);
-    GETTER(type, GetType);
+    GETTER(kind, getKind);
+    GETTER(type, getType);
 
     template <typename T>
-    T GetRawValue() const {
-        AssertKind<ValueKind::RawValue>();
+    T getRawValue() const {
+        assertKind<ValueKind::RawValue>();
         return static_cast<T>(raw_value);
     }
-    u32 GetConstant() const {
-        AssertKind<ValueKind::Constant>();
+    u32 getConstant() const {
+        assertKind<ValueKind::Constant>();
         return constant;
     }
-    local_t GetLocal() const {
-        AssertKind<ValueKind::Local>();
+    local_t getLocal() const {
+        assertKind<ValueKind::Local>();
         return local;
     }
-    reg_t GetRegister() const {
-        AssertKind<ValueKind::Register>();
+    reg_t getRegister() const {
+        assertKind<ValueKind::Register>();
         return reg;
     }
-    pred_t GetPredicate() const {
-        AssertKind<ValueKind::Predicate>();
+    pred_t getPredicate() const {
+        assertKind<ValueKind::Predicate>();
         return pred;
     }
-    AMem GetAttrMemory() const {
-        AssertKind<ValueKind::AttrMemory>();
+    AMem getAttrMemory() const {
+        assertKind<ValueKind::AttrMemory>();
         return amem;
     }
-    CMem GetConstMemory() const {
-        AssertKind<ValueKind::ConstMemory>();
+    CMem getConstMemory() const {
+        assertKind<ValueKind::ConstMemory>();
         return cmem;
     }
-    label_t GetLabel() const {
-        AssertKind<ValueKind::Label>();
+    label_t getLabel() const {
+        assertKind<ValueKind::Label>();
         return label;
     }
 };
@@ -194,7 +198,7 @@ struct fmt::formatter<
                value,
            FormatContext& ctx) const {
         std::string str;
-        switch (value.GetKind()) {
+        switch (value.getKind()) {
         case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueKind::
             Undefined:
             str = "undefined";
@@ -202,35 +206,35 @@ struct fmt::formatter<
         case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueKind::
             RawValue:
             // TODO: figure out a better way to print this
-            str = fmt::format("0x{:x}", value.GetRawValue<hydra::u64>());
+            str = fmt::format("0x{:x}", value.getRawValue<hydra::u64>());
             break;
         case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueKind::
             Constant:
-            str = fmt::format("0x{:08x}", value.GetConstant());
+            str = fmt::format("0x{:08x}", value.getConstant());
             break;
         case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueKind::
             Local:
-            str = fmt::format("{}", value.GetLocal());
+            str = fmt::format("{}", value.getLocal());
             break;
         case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueKind::
             Register:
-            str = fmt::format("{}", value.GetRegister());
+            str = fmt::format("{}", value.getRegister());
             break;
         case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueKind::
             Predicate:
-            str = fmt::format("{}", value.GetPredicate());
+            str = fmt::format("{}", value.getPredicate());
             break;
         case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueKind::
             AttrMemory:
-            str = fmt::format("{}", value.GetAttrMemory());
+            str = fmt::format("{}", value.getAttrMemory());
             break;
         case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueKind::
             ConstMemory:
-            str = fmt::format("{}", value.GetConstMemory());
+            str = fmt::format("{}", value.getConstMemory());
             break;
         case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueKind::
             Label:
-            str = fmt::format("{}", value.GetLabel());
+            str = fmt::format("{}", value.getLabel());
             break;
         }
 

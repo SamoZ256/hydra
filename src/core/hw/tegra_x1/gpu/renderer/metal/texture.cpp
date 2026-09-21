@@ -10,7 +10,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 Texture::Texture(MTL::Device* device, const TextureDescriptor& descriptor)
     : ITexture(descriptor) {
-    const auto type = ToMtlTextureType(descriptor.type);
+    const auto type = toMtlTextureType(descriptor.type);
 
     MTL::TextureDescriptor* desc = MTL::TextureDescriptor::alloc()->init();
     desc->setTextureType(type);
@@ -42,7 +42,7 @@ Texture::Texture(MTL::Device* device, const TextureDescriptor& descriptor)
         break;
     }
 
-    const auto& pixel_format_info = to_mtl_pixel_format_info(descriptor.format);
+    const auto& pixel_format_info = toMtlPixelFormatInfo(descriptor.format);
     desc->setPixelFormat(pixel_format_info.pixel_format);
 
     texture = device->newTexture(desc);
@@ -51,18 +51,18 @@ Texture::Texture(MTL::Device* device, const TextureDescriptor& descriptor)
 Texture::~Texture() { texture->release(); }
 
 ITextureView*
-Texture::CreateView(const TextureViewDescriptor& view_descriptor) {
+Texture::createView(const TextureViewDescriptor& view_descriptor) {
     return new TextureView(this, view_descriptor);
 }
 
-void Texture::CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
+void Texture::copyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
                        const ztd::Range<u32> dst_levels,
                        const ztd::Range<u32> dst_layers) {
     const auto command_buffer_impl =
         static_cast<CommandBuffer*>(command_buffer);
-    const auto mtl_src = static_cast<const Buffer*>(src)->GetBuffer();
+    const auto mtl_src = static_cast<const Buffer*>(src)->getBuffer();
 
-    auto encoder = command_buffer_impl->GetBlitCommandEncoder();
+    auto encoder = command_buffer_impl->getBlitCommandEncoder();
 
     u32 offset = 0;
     for (u32 layer = dst_layers.getBegin(); layer < dst_layers.getEnd();
@@ -70,10 +70,10 @@ void Texture::CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
         for (u32 level = dst_levels.getBegin(); level < dst_levels.getEnd();
              level++) {
             // Calculate sizes
-            const auto dims = descriptor.GetLevelDimensions(level);
+            const auto dims = descriptor.getLevelDimensions(level);
             const auto stride =
-                GetTextureFormatStride(descriptor.format, dims.x());
-            const auto slice_stride = GetTextureFormatSliceStride(
+                getTextureFormatStride(descriptor.format, dims.x());
+            const auto slice_stride = getTextureFormatSliceStride(
                 descriptor.format, dims.x(), dims.y());
 
             // Copy
@@ -89,20 +89,20 @@ void Texture::CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
 }
 
 // TODO: make sure source and destination sizes match
-void Texture::CopyFrom(ICommandBuffer* command_buffer, const ITexture* src,
+void Texture::copyFrom(ICommandBuffer* command_buffer, const ITexture* src,
                        const u32 src_level, const u32 src_layer,
                        const u32 dst_level, const u32 dst_layer,
                        const u32 level_count, const u32 layer_count) {
     const auto command_buffer_impl =
         static_cast<CommandBuffer*>(command_buffer);
-    const auto mtl_src = static_cast<const Texture*>(src)->GetTexture();
+    const auto mtl_src = static_cast<const Texture*>(src)->getTexture();
 
-    auto encoder = command_buffer_impl->GetBlitCommandEncoder();
+    auto encoder = command_buffer_impl->getBlitCommandEncoder();
 
     for (u32 i = 0; i < layer_count; i++) {
         for (u32 j = 0; j < level_count; j++) {
             const u32 crnt_dst_level = dst_level + j;
-            const auto dims = descriptor.GetLevelDimensions(crnt_dst_level);
+            const auto dims = descriptor.getLevelDimensions(crnt_dst_level);
             encoder->copyFromTexture(
                 mtl_src, src_layer + i, src_level + j, MTL::Origin(0, 0, 0),
                 MTL::Size(dims.x(), dims.y(), dims.z()), texture, dst_layer + i,
@@ -111,16 +111,16 @@ void Texture::CopyFrom(ICommandBuffer* command_buffer, const ITexture* src,
     }
 }
 
-void Texture::CopyFrom(ICommandBuffer* command_buffer, const ITexture* src,
+void Texture::copyFrom(ICommandBuffer* command_buffer, const ITexture* src,
                        const uint3 src_origin, const u32 src_level,
                        const u32 src_layer, const uint3 dst_origin,
                        const u32 dst_level, const u32 dst_layer,
                        const uint3 size, const u32 layer_count) {
     const auto command_buffer_impl =
         static_cast<CommandBuffer*>(command_buffer);
-    const auto mtl_src = static_cast<const Texture*>(src)->GetTexture();
+    const auto mtl_src = static_cast<const Texture*>(src)->getTexture();
 
-    auto encoder = command_buffer_impl->GetBlitCommandEncoder();
+    auto encoder = command_buffer_impl->getBlitCommandEncoder();
 
     for (u32 i = 0; i < layer_count; i++) {
         encoder->copyFromTexture(

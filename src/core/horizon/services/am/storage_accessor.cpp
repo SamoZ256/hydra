@@ -2,14 +2,14 @@
 
 namespace hydra::horizon::services::am {
 
-DEFINE_SERVICE_COMMAND_TABLE(IStorageAccessor, 0, GetSize, 10, Write, 11, Read)
+DEFINE_SERVICE_COMMAND_TABLE(IStorageAccessor, 0, getSize, 10, write, 11, read)
 
-result_t IStorageAccessor::GetSize(i64* out_size) {
+result_t IStorageAccessor::getSize(i64* out_size) {
     *out_size = static_cast<i64>(data.size());
     return RESULT_SUCCESS;
 }
 
-result_t IStorageAccessor::Write(i64 offset,
+result_t IStorageAccessor::write(i64 offset,
                                  InBuffer<BufferAttr::AutoSelect> buffer) {
     ASSERT_DEBUG(offset >= 0, Services, "Offset must be >= 0");
 
@@ -21,7 +21,7 @@ result_t IStorageAccessor::Write(i64 offset,
     return RESULT_SUCCESS;
 }
 
-result_t IStorageAccessor::Read(i64 offset,
+result_t IStorageAccessor::read(i64 offset,
                                 OutBuffer<BufferAttr::AutoSelect> out_buffer) {
     ASSERT_DEBUG(offset >= 0, Services, "Offset must be >= 0");
 

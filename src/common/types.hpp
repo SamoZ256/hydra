@@ -328,24 +328,24 @@ class CacheBase {
     CacheBase() noexcept = default;
     ~CacheBase() noexcept {
         for (auto& [key, value] : cache) {
-            THIS->DestroyElement(value);
+            THIS->destroyElement(value);
         }
 
-        THIS->Destroy();
+        THIS->destroy();
     }
 
     ZTD_MAKE_NON_COPYABLE(CacheBase);
 
     T& Find(const DescriptorT& descriptor) {
-        u32 hash = THIS->Hash(descriptor);
+        u32 hash = THIS->hash(descriptor);
         auto it = cache.find(hash);
         if (it == cache.end()) {
-            it = cache.insert({hash, THIS->Create(descriptor)}).first;
+            it = cache.insert({hash, THIS->create(descriptor)}).first;
 
             return it->second;
         }
 
-        THIS->Update(it->second);
+        THIS->update(it->second);
 
         return it->second;
     }

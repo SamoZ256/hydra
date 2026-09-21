@@ -15,8 +15,8 @@ class Npad {
     explicit Npad(NpadInternalState& state_);
     ~Npad();
 
-    void Setup(NpadStyleSet style_set);
-    void Update(const input::NpadState& new_state);
+    void setup(NpadStyleSet style_set);
+    void update(const input::NpadState& new_state);
 
   private:
     NpadInternalState& state;
@@ -24,7 +24,7 @@ class Npad {
     kernel::Event* style_set_update_event;
 
     // Helpers
-    RingLifo<NpadCommonState>& GetLifo() {
+    RingLifo<NpadCommonState>& getLifo() {
         switch (state.style_set) {
         case NpadStyleSet::FullKey:
             return state.full_key_lifo;
@@ -46,7 +46,7 @@ class Npad {
     }
 
   public:
-    GETTER(style_set_update_event, GetStyleSetUpdateEvent);
+    GETTER(style_set_update_event, getStyleSetUpdateEvent);
 };
 
 } // namespace hydra::horizon::services::hid::internal

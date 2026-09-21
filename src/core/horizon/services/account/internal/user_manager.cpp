@@ -28,7 +28,7 @@ struct HusrHeader {
 constexpr u64 AVATAR_UNCOMPRESSED_IMAGE_SIZE = 0x40000;
 constexpr u32 AVATAR_IMAGE_DIMENSIONS = 256;
 
-void jpg_to_memory(void* context, void* data, int len) {
+void jpgToMemory(void* context, void* data, int len) {
     auto jpg_image = static_cast<std::vector<u8>*>(context);
     u8* jpg = static_cast<u8*>(data);
     jpg_image->insert(jpg_image->end(), jpg, jpg + len);
@@ -38,12 +38,12 @@ void jpg_to_memory(void* context, void* data, int len) {
 
 UserManager::UserManager() {
     // Create user directory
-    std::filesystem::create_directories(GetUsersPath());
+    std::filesystem::create_directories(getUsersPath());
 
     // Deserialize all users
-    if (std::filesystem::exists(GetUsersPath())) {
+    if (std::filesystem::exists(getUsersPath())) {
         for (const auto& dir_entry :
-             std::filesystem::directory_iterator{GetUsersPath()}) {
+             std::filesystem::directory_iterator{getUsersPath()}) {
             auto filename = dir_entry.path().filename();
 
             auto extension = filename.extension().string();
@@ -63,22 +63,22 @@ UserManager::UserManager() {
             uuid_t user_id = static_cast<uuid_t>(user_id_lo) |
                              (static_cast<uuid_t>(user_id_hi) << 64);
 
-            Deserialize(user_id);
+            deserialize(user_id);
         }
     }
 
     if (users.empty()) {
-        auto user_id = CreateUser();
-        Serialize(user_id);
+        auto user_id = createUser();
+        serialize(user_id);
     }
 }
 
-void UserManager::Flush() {
+void UserManager::flush() {
     for (auto& [user_id, user_pair] : users)
-        Serialize(user_id);
+        serialize(user_id);
 }
 
-uuid_t UserManager::CreateUser() {
+uuid_t UserManager::createUser() {
     // First, find an available ID
     uuid_t user_id = 0x8000000000000001;
     while (users.contains(user_id))
@@ -92,7 +92,7 @@ uuid_t UserManager::CreateUser() {
     return user_id;
 }
 
-void UserManager::LoadSystemAvatars(filesystem::Filesystem& fs) {
+void UserManager::loadSystemAvatars(filesystem::Filesystem& fs) {
     // Default avatar
     const auto default_image_path =
         GetBundleResourcePath("default_avatar_image.png");
@@ -101,7 +101,7 @@ void UserManager::LoadSystemAvatars(filesystem::Filesystem& fs) {
 
     // NCA
     filesystem::IFile* file;
-    auto res = fs.GetFile(
+    auto res = fs.getFile(
         fmt::format(FS_FIRMWARE_PATH "/{:016x}/data", 0x010000000000080a),
         file);
     if (res != filesystem::FsResult::Success) {
@@ -113,7 +113,7 @@ void UserManager::LoadSystemAvatars(filesystem::Filesystem& fs) {
 
     // Data
     filesystem::IFile* data_file;
-    res = content_archive.GetFile("data", data_file);
+    res = content_archive.getFile("data", data_file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Services, "Failed to get avatars data: {}", res);
         return;
@@ -127,17 +127,17 @@ void UserManager::LoadSystemAvatars(filesystem::Filesystem& fs) {
 
     // Characters
     filesystem::Directory* character_dir;
-    res = romfs.GetDirectory("chara", character_dir);
+    res = romfs.getDirectory("chara", character_dir);
     ASSERT(res == filesystem::FsResult::Success, Services,
            "Failed to get \"chara\" avatars directory: {}", res);
-    for (const auto& [name, entry] : character_dir->GetEntries()) {
+    for (const auto& [name, entry] : character_dir->getEntries()) {
         if (name.ends_with(".szs"))
             avatars[fmt::format(SYSTEM_AVATARS_PATH "/{}", name)] = {
                 .file = static_cast<filesystem::IFile*>(entry)};
     }
 }
 
-const std::vector<uchar4>& UserManager::LoadAvatarImage(std::string_view path,
+const std::vector<uchar4>& UserManager::loadAvatarImage(std::string_view path,
                                                         u32& out_dimensions) {
     // Load image
     auto it = avatars.find(std::string(path));
@@ -159,17 +159,17 @@ const std::vector<uchar4>& UserManager::LoadAvatarImage(std::string_view path,
         }
     }
     auto& avatar = it->second;
-    PreloadAvatar(avatar, path.starts_with(SYSTEM_AVATARS_PATH));
+    preloadAvatar(avatar, path.starts_with(SYSTEM_AVATARS_PATH));
 
     out_dimensions = avatar.dimensions;
     return avatar.data;
 }
 
-void UserManager::LoadAvatarImageAsJpeg(std::string_view path, uchar3 bg_color,
+void UserManager::loadAvatarImageAsJpeg(std::string_view path, uchar3 bg_color,
                                         std::vector<u8>& out_data) {
     // Load image
     u32 dimension;
-    auto data = LoadAvatarImage(path, dimension);
+    auto data = loadAvatarImage(path, dimension);
 
     // Alpha blend with background color
     for (auto& pixel : data) {
@@ -188,21 +188,20 @@ void UserManager::LoadAvatarImageAsJpeg(std::string_view path, uchar3 bg_color,
 
     // Convert to JPEG
     out_data.reserve(0x20000);
-    stbi_write_jpg_to_func(jpg_to_memory, &out_data,
-                           static_cast<i32>(dimension),
+    stbi_write_jpg_to_func(jpgToMemory, &out_data, static_cast<i32>(dimension),
                            static_cast<i32>(dimension), 4, data.data(), 80);
 }
 
-void UserManager::Serialize(uuid_t user_id) {
+void UserManager::serialize(uuid_t user_id) {
     LOG_INFO(Services, "Serializing user with ID {:032x}", user_id);
 
-    auto& user_pair = GetPair(user_id);
+    auto& user_pair = getPair(user_id);
     const auto& user = user_pair.first;
-    if (!user.EditedSince(user_pair.second))
+    if (!user.editedSince(user_pair.second))
         return;
 
     // Serialize
-    const auto path = GetUserPath(user_id);
+    const auto path = getUserPath(user_id);
     ZTD_ASSIGN_OR(
         auto file,
         ztd::fs::openFileAbsolute(path, ztd::fs::File::OpenFlags::Write), {
@@ -222,21 +221,21 @@ void UserManager::Serialize(uuid_t user_id) {
     stream.write(static_cast<u32>(user.avatar_path.size()));
     stream.writeSpan(std::span(user.avatar_path));
 
-    user_pair.second = GetTimestamp();
+    user_pair.second = getTimestamp();
 }
 
-void UserManager::Deserialize(uuid_t user_id) {
+void UserManager::deserialize(uuid_t user_id) {
     LOG_INFO(Services, "Deserializing user with ID {:032x}", user_id);
 
     auto it = users.find(user_id);
     if (it != users.end()) {
         auto& user_pair = it->second;
-        if (!user_pair.first.EditedSince(user_pair.second))
+        if (!user_pair.first.editedSince(user_pair.second))
             LOG_WARN(Services, "Overwriting user {:032x}", user_id);
     }
 
     // Deserialize
-    const auto path = GetUserPath(user_id);
+    const auto path = getUserPath(user_id);
     ZTD_ASSIGN_OR(
         auto file,
         ztd::fs::openFileAbsolute(path, ztd::fs::File::OpenFlags::Read), {
@@ -281,14 +280,14 @@ void UserManager::Deserialize(uuid_t user_id) {
     }
 
     User user(base, data, avatar_bg_color, avatar_path);
-    users.insert({user_id, {user, user.GetLastEditTimestamp()}});
+    users.insert({user_id, {user, user.getLastEditTimestamp()}});
 }
 
-void UserManager::PreloadAvatar(Avatar& avatar, bool is_compressed) {
+void UserManager::preloadAvatar(Avatar& avatar, bool is_compressed) {
     if (!avatar.data.empty())
         return;
 
-    auto stream = avatar.file->Open(filesystem::FileOpenFlags::Read);
+    auto stream = avatar.file->open(filesystem::FileOpenFlags::Read);
 
     std::vector<u8> raw(stream->getSize());
     stream->readToSpan(std::span(raw));

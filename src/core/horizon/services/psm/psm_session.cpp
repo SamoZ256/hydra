@@ -6,38 +6,38 @@
 
 namespace hydra::horizon::services::psm {
 
-DEFINE_SERVICE_COMMAND_TABLE(IPsmSession, 0, BindStateChangeEvent, 1,
-                             UnbindStateChangeEvent, 2,
-                             SetChargerTypeChangeEventEnabled, 3,
-                             SetPowerSupplyChangeEventEnabled, 4,
-                             SetBatteryVoltageStateChangeEventEnabled)
+DEFINE_SERVICE_COMMAND_TABLE(IPsmSession, 0, bindStateChangeEvent, 1,
+                             unbindStateChangeEvent, 2,
+                             setChargerTypeChangeEventEnabled, 3,
+                             setPowerSupplyChangeEventEnabled, 4,
+                             setBatteryVoltageStateChangeEventEnabled)
 
 result_t
-IPsmSession::BindStateChangeEvent(kernel::Process* process,
+IPsmSession::bindStateChangeEvent(kernel::Process* process,
                                   OutHandle<HandleAttr::Copy> out_handle) {
-    event_handle = process->AddHandle(
+    event_handle = process->addHandle(
         new kernel::Event(false, "IPsmSession state change event"));
     out_handle = event_handle;
     return RESULT_SUCCESS;
 }
 
-result_t IPsmSession::UnbindStateChangeEvent(kernel::Process* process) {
-    process->FreeHandle(event_handle);
+result_t IPsmSession::unbindStateChangeEvent(kernel::Process* process) {
+    process->freeHandle(event_handle);
     event_handle = INVALID_HANDLE;
     return RESULT_SUCCESS;
 }
 
-result_t IPsmSession::SetChargerTypeChangeEventEnabled(bool enabled) {
+result_t IPsmSession::setChargerTypeChangeEventEnabled(bool enabled) {
     signal_on_charger_type_change = enabled;
     return RESULT_SUCCESS;
 }
 
-result_t IPsmSession::SetPowerSupplyChangeEventEnabled(bool enabled) {
+result_t IPsmSession::setPowerSupplyChangeEventEnabled(bool enabled) {
     signal_on_power_supply_change = enabled;
     return RESULT_SUCCESS;
 }
 
-result_t IPsmSession::SetBatteryVoltageStateChangeEventEnabled(bool enabled) {
+result_t IPsmSession::setBatteryVoltageStateChangeEventEnabled(bool enabled) {
     signal_on_battery_voltage_state_change = enabled;
     return RESULT_SUCCESS;
 }

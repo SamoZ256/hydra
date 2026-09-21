@@ -18,7 +18,7 @@ class ILibraryAppletAccessor : public IService {
     ~ILibraryAppletAccessor() override;
 
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
@@ -26,16 +26,16 @@ class ILibraryAppletAccessor : public IService {
     applets::AppletBase* applet;
 
     // Commands
-    result_t GetAppletStateChangedEvent(kernel::Process* process,
+    result_t getAppletStateChangedEvent(kernel::Process* process,
                                         OutHandle<HandleAttr::Copy> out_handle);
-    result_t Start(System* system);
-    result_t GetResult();
-    result_t PushInData(IService* storage_);
-    result_t PopOutData(RequestContext* ctx);
-    result_t PushInteractiveInData(IService* storage_);
-    result_t PopInteractiveOutData(RequestContext* ctx);
+    result_t start(System* system);
+    result_t getResult();
+    result_t pushInData(IService* storage_);
+    result_t popOutData(RequestContext* ctx);
+    result_t pushInteractiveInData(IService* storage_);
+    result_t popInteractiveOutData(RequestContext* ctx);
     result_t
-    GetPopInteractiveOutDataEvent(kernel::Process* process,
+    getPopInteractiveOutDataEvent(kernel::Process* process,
                                   OutHandle<HandleAttr::Copy> out_handle);
 };
 

@@ -12,14 +12,14 @@ class HomebrewLoader : public ILoader {
   public:
     explicit HomebrewLoader(filesystem::IFile* file_);
 
-    void LoadProcess(System& system, kernel::Process* process) override;
+    void loadProcess(System& system, kernel::Process* process) override;
 
   private:
     filesystem::IFile* file;
 
     NroLoader nro_loader;
 
-    void TryLoadAssetSection(filesystem::IFile* asset_file);
+    void tryLoadAssetSection(filesystem::IFile* asset_file);
 };
 
 } // namespace hydra::horizon::loader

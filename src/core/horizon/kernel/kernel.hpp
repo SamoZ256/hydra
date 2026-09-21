@@ -34,118 +34,118 @@ class Kernel {
   public:
     explicit Kernel(System& system_);
 
-    void SupervisorCall(Process* crnt_process, IThread* crnt_thread,
+    void supervisorCall(Process* crnt_process, IThread* crnt_thread,
                         hw::tegra_x1::cpu::IThread* guest_thread, u64 id);
 
-    AppletResourceUserId AllocateAppletResourceUserId() {
+    AppletResourceUserId allocateAppletResourceUserId() {
         for (u32 i = 0; i < MAX_APPLET_RESOURCES; i++) {
             auto& is_free = free_applet_resource_user_ids[i];
             if (is_free) {
                 is_free = false;
-                return ToAruid(i);
+                return toAruid(i);
             }
         }
 
         LOG_FATAL(Kernel, "Out of applet resource user IDs");
     }
 
-    void ReleaseAppletResourceUserId(AppletResourceUserId aruid) {
-        const auto index = ToIndex(aruid);
+    void releaseAppletResourceUserId(AppletResourceUserId aruid) {
+        const auto index = toIndex(aruid);
         ASSERT(!free_applet_resource_user_ids[index], Kernel,
                "Invalid aruid {:#x}", aruid);
         free_applet_resource_user_ids[index] = true;
     }
 
     // SVCs
-    result_t SetHeapSize(Process* crnt_process, u64 size, uptr& out_base);
-    result_t SetMemoryPermission(uptr addr, u64 size, MemoryPermission perm);
-    result_t SetMemoryAttribute(Process* crnt_process, vaddr_t addr, u64 size,
+    result_t setHeapSize(Process* crnt_process, u64 size, uptr& out_base);
+    result_t setMemoryPermission(uptr addr, u64 size, MemoryPermission perm);
+    result_t setMemoryAttribute(Process* crnt_process, vaddr_t addr, u64 size,
                                 MemoryAttribute mask, MemoryAttribute value);
-    result_t MapMemory(Process* crnt_process, uptr dst_addr, uptr src_addr,
+    result_t mapMemory(Process* crnt_process, uptr dst_addr, uptr src_addr,
                        u64 size);
-    result_t UnmapMemory(Process* crnt_process, uptr dst_addr, uptr src_addr,
+    result_t unmapMemory(Process* crnt_process, uptr dst_addr, uptr src_addr,
                          u64 size);
-    result_t QueryMemory(Process* crnt_process, uptr addr,
+    result_t queryMemory(Process* crnt_process, uptr addr,
                          MemoryInfo& out_mem_info, u32& out_page_info);
-    void ExitProcess(Process* crnt_process);
-    result_t CreateThread(Process* crnt_process, vaddr_t entry_point,
+    void exitProcess(Process* crnt_process);
+    result_t createThread(Process* crnt_process, vaddr_t entry_point,
                           vaddr_t args_addr, vaddr_t stack_top_addr,
                           i32 priority, i32 processor_id, IThread*& out_thread);
-    result_t StartThread(IThread* thread);
-    void ExitThread(IThread* crnt_thread);
-    void SleepThread(i64 nano);
-    result_t GetThreadPriority(IThread* thread, i32& out_priority);
-    result_t SetThreadPriority(IThread* thread, i32 priority);
-    result_t GetThreadCoreMask(IThread* thread, i32& out_core_mask0,
+    result_t startThread(IThread* thread);
+    void exitThread(IThread* crnt_thread);
+    void sleepThread(i64 nano);
+    result_t getThreadPriority(IThread* thread, i32& out_priority);
+    result_t setThreadPriority(IThread* thread, i32 priority);
+    result_t getThreadCoreMask(IThread* thread, i32& out_core_mask0,
                                u64& out_core_mask1);
-    result_t SetThreadCoreMask(IThread* thread, i32 core_mask0, u64 core_mask1);
-    void GetCurrentProcessorNumber(u32& out_number);
-    result_t SignalEvent(Event* event);
-    result_t ClearEvent(Event* event);
-    result_t MapSharedMemory(Process* crnt_process, SharedMemory* shmem,
+    result_t setThreadCoreMask(IThread* thread, i32 core_mask0, u64 core_mask1);
+    void getCurrentProcessorNumber(u32& out_number);
+    result_t signalEvent(Event* event);
+    result_t clearEvent(Event* event);
+    result_t mapSharedMemory(Process* crnt_process, SharedMemory* shmem,
                              uptr addr, u64 size, MemoryPermission perm);
-    result_t UnmapSharedMemory(Process* crnt_process, SharedMemory* shmem,
+    result_t unmapSharedMemory(Process* crnt_process, SharedMemory* shmem,
                                uptr addr, u64 size);
-    result_t CreateTransferMemory(uptr addr, u64 size, MemoryPermission perm,
+    result_t createTransferMemory(uptr addr, u64 size, MemoryPermission perm,
                                   TransferMemory*& out_tmem);
-    result_t CloseHandle(Process* crnt_process, Handle handle);
-    result_t ResetSignal(SynchronizationObject* sync_object);
-    result_t WaitSynchronization(IThread* crnt_thread,
+    result_t closeHandle(Process* crnt_process, Handle handle);
+    result_t resetSignal(SynchronizationObject* sync_object);
+    result_t waitSynchronization(IThread* crnt_thread,
                                  std::span<SynchronizationObject*> sync_objs,
                                  i64 timeout, u32& out_signalled_index);
-    result_t CancelSynchronization(IThread* thread);
-    result_t ArbitrateLock(IThread* crnt_thread, IThread* owner_thread,
+    result_t cancelSynchronization(IThread* thread);
+    result_t arbitrateLock(IThread* crnt_thread, IThread* owner_thread,
                            uptr mutex_addr, Handle self_handle,
                            Handle owner_handle);
-    result_t ArbitrateUnlock(IThread* crnt_thread, uptr mutex_addr);
-    result_t WaitProcessWideKeyAtomic(Process* crnt_process,
+    result_t arbitrateUnlock(IThread* crnt_thread, uptr mutex_addr);
+    result_t waitProcessWideKeyAtomic(Process* crnt_process,
                                       IThread* crnt_thread, uptr mutex_addr,
                                       uptr var_addr, Handle self_handle,
                                       i64 timeout);
-    result_t SignalProcessWideKey(Process* crnt_process, uptr addr, i32 count);
-    void GetSystemTick(u64& out_tick);
-    result_t ConnectToNamedPort(const std::string_view name,
+    result_t signalProcessWideKey(Process* crnt_process, uptr addr, i32 count);
+    void getSystemTick(u64& out_tick);
+    result_t connectToNamedPort(const std::string_view name,
                                 hipc::ClientSession*& out_client_session);
-    result_t SendSyncRequest(Process* crnt_process, IThread* crnt_thread,
+    result_t sendSyncRequest(Process* crnt_process, IThread* crnt_thread,
                              hipc::ClientSession* client_session);
-    result_t GetThreadId(IThread* thread, u64& out_thread_id);
-    result_t Break(BreakReason reason, uptr buffer_ptr, u64 buffer_size);
-    result_t OutputDebugString(const std::string_view str, u64 len);
-    result_t GetInfo(Process* crnt_process, InfoType info_type, AutoObject* obj,
+    result_t getThreadId(IThread* thread, u64& out_thread_id);
+    result_t break_(BreakReason reason, uptr buffer_ptr, u64 buffer_size);
+    result_t outputDebugString(const std::string_view str, u64 len);
+    result_t getInfo(Process* crnt_process, InfoType info_type, AutoObject* obj,
                      u64 info_sub_type, u64& out_info);
-    result_t MapPhysicalMemory(Process* crnt_process, vaddr_t addr, u64 size);
-    result_t SetThreadActivity(IThread* thread, ThreadActivity activity);
-    result_t GetThreadContext3(IThread* thread,
+    result_t mapPhysicalMemory(Process* crnt_process, vaddr_t addr, u64 size);
+    result_t setThreadActivity(IThread* thread, ThreadActivity activity);
+    result_t getThreadContext3(IThread* thread,
                                ThreadContext& out_thread_context);
-    result_t WaitForAddress(IThread* crnt_thread, uptr addr,
+    result_t waitForAddress(IThread* crnt_thread, uptr addr,
                             ArbitrationType arbitration_type, u32 value,
                             i64 timeout);
-    result_t SignalToAddress(uptr addr, SignalType signal_type, u32 value,
+    result_t signalToAddress(uptr addr, SignalType signal_type, u32 value,
                              u32 count);
-    void SynchronizePreemptionState(IThread* crnt_thread);
-    result_t CreateSession(bool is_light, u64 name,
+    void synchronizePreemptionState(IThread* crnt_thread);
+    result_t createSession(bool is_light, u64 name,
                            hipc::ServerSession*& out_server_session,
                            hipc::ClientSession*& out_client_session);
-    result_t AcceptSession(hipc::ServerPort* server_port,
+    result_t acceptSession(hipc::ServerPort* server_port,
                            hipc::ServerSession*& out_server_session);
     // TODO: handles can only be Port or ServerSession
-    result_t ReplyAndReceive(IThread* crnt_thread,
+    result_t replyAndReceive(IThread* crnt_thread,
                              std::span<SynchronizationObject*> sync_objs,
                              hipc::ServerSession* reply_target_session,
                              i64 timeout, u32& out_signalled_index);
-    result_t CreateCodeMemory(vaddr_t addr, u64 size,
+    result_t createCodeMemory(vaddr_t addr, u64 size,
                               CodeMemory*& out_code_memory);
-    result_t ControlCodeMemory(CodeMemory* code_memory, CodeMemoryOperation op,
+    result_t controlCodeMemory(CodeMemory* code_memory, CodeMemoryOperation op,
                                vaddr_t addr, u64 size, MemoryPermission perm);
-    result_t GetProcessList(u64* process_id_buffer, u32 process_id_buffer_size,
+    result_t getProcessList(u64* process_id_buffer, u32 process_id_buffer_size,
                             u32& out_count);
-    result_t SetProcessMemoryPermission(Process* process, vaddr_t addr,
+    result_t setProcessMemoryPermission(Process* process, vaddr_t addr,
                                         u64 size, MemoryPermission perm);
-    result_t MapProcessMemory(Process* crnt_process, vaddr_t dst_addr,
+    result_t mapProcessMemory(Process* crnt_process, vaddr_t dst_addr,
                               Process* process, vaddr_t src_addr, u64 size);
-    result_t MapProcessCodeMemory(Process* process, vaddr_t dst_addr,
+    result_t mapProcessCodeMemory(Process* process, vaddr_t dst_addr,
                                   vaddr_t src_addr, u64 size);
-    result_t UnmapProcessCodeMemory(Process* process, vaddr_t dst_addr,
+    result_t unmapProcessCodeMemory(Process* process, vaddr_t dst_addr,
                                     vaddr_t src_addr, u64 size);
 
   private:
@@ -166,22 +166,22 @@ class Kernel {
         true};
 
     // Helpers
-    static void TryAcquireMutex(Process* crnt_process, IThread* thread);
-    static void UnlockMutex(IThread* thread, uptr mutex_addr);
+    static void tryAcquireMutex(Process* crnt_process, IThread* thread);
+    static void unlockMutex(IThread* thread, uptr mutex_addr);
 
   public:
-    REF_GETTER(process_manager, GetProcessManager);
-    REF_GETTER(service_manager, GetServiceManager);
-    REF_GETTER(critical_section_mutex, GetCriticalSectionMutex);
+    REF_GETTER(process_manager, getProcessManager);
+    REF_GETTER(service_manager, getServiceManager);
+    REF_GETTER(critical_section_mutex, getCriticalSectionMutex);
 };
 
 class CriticalSectionLock {
   public:
     explicit CriticalSectionLock(Kernel& kernel_) : kernel{kernel_} {
-        kernel.GetCriticalSectionMutex().lock();
+        kernel.getCriticalSectionMutex().lock();
     }
 
-    ~CriticalSectionLock() { kernel.GetCriticalSectionMutex().unlock(); }
+    ~CriticalSectionLock() { kernel.getCriticalSectionMutex().unlock(); }
 
   private:
     Kernel& kernel;

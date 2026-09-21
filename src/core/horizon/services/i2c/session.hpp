@@ -15,7 +15,7 @@ class ISession : public IService {
     explicit ISession(I2cDevice device_) : device{device_} {}
 
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
@@ -23,12 +23,12 @@ class ISession : public IService {
     [[maybe_unused]] I2cDevice device;
 
     // Commands
-    result_t Send(TransactionOption transaction_option,
+    result_t send(TransactionOption transaction_option,
                   InBuffer<BufferAttr::AutoSelect> in_data_buffer);
-    result_t Receive(TransactionOption transaction_option,
+    result_t receive(TransactionOption transaction_option,
                      OutBuffer<BufferAttr::AutoSelect> out_data_buffer);
     result_t
-    ExecuteCommandList(InBuffer<BufferAttr::HipcPointer> in_command_buffer,
+    executeCommandList(InBuffer<BufferAttr::HipcPointer> in_command_buffer,
                        OutBuffer<BufferAttr::AutoSelect> out_receive_buffer);
 };
 

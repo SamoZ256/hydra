@@ -16,15 +16,15 @@ class ISystemClock : public IService {
     explicit ISystemClock(SystemClockType type_) : type{type_} {}
 
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     SystemClockType type;
 
     // Commands
-    result_t GetCurrentTime(RequestContext* ctx, i64* out_posix_time);
-    STUB_REQUEST_COMMAND(GetSystemClockContext);
+    result_t getCurrentTime(RequestContext* ctx, i64* out_posix_time);
+    STUB_REQUEST_COMMAND(getSystemClockContext);
 };
 
 } // namespace hydra::horizon::services::timesrv

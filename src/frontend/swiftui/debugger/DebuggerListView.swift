@@ -22,16 +22,16 @@ struct DebuggerListView: View {
     }
 
     func load() {
-        hydraDebuggerManagerLock()
+        debuggerManagerLock()
 
         // Debuggers
         self.debuggers.removeAll()
-        for i in 0..<hydraDebuggerManagerGetDebuggerCount() {
+        for i in 0..<debuggerManagerGetDebuggerCount() {
             // TODO: name
             self.debuggers.append(
-                hydraDebuggerManagerGetDebugger(at: i))
+                debuggerManagerGetDebugger(at: i))
         }
 
-        hydraDebuggerManagerUnlock()
+        debuggerManagerUnlock()
     }
 }

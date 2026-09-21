@@ -15,11 +15,11 @@ class NcaLoader : public ILoader {
         : NcaLoader(filesystem::ContentArchive(file)) {}
     explicit NcaLoader(filesystem::ContentArchive content_archive_);
 
-    u64 GetTitleID() const override { return content_archive.GetTitleID(); }
+    u64 getTitleId() const override { return content_archive.getTitleId(); }
 
-    const std::string& GetName() const { return name; }
+    const std::string& getName() const { return name; }
 
-    void LoadProcess(System& system, kernel::Process* process) override;
+    void loadProcess(System& system, kernel::Process* process) override;
 
   private:
     filesystem::ContentArchive content_archive;
@@ -31,7 +31,7 @@ class NcaLoader : public ILoader {
     u32 system_resource_size;
 
     // Helpers
-    void LoadCode(System& system, kernel::Process* process,
+    void loadCode(System& system, kernel::Process* process,
                   filesystem::Directory* dir) const;
 };
 

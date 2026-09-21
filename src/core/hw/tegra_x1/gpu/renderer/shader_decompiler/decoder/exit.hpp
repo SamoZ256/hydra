@@ -10,6 +10,6 @@ union InstKil {
     BitField64<bool, 19, 1> pred_inv;
 };
 
-void EmitKil(DecoderContext& context, InstKil inst);
+void emitKil(DecoderContext& context, InstKil inst);
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

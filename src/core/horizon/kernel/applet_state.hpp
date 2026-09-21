@@ -25,19 +25,19 @@ class AppletState {
     ~AppletState();
 
     // Send
-    void SendMessage(AppletMessage msg);
-    void SetFocusState(AppletFocusState focus_state_);
+    void sendMessage(AppletMessage msg);
+    void setFocusState(AppletFocusState focus_state_);
 
-    void LockExit() { exit_locked = true; }
-    void UnlockExit() { exit_locked = false; }
+    void lockExit() { exit_locked = true; }
+    void unlockExit() { exit_locked = false; }
 
-    void PushPreselectedUser(uuid_t user_id);
+    void pushPreselectedUser(uuid_t user_id);
 
     // Receive
-    AppletMessage ReceiveMessage();
-    AppletFocusState GetFocusState() { return focus_state; }
-    bool IsExitLocked() { return exit_locked; }
-    std::vector<u8> PopLaunchParameter(const LaunchParameterKind kind);
+    AppletMessage receiveMessage();
+    AppletFocusState getFocusState() { return focus_state; }
+    bool isExitLocked() { return exit_locked; }
+    std::vector<u8> popLaunchParameter(const LaunchParameterKind kind);
 
   private:
     Kernel& kernel;
@@ -56,11 +56,11 @@ class AppletState {
     Event* msg_event;
 
     // Impl
-    void SendMessageImpl(AppletMessage msg);
+    void sendMessageImpl(AppletMessage msg);
 
   public:
-    GETTER(aruid, GetAppletResourceUserId);
-    GETTER(msg_event, GetMsgEvent);
+    GETTER(aruid, getAppletResourceUserId);
+    GETTER(msg_event, getMsgEvent);
 };
 
 } // namespace hydra::horizon::kernel

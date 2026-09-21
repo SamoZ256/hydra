@@ -9,9 +9,9 @@ class WallClock {
   public:
     WallClock();
 
-    u64 GetTimeNs() const;
-    u64 GetCntpct() const;
-    u64 GetGpuTick() const;
+    u64 getTimeNs() const;
+    u64 getCntpct() const;
+    u64 getGpuTick() const;
 
   private:
     u128 ns_factor;

@@ -24,17 +24,17 @@ class OS {
   public:
     explicit OS(System& system_);
 
-    void NotifyOperationModeChanged();
+    void notifyOperationModeChanged();
 
-    void SetSurfaceResolution(uint2 resolution);
-    uint2 GetDisplayResolution() const;
+    void setSurfaceResolution(uint2 resolution);
+    uint2 getDisplayResolution() const;
 
     services::am::internal::LibraryAppletController&
-    GetLibraryAppletSelfController() {
+    getLibraryAppletSelfController() {
         return *library_applet_self_controller;
     }
 
-    void SetLibraryAppletSelfController(
+    void setLibraryAppletSelfController(
         services::am::internal::LibraryAppletController
             library_applet_self_controller_) {
         library_applet_self_controller =
@@ -67,15 +67,15 @@ class OS {
     uint2 surface_resolution;
 
   public:
-    REF_GETTER(kernel, GetKernel);
-    REF_GETTER(filesystem, GetFilesystem);
-    REF_GETTER(service_manager, GetServiceManager);
-    REF_GETTER(display_driver, GetDisplayDriver);
-    REF_GETTER(hid_resource_manager, GetHidResourceManager);
-    REF_GETTER(user_manager, GetUserManager);
-    REF_GETTER(shared_font_manager, GetSharedFontManager);
-    REF_GETTER(time_manager, GetTimeManager);
-    REF_GETTER(ir_sensor_manager, GetIrSensorManager);
+    REF_GETTER(kernel, getKernel);
+    REF_GETTER(filesystem, getFilesystem);
+    REF_GETTER(service_manager, getServiceManager);
+    REF_GETTER(display_driver, getDisplayDriver);
+    REF_GETTER(hid_resource_manager, getHidResourceManager);
+    REF_GETTER(user_manager, getUserManager);
+    REF_GETTER(shared_font_manager, getSharedFontManager);
+    REF_GETTER(time_manager, getTimeManager);
+    REF_GETTER(ir_sensor_manager, getIrSensorManager);
 };
 
 } // namespace hydra::horizon

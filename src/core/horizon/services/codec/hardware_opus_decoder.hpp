@@ -6,20 +6,20 @@ namespace hydra::horizon::services::codec {
 
 class IHardwareOpusDecoder : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
     result_t
-    DecodeInterleavedOld(InBuffer<BufferAttr::MapAlias> in_opus_buffer,
+    decodeInterleavedOld(InBuffer<BufferAttr::MapAlias> in_opus_buffer,
                          i32* out_decoded_data_size,
                          i32* out_decoded_sample_count,
                          OutBuffer<BufferAttr::MapAlias> out_pcm_buffer);
 
     // Impl
     result_t
-    DecodeInterleavedImpl(std::optional<ztd::io::MemoryStream> in_opus_stream,
+    decodeInterleavedImpl(std::optional<ztd::io::MemoryStream> in_opus_stream,
                           i32* out_decoded_data_size,
                           i32* out_decoded_sample_count,
                           std::optional<ztd::io::MemoryStream> out_pcm_stream);

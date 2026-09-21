@@ -6,12 +6,12 @@
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 MTL::DepthStencilState*
-DepthStencilStateCache::Create(const DepthStencilStateDescriptor& descriptor) {
+DepthStencilStateCache::create(const DepthStencilStateDescriptor& descriptor) {
     auto desc = MTL::DepthStencilDescriptor::alloc()->init();
 
     if (descriptor.depth_test_enabled)
         desc->setDepthCompareFunction(
-            to_mtl_compare_func(descriptor.depth_compare_op));
+            toMtlCompareFunc(descriptor.depth_compare_op));
 
     // HACK: Minecraft: Story Mode overrides the depth buffer
     if (descriptor.depth_write_enabled && descriptor.depth_test_enabled &&
@@ -21,7 +21,7 @@ DepthStencilStateCache::Create(const DepthStencilStateDescriptor& descriptor) {
     return device->newDepthStencilState(desc);
 }
 
-u32 DepthStencilStateCache::Hash(
+u32 DepthStencilStateCache::hash(
     const DepthStencilStateDescriptor& descriptor) {
     ztd::hash::XxHash32 hash;
     hash.add(descriptor.depth_test_enabled);
@@ -30,7 +30,7 @@ u32 DepthStencilStateCache::Hash(
     return hash.toHashCode();
 }
 
-void DepthStencilStateCache::DestroyElement(
+void DepthStencilStateCache::destroyElement(
     MTL::DepthStencilState* depth_stencil_state) {
     depth_stencil_state->release();
 }

@@ -17,14 +17,14 @@ class DepthStencilStateCache
   public:
     explicit DepthStencilStateCache(MTL::Device* device_) : device{device_} {}
 
-    void Destroy() {}
+    void destroy() {}
 
     MTL::DepthStencilState*
-    Create(const DepthStencilStateDescriptor& descriptor);
-    void Update([[maybe_unused]] MTL::DepthStencilState* depth_stencil_state) {}
-    static u32 Hash(const DepthStencilStateDescriptor& descriptor);
+    create(const DepthStencilStateDescriptor& descriptor);
+    void update([[maybe_unused]] MTL::DepthStencilState* depth_stencil_state) {}
+    static u32 hash(const DepthStencilStateDescriptor& descriptor);
 
-    static void DestroyElement(MTL::DepthStencilState* depth_stencil_state);
+    static void destroyElement(MTL::DepthStencilState* depth_stencil_state);
 
   private:
     MTL::Device* device;

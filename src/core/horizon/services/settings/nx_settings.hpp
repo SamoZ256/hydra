@@ -26,7 +26,7 @@ struct SettingValue {
 
 extern std::map<std::string, SettingValue> nx_settings;
 
-const SettingValue* GetSettingsValue(const std::string_view name,
+const SettingValue* getSettingsValue(const std::string_view name,
                                      const std::string_view item_key);
 
 } // namespace hydra::horizon::services::settings

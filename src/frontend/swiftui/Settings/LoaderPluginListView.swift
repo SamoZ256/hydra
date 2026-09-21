@@ -66,7 +66,7 @@ struct LoaderPluginListView: View {
             }
         }
         .onChange(of: self.configs) { _, newValue in
-            let loaderPluginsOption = hydraConfigGetLoaderPlugins()
+            let loaderPluginsOption = configGetLoaderPlugins()
             loaderPluginsOption.resize(to: newValue.count)
             for i in 0..<newValue.count {
                 var newHandle = loaderPluginsOption.get(at: i)
@@ -77,7 +77,7 @@ struct LoaderPluginListView: View {
             globalState.refreshLoaderPluginManager()
         }
         .onAppear {
-            let loaderPluginsOption = hydraConfigGetLoaderPlugins()
+            let loaderPluginsOption = configGetLoaderPlugins()
             self.configs = []
             for i in 0..<loaderPluginsOption.count {
                 self.configs.append(

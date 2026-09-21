@@ -24,9 +24,9 @@ class BufferCache {
     explicit BufferCache(IRenderer& renderer_) : renderer{renderer_} {}
     ~BufferCache();
 
-    BufferView Get(ICommandBuffer* command_buffer, ztd::Range<uptr> range);
+    BufferView get(ICommandBuffer* command_buffer, ztd::Range<uptr> range);
 
-    void InvalidateMemory(ztd::Range<uptr> range);
+    void invalidateMemory(ztd::Range<uptr> range);
 
   private:
     IRenderer& renderer;
@@ -35,12 +35,12 @@ class BufferCache {
     std::map<uptr, BufferEntry> entries;
 
     // Helpers
-    void UpdateRange(ICommandBuffer* command_buffer, BufferEntry& entry,
+    void updateRange(ICommandBuffer* command_buffer, BufferEntry& entry,
                      ztd::Range<uptr> range);
-    BufferEntry& Find(ztd::Range<uptr> range);
+    BufferEntry& find(ztd::Range<uptr> range);
 
   public:
-    REF_GETTER(mutex, GetMutex);
+    REF_GETTER(mutex, getMutex);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

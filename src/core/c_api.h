@@ -143,85 +143,83 @@ typedef enum : uint32_t {
 } HydraContentArchiveContentType;
 
 // String list
-__attribute__((returns_nonnull)) void* hydra_create_string_list();
-void hydra_string_list_destroy(void* list);
-uint32_t hydra_string_list_get_count(const void* list);
-hydra_string hydra_string_list_get(const void* list, uint32_t index);
-void hydra_string_list_resize(void* list, uint32_t size);
-void hydra_string_list_set(void* list, uint32_t index, hydra_string value);
-void hydra_string_list_append(void* list, hydra_string value);
+__attribute__((returns_nonnull)) void* hydraCreateStringList();
+void hydraStringListDestroy(void* list);
+uint32_t hydraStringListGetCount(const void* list);
+hydra_string hydraStringListGet(const void* list, uint32_t index);
+void hydraStringListResize(void* list, uint32_t size);
+void hydraStringListSet(void* list, uint32_t index, hydra_string value);
+void hydraStringListAppend(void* list, hydra_string value);
 
 // String view list
-uint32_t hydra_string_view_list_get_count(const void* list);
-hydra_string hydra_string_view_list_get(const void* list, uint32_t index);
-void hydra_string_view_list_resize(void* list, uint32_t size);
-void hydra_string_view_list_set(void* list, uint32_t index, hydra_string value);
-void hydra_string_view_list_append(void* list, hydra_string value);
+uint32_t hydraStringViewListGetCount(const void* list);
+hydra_string hydraStringViewListGet(const void* list, uint32_t index);
+void hydraStringViewListResize(void* list, uint32_t size);
+void hydraStringViewListSet(void* list, uint32_t index, hydra_string value);
+void hydraStringViewListAppend(void* list, hydra_string value);
 
 // String to string map
-__attribute__((returns_nonnull)) void* hydra_create_string_to_string_map();
-void hydra_string_to_string_map_destroy(void* map);
-uint32_t hydra_string_to_string_map_get_count(const void* map);
-hydra_string hydra_string_to_string_map_get_key(const void* map,
-                                                uint32_t index);
-hydra_string hydra_string_to_string_map_get_value(const void* map,
-                                                  uint32_t index);
-hydra_string hydra_string_to_string_map_get_value_by_key(const void* map,
-                                                         hydra_string key);
-void hydra_string_to_string_map_remove_all(void* map);
-void hydra_string_to_string_map_set_by_key(void* map, hydra_string key,
-                                           hydra_string value);
+__attribute__((returns_nonnull)) void* hydraCreateStringToStringMap();
+void hydraStringToStringMapDestroy(void* map);
+uint32_t hydraStringToStringMapGetCount(const void* map);
+hydra_string hydraStringToStringMapGetKey(const void* map, uint32_t index);
+hydra_string hydraStringToStringMapGetValue(const void* map, uint32_t index);
+hydra_string hydraStringToStringMapGetValueByKey(const void* map,
+                                                 hydra_string key);
+void hydraStringToStringMapRemoveAll(void* map);
+void hydraStringToStringMapSetByKey(void* map, hydra_string key,
+                                    hydra_string value);
 
 // Loader plugin
-hydra_string hydra_loader_plugin_get_path(const void* plugin);
-void hydra_loader_plugin_set_path(void* plugin, hydra_string path);
-void* hydra_loader_plugin_get_options(void* plugin);
+hydra_string hydraLoaderPluginGetPath(const void* plugin);
+void hydraLoaderPluginSetPath(void* plugin, hydra_string path);
+void* hydraLoaderPluginGetOptions(void* plugin);
 
-uint32_t hydra_loader_plugin_list_get_count(const void* list);
-void* hydra_loader_plugin_list_get(void* list, uint32_t index);
-void hydra_loader_plugin_list_resize(void* list, uint32_t size);
+uint32_t hydraLoaderPluginListGetCount(const void* list);
+void* hydraLoaderPluginListGet(void* list, uint32_t index);
+void hydraLoaderPluginListResize(void* list, uint32_t size);
 
 // Config
-void hydra_config_serialize();
-void hydra_config_deserialize();
+void hydraConfigSerialize();
+void hydraConfigDeserialize();
 
-hydra_string hydra_config_get_app_data_path();
-hydra_string hydra_config_get_logs_path();
+hydra_string hydraConfigGetAppDataPath();
+hydra_string hydraConfigGetLogsPath();
 
-void* hydra_config_get_game_paths();
-void* hydra_config_get_loader_plugins();
-void* hydra_config_get_patch_paths();
-uint32_t* hydra_config_get_input_backend();
-void* hydra_config_get_input_profiles();
-uint32_t* hydra_config_get_cpu_backend();
-uint32_t* hydra_config_get_gpu_renderer();
-uint32_t* hydra_config_get_shader_backend();
-uint32_t* hydra_config_get_display_resolution();
-hydra_uint2* hydra_config_get_custom_display_resolution();
-uint32_t* hydra_config_get_audio_backend();
-hydra_u128* hydra_config_get_user_id();
-hydra_string hydra_config_get_device_nickname();
-void hydra_config_set_device_nickname(hydra_string value);
-uint32_t* hydra_config_get_system_language();
-hydra_string hydra_config_get_system_location();
-void hydra_config_set_system_location(hydra_string value);
-hydra_string hydra_config_get_firmware_path();
-void hydra_config_set_firmware_path(hydra_string value);
-hydra_string hydra_config_get_sd_card_path();
-void hydra_config_set_sd_card_path(hydra_string value);
-hydra_string hydra_config_get_save_path();
-void hydra_config_set_save_path(hydra_string value);
-hydra_string hydra_config_get_sysmodules_path();
-void hydra_config_set_sysmodules_path(hydra_string value);
-bool* hydra_config_get_handheld_mode();
-uint32_t* hydra_config_get_log_output();
-bool* hydra_config_get_log_fs_access();
-bool* hydra_config_get_debug_logging();
-void* hydra_config_get_process_args();
-bool* hydra_config_get_recover_from_segfault();
-bool* hydra_config_get_gdb_enabled();
-uint16_t* hydra_config_get_gdb_port();
-bool* hydra_config_get_gdb_wait_for_client();
+void* hydraConfigGetGamePaths();
+void* hydraConfigGetLoaderPlugins();
+void* hydraConfigGetPatchPaths();
+uint32_t* hydraConfigGetInputBackend();
+void* hydraConfigGetInputProfiles();
+uint32_t* hydraConfigGetCpuBackend();
+uint32_t* hydraConfigGetGpuRenderer();
+uint32_t* hydraConfigGetShaderBackend();
+uint32_t* hydraConfigGetDisplayResolution();
+hydra_uint2* hydraConfigGetCustomDisplayResolution();
+uint32_t* hydraConfigGetAudioBackend();
+hydra_u128* hydraConfigGetUserId();
+hydra_string hydraConfigGetDeviceNickname();
+void hydraConfigSetDeviceNickname(hydra_string value);
+uint32_t* hydraConfigGetSystemLanguage();
+hydra_string hydraConfigGetSystemLocation();
+void hydraConfigSetSystemLocation(hydra_string value);
+hydra_string hydraConfigGetFirmwarePath();
+void hydraConfigSetFirmwarePath(hydra_string value);
+hydra_string hydraConfigGetSdCardPath();
+void hydraConfigSetSdCardPath(hydra_string value);
+hydra_string hydraConfigGetSavePath();
+void hydraConfigSetSavePath(hydra_string value);
+hydra_string hydraConfigGetSysmodulesPath();
+void hydraConfigSetSysmodulesPath(hydra_string value);
+bool* hydraConfigGetHandheldMode();
+uint32_t* hydraConfigGetLogOutput();
+bool* hydraConfigGetLogFsAccess();
+bool* hydraConfigGetDebugLogging();
+void* hydraConfigGetProcessArgs();
+bool* hydraConfigGetRecoverFromSegfault();
+bool* hydraConfigGetGdbEnabled();
+uint16_t* hydraConfigGetGdbPort();
+bool* hydraConfigGetGdbWaitForClient();
 
 // Option config
 typedef enum HydraLoaderPluginOptionType : uint32_t {
@@ -232,133 +230,131 @@ typedef enum HydraLoaderPluginOptionType : uint32_t {
     HYDRA_LOADER_PLUGIN_OPTION_TYPE_PATH = 4,
 } HydraLoaderPluginOptionType;
 
-void* hydra_loader_plugin_option_config_copy(const void* config);
-void hydra_loader_plugin_option_config_destroy(void* config);
-hydra_string hydra_loader_plugin_option_config_get_name(const void* config);
-hydra_string
-hydra_loader_plugin_option_config_get_description(const void* config);
+void* hydraLoaderPluginOptionConfigCopy(const void* config);
+void hydraLoaderPluginOptionConfigDestroy(void* config);
+hydra_string hydraLoaderPluginOptionConfigGetName(const void* config);
+hydra_string hydraLoaderPluginOptionConfigGetDescription(const void* config);
 HydraLoaderPluginOptionType
-hydra_loader_plugin_option_config_get_type(const void* config);
-bool hydra_loader_plugin_option_config_get_is_required(const void* config);
+hydraLoaderPluginOptionConfigGetType(const void* config);
+bool hydraLoaderPluginOptionConfigGetIsRequired(const void* config);
 __attribute__((returns_nonnull)) const void*
-hydra_loader_plugin_option_config_get_enum_value_names(const void* config);
+hydraLoaderPluginOptionConfigGetEnumValueNames(const void* config);
 __attribute__((returns_nonnull)) const void*
-hydra_loader_plugin_option_config_get_path_content_types(const void* config);
+hydraLoaderPluginOptionConfigGetPathContentTypes(const void* config);
 
 // Filesystem
-void* hydra_create_filesystem();
-void hydra_filesystem_destroy(void* fs);
+void* hydraCreateFilesystem();
+void hydraFilesystemDestroy(void* fs);
 
-void* hydra_open_file(hydra_string path);
-void hydra_file_close(void* file);
+void* hydraOpenFile(hydra_string path);
+void hydraFileClose(void* file);
 
-void* hydra_create_content_archive(void* file);
-void hydra_content_archive_destroy(void* content_archive);
+void* hydraCreateContentArchive(void* file);
+void hydraContentArchiveDestroy(void* content_archive);
 HydraContentArchiveContentType
-hydra_content_archive_get_content_type(void* content_archive);
+hydraContentArchiveGetContentType(void* content_archive);
 
 // Time zone manager
-void* hydra_create_time_zone_manager(void* filesystem);
-void hydra_time_zone_manager_destroy(void* manager);
-uint32_t hydra_time_zone_manager_get_location_count(void* manager);
-hydra_string hydra_time_zone_manager_get_location(void* manager, uint32_t index);
+void* hydraCreateTimeZoneManager(void* filesystem);
+void hydraTimeZoneManagerDestroy(void* manager);
+uint32_t hydraTimeZoneManagerGetLocationCount(void* manager);
+hydra_string hydraTimeZoneManagerGetLocation(void* manager, uint32_t index);
 
 // Loader
-void* hydra_create_loader_from_path(hydra_string path, void* plugin_manager);
-void hydra_loader_destroy(void* loader);
-uint64_t hydra_loader_get_title_id(void* loader);
-void* hydra_loader_load_nacp(void* loader);
-void* hydra_loader_load_icon(void* loader, uint32_t* width, uint32_t* height);
-bool hydra_loader_has_icon(const void* loader);
-void hydra_loader_extract_icon(const void* loader, hydra_string path);
-bool hydra_loader_has_exefs(const void* loader);
-void hydra_loader_extract_exefs(const void* loader, hydra_string path);
-bool hydra_loader_has_romfs(const void* loader);
-void hydra_loader_extract_romfs(const void* loader, hydra_string path);
+void* hydraCreateLoaderFromPath(hydra_string path, void* plugin_manager);
+void hydraLoaderDestroy(void* loader);
+uint64_t hydraLoaderGetTitleId(void* loader);
+void* hydraLoaderLoadNacp(void* loader);
+void* hydraLoaderLoadIcon(void* loader, uint32_t* width, uint32_t* height);
+bool hydraLoaderHasIcon(const void* loader);
+void hydraLoaderExtractIcon(const void* loader, hydra_string path);
+bool hydraLoaderHasExefs(const void* loader);
+void hydraLoaderExtractExefs(const void* loader, hydra_string path);
+bool hydraLoaderHasRomfs(const void* loader);
+void hydraLoaderExtractRomfs(const void* loader, hydra_string path);
 
-void* hydra_create_nca_loader_from_content_archive(void* content_archive);
-hydra_string hydra_nca_loader_get_name(void* nca_loader);
+void* hydraCreateNcaLoaderFromContentArchive(void* content_archive);
+hydra_string hydraNcaLoaderGetName(void* nca_loader);
 
 // Plugins
 
 // Manager
-void* hydra_create_loader_plugin_manager();
-void hydra_loader_plugin_manager_destroy(void* manager);
-void hydra_loader_plugin_manager_refresh(void* manager);
+void* hydraCreateLoaderPluginManager();
+void hydraLoaderPluginManagerDestroy(void* manager);
+void hydraLoaderPluginManagerRefresh(void* manager);
 
 // Plugin
-void* hydra_create_loader_plugin(hydra_string path);
-void hydra_loader_plugin_destroy(void* plugin);
-hydra_string hydra_loader_plugin_get_name(const void* plugin);
-hydra_string hydra_loader_plugin_get_display_version(const void* plugin);
-uint32_t hydra_loader_plugin_get_supported_format_count(const void* plugin);
-hydra_string hydra_loader_plugin_get_supported_format(const void* plugin,
-                                                      uint32_t index);
-uint32_t hydra_loader_plugin_get_option_config_count(const void* plugin);
-const void* hydra_loader_plugin_get_option_config(const void* plugin,
-                                                  uint32_t index);
+void* hydraCreateLoaderPlugin(hydra_string path);
+void hydraLoaderPluginDestroy(void* plugin);
+hydra_string hydraLoaderPluginGetName(const void* plugin);
+hydra_string hydraLoaderPluginGetDisplayVersion(const void* plugin);
+uint32_t hydraLoaderPluginGetSupportedFormatCount(const void* plugin);
+hydra_string hydraLoaderPluginGetSupportedFormat(const void* plugin,
+                                                 uint32_t index);
+uint32_t hydraLoaderPluginGetOptionConfigCount(const void* plugin);
+const void* hydraLoaderPluginGetOptionConfig(const void* plugin,
+                                             uint32_t index);
 
 // NACP
-void hydra_nacp_destroy(void* nacp);
-const void* hydra_nacp_get_title(void* nacp, HydraSystemLanguage lang);
-hydra_string hydra_nacp_get_display_version(void* nacp);
+void hydraNacpDestroy(void* nacp);
+const void* hydraNacpGetTitle(void* nacp, HydraSystemLanguage lang);
+hydra_string hydraNacpGetDisplayVersion(void* nacp);
 
 // NACP title
-hydra_string hydra_nacp_title_get_name(const void* title);
-hydra_string hydra_nacp_title_get_author(const void* title);
+hydra_string hydraNacpTitleGetName(const void* title);
+hydra_string hydraNacpTitleGetAuthor(const void* title);
 
 // User manager
-void* hydra_create_user_manager();
-void hydra_user_manager_destroy(void* user_manager);
-void hydra_user_manager_flush(void* user_manager);
-hydra_u128 hydra_user_manager_create_user(void* user_manager);
-uint32_t hydra_user_manager_get_user_count(void* user_manager);
-hydra_u128 hydra_user_manager_get_user_id(void* user_manager, uint32_t index);
-void* hydra_user_manager_get_user(void* user_manager, hydra_u128 user_id);
-void hydra_user_manager_load_system_avatars(void* user_manager, void* fs);
-const void* hydra_user_manager_load_avatar_image(void* user_manager,
-                                                 hydra_string path,
-                                                 uint32_t* out_dimensions);
-uint32_t hydra_user_manager_get_avatar_count(void* user_manager);
-hydra_string hydra_user_manager_get_avatar_path(void* user_manager,
-                                                uint32_t index);
+void* hydraCreateUserManager();
+void hydraUserManagerDestroy(void* user_manager);
+void hydraUserManagerFlush(void* user_manager);
+hydra_u128 hydraUserManagerCreateUser(void* user_manager);
+uint32_t hydraUserManagerGetUserCount(void* user_manager);
+hydra_u128 hydraUserManagerGetUserId(void* user_manager, uint32_t index);
+void* hydraUserManagerGetUser(void* user_manager, hydra_u128 user_id);
+void hydraUserManagerLoadSystemAvatars(void* user_manager, void* fs);
+const void* hydraUserManagerLoadAvatarImage(void* user_manager,
+                                            hydra_string path,
+                                            uint32_t* out_dimensions);
+uint32_t hydraUserManagerGetAvatarCount(void* user_manager);
+hydra_string hydraUserManagerGetAvatarPath(void* user_manager, uint32_t index);
 
-hydra_string hydra_user_get_nickname(void* user);
-void hydra_user_set_nickname(void* user, hydra_string nickname);
-hydra_uchar3 hydra_user_get_avatar_bg_color(void* user);
-void hydra_user_set_avatar_bg_color(void* user, hydra_uchar3 color);
-hydra_string hydra_user_get_avatar_path(void* user);
-void hydra_user_set_avatar_path(void* user, hydra_string path);
+hydra_string hydraUserGetNickname(void* user);
+void hydraUserSetNickname(void* user, hydra_string nickname);
+hydra_uchar3 hydraUserGetAvatarBgColor(void* user);
+void hydraUserSetAvatarBgColor(void* user, hydra_uchar3 color);
+hydra_string hydraUserGetAvatarPath(void* user);
+void hydraUserSetAvatarPath(void* user, hydra_string path);
 
 // System
-void* hydra_create_system();
-void hydra_system_destroy(void* system);
+void* hydraCreateSystem();
+void hydraSystemDestroy(void* system);
 
-void hydra_system_set_surface(void* system, void* surface);
+void hydraSystemSetSurface(void* system, void* surface);
 
-void hydra_system_load_and_start(void* system, void* loader);
-void hydra_system_request_stop(void* system);
-void hydra_system_force_stop(void* system);
+void hydraSystemLoadAndStart(void* system, void* loader);
+void hydraSystemRequestStop(void* system);
+void hydraSystemForceStop(void* system);
 
-void hydra_system_pause(void* system);
-void hydra_system_resume(void* system);
+void hydraSystemPause(void* system);
+void hydraSystemResume(void* system);
 
-void hydra_system_notify_operation_mode_changed(void* system);
+void hydraSystemNotifyOperationModeChanged(void* system);
 
-void hydra_system_progress_frame(void* system, uint32_t width, uint32_t height,
-                                 bool* out_dt_average_updated);
+void hydraSystemProgressFrame(void* system, uint32_t width, uint32_t height,
+                              bool* out_dt_average_updated);
 
-bool hydra_system_is_running(void* system);
-float hydra_system_get_last_delta_time_average(void* system);
+bool hydraSystemIsRunning(void* system);
+float hydraSystemGetLastDeltaTimeAverage(void* system);
 
-void hydra_system_take_screenshot(void* system);
-void hydra_system_capture_gpu_frame(void* system);
+void hydraSystemTakeScreenshot(void* system);
+void hydraSystemCaptureGpuFrame(void* system);
 
-void hydra_system_texture_cache_lock(void* system);
-void hydra_system_texture_cache_unlock(void* system);
-uint32_t hydra_system_texture_cache_get_texture_memory_count(void* system);
-const void* hydra_system_texture_cache_get_texture_memory(void* system,
-                                                          uint32_t index);
+void hydraSystemTextureCacheLock(void* system);
+void hydraSystemTextureCacheUnlock(void* system);
+uint32_t hydraSystemTextureCacheGetTextureMemoryCount(void* system);
+const void* hydraSystemTextureCacheGetTextureMemory(void* system,
+                                                    uint32_t index);
 
 // Input
 // TODO
@@ -366,72 +362,71 @@ const void* hydra_system_texture_cache_get_texture_memory(void* system,
 // Debugger
 
 // Debugger manager
-void hydra_debugger_manager_lock();
-void hydra_debugger_manager_unlock();
-uint64_t hydra_debugger_manager_get_debugger_count();
-void* hydra_debugger_manager_get_debugger(uint32_t index);
-void* hydra_debugger_manager_get_debugger_for_process(void* process);
+void hydraDebuggerManagerLock();
+void hydraDebuggerManagerUnlock();
+uint64_t hydraDebuggerManagerGetDebuggerCount();
+void* hydraDebuggerManagerGetDebugger(uint32_t index);
+void* hydraDebuggerManagerGetDebuggerForProcess(void* process);
 
 // Debugger
-hydra_string hydra_debugger_get_name(void* debugger);
-void hydra_debugger_lock(void* debugger);
-void hydra_debugger_unlock(void* debugger);
-void hydra_debugger_register_this_thread(void* debugger, hydra_string name);
-void hydra_debugger_unregister_this_thread(void* debugger);
-uint64_t hydra_debugger_get_thread_count(void* debugger);
-void* hydra_debugger_get_thread(void* debugger, uint32_t index);
+hydra_string hydraDebuggerGetName(void* debugger);
+void hydraDebuggerLock(void* debugger);
+void hydraDebuggerUnlock(void* debugger);
+void hydraDebuggerRegisterThisThread(void* debugger, hydra_string name);
+void hydraDebuggerUnregisterThisThread(void* debugger);
+uint64_t hydraDebuggerGetThreadCount(void* debugger);
+void* hydraDebuggerGetThread(void* debugger, uint32_t index);
 
 // Thread
-hydra_string hydra_debugger_thread_get_name(void* thread);
-void hydra_debugger_thread_lock(void* thread);
-void hydra_debugger_thread_unlock(void* thread);
-HydraDebuggerThreadStatus hydra_debugger_thread_get_status(void* thread);
-hydra_string hydra_debugger_thread_get_break_reason(void* thread);
-uint64_t hydra_debugger_thread_get_message_count(void* thread);
-const void* hydra_debugger_thread_get_message(void* thread, uint32_t index);
+hydra_string hydraDebuggerThreadGetName(void* thread);
+void hydraDebuggerThreadLock(void* thread);
+void hydraDebuggerThreadUnlock(void* thread);
+HydraDebuggerThreadStatus hydraDebuggerThreadGetStatus(void* thread);
+hydra_string hydraDebuggerThreadGetBreakReason(void* thread);
+uint64_t hydraDebuggerThreadGetMessageCount(void* thread);
+const void* hydraDebuggerThreadGetMessage(void* thread, uint32_t index);
 
 // Message
-HydraLogLevel hydra_debugger_message_get_log_level(const void* msg);
-HydraLogClass hydra_debugger_message_get_log_class(const void* msg);
-hydra_string hydra_debugger_message_get_file(const void* msg);
-uint32_t hydra_debugger_message_get_line(const void* msg);
-hydra_string hydra_debugger_message_get_function(const void* msg);
-hydra_string hydra_debugger_message_get_string(const void* msg);
-const void* hydra_debugger_message_get_stack_trace(const void* msg);
+HydraLogLevel hydraDebuggerMessageGetLogLevel(const void* msg);
+HydraLogClass hydraDebuggerMessageGetLogClass(const void* msg);
+hydra_string hydraDebuggerMessageGetFile(const void* msg);
+uint32_t hydraDebuggerMessageGetLine(const void* msg);
+hydra_string hydraDebuggerMessageGetFunction(const void* msg);
+hydra_string hydraDebuggerMessageGetString(const void* msg);
+const void* hydraDebuggerMessageGetStackTrace(const void* msg);
 
 // Stack trace
-void* hydra_debugger_stack_trace_copy(const void* stack_trace);
-void hydra_debugger_stack_trace_destroy(void* stack_trace);
-uint32_t hydra_debugger_stack_trace_get_frame_count(const void* stack_trace);
-const void* hydra_debugger_stack_trace_get_frame(const void* stack_trace,
-                                                 uint32_t index);
+void* hydraDebuggerStackTraceCopy(const void* stack_trace);
+void hydraDebuggerStackTraceDestroy(void* stack_trace);
+uint32_t hydraDebuggerStackTraceGetFrameCount(const void* stack_trace);
+const void* hydraDebuggerStackTraceGetFrame(const void* stack_trace,
+                                            uint32_t index);
 
 // Stack frame
-void* hydra_debugger_stack_frame_resolve(const void* stack_frame);
+void* hydraDebuggerStackFrameResolve(const void* stack_frame);
 
 // Resolved stack frame
-void hydra_debugger_resolved_stack_frame_destroy(void* resolved_stack_frame);
-hydra_string hydra_debugger_resolved_stack_frame_get_module(
-    const void* resolved_stack_frame);
-hydra_string hydra_debugger_resolved_stack_frame_get_function(
-    const void* resolved_stack_frame);
-uint64_t hydra_debugger_resolved_stack_frame_get_address(
-    const void* resolved_stack_frame);
+void hydraDebuggerResolvedStackFrameDestroy(void* resolved_stack_frame);
+hydra_string
+hydraDebuggerResolvedStackFrameGetModule(const void* resolved_stack_frame);
+hydra_string
+hydraDebuggerResolvedStackFrameGetFunction(const void* resolved_stack_frame);
+uint64_t
+hydraDebuggerResolvedStackFrameGetAddress(const void* resolved_stack_frame);
 
 // Texture cache
 
 // Texture memory
-uint32_t hydra_texture_memory_get_texture_group_count(const void* mem);
-const void* hydra_texture_memory_get_texture_group(const void* mem,
-                                                   uint32_t index);
+uint32_t hydraTextureMemoryGetTextureGroupCount(const void* mem);
+const void* hydraTextureMemoryGetTextureGroup(const void* mem, uint32_t index);
 
 // Texture group
-uint32_t hydra_texture_group_get_texture_storage_count(const void* group);
-const void* hydra_texture_group_get_texture_storage(const void* group,
-                                                    uint32_t index);
+uint32_t hydraTextureGroupGetTextureStorageCount(const void* group);
+const void* hydraTextureGroupGetTextureStorage(const void* group,
+                                               uint32_t index);
 
 // Texture storage
-const void* hydra_texture_storage_get_texture_descriptor(const void* storage);
+const void* hydraTextureStorageGetTextureDescriptor(const void* storage);
 
 // Texture descriptor
 typedef enum HydraTextureType : uint32_t {
@@ -591,19 +586,19 @@ typedef enum HydraTextureFormat : uint32_t {
     HYDRA_TEXTURE_FORMAT_ETC2_RGBA_SRGB,
 } HydraTextureFormat;
 
-uint64_t hydra_texture_descriptor_get_ptr(const void* descriptor);
-HydraTextureType hydra_texture_descriptor_get_type(const void* descriptor);
-HydraTextureFormat hydra_texture_descriptor_get_format(const void* descriptor);
-uint32_t hydra_texture_descriptor_get_width(const void* descriptor);
-uint32_t hydra_texture_descriptor_get_height(const void* descriptor);
-uint32_t hydra_texture_descriptor_get_depth(const void* descriptor);
-uint32_t hydra_texture_descriptor_get_level_count(const void* descriptor);
-uint32_t hydra_texture_descriptor_get_layer_count(const void* descriptor);
-uint32_t hydra_texture_descriptor_get_block_width_gobs(const void* descriptor);
-uint32_t hydra_texture_descriptor_get_block_height_gobs(const void* descriptor);
-uint32_t hydra_texture_descriptor_get_block_depth_gobs(const void* descriptor);
-uint64_t hydra_texture_descriptor_get_layer_size(const void* descriptor);
-uint64_t hydra_texture_descriptor_get_size(const void* descriptor);
+uint64_t hydraTextureDescriptorGetPtr(const void* descriptor);
+HydraTextureType hydraTextureDescriptorGetType(const void* descriptor);
+HydraTextureFormat hydraTextureDescriptorGetFormat(const void* descriptor);
+uint32_t hydraTextureDescriptorGetWidth(const void* descriptor);
+uint32_t hydraTextureDescriptorGetHeight(const void* descriptor);
+uint32_t hydraTextureDescriptorGetDepth(const void* descriptor);
+uint32_t hydraTextureDescriptorGetLevelCount(const void* descriptor);
+uint32_t hydraTextureDescriptorGetLayerCount(const void* descriptor);
+uint32_t hydraTextureDescriptorGetBlockWidthGobs(const void* descriptor);
+uint32_t hydraTextureDescriptorGetBlockHeightGobs(const void* descriptor);
+uint32_t hydraTextureDescriptorGetBlockDepthGobs(const void* descriptor);
+uint64_t hydraTextureDescriptorGetLayerSize(const void* descriptor);
+uint64_t hydraTextureDescriptorGetSize(const void* descriptor);
 
 // NOLINTEND(cppcoreguidelines-use-enum-class)
 

@@ -123,7 +123,7 @@ class Copy : public EngineWithRegsBase<RegsCopy> {
   public:
     explicit Copy(Gpu& gpu_) : gpu{gpu_} {}
 
-    void Method(u32 method, u32 arg) override;
+    void method(u32 method, u32 arg) override;
 
   private:
     Gpu& gpu;
@@ -147,7 +147,7 @@ class Copy : public EngineWithRegsBase<RegsCopy> {
         BypassL2 bypass_l2 : 1;
     };
 
-    void LaunchDMA(const u32 index, const LaunchDMAData data);
+    void launchDma(const u32 index, const LaunchDMAData data);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::engines

@@ -6,12 +6,12 @@
 
 namespace hydra::hw::tegra_x1::gpu::engines {
 
-DEFINE_METHOD_TABLE(Copy, 0xc0, 1, LaunchDMA, LaunchDMAData)
+DEFINE_METHOD_TABLE(Copy, 0xc0, 1, launchDma, LaunchDMAData)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
+void Copy::launchDma(const u32 index, const LaunchDMAData data) {
     // TODO: implement component remapping
     // HACK
     u32 src_stride = regs.src.stride;
@@ -36,8 +36,8 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
         }
     }
 
-    const auto src_ptr = tls_crnt_gmmu->UnmapAddr(regs.offset_in);
-    const auto dst_ptr = tls_crnt_gmmu->UnmapAddr(regs.offset_out);
+    const auto src_ptr = tls_crnt_gmmu->unmapAddr(regs.offset_in);
+    const auto dst_ptr = tls_crnt_gmmu->unmapAddr(regs.offset_out);
     if (data.src_memory_layout == MemoryLayout::Pitch) {
         if (data.dst_memory_layout == MemoryLayout::Pitch) {
             for (u32 i = 0; i < regs.line_count; i++)
@@ -51,13 +51,11 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
             // TODO: can this copy to multiple slices at once?
             // TODO: origin, line size
             // TODO: block size log2 can also be negative?
-            ConvertLinearToBlockLinear(
+            convertLinearToBlockLinear(
                 regs.stride_in, regs.line_count * regs.stride_in, dst_stride,
                 regs.dst.height, regs.dst.depth,
-                static_cast<u32>(
-                    get_block_size_log2(regs.dst.block_size.height)),
-                static_cast<u32>(
-                    get_block_size_log2(regs.dst.block_size.depth)),
+                static_cast<u32>(getBlockSizeLog2(regs.dst.block_size.height)),
+                static_cast<u32>(getBlockSizeLog2(regs.dst.block_size.depth)),
                 reinterpret_cast<u8*>(src_ptr), reinterpret_cast<u8*>(dst_ptr));
         }
     } else {
@@ -66,13 +64,11 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
             // TODO: can this copy from multiple slices at once?
             // TODO: origin, line size
             // TODO: block size log2 can also be negative?
-            ConvertBlockLinearToLinear(
+            convertBlockLinearToLinear(
                 src_stride, regs.stride_out, regs.line_count * regs.stride_out,
                 regs.src.height, regs.src.depth,
-                static_cast<u32>(
-                    get_block_size_log2(regs.src.block_size.height)),
-                static_cast<u32>(
-                    get_block_size_log2(regs.src.block_size.depth)),
+                static_cast<u32>(getBlockSizeLog2(regs.src.block_size.height)),
+                static_cast<u32>(getBlockSizeLog2(regs.src.block_size.depth)),
                 reinterpret_cast<u8*>(src_ptr), reinterpret_cast<u8*>(dst_ptr));
         } else {
             LOG_NOT_IMPLEMENTED(Engines, "BlockLinear to BlockLinear");
@@ -81,21 +77,20 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
 
     // Invalidate memory
     if (data.dst_memory_layout == MemoryLayout::Pitch) {
-        gpu.GetRenderer().InvalidateMemory(
+        gpu.getRenderer().invalidateMemory(
             ztd::Range<uptr>::fromSize(
                 dst_ptr, static_cast<uptr>(regs.line_count) * regs.stride_out),
             renderer::MemoryInvalidationScope::BufferCache |
                 renderer::MemoryInvalidationScope::TextureCache);
     } else {
         const u32 stride = align(dst_stride, GOB_WIDTH);
-        const u32 rows =
-            align(regs.dst.height,
-                  GOB_HEIGHT << static_cast<u32>(
-                      get_block_size_log2(regs.dst.block_size.height)));
+        const u32 rows = align(
+            regs.dst.height, GOB_HEIGHT << static_cast<u32>(
+                                 getBlockSizeLog2(regs.dst.block_size.height)));
         const u32 slices =
-            align(regs.dst.depth, 1u << static_cast<u32>(get_block_size_log2(
+            align(regs.dst.depth, 1u << static_cast<u32>(getBlockSizeLog2(
                                       regs.dst.block_size.depth)));
-        gpu.GetRenderer().InvalidateMemory(
+        gpu.getRenderer().invalidateMemory(
             ztd::Range<uptr>::fromSize(dst_ptr, static_cast<uptr>(slices) *
                                                     rows * stride),
             renderer::MemoryInvalidationScope::TextureCache);

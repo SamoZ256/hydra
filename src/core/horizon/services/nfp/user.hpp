@@ -9,7 +9,7 @@ class IUser : public INfp {
     IUser() : INfp(PermissionLevel::User) {}
 
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 };
 

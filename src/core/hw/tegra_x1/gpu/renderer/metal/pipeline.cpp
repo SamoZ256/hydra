@@ -16,8 +16,8 @@ Pipeline::Pipeline(MTL::Device* device, const PipelineDescriptor& descriptor)
         descriptor.shaders[static_cast<u32>(ShaderType::Vertex)]);
     const auto fragment_shader = static_cast<Shader*>(
         descriptor.shaders[static_cast<u32>(ShaderType::Fragment)]);
-    pipeline_descriptor->setVertexFunction(vertex_shader->GetFunction());
-    pipeline_descriptor->setFragmentFunction(fragment_shader->GetFunction());
+    pipeline_descriptor->setVertexFunction(vertex_shader->getFunction());
+    pipeline_descriptor->setFragmentFunction(fragment_shader->getFunction());
 
     // Vertex state
 
@@ -44,10 +44,10 @@ Pipeline::Pipeline(MTL::Device* device, const PipelineDescriptor& descriptor)
         auto vertex_attrib_descriptor =
             pipeline_descriptor->vertexDescriptor()->attributes()->object(i);
         vertex_attrib_descriptor->setBufferIndex(
-            GetVertexBufferIndex(vertex_attrib_state.buffer_id));
+            getVertexBufferIndex(vertex_attrib_state.buffer_id));
         // TODO: is fixed
         vertex_attrib_descriptor->setOffset(vertex_attrib_state.offset);
-        vertex_attrib_descriptor->setFormat(to_mtl_vertex_format(
+        vertex_attrib_descriptor->setFormat(toMtlVertexFormat(
             vertex_attrib_state.type, vertex_attrib_state.size,
             vertex_attrib_state.bgra));
 
@@ -56,7 +56,7 @@ Pipeline::Pipeline(MTL::Device* device, const PipelineDescriptor& descriptor)
         min_vertex_array_stride = std::max(
             min_vertex_array_stride,
             static_cast<u32>(vertex_attrib_state.offset +
-                             get_vertex_format_size(vertex_attrib_state.size)));
+                             getVertexFormatSize(vertex_attrib_state.size)));
     }
 
     // Vertex arrays
@@ -87,7 +87,7 @@ Pipeline::Pipeline(MTL::Device* device, const PipelineDescriptor& descriptor)
 
         auto vertex_array_descriptor =
             pipeline_descriptor->vertexDescriptor()->layouts()->object(
-                GetVertexBufferIndex(i));
+                getVertexBufferIndex(i));
         vertex_array_descriptor->setStride(stride);
         vertex_array_descriptor->setStepFunction(step_function);
         vertex_array_descriptor->setStepRate(step_rate);
@@ -105,7 +105,7 @@ Pipeline::Pipeline(MTL::Device* device, const PipelineDescriptor& descriptor)
         auto color_attachment_descriptor =
             pipeline_descriptor->colorAttachments()->object(i);
         color_attachment_descriptor->setPixelFormat(
-            to_mtl_pixel_format(color_target_state.format));
+            toMtlPixelFormat(color_target_state.format));
 
         MTL::ColorWriteMask write_mask = MTL::ColorWriteMaskNone;
         if (any(color_target_state.write_mask & engines::ColorWriteMask::Red))
@@ -121,17 +121,17 @@ Pipeline::Pipeline(MTL::Device* device, const PipelineDescriptor& descriptor)
         if (color_target_state.blend_enabled) {
             color_attachment_descriptor->setBlendingEnabled(true);
             color_attachment_descriptor->setRgbBlendOperation(
-                to_mtl_blend_operation(color_target_state.rgb_op));
+                toMtlBlendOperation(color_target_state.rgb_op));
             color_attachment_descriptor->setSourceRGBBlendFactor(
-                to_mtl_blend_factor(color_target_state.src_rgb_factor));
+                toMtlBlendFactor(color_target_state.src_rgb_factor));
             color_attachment_descriptor->setDestinationRGBBlendFactor(
-                to_mtl_blend_factor(color_target_state.dst_rgb_factor));
+                toMtlBlendFactor(color_target_state.dst_rgb_factor));
             color_attachment_descriptor->setAlphaBlendOperation(
-                to_mtl_blend_operation(color_target_state.alpha_op));
+                toMtlBlendOperation(color_target_state.alpha_op));
             color_attachment_descriptor->setSourceAlphaBlendFactor(
-                to_mtl_blend_factor(color_target_state.src_alpha_factor));
+                toMtlBlendFactor(color_target_state.src_alpha_factor));
             color_attachment_descriptor->setDestinationAlphaBlendFactor(
-                to_mtl_blend_factor(color_target_state.dst_alpha_factor));
+                toMtlBlendFactor(color_target_state.dst_alpha_factor));
         }
     }
 

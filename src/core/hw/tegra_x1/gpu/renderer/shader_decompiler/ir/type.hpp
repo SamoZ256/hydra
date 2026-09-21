@@ -23,7 +23,7 @@ enum class ScalarType {
     F32,
 };
 
-inline bool ScalarIsInteger(ScalarType scalar) {
+inline bool scalarIsInteger(ScalarType scalar) {
     switch (scalar) {
     case ScalarType::U8:
     case ScalarType::U16:
@@ -37,7 +37,7 @@ inline bool ScalarIsInteger(ScalarType scalar) {
     }
 }
 
-inline bool ScalarIsSignedInteger(ScalarType scalar) {
+inline bool scalarIsSignedInteger(ScalarType scalar) {
     switch (scalar) {
     case ScalarType::I8:
     case ScalarType::I16:
@@ -48,7 +48,7 @@ inline bool ScalarIsSignedInteger(ScalarType scalar) {
     }
 }
 
-inline bool ScalarIsUnsignedInteger(ScalarType scalar) {
+inline bool scalarIsUnsignedInteger(ScalarType scalar) {
     switch (scalar) {
     case ScalarType::U8:
     case ScalarType::U16:
@@ -59,7 +59,7 @@ inline bool ScalarIsUnsignedInteger(ScalarType scalar) {
     }
 }
 
-inline bool ScalarIsFloatingPoint(ScalarType scalar) {
+inline bool scalarIsFloatingPoint(ScalarType scalar) {
     switch (scalar) {
     case ScalarType::F16:
     case ScalarType::F32:
@@ -69,8 +69,8 @@ inline bool ScalarIsFloatingPoint(ScalarType scalar) {
     }
 }
 
-ScalarType ScalarSignedEquivalent(ScalarType scalar);
-ScalarType ScalarUnsignedEquivalent(ScalarType scalar);
+ScalarType scalarSignedEquivalent(ScalarType scalar);
+ScalarType scalarUnsignedEquivalent(ScalarType scalar);
 
 class VectorType {
   public:
@@ -82,17 +82,17 @@ class VectorType {
     }
 
     // Check
-    bool IsInteger() const { return ScalarIsInteger(element_type); }
-    bool IsSignedInteger() const { return ScalarIsSignedInteger(element_type); }
-    bool IsUnsignedInteger() const {
-        return ScalarIsUnsignedInteger(element_type);
+    bool isInteger() const { return scalarIsInteger(element_type); }
+    bool isSignedInteger() const { return scalarIsSignedInteger(element_type); }
+    bool isUnsignedInteger() const {
+        return scalarIsUnsignedInteger(element_type);
     }
-    bool IsFloatingPoint() const { return ScalarIsFloatingPoint(element_type); }
-    VectorType SignedEquivalent() const {
-        return {ScalarSignedEquivalent(element_type), size};
+    bool isFloatingPoint() const { return scalarIsFloatingPoint(element_type); }
+    VectorType signedEquivalent() const {
+        return {scalarSignedEquivalent(element_type), size};
     }
-    VectorType UnsignedEquivalent() const {
-        return {ScalarUnsignedEquivalent(element_type), size};
+    VectorType unsignedEquivalent() const {
+        return {scalarUnsignedEquivalent(element_type), size};
     }
 
   private:
@@ -100,8 +100,8 @@ class VectorType {
     u8 size;
 
   public:
-    GETTER(element_type, GetElementType);
-    GETTER(size, GetSize);
+    GETTER(element_type, getElementType);
+    GETTER(size, getSize);
 };
 
 class Type {
@@ -112,9 +112,9 @@ class Type {
     Type(VectorType vector_) : kind{TypeKind::Vector}, vector{vector_} {}
     // NOLINTEND(cppcoreguidelines-explicit-constructor)
 
-    static Type Undefined() { return {}; }
-    static Type Scalar(ScalarType scalar) { return {scalar}; }
-    static Type Vector(ScalarType element_type, u8 size) {
+    static Type createUndefined() { return {}; }
+    static Type createScalar(ScalarType scalar) { return {scalar}; }
+    static Type createVector(ScalarType element_type, u8 size) {
         return {VectorType(element_type, size)};
     }
 
@@ -133,61 +133,61 @@ class Type {
     }
 
     // Check kind
-    bool IsUndefined() const { return kind == TypeKind::Undefined; }
-    bool IsScalar() const { return kind == TypeKind::Scalar; }
-    bool IsVector() const { return kind == TypeKind::Vector; }
+    bool isUndefined() const { return kind == TypeKind::Undefined; }
+    bool isScalar() const { return kind == TypeKind::Scalar; }
+    bool isVector() const { return kind == TypeKind::Vector; }
 
-    bool IsInteger() const {
+    bool isInteger() const {
         switch (kind) {
         case TypeKind::Scalar:
-            return ScalarIsInteger(scalar);
+            return scalarIsInteger(scalar);
         case TypeKind::Vector:
-            return vector.IsInteger();
+            return vector.isInteger();
         default:
             return false;
         }
     }
 
-    bool IsSignedInteger() const {
+    bool isSignedInteger() const {
         switch (kind) {
         case TypeKind::Scalar:
-            return ScalarIsSignedInteger(scalar);
+            return scalarIsSignedInteger(scalar);
         case TypeKind::Vector:
-            return vector.IsSignedInteger();
+            return vector.isSignedInteger();
         default:
             return false;
         }
     }
 
-    bool IsUnsignedInteger() const {
+    bool isUnsignedInteger() const {
         switch (kind) {
         case TypeKind::Scalar:
-            return ScalarIsUnsignedInteger(scalar);
+            return scalarIsUnsignedInteger(scalar);
         case TypeKind::Vector:
-            return vector.IsUnsignedInteger();
+            return vector.isUnsignedInteger();
         default:
             return false;
         }
     }
 
-    bool IsFloatingPoint() const {
+    bool isFloatingPoint() const {
         switch (kind) {
         case TypeKind::Scalar:
-            return ScalarIsFloatingPoint(scalar);
+            return scalarIsFloatingPoint(scalar);
         case TypeKind::Vector:
-            return vector.IsFloatingPoint();
+            return vector.isFloatingPoint();
         default:
             return false;
         }
     }
 
     // Get
-    ScalarType GetScalarType() const;
-    VectorType GetVectorType() const;
+    ScalarType getScalarType() const;
+    VectorType getVectorType() const;
 
     // Type creation
-    Type SignedEquivalent() const;
-    Type UnsignedEquivalent() const;
+    Type signedEquivalent() const;
+    Type unsignedEquivalent() const;
 
   private:
     TypeKind kind;
@@ -197,7 +197,7 @@ class Type {
     };
 
   public:
-    GETTER(kind, GetKind);
+    GETTER(kind, getKind);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir
@@ -218,11 +218,10 @@ struct fmt::formatter<
     template <typename FormatContext>
     auto format(
         const hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::VectorType&
-            vector_type,
+            vector,
         FormatContext& ctx) const {
         return formatter<string_view>::format(
-            fmt::format("{}x{}", vector_type.GetSize(),
-                        vector_type.GetElementType()),
+            fmt::format("{}x{}", vector.getSize(), vector.getElementType()),
             ctx);
     }
 };
@@ -236,18 +235,18 @@ struct fmt::formatter<
         const hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::Type& type,
         FormatContext& ctx) const {
         std::string str;
-        switch (type.GetKind()) {
+        switch (type.getKind()) {
         case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::TypeKind::
             Undefined:
             str = "undefined";
             break;
         case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::TypeKind::
             Scalar:
-            str = fmt::format("{}", type.GetScalarType());
+            str = fmt::format("{}", type.getScalarType());
             break;
         case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::TypeKind::
             Vector:
-            str = fmt::format("{}", type.GetVectorType());
+            str = fmt::format("{}", type.getVectorType());
             break;
         }
 

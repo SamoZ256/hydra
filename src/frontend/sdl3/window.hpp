@@ -6,7 +6,7 @@
 
 // TODO: if macOS
 #include "frontend/native/cocoa/native.hpp"
-using Native = hydra::frontend::native::cocoa::Native;
+using hydra::frontend::native::cocoa::Native;
 
 namespace hydra::frontend::sdl3 {
 
@@ -21,14 +21,14 @@ class Window : public horizon::ui::IHandler {
     Window(int argc, const char* argv[]);
     ~Window() override;
 
-    void Run();
+    void run();
 
     // UI
-    void ShowMessageDialog(const horizon::ui::MessageDialogType type,
+    void showMessageDialog(const horizon::ui::MessageDialogType type,
                            const std::string& title,
                            const std::string& message) override;
     horizon::applets::software_keyboard::SoftwareKeyboardResult
-    ShowSoftwareKeyboard(const std::string& header_text,
+    showSoftwareKeyboard(const std::string& header_text,
                          const std::string& sub_text,
                          const std::string& guide_text,
                          std::string& out_text) override;
@@ -45,10 +45,10 @@ class Window : public horizon::ui::IHandler {
     System system;
     u64 title_id;
 
-    void BeginEmulation(const std::string& path);
+    void beginEmulation(const std::string& path);
 
-    void UpdateWindowTitle();
-    void SetWindowTitle(const std::string& title);
+    void updateWindowTitle();
+    void setWindowTitle(const std::string& title);
 };
 
 } // namespace hydra::frontend::sdl3

@@ -5,16 +5,16 @@
 
 namespace hydra::horizon::services::friends {
 
-DEFINE_SERVICE_COMMAND_TABLE(INotificationService, 0, GetEvent, 1, Clear)
+DEFINE_SERVICE_COMMAND_TABLE(INotificationService, 0, getEvent, 1, clear)
 
 INotificationService::INotificationService(uuid_t user_id_)
     : user_id{user_id_}, event{new kernel::Event(
                              false, "friends::INotificationService event")} {}
 
 result_t
-INotificationService::GetEvent(kernel::Process* process,
+INotificationService::getEvent(kernel::Process* process,
                                OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = process->AddHandle(event);
+    out_handle = process->addHandle(event);
     return RESULT_SUCCESS;
 }
 

@@ -4,12 +4,12 @@
 
 namespace hydra::hw::tegra_x1::cpu {
 
-horizon::kernel::MemoryInfo IMmu::QueryMemory(vaddr_t va) const {
+horizon::kernel::MemoryInfo IMmu::queryMemory(vaddr_t va) const {
     horizon::kernel::MemoryInfo info;
     info.size = 0x0;
 
     // Resize to the left
-    auto region = QueryRegion(va);
+    auto region = queryRegion(va);
     do {
         // Resize
         info.addr = region.va;
@@ -19,11 +19,11 @@ horizon::kernel::MemoryInfo IMmu::QueryMemory(vaddr_t va) const {
             break;
 
         // Next
-        region = QueryRegion(info.addr - 1);
+        region = queryRegion(info.addr - 1);
     } while (region.state == info.state);
 
     // Resize to the right
-    region = QueryRegion(info.addr + info.size);
+    region = queryRegion(info.addr + info.size);
     while (region.state == info.state) {
         // Resize
         info.size += region.size;
@@ -33,7 +33,7 @@ horizon::kernel::MemoryInfo IMmu::QueryMemory(vaddr_t va) const {
         if (addr >= horizon::kernel::ADDRESS_SPACE.getEnd())
             break;
 
-        region = QueryRegion(addr);
+        region = queryRegion(addr);
     }
 
     // HACK
@@ -48,11 +48,11 @@ horizon::kernel::MemoryInfo IMmu::QueryMemory(vaddr_t va) const {
     return info;
 }
 
-vaddr_t IMmu::FindFreeMemory(ztd::Range<vaddr_t> region, u64 size) const {
+vaddr_t IMmu::findFreeMemory(ztd::Range<vaddr_t> region, u64 size) const {
     size = align(size, GUEST_PAGE_SIZE);
     auto crnt_region = ztd::Range<vaddr_t>::fromSize(region.getBegin(), size);
     while (region.contains(crnt_region)) {
-        const auto info = QueryMemory(crnt_region.getBegin());
+        const auto info = queryMemory(crnt_region.getBegin());
         const auto mem_range = ztd::Range<vaddr_t>(
             std::max(info.addr, region.getBegin()), info.addr + info.size);
         if (info.state.type == horizon::kernel::MemoryType::Free &&
@@ -65,17 +65,17 @@ vaddr_t IMmu::FindFreeMemory(ztd::Range<vaddr_t> region, u64 size) const {
     return 0x0;
 }
 
-bool IMmu::TrackWrite(ztd::Range<vaddr_t> range) {
+bool IMmu::trackWrite(ztd::Range<vaddr_t> range) {
     const auto aligned_range =
         ztd::Range<vaddr_t>(align_down(range.getBegin(), GUEST_PAGE_SIZE),
                        align(range.getEnd(), GUEST_PAGE_SIZE));
-    if (!TrySuspendWriteTracking(aligned_range))
+    if (!trySuspendWriteTracking(aligned_range))
         return false;
 
     // Notify the GPU
     // TODO: what about non-contiguous regions?
-    const auto ptr = UnmapAddr(aligned_range.getBegin());
-    system.GetGpu().GetRenderer().InvalidateMemory(
+    const auto ptr = unmapAddr(aligned_range.getBegin());
+    system.getGpu().getRenderer().invalidateMemory(
         ztd::Range<uptr>::fromSize(ptr, aligned_range.getSize()));
 
     {
@@ -86,10 +86,10 @@ bool IMmu::TrackWrite(ztd::Range<vaddr_t> range) {
     return true;
 }
 
-void IMmu::FlushTrackedPages() {
+void IMmu::flushTrackedPages() {
     std::scoped_lock lock(write_tracking_mutex);
     for (const auto& range : tracked_pages)
-        ResumeWriteTracking(range);
+        resumeWriteTracking(range);
     tracked_pages.clear();
 }
 

@@ -2,10 +2,10 @@
 
 namespace hydra::horizon::services::pl::detail {
 
-DEFINE_SERVICE_COMMAND_TABLE(IPlatformServiceManagerForSystem, 0, RequestLoad,
-                             1, GetLoadState, 2, GetSize, 3,
-                             GetSharedMemoryAddressOffset, 4,
-                             GetSharedMemoryNativeHandle, 5,
-                             GetSharedFontInOrderOfPriority)
+DEFINE_SERVICE_COMMAND_TABLE(IPlatformServiceManagerForSystem, 0, requestLoad,
+                             1, getLoadState, 2, getSize, 3,
+                             getSharedMemoryAddressOffset, 4,
+                             getSharedMemoryNativeHandle, 5,
+                             getSharedFontInOrderOfPriority)
 
 } // namespace hydra::horizon::services::pl::detail

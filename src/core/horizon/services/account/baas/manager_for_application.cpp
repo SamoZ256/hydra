@@ -2,10 +2,10 @@
 
 namespace hydra::horizon::services::account::baas {
 
-DEFINE_SERVICE_COMMAND_TABLE(IManagerForApplication, 0, CheckAvailability, 1,
-                             GetAccountId)
+DEFINE_SERVICE_COMMAND_TABLE(IManagerForApplication, 0, checkAvailability, 1,
+                             getAccountId)
 
-result_t IManagerForApplication::GetAccountId(u64* out_id) {
+result_t IManagerForApplication::getAccountId(u64* out_id) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK

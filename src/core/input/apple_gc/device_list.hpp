@@ -9,10 +9,10 @@ class DeviceList : public IDeviceList {
     DeviceList();
     ~DeviceList() override;
 
-    void AddController(id controller);
-    void RemoveController(id controller);
-    void AddKeyboard(id keyboard);
-    void RemoveKeyboard(id keyboard);
+    void addController(id controller);
+    void removeController(id controller);
+    void addKeyboard(id keyboard);
+    void removeKeyboard(id keyboard);
 
   private:
     id impl;

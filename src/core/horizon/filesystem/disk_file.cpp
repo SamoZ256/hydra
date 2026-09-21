@@ -31,7 +31,7 @@ DiskFile::DiskFile(const std::string_view path_, bool is_mutable_)
 //}
 DiskFile::~DiskFile() = default;
 
-void DiskFile::Resize(u64 new_size) {
+void DiskFile::resize(u64 new_size) {
     ASSERT(is_mutable, Filesystem, "Immutable file cannot be resized");
 
     // size = new_size;
@@ -40,7 +40,7 @@ void DiskFile::Resize(u64 new_size) {
     LOG_FS_ACCESS(path, "file resized (size: {})", new_size);
 }
 
-void DiskFile::Flush() {
+void DiskFile::flush() {
     // ASSERT(is_mutable, Filesystem, "Immutable file cannot be flushed");
 
     // Flush the file size
@@ -49,7 +49,7 @@ void DiskFile::Flush() {
     // LOG_FS_ACCESS(host_path, "file flushed");
 }
 
-ztd::io::IStream* DiskFile::Open(FileOpenFlags flags) {
+ztd::io::IStream* DiskFile::open(FileOpenFlags flags) {
     auto ztd_flags = ztd::fs::File::OpenFlags::None;
     if (any(flags & FileOpenFlags::Read))
         ztd_flags |= ztd::fs::File::OpenFlags::Read;
@@ -61,12 +61,12 @@ ztd::io::IStream* DiskFile::Open(FileOpenFlags flags) {
     return new DiskStream(path, ztd_flags);
 }
 
-u64 DiskFile::GetSize() const {
+u64 DiskFile::getSize() const {
     // return size;
     return std::filesystem::file_size(path);
 }
 
-void DiskFile::DeleteImpl() {
+void DiskFile::deleteImpl() {
     std::filesystem::remove(path);
 
     LOG_FS_ACCESS(path, "file deleted");

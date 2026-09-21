@@ -31,40 +31,40 @@ class IService {
 
     ZTD_MAKE_NON_COPYABLE(IService);
 
-    void HandleRequest(System& system, kernel::Process* caller_process,
+    void handleRequest(System& system, kernel::Process* caller_process,
                        uptr ptr);
 
-    void AddService(RequestContext& context, IService* service);
-    IService* GetService(RequestContext& context, Handle handle);
+    void addService(RequestContext& context, IService* service);
+    IService* getService(RequestContext& context, Handle handle);
 
     // Reference counting
-    IService* Retain() {
+    IService* retain() {
         ref_count.fetch_add(1, std::memory_order_relaxed);
         return this;
     }
-    void Release() {
+    void release() {
         if (ref_count.fetch_sub(1, std::memory_order_acq_rel) == 1)
             delete this;
     }
 
   protected:
-    virtual result_t RequestImpl(RequestContext& context, u32 id) = 0;
+    virtual result_t requestImpl(RequestContext& context, u32 id) = 0;
 
-    Handle AddSubservice(IService* service) {
+    Handle addSubservice(IService* service) {
         if (service == nullptr)
             return INVALID_HANDLE;
 
-        return parent->subservice_pool->Insert(service).value();
+        return parent->subservice_pool->insert(service).value();
     }
 
-    void FreeSubservice(Handle handle) {
-        parent->subservice_pool->Get(handle).value()->Release();
-        ASSERT_DEBUG(parent->subservice_pool->Free(handle), Services,
+    void freeSubservice(Handle handle) {
+        parent->subservice_pool->get(handle).value()->release();
+        ASSERT_DEBUG(parent->subservice_pool->free(handle), Services,
                      "Failed to free subservice");
     }
 
-    IService* GetSubservice(Handle handle) const {
-        return parent->subservice_pool->Get(handle).value();
+    IService* getSubservice(Handle handle) const {
+        return parent->subservice_pool->get(handle).value();
     }
 
   private:
@@ -78,16 +78,16 @@ class IService {
     // TODO: dynamic pool?
     std::optional<StaticHandlePool<IService*, 512>> subservice_pool;
 
-    void Close();
-    void Request(RequestContext& context);
-    void CmifRequest(RequestContext& context);
-    void Control(RequestContext& context);
-    void Clone(RequestContext& context);
-    void TipcRequest(RequestContext& context, const u32 command_id);
+    void close();
+    void request(RequestContext& context);
+    void cmifRequest(RequestContext& context);
+    void control(RequestContext& context);
+    void clone(RequestContext& context);
+    void tipcRequest(RequestContext& context, const u32 command_id);
 
   public:
-    SETTER(server, SetServer);
-    GETTER(is_domain, IsDomain);
+    SETTER(server, setServer);
+    GETTER(is_domain, isDomain);
 };
 
 } // namespace hydra::horizon::services

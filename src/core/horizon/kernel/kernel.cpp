@@ -18,9 +18,9 @@ namespace hydra::horizon::kernel {
 
 Kernel::Kernel(System& system_) : system{system_}, process_manager(system) {}
 
-void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
+void Kernel::supervisorCall(Process* crnt_process, IThread* crnt_thread,
                             hw::tegra_x1::cpu::IThread* guest_thread, u64 id) {
-    auto& state = guest_thread->GetState();
+    auto& state = guest_thread->getState();
 
     i32 tmp_i32;
     u32 tmp_u32;
@@ -28,265 +28,265 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
     uptr tmp_uptr;
     switch (id) {
     case 0x1:
-        state.r[0] = SetHeapSize(crnt_process, state.r[1], tmp_uptr);
+        state.r[0] = setHeapSize(crnt_process, state.r[1], tmp_uptr);
         state.r[1] = tmp_uptr;
         break;
     case 0x2:
-        state.r[0] = SetMemoryPermission(
+        state.r[0] = setMemoryPermission(
             state.r[0], state.r[1], static_cast<MemoryPermission>(state.r[2]));
         break;
     case 0x3:
         state.r[0] =
-            SetMemoryAttribute(crnt_process, state.r[0], state.r[1],
+            setMemoryAttribute(crnt_process, state.r[0], state.r[1],
                                static_cast<MemoryAttribute>(state.r[2]),
                                static_cast<MemoryAttribute>(state.r[3]));
         break;
     case 0x4:
         state.r[0] =
-            MapMemory(crnt_process, state.r[0], state.r[1], state.r[2]);
+            mapMemory(crnt_process, state.r[0], state.r[1], state.r[2]);
         break;
     case 0x5:
         state.r[0] =
-            UnmapMemory(crnt_process, state.r[0], state.r[1], state.r[2]);
+            unmapMemory(crnt_process, state.r[0], state.r[1], state.r[2]);
         break;
     case 0x6:
         state.r[0] =
-            QueryMemory(crnt_process, state.r[2],
+            queryMemory(crnt_process, state.r[2],
                         *reinterpret_cast<MemoryInfo*>(
-                            crnt_process->GetMmu()->UnmapAddr(state.r[0])),
+                            crnt_process->getMmu()->unmapAddr(state.r[0])),
                         tmp_u32);
         state.r[1] = tmp_u32;
         break;
     case 0x7:
-        ExitProcess(crnt_process);
+        exitProcess(crnt_process);
         break;
     case 0x8: {
         IThread* thread = nullptr;
-        state.r[0] = CreateThread(
+        state.r[0] = createThread(
             crnt_process, state.r[1], state.r[2], state.r[3],
             std::bit_cast<i32>(static_cast<u32>(state.r[4])),
             std::bit_cast<i32>(static_cast<u32>(state.r[5])), thread);
-        state.r[1] = crnt_process->AddHandleNoRetain(thread).GetRaw();
+        state.r[1] = crnt_process->addHandleNoRetain(thread).GetRaw();
         break;
     }
     case 0x9:
-        state.r[0] = StartThread(crnt_process->GetHandle<IThread>(
+        state.r[0] = startThread(crnt_process->getHandle<IThread>(
             Handle(static_cast<u32>(state.r[0]))));
         break;
     case 0xa:
-        ExitThread(crnt_thread);
+        exitThread(crnt_thread);
         break;
     case 0xb:
-        SleepThread(std::bit_cast<i64>(state.r[0]));
+        sleepThread(std::bit_cast<i64>(state.r[0]));
         break;
     case 0xc:
-        state.r[0] = GetThreadPriority(
-            crnt_process->GetHandle<IThread>(static_cast<u32>(state.r[1])),
+        state.r[0] = getThreadPriority(
+            crnt_process->getHandle<IThread>(static_cast<u32>(state.r[1])),
             tmp_i32);
         state.r[1] = std::bit_cast<u32>(tmp_i32);
         break;
     case 0xd:
-        state.r[0] = SetThreadPriority(
-            crnt_process->GetHandle<IThread>(static_cast<u32>(state.r[0])),
+        state.r[0] = setThreadPriority(
+            crnt_process->getHandle<IThread>(static_cast<u32>(state.r[0])),
             std::bit_cast<i32>(static_cast<u32>(state.r[1])));
         break;
     case 0xe:
-        state.r[0] = GetThreadCoreMask(
-            crnt_process->GetHandle<IThread>(static_cast<u32>(state.r[0])),
+        state.r[0] = getThreadCoreMask(
+            crnt_process->getHandle<IThread>(static_cast<u32>(state.r[0])),
             tmp_i32, tmp_u64);
         state.r[1] = std::bit_cast<u32>(tmp_i32);
         state.r[2] = tmp_u64;
         break;
     case 0xf:
-        state.r[0] = SetThreadCoreMask(
-            crnt_process->GetHandle<IThread>(static_cast<u32>(state.r[0])),
+        state.r[0] = setThreadCoreMask(
+            crnt_process->getHandle<IThread>(static_cast<u32>(state.r[0])),
             std::bit_cast<i32>(static_cast<u32>(state.r[1])), state.r[2]);
         break;
     case 0x10:
-        GetCurrentProcessorNumber(tmp_u32);
+        getCurrentProcessorNumber(tmp_u32);
         state.r[0] = tmp_u32;
         break;
     case 0x11:
-        state.r[0] = SignalEvent(
-            crnt_process->GetHandle<Event>(static_cast<u32>(state.r[0])));
+        state.r[0] = signalEvent(
+            crnt_process->getHandle<Event>(static_cast<u32>(state.r[0])));
         break;
     case 0x12:
-        state.r[0] = ClearEvent(
-            crnt_process->GetHandle<Event>(static_cast<u32>(state.r[0])));
+        state.r[0] = clearEvent(
+            crnt_process->getHandle<Event>(static_cast<u32>(state.r[0])));
         break;
     case 0x13:
-        state.r[0] = MapSharedMemory(
+        state.r[0] = mapSharedMemory(
             crnt_process,
-            crnt_process->GetHandle<SharedMemory>(static_cast<u32>(state.r[0])),
+            crnt_process->getHandle<SharedMemory>(static_cast<u32>(state.r[0])),
             state.r[1], state.r[2], static_cast<MemoryPermission>(state.r[3]));
         break;
     case 0x14:
-        state.r[0] = UnmapSharedMemory(
+        state.r[0] = unmapSharedMemory(
             crnt_process,
-            crnt_process->GetHandle<SharedMemory>(static_cast<u32>(state.r[0])),
+            crnt_process->getHandle<SharedMemory>(static_cast<u32>(state.r[0])),
             state.r[1], state.r[2]);
         break;
     case 0x15: {
         TransferMemory* tmem = nullptr;
-        state.r[0] = CreateTransferMemory(
+        state.r[0] = createTransferMemory(
             state.r[1], state.r[2], static_cast<MemoryPermission>(state.r[3]),
             tmem);
-        state.r[1] = crnt_process->AddHandleNoRetain(tmem).GetRaw();
+        state.r[1] = crnt_process->addHandleNoRetain(tmem).GetRaw();
         break;
     }
     case 0x16:
-        state.r[0] = CloseHandle(crnt_process, static_cast<u32>(state.r[0]));
+        state.r[0] = closeHandle(crnt_process, static_cast<u32>(state.r[0]));
         break;
     case 0x17:
-        state.r[0] = ResetSignal(crnt_process->GetHandle<SynchronizationObject>(
+        state.r[0] = resetSignal(crnt_process->getHandle<SynchronizationObject>(
             static_cast<u32>(state.r[0])));
         break;
     case 0x18: {
         const auto handles = reinterpret_cast<Handle*>(
-            crnt_process->GetMmu()->UnmapAddr(state.r[1]));
+            crnt_process->getMmu()->unmapAddr(state.r[1]));
         const auto num_handles = std::bit_cast<i64>(state.r[2]);
         SynchronizationObject* sync_objs[num_handles];
         for (auto i = 0; i < num_handles; i++)
             sync_objs[i] =
-                crnt_process->GetHandle<SynchronizationObject>(handles[i]);
+                crnt_process->getHandle<SynchronizationObject>(handles[i]);
 
-        state.r[0] = WaitSynchronization(
+        state.r[0] = waitSynchronization(
             crnt_thread, std::span(sync_objs, static_cast<usize>(num_handles)),
             std::bit_cast<i64>(state.r[3]), tmp_u32);
         state.r[1] = tmp_u32;
         break;
     }
     case 0x19:
-        state.r[0] = CancelSynchronization(
-            crnt_process->GetHandle<IThread>(static_cast<u32>(state.r[0])));
+        state.r[0] = cancelSynchronization(
+            crnt_process->getHandle<IThread>(static_cast<u32>(state.r[0])));
         break;
     case 0x1a:
-        state.r[0] = ArbitrateLock(
+        state.r[0] = arbitrateLock(
             crnt_thread,
-            crnt_process->GetHandle<IThread>(static_cast<u32>(state.r[0])),
-            crnt_process->GetMmu()->UnmapAddr(state.r[1]),
+            crnt_process->getHandle<IThread>(static_cast<u32>(state.r[0])),
+            crnt_process->getMmu()->unmapAddr(state.r[1]),
             static_cast<u32>(state.r[2]), static_cast<u32>(state.r[0]));
         break;
     case 0x1b:
-        state.r[0] = ArbitrateUnlock(
-            crnt_thread, crnt_process->GetMmu()->UnmapAddr(state.r[0]));
+        state.r[0] = arbitrateUnlock(
+            crnt_thread, crnt_process->getMmu()->unmapAddr(state.r[0]));
         break;
     case 0x1c:
-        state.r[0] = WaitProcessWideKeyAtomic(
+        state.r[0] = waitProcessWideKeyAtomic(
             crnt_process, crnt_thread,
-            crnt_process->GetMmu()->UnmapAddr(state.r[0]),
-            crnt_process->GetMmu()->UnmapAddr(state.r[1]),
+            crnt_process->getMmu()->unmapAddr(state.r[0]),
+            crnt_process->getMmu()->unmapAddr(state.r[1]),
             static_cast<u32>(state.r[2]), std::bit_cast<i64>(state.r[3]));
         break;
     case 0x1d:
-        state.r[0] = SignalProcessWideKey(
-            crnt_process, crnt_process->GetMmu()->UnmapAddr(state.r[0]),
+        state.r[0] = signalProcessWideKey(
+            crnt_process, crnt_process->getMmu()->unmapAddr(state.r[0]),
             std::bit_cast<i32>(static_cast<u32>(state.r[1])));
         break;
     case 0x1e:
-        GetSystemTick(tmp_u64);
+        getSystemTick(tmp_u64);
         state.r[0] = tmp_u64;
         break;
     case 0x1f: {
         hipc::ClientSession* client_session = nullptr;
-        state.r[0] = ConnectToNamedPort(
+        state.r[0] = connectToNamedPort(
             reinterpret_cast<const char*>(
-                crnt_process->GetMmu()->UnmapAddr(state.r[1])),
+                crnt_process->getMmu()->unmapAddr(state.r[1])),
             client_session);
-        state.r[1] = crnt_process->AddHandleNoRetain(client_session).GetRaw();
+        state.r[1] = crnt_process->addHandleNoRetain(client_session).GetRaw();
         break;
     }
     case 0x21:
         state.r[0] =
-            SendSyncRequest(crnt_process, crnt_thread,
-                            crnt_process->GetHandle<hipc::ClientSession>(
+            sendSyncRequest(crnt_process, crnt_thread,
+                            crnt_process->getHandle<hipc::ClientSession>(
                                 static_cast<u32>(state.r[0])));
         break;
     case 0x25:
-        state.r[0] = GetThreadId(
-            crnt_process->GetHandle<IThread>(static_cast<u32>(state.r[1])),
+        state.r[0] = getThreadId(
+            crnt_process->getHandle<IThread>(static_cast<u32>(state.r[1])),
             tmp_u64);
         state.r[1] = tmp_u64;
         break;
     case 0x26: {
         const vaddr_t addr = state.r[1];
-        state.r[0] =
-            Break(BreakReason(state.r[0]),
-                  (addr != 0x0 ? crnt_process->GetMmu()->UnmapAddr(addr) : 0x0),
-                  state.r[2]);
+        state.r[0] = break_(
+            BreakReason(state.r[0]),
+            (addr != 0x0 ? crnt_process->getMmu()->unmapAddr(addr) : 0x0),
+            state.r[2]);
         break;
     }
     case 0x27:
-        state.r[0] = OutputDebugString(
+        state.r[0] = outputDebugString(
             reinterpret_cast<const char*>(
-                crnt_process->GetMmu()->UnmapAddr(state.r[0])),
+                crnt_process->getMmu()->unmapAddr(state.r[0])),
             state.r[1]);
         break;
     case 0x29:
-        state.r[0] = GetInfo(
+        state.r[0] = getInfo(
             crnt_process, static_cast<InfoType>(state.r[1]),
-            crnt_process->GetHandle<AutoObject>(static_cast<u32>(state.r[2])),
+            crnt_process->getHandle<AutoObject>(static_cast<u32>(state.r[2])),
             state.r[3], tmp_u64);
         state.r[1] = tmp_u64;
         break;
     case 0x2c:
-        state.r[0] = MapPhysicalMemory(crnt_process, state.r[0], state.r[1]);
+        state.r[0] = mapPhysicalMemory(crnt_process, state.r[0], state.r[1]);
         break;
     case 0x32:
-        state.r[0] = SetThreadActivity(
-            crnt_process->GetHandle<IThread>(static_cast<u32>(state.r[0])),
+        state.r[0] = setThreadActivity(
+            crnt_process->getHandle<IThread>(static_cast<u32>(state.r[0])),
             static_cast<ThreadActivity>(state.r[1]));
         break;
     case 0x33:
-        state.r[0] = GetThreadContext3(
-            crnt_process->GetHandle<IThread>(static_cast<u32>(state.r[1])),
+        state.r[0] = getThreadContext3(
+            crnt_process->getHandle<IThread>(static_cast<u32>(state.r[1])),
             *reinterpret_cast<ThreadContext*>(
-                crnt_process->GetMmu()->UnmapAddr(state.r[0])));
+                crnt_process->getMmu()->unmapAddr(state.r[0])));
         break;
     case 0x34:
-        state.r[0] = WaitForAddress(
-            crnt_thread, crnt_process->GetMmu()->UnmapAddr(state.r[0]),
+        state.r[0] = waitForAddress(
+            crnt_thread, crnt_process->getMmu()->unmapAddr(state.r[0]),
             static_cast<ArbitrationType>(state.r[1]),
             static_cast<u32>(state.r[2]), std::bit_cast<i64>(state.r[3]));
         break;
     case 0x35:
-        state.r[0] = SignalToAddress(
-            crnt_process->GetMmu()->UnmapAddr(state.r[0]),
+        state.r[0] = signalToAddress(
+            crnt_process->getMmu()->unmapAddr(state.r[0]),
             static_cast<SignalType>(state.r[1]), static_cast<u32>(state.r[2]),
             static_cast<u32>(state.r[3]));
         break;
     case 0x36:
-        SynchronizePreemptionState(crnt_thread);
+        synchronizePreemptionState(crnt_thread);
         break;
     case 0x40: {
         hipc::ServerSession* server_session = nullptr;
         hipc::ClientSession* client_session = nullptr;
-        state.r[0] = CreateSession(state.r[2] != 0, state.r[3], server_session,
+        state.r[0] = createSession(state.r[2] != 0, state.r[3], server_session,
                                    client_session);
-        state.r[1] = crnt_process->AddHandleNoRetain(server_session).GetRaw();
-        state.r[2] = crnt_process->AddHandleNoRetain(client_session).GetRaw();
+        state.r[1] = crnt_process->addHandleNoRetain(server_session).GetRaw();
+        state.r[2] = crnt_process->addHandleNoRetain(client_session).GetRaw();
         break;
     }
     case 0x41: {
         hipc::ServerSession* server_session = nullptr;
-        state.r[0] = AcceptSession(crnt_process->GetHandle<hipc::ServerPort>(
+        state.r[0] = acceptSession(crnt_process->getHandle<hipc::ServerPort>(
                                        static_cast<u32>(state.r[1])),
                                    server_session);
-        state.r[1] = crnt_process->AddHandleNoRetain(server_session).GetRaw();
+        state.r[1] = crnt_process->addHandleNoRetain(server_session).GetRaw();
         break;
     }
     case 0x43: {
         const auto handles = reinterpret_cast<Handle*>(
-            crnt_process->GetMmu()->UnmapAddr(state.r[1]));
+            crnt_process->getMmu()->unmapAddr(state.r[1]));
         const auto num_handles = std::bit_cast<i64>(state.r[2]);
         SynchronizationObject* sync_objs[num_handles];
         for (auto i = 0; i < num_handles; i++)
             sync_objs[i] =
-                crnt_process->GetHandle<SynchronizationObject>(handles[i]);
+                crnt_process->getHandle<SynchronizationObject>(handles[i]);
 
-        state.r[0] = ReplyAndReceive(
+        state.r[0] = replyAndReceive(
             crnt_thread, std::span(sync_objs, static_cast<usize>(num_handles)),
-            crnt_process->GetHandle<hipc::ServerSession>(
+            crnt_process->getHandle<hipc::ServerSession>(
                 static_cast<u32>(state.r[3])),
             std::bit_cast<i64>(state.r[4]), tmp_u32);
         state.r[1] = tmp_u32;
@@ -294,42 +294,42 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
     }
     case 0x4b: {
         CodeMemory* code_mem = nullptr;
-        state.r[0] = CreateCodeMemory(state.r[1], state.r[2], code_mem);
-        state.r[1] = crnt_process->AddHandleNoRetain(code_mem).GetRaw();
+        state.r[0] = createCodeMemory(state.r[1], state.r[2], code_mem);
+        state.r[1] = crnt_process->addHandleNoRetain(code_mem).GetRaw();
         break;
     }
     case 0x4c:
-        state.r[0] = ControlCodeMemory(
-            crnt_process->GetHandle<CodeMemory>(static_cast<u32>(state.r[0])),
+        state.r[0] = controlCodeMemory(
+            crnt_process->getHandle<CodeMemory>(static_cast<u32>(state.r[0])),
             CodeMemoryOperation(state.r[1]), state.r[2], state.r[3],
             MemoryPermission(state.r[4]));
         break;
     case 0x65:
         state.r[0] =
-            GetProcessList(reinterpret_cast<u64*>(
-                               crnt_process->GetMmu()->UnmapAddr(state.r[1])),
+            getProcessList(reinterpret_cast<u64*>(
+                               crnt_process->getMmu()->unmapAddr(state.r[1])),
                            static_cast<u32>(state.r[2]), tmp_u32);
         state.r[1] = tmp_u32;
         break;
     case 0x73:
-        state.r[0] = SetProcessMemoryPermission(
-            crnt_process->GetHandle<Process>(static_cast<u32>(state.r[0])),
+        state.r[0] = setProcessMemoryPermission(
+            crnt_process->getHandle<Process>(static_cast<u32>(state.r[0])),
             state.r[1], state.r[2], MemoryPermission(state.r[3]));
         break;
     case 0x74:
-        state.r[0] = MapProcessMemory(
+        state.r[0] = mapProcessMemory(
             crnt_process, state.r[0],
-            crnt_process->GetHandle<Process>(static_cast<u32>(state.r[1])),
+            crnt_process->getHandle<Process>(static_cast<u32>(state.r[1])),
             state.r[2], state.r[3]);
         break;
     case 0x77:
-        state.r[0] = MapProcessCodeMemory(
-            crnt_process->GetHandle<Process>(static_cast<u32>(state.r[0])),
+        state.r[0] = mapProcessCodeMemory(
+            crnt_process->getHandle<Process>(static_cast<u32>(state.r[0])),
             state.r[1], state.r[2], state.r[3]);
         break;
     case 0x78:
-        state.r[0] = UnmapProcessCodeMemory(
-            crnt_process->GetHandle<Process>(static_cast<u32>(state.r[0])),
+        state.r[0] = unmapProcessCodeMemory(
+            crnt_process->getHandle<Process>(static_cast<u32>(state.r[0])),
             state.r[1], state.r[2], state.r[3]);
         break;
     default:
@@ -339,19 +339,19 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
     }
 }
 
-result_t Kernel::SetHeapSize(Process* crnt_process, u64 size, uptr& out_base) {
+result_t Kernel::setHeapSize(Process* crnt_process, u64 size, uptr& out_base) {
     LOG_DEBUG(Kernel, "SetHeapSize called (size: 0x{:08x})", size);
 
     if ((size % HEAP_MEM_ALIGNMENT) != 0)
         return MAKE_RESULT(Svc, Error::InvalidSize); // TODO: correct?
 
-    crnt_process->ResizeHeap(size);
+    crnt_process->resizeHeap(size);
 
     out_base = HEAP_REGION.getBegin();
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::SetMemoryPermission(uptr addr, u64 size,
+result_t Kernel::setMemoryPermission(uptr addr, u64 size,
                                      MemoryPermission perm) {
     LOG_DEBUG(
         Kernel,
@@ -366,7 +366,7 @@ result_t Kernel::SetMemoryPermission(uptr addr, u64 size,
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::SetMemoryAttribute(Process* crnt_process, vaddr_t addr,
+result_t Kernel::setMemoryAttribute(Process* crnt_process, vaddr_t addr,
                                     u64 size, MemoryAttribute mask,
                                     MemoryAttribute value) {
     LOG_DEBUG(
@@ -375,26 +375,26 @@ result_t Kernel::SetMemoryAttribute(Process* crnt_process, vaddr_t addr,
         "{}, value: {})",
         addr, size, mask, value);
 
-    crnt_process->GetMmu()->SetMemoryAttribute(
+    crnt_process->getMmu()->setMemoryAttribute(
         ztd::Range<vaddr_t>::fromSize(addr, size), mask, value);
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::MapMemory(Process* crnt_process, uptr dst_addr, uptr src_addr,
+result_t Kernel::mapMemory(Process* crnt_process, uptr dst_addr, uptr src_addr,
                            u64 size) {
     LOG_DEBUG(Kernel,
               "MapMemory called (dst_addr: 0x{:08x}, src_addr: 0x{:08x}, size: "
               "0x{:08x})",
               dst_addr, src_addr, size);
 
-    crnt_process->GetMmu()->Map(dst_addr,
+    crnt_process->getMmu()->map(dst_addr,
                                 ztd::Range<vaddr_t>::fromSize(src_addr, size));
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::UnmapMemory(Process* crnt_process, uptr dst_addr,
+result_t Kernel::unmapMemory(Process* crnt_process, uptr dst_addr,
                              uptr src_addr, u64 size) {
     LOG_DEBUG(
         Kernel,
@@ -405,17 +405,17 @@ result_t Kernel::UnmapMemory(Process* crnt_process, uptr dst_addr,
     // TODO: verify that src_addr is the same as the one used in MapMemory?
     (void)src_addr;
 
-    crnt_process->GetMmu()->Unmap(
+    crnt_process->getMmu()->unmap(
         ztd::Range<vaddr_t>::fromSize(dst_addr, size));
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::QueryMemory(Process* crnt_process, uptr addr,
+result_t Kernel::queryMemory(Process* crnt_process, uptr addr,
                              MemoryInfo& out_mem_info, u32& out_page_info) {
     LOG_DEBUG(Kernel, "QueryMemory called (addr: 0x{:08x})", addr);
 
-    out_mem_info = crnt_process->GetMmu()->QueryMemory(addr);
+    out_mem_info = crnt_process->getMmu()->queryMemory(addr);
 
     // TODO: what is this?
     out_page_info = 0;
@@ -423,13 +423,13 @@ result_t Kernel::QueryMemory(Process* crnt_process, uptr addr,
     return RESULT_SUCCESS;
 }
 
-void Kernel::ExitProcess(Process* crnt_process) {
+void Kernel::exitProcess(Process* crnt_process) {
     LOG_DEBUG(Kernel, "ExitProcess called");
 
-    crnt_process->Stop();
+    crnt_process->stop();
 }
 
-result_t Kernel::CreateThread(Process* crnt_process, vaddr_t entry_point,
+result_t Kernel::createThread(Process* crnt_process, vaddr_t entry_point,
                               vaddr_t args_addr, vaddr_t stack_top_addr,
                               i32 priority, i32 processor_id,
                               IThread*& out_thread) {
@@ -444,30 +444,30 @@ result_t Kernel::CreateThread(Process* crnt_process, vaddr_t entry_point,
     (void)processor_id;
     auto thread =
         new GuestThread(system, crnt_process, stack_top_addr, priority);
-    thread->SetEntryPoint(entry_point);
-    thread->SetArg(0, args_addr);
+    thread->setEntryPoint(entry_point);
+    thread->setArg(0, args_addr);
 
     out_thread = thread;
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::StartThread(IThread* thread) {
+result_t Kernel::startThread(IThread* thread) {
     LOG_DEBUG(Kernel, "StartThread called (thread: {})",
-              thread->GetDebugName());
+              thread->getDebugName());
 
-    thread->Start();
+    thread->start();
 
     return RESULT_SUCCESS;
 }
 
-void Kernel::ExitThread(IThread* crnt_thread) {
+void Kernel::exitThread(IThread* crnt_thread) {
     LOG_DEBUG(Kernel, "ExitThread called");
 
-    crnt_thread->Stop();
+    crnt_thread->stop();
 }
 
-void Kernel::SleepThread(i64 nano) {
+void Kernel::sleepThread(i64 nano) {
     LOG_DEBUG(Kernel, "SleepThread called (nano: {})", nano);
 
     if (nano == 0 || nano == -1 || nano == -2)
@@ -476,38 +476,38 @@ void Kernel::SleepThread(i64 nano) {
         std::this_thread::sleep_for(std::chrono::nanoseconds(nano));
 }
 
-result_t Kernel::GetThreadPriority(IThread* thread, i32& out_priority) {
+result_t Kernel::getThreadPriority(IThread* thread, i32& out_priority) {
     LOG_DEBUG(Kernel, "GetThreadPriority called (thread: {})",
-              thread->GetDebugName());
+              thread->getDebugName());
 
     // TODO: implement
-    LOG_FUNC_WITH_ARGS_STUBBED(Kernel, "thread: {}", thread->GetDebugName());
+    LOG_FUNC_WITH_ARGS_STUBBED(Kernel, "thread: {}", thread->getDebugName());
 
     // HACK
     out_priority = 0x20; // 0x0 - 0x3f, lower is higher priority
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::SetThreadPriority(IThread* thread, i32 priority) {
+result_t Kernel::setThreadPriority(IThread* thread, i32 priority) {
     LOG_DEBUG(Kernel, "SetThreadPriority called (thread: {}, priority: 0x{:x})",
-              thread->GetDebugName(), priority);
+              thread->getDebugName(), priority);
 
     // TODO: implement
     LOG_FUNC_WITH_ARGS_STUBBED(Kernel, "thread: {}, priority: 0x{:x}",
-                               thread->GetDebugName(), priority);
+                               thread->getDebugName(), priority);
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::GetThreadCoreMask(IThread* thread, i32& out_core_mask0,
+result_t Kernel::getThreadCoreMask(IThread* thread, i32& out_core_mask0,
                                    u64& out_core_mask1) {
     // HACK: for botw
     LOG_DEBUG(Kernel, "GetThreadCoreMask called (thread: {})",
-              thread ? thread->GetDebugName() : "null");
+              thread ? thread->getDebugName() : "null");
 
     // TODO: implement
     LOG_FUNC_WITH_ARGS_STUBBED(Kernel, "thread: {}",
-                               thread ? thread->GetDebugName() : "null");
+                               thread ? thread->getDebugName() : "null");
 
     // HACK
     out_core_mask0 = 0x1;
@@ -515,22 +515,22 @@ result_t Kernel::GetThreadCoreMask(IThread* thread, i32& out_core_mask0,
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::SetThreadCoreMask(IThread* thread, i32 core_mask0,
+result_t Kernel::setThreadCoreMask(IThread* thread, i32 core_mask0,
                                    u64 core_mask1) {
     LOG_DEBUG(Kernel,
               "SetThreadCoreMask called (thread: {}, core mask 0: "
               "{:#x}, core mask 1: {:#x})",
-              thread->GetDebugName(), core_mask0, core_mask1);
+              thread->getDebugName(), core_mask0, core_mask1);
 
     // TODO: implement
     LOG_FUNC_WITH_ARGS_STUBBED(
         Kernel, "thread: {}, core mask 0: {:#x}, core mask 1: {:#x}",
-        thread->GetDebugName(), core_mask0, core_mask1);
+        thread->getDebugName(), core_mask0, core_mask1);
 
     return RESULT_SUCCESS;
 }
 
-void Kernel::GetCurrentProcessorNumber(u32& out_number) {
+void Kernel::getCurrentProcessorNumber(u32& out_number) {
     LOG_DEBUG(Kernel, "GetCurrentProcessorNumber called");
 
     // TODO: implement
@@ -540,47 +540,47 @@ void Kernel::GetCurrentProcessorNumber(u32& out_number) {
     out_number = 0;
 }
 
-result_t Kernel::SignalEvent(Event* event) {
-    LOG_DEBUG(Kernel, "SignalEvent called (event: {})", event->GetDebugName());
+result_t Kernel::signalEvent(Event* event) {
+    LOG_DEBUG(Kernel, "SignalEvent called (event: {})", event->getDebugName());
 
-    event->Signal();
+    event->signal();
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::ClearEvent(Event* event) {
-    LOG_DEBUG(Kernel, "ClearEvent called (event: {})", event->GetDebugName());
+result_t Kernel::clearEvent(Event* event) {
+    LOG_DEBUG(Kernel, "ClearEvent called (event: {})", event->getDebugName());
 
-    event->Clear();
+    event->clear();
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::MapSharedMemory(Process* crnt_process, SharedMemory* shmem,
+result_t Kernel::mapSharedMemory(Process* crnt_process, SharedMemory* shmem,
                                  uptr addr, u64 size, MemoryPermission perm) {
     LOG_DEBUG(Kernel,
               "MapSharedMemory called (handle: {}, addr: 0x{:08x}, size: "
               "0x{:08x}, perm: {})",
-              shmem->GetDebugName(), addr, size, perm);
+              shmem->getDebugName(), addr, size, perm);
 
-    shmem->MapToRange(crnt_process->GetMmu(),
+    shmem->mapToRange(crnt_process->getMmu(),
                       ztd::Range(addr, static_cast<uptr>(addr + size)), perm);
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::UnmapSharedMemory(Process* crnt_process, SharedMemory* shmem,
+result_t Kernel::unmapSharedMemory(Process* crnt_process, SharedMemory* shmem,
                                    uptr addr, u64 size) {
     (void)shmem;
 
     LOG_DEBUG(Kernel,
               "UnmapSharedMemory called (shmem: {}, addr: 0x{:08x}, size: "
               "0x{:08x})",
-              shmem->GetDebugName(), addr, size);
+              shmem->getDebugName(), addr, size);
 
-    crnt_process->GetMmu()->Unmap(ztd::Range<vaddr_t>::fromSize(addr, size));
+    crnt_process->getMmu()->unmap(ztd::Range<vaddr_t>::fromSize(addr, size));
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::CreateTransferMemory(uptr addr, u64 size,
+result_t Kernel::createTransferMemory(uptr addr, u64 size,
                                       MemoryPermission perm,
                                       TransferMemory*& out_tmem) {
     LOG_DEBUG(Kernel,
@@ -593,10 +593,10 @@ result_t Kernel::CreateTransferMemory(uptr addr, u64 size,
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::CloseHandle(Process* crnt_process, Handle handle) {
+result_t Kernel::closeHandle(Process* crnt_process, Handle handle) {
     LOG_DEBUG(Kernel, "CloseHandle called (handle: {})", handle);
 
-    if (crnt_process->FreeHandle(handle)) {
+    if (crnt_process->freeHandle(handle)) {
         return RESULT_SUCCESS;
     } else {
         return MAKE_RESULT(Svc, Error::InvalidHandle);
@@ -604,7 +604,7 @@ result_t Kernel::CloseHandle(Process* crnt_process, Handle handle) {
 }
 
 // TODO: can only be ReadableEvent or Process?
-result_t Kernel::ResetSignal(SynchronizationObject* sync_obj) {
+result_t Kernel::resetSignal(SynchronizationObject* sync_obj) {
     if (sync_obj == nullptr) {
         LOG_WARN(Kernel, "ResetSignal called (INVALID_HANDLE)");
         // HACK
@@ -612,16 +612,16 @@ result_t Kernel::ResetSignal(SynchronizationObject* sync_obj) {
     }
 
     LOG_DEBUG(Kernel, "ResetSignal called (sync_obj: {})",
-              sync_obj->GetDebugName());
+              sync_obj->getDebugName());
 
-    if (!sync_obj->Clear())
+    if (!sync_obj->clear())
         return MAKE_RESULT(Svc, Error::InvalidState);
 
     return RESULT_SUCCESS;
 }
 
 result_t
-Kernel::WaitSynchronization(IThread* crnt_thread,
+Kernel::waitSynchronization(IThread* crnt_thread,
                             std::span<SynchronizationObject*> sync_objs,
                             i64 timeout, u32& out_signalled_index) {
     LOG_DEBUG(Kernel,
@@ -639,24 +639,24 @@ Kernel::WaitSynchronization(IThread* crnt_thread,
         }
     }
 
-    crnt_thread->Pause();
+    crnt_thread->pause();
 
     // Add waiting thread
     for (auto sync_obj : sync_objs) {
         // LOG_DEBUG(Kernel, "Synchronizing with {}",
         //           sync_obj->GetDebugName());
 
-        sync_obj->AddWaitingThread(crnt_thread);
+        sync_obj->addWaitingThread(crnt_thread);
     }
 
     SynchronizationObject* signalled_obj = nullptr;
     result_t res = RESULT_SUCCESS;
-    if (crnt_thread->ProcessMessages(timeout)) {
-        if (crnt_thread->GetState() == ThreadState::Stopping) {
+    if (crnt_thread->processMessages(timeout)) {
+        if (crnt_thread->getState() == ThreadState::Stopping) {
             // TODO: is this necessary?
             res = MAKE_RESULT(Svc, Error::Cancelled);
         } else {
-            if (!crnt_thread->ConsumeSignalledObject(signalled_obj))
+            if (!crnt_thread->consumeSignalledObject(signalled_obj))
                 res = MAKE_RESULT(Svc, Error::Cancelled);
         }
     } else {
@@ -666,7 +666,7 @@ Kernel::WaitSynchronization(IThread* crnt_thread,
     // Remove the thread from the waiting list
     for (auto sync_obj : sync_objs) {
         if (sync_obj != signalled_obj)
-            sync_obj->RemoveWaitingThread(crnt_thread);
+            sync_obj->removeWaitingThread(crnt_thread);
     }
 
     // Find the handle index
@@ -683,22 +683,22 @@ Kernel::WaitSynchronization(IThread* crnt_thread,
     return res;
 }
 
-result_t Kernel::CancelSynchronization(IThread* thread) {
+result_t Kernel::cancelSynchronization(IThread* thread) {
     LOG_DEBUG(Kernel, "CancelSynchronization called (thread: {})",
-              thread->GetDebugName());
+              thread->getDebugName());
 
-    thread->CancelSync();
+    thread->cancelSync();
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::ArbitrateLock(IThread* crnt_thread, IThread* owner_thread,
+result_t Kernel::arbitrateLock(IThread* crnt_thread, IThread* owner_thread,
                                uptr mutex_addr, Handle self_handle,
                                Handle owner_handle) {
     LOG_DEBUG(Kernel,
               "ArbitrateLock called (owner: {}, mutex: {:#x}, self: "
               "{})",
-              owner_thread->GetDebugName(), mutex_addr, self_handle);
+              owner_thread->getDebugName(), mutex_addr, self_handle);
 
     crnt_thread->self_handle_for_mutex = self_handle;
     owner_thread->self_handle_for_mutex = owner_handle;
@@ -712,37 +712,37 @@ result_t Kernel::ArbitrateLock(IThread* crnt_thread, IThread* owner_thread,
 
         crnt_thread->mutex_wait_addr = mutex_addr;
 
-        crnt_thread->Pause();
-        owner_thread->AddMutexWaiter(crnt_thread);
+        crnt_thread->pause();
+        owner_thread->addMutexWaiter(crnt_thread);
     }
 
-    ASSERT_DEBUG(crnt_thread->ProcessMessages(), Kernel,
+    ASSERT_DEBUG(crnt_thread->processMessages(), Kernel,
                  "ArbitrateLock timed out");
 
     result_t res = RESULT_SUCCESS;
-    if (crnt_thread->GetState() == ThreadState::Stopping) {
+    if (crnt_thread->getState() == ThreadState::Stopping) {
         // TODO: is this necessary?
         res = MAKE_RESULT(Svc, Error::Cancelled);
     } else {
-        if (!crnt_thread->WasSignalled())
+        if (!crnt_thread->wasSignalled())
             res = MAKE_RESULT(Svc, Error::Cancelled);
     }
 
     return res;
 }
 
-result_t Kernel::ArbitrateUnlock(IThread* crnt_thread, uptr mutex_addr) {
+result_t Kernel::arbitrateUnlock(IThread* crnt_thread, uptr mutex_addr) {
     LOG_DEBUG(Kernel, "ArbitrateUnlock called (mutex: 0x{:08x})", mutex_addr);
 
     {
         CriticalSectionLock cs_lock(*this);
-        UnlockMutex(crnt_thread, mutex_addr);
+        unlockMutex(crnt_thread, mutex_addr);
     }
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::WaitProcessWideKeyAtomic(Process* crnt_process,
+result_t Kernel::waitProcessWideKeyAtomic(Process* crnt_process,
                                           IThread* crnt_thread, uptr mutex_addr,
                                           uptr var_addr, Handle self_handle,
                                           i64 timeout) {
@@ -755,22 +755,22 @@ result_t Kernel::WaitProcessWideKeyAtomic(Process* crnt_process,
     crnt_thread->mutex_wait_addr = mutex_addr;
     crnt_thread->cond_var_wait_addr = var_addr;
 
-    crnt_thread->Pause();
+    crnt_thread->pause();
 
     {
         CriticalSectionLock cs_lock(*this);
         ASSERT_DEBUG(cond_var_waiters.addLast(crnt_thread).has_value(), Kernel,
                      "Failed to add cond var waiter");
-        UnlockMutex(crnt_thread, mutex_addr);
+        unlockMutex(crnt_thread, mutex_addr);
     }
 
     result_t res = RESULT_SUCCESS;
-    if (crnt_thread->ProcessMessages(timeout)) {
-        if (crnt_thread->GetState() == ThreadState::Stopping) {
+    if (crnt_thread->processMessages(timeout)) {
+        if (crnt_thread->getState() == ThreadState::Stopping) {
             // TODO: is this necessary?
             res = MAKE_RESULT(Svc, Error::Cancelled);
         } else {
-            if (!crnt_thread->WasSignalled())
+            if (!crnt_thread->wasSignalled())
                 res = MAKE_RESULT(Svc, Error::Cancelled);
         }
     } else {
@@ -785,16 +785,16 @@ result_t Kernel::WaitProcessWideKeyAtomic(Process* crnt_process,
         cond_var_waiters.remove(crnt_thread);
 
         // Mutex
-        auto owner = GetMutexOwner(
+        auto owner = getMutexOwner(
             crnt_process, reinterpret_cast<u32*>(crnt_thread->mutex_wait_addr));
         if (owner.has_value())
-            owner.value()->RemoveMutexWaiter(crnt_thread);
+            owner.value()->removeMutexWaiter(crnt_thread);
     }
 
     return res;
 }
 
-result_t Kernel::SignalProcessWideKey(Process* crnt_process, uptr addr,
+result_t Kernel::signalProcessWideKey(Process* crnt_process, uptr addr,
                                       i32 count) {
     LOG_DEBUG(Kernel, "SignalProcessWideKey called (addr: 0x{:08x}, count: {})",
               addr, count);
@@ -811,7 +811,7 @@ result_t Kernel::SignalProcessWideKey(Process* crnt_process, uptr addr,
         const auto thread = thread_node_->get();
         if (thread->cond_var_wait_addr == addr) {
             thread->cond_var_wait_addr = 0x0;
-            TryAcquireMutex(crnt_process, thread);
+            tryAcquireMutex(crnt_process, thread);
             thread_node = cond_var_waiters.remove(thread_node_);
             count--;
         } else {
@@ -822,28 +822,28 @@ result_t Kernel::SignalProcessWideKey(Process* crnt_process, uptr addr,
     return RESULT_SUCCESS;
 }
 
-void Kernel::GetSystemTick(u64& out_tick) {
+void Kernel::getSystemTick(u64& out_tick) {
     LOG_DEBUG(Kernel, "GetSystemTick called");
 
-    out_tick = system.GetWallClock().GetCntpct(); // TODO: correct?
+    out_tick = system.getWallClock().getCntpct(); // TODO: correct?
 }
 
-result_t Kernel::ConnectToNamedPort(const std::string_view name,
+result_t Kernel::connectToNamedPort(const std::string_view name,
                                     hipc::ClientSession*& out_client_session) {
     LOG_DEBUG(Kernel, "ConnectToNamedPort called (name: {})", name);
 
-    auto port = service_manager.GetPort(std::string(name));
+    auto port = service_manager.getPort(std::string(name));
     if (port == nullptr) {
         LOG_ERROR(Kernel, "Failed to connect to port \"{}\"", name);
         return MAKE_RESULT(Svc, Error::NotFound);
     }
 
-    out_client_session = port->Connect();
+    out_client_session = port->connect();
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::SendSyncRequest(Process* crnt_process, IThread* crnt_thread,
+result_t Kernel::sendSyncRequest(Process* crnt_process, IThread* crnt_thread,
                                  hipc::ClientSession* client_session) {
     if (client_session == nullptr) {
         LOG_WARN(Kernel, "SendSyncRequest called (INVALID_HANDLE)");
@@ -851,36 +851,36 @@ result_t Kernel::SendSyncRequest(Process* crnt_process, IThread* crnt_thread,
     }
 
     LOG_DEBUG(Kernel, "SendSyncRequest called (session: {})",
-              client_session->GetDebugName());
+              client_session->getDebugName());
 
     // Pause the thread
-    crnt_thread->Pause();
+    crnt_thread->pause();
 
     // Send request
-    client_session->GetParent()->GetServerSide()->EnqueueRequest(
-        crnt_process, crnt_thread, crnt_thread->GetTlsPtr());
+    client_session->getParent()->getServerSide()->enqueueRequest(
+        crnt_process, crnt_thread, crnt_thread->getTlsPtr());
 
     // Wait for response
-    crnt_thread->ProcessMessages();
+    crnt_thread->processMessages();
 
-    ASSERT_DEBUG(crnt_thread->ProcessMessages(), Kernel,
+    ASSERT_DEBUG(crnt_thread->processMessages(), Kernel,
                  "SendSyncRequest timed out");
 
     result_t res = RESULT_SUCCESS;
-    if (crnt_thread->GetState() == ThreadState::Stopping) {
+    if (crnt_thread->getState() == ThreadState::Stopping) {
         // TODO: is this necessary?
         res = MAKE_RESULT(Svc, Error::Cancelled);
     } else {
-        if (!crnt_thread->WasSignalled())
+        if (!crnt_thread->wasSignalled())
             res = MAKE_RESULT(Svc, Error::Cancelled);
     }
 
     return res;
 }
 
-result_t Kernel::GetThreadId(IThread* thread, u64& out_thread_id) {
+result_t Kernel::getThreadId(IThread* thread, u64& out_thread_id) {
     LOG_DEBUG(Kernel, "GetThreadId called (thread: {})",
-              thread->GetDebugName());
+              thread->getDebugName());
 
     // TODO: implement
     LOG_FUNC_STUBBED(Services);
@@ -891,7 +891,7 @@ result_t Kernel::GetThreadId(IThread* thread, u64& out_thread_id) {
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::Break(BreakReason reason, uptr buffer_ptr, u64 buffer_size) {
+result_t Kernel::break_(BreakReason reason, uptr buffer_ptr, u64 buffer_size) {
     LOG_DEBUG(Kernel,
               "Break called (reason: {}, buffer ptr: 0x{:08x}, buffer "
               "size: 0x{:08x})",
@@ -918,12 +918,12 @@ result_t Kernel::Break(BreakReason reason, uptr buffer_ptr, u64 buffer_size) {
     }
 
     if (!reason.notification_only)
-        GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread("Break");
+        GET_CURRENT_PROCESS_DEBUGGER().breakOnThisThread("Break");
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::OutputDebugString(const std::string_view str, u64 len) {
+result_t Kernel::outputDebugString(const std::string_view str, u64 len) {
     LOG_DEBUG(Kernel, "OutputDebugString called");
     if (len != 0) {
         // TODO: handle differently
@@ -934,12 +934,12 @@ result_t Kernel::OutputDebugString(const std::string_view str, u64 len) {
 }
 
 // TODO: object
-result_t Kernel::GetInfo(Process* crnt_process, InfoType info_type,
+result_t Kernel::getInfo(Process* crnt_process, InfoType info_type,
                          AutoObject* obj, u64 info_sub_type, u64& out_info) {
     (void)obj;
 
     LOG_DEBUG(Kernel, "GetInfo called (type: {}, object: {}, subtype: {})",
-              info_type, (obj != nullptr ? obj->GetDebugName() : "null"),
+              info_type, (obj != nullptr ? obj->getDebugName() : "null"),
               info_sub_type);
 
     switch (info_type) {
@@ -981,9 +981,9 @@ result_t Kernel::GetInfo(Process* crnt_process, InfoType info_type,
         out_info = static_cast<u64>(true);
         return RESULT_SUCCESS;
     case InfoType::RandomEntropy:
-        ASSERT_DEBUG(info_sub_type < crnt_process->GetRandomEntropy().size(),
+        ASSERT_DEBUG(info_sub_type < crnt_process->getRandomEntropy().size(),
                      Kernel, "Invalid random entropy index {}", info_sub_type);
-        out_info = crnt_process->GetRandomEntropy()[info_sub_type];
+        out_info = crnt_process->getRandomEntropy()[info_sub_type];
         return RESULT_SUCCESS;
     case InfoType::AslrRegionAddress:
         out_info = ADDRESS_SPACE.getBegin();
@@ -998,7 +998,7 @@ result_t Kernel::GetInfo(Process* crnt_process, InfoType info_type,
         out_info = STACK_REGION.getSize();
         return RESULT_SUCCESS;
     case InfoType::TotalSystemResourceSize: {
-        out_info = crnt_process->GetSystemResourceSize();
+        out_info = crnt_process->getSystemResourceSize();
         return RESULT_SUCCESS;
     }
     case InfoType::UsedSystemResourceSize:
@@ -1007,7 +1007,7 @@ result_t Kernel::GetInfo(Process* crnt_process, InfoType info_type,
         out_info = 64ull * 1024ull;
         return RESULT_SUCCESS;
     case InfoType::ProgramId:
-        out_info = crnt_process->GetTitleID();
+        out_info = crnt_process->getTitleId();
         return RESULT_SUCCESS;
     case InfoType::UserExceptionContextAddress:
         LOG_NOT_IMPLEMENTED(Kernel, "UserExceptionContextAddress");
@@ -1039,7 +1039,7 @@ result_t Kernel::GetInfo(Process* crnt_process, InfoType info_type,
     }
 }
 
-result_t Kernel::MapPhysicalMemory(Process* crnt_process, vaddr_t addr,
+result_t Kernel::mapPhysicalMemory(Process* crnt_process, vaddr_t addr,
                                    u64 size) {
     LOG_DEBUG(Kernel,
               "MapPhysicalMemory called (addr: 0x{:08x}, size: 0x{:08x})", addr,
@@ -1054,9 +1054,9 @@ result_t Kernel::MapPhysicalMemory(Process* crnt_process, vaddr_t addr,
     if (!ALIAS_REGION.contains(ztd::Range<vaddr_t>::fromSize(addr, size)))
         return MAKE_RESULT(Svc, 110); // Invalid memory region
 
-    auto mem = system.GetCpu().AllocateMemory(size);
+    auto mem = system.getCpu().allocateMemory(size);
     // TODO: keep track of the memory
-    crnt_process->GetMmu()->Map(addr, mem,
+    crnt_process->getMmu()->map(addr, mem,
                                 {.type = MemoryType::Alias,
                                  .attr = MemoryAttribute::None,
                                  .perm = MemoryPermission::ReadWrite});
@@ -1064,31 +1064,31 @@ result_t Kernel::MapPhysicalMemory(Process* crnt_process, vaddr_t addr,
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::SetThreadActivity(IThread* thread, ThreadActivity activity) {
+result_t Kernel::setThreadActivity(IThread* thread, ThreadActivity activity) {
     LOG_DEBUG(Kernel, "SetThreadActivity called (thread: {}, activity: {})",
-              thread->GetDebugName(), activity);
+              thread->getDebugName(), activity);
 
     // TODO: implement
     LOG_FUNC_WITH_ARGS_STUBBED(Kernel, "thread: {}, activity: {}",
-                               thread->GetDebugName(), activity);
+                               thread->getDebugName(), activity);
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::GetThreadContext3(IThread* thread,
+result_t Kernel::getThreadContext3(IThread* thread,
                                    ThreadContext& out_thread_context) {
     LOG_DEBUG(Kernel, "SetThreadActivity called (thread: {})",
-              thread->GetDebugName());
+              thread->getDebugName());
 
     // TODO: implement
-    LOG_FUNC_WITH_ARGS_STUBBED(Kernel, "thread: {}", thread->GetDebugName());
+    LOG_FUNC_WITH_ARGS_STUBBED(Kernel, "thread: {}", thread->getDebugName());
 
     // HACK
     out_thread_context = {};
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::WaitForAddress(IThread* crnt_thread, uptr addr,
+result_t Kernel::waitForAddress(IThread* crnt_thread, uptr addr,
                                 ArbitrationType arbitration_type, u32 value,
                                 i64 timeout) {
     LOG_DEBUG(Kernel,
@@ -1118,7 +1118,7 @@ result_t Kernel::WaitForAddress(IThread* crnt_thread, uptr addr,
         }
 
         if (wait) {
-            crnt_thread->Pause();
+            crnt_thread->pause();
 
             crnt_thread->mutex_wait_addr = addr;
             ASSERT_DEBUG(arbiters.addLast(crnt_thread).has_value(), Kernel,
@@ -1127,15 +1127,15 @@ result_t Kernel::WaitForAddress(IThread* crnt_thread, uptr addr,
     }
 
     if (wait) {
-        crnt_thread->ProcessMessages(timeout);
+        crnt_thread->processMessages(timeout);
 
         result_t res = RESULT_SUCCESS;
-        if (crnt_thread->ProcessMessages(timeout)) {
-            if (crnt_thread->GetState() == ThreadState::Stopping) {
+        if (crnt_thread->processMessages(timeout)) {
+            if (crnt_thread->getState() == ThreadState::Stopping) {
                 // TODO: is this necessary?
                 res = MAKE_RESULT(Svc, Error::Cancelled);
             } else {
-                if (!crnt_thread->WasSignalled())
+                if (!crnt_thread->wasSignalled())
                     res = MAKE_RESULT(Svc, Error::Cancelled);
             }
         } else {
@@ -1156,7 +1156,7 @@ result_t Kernel::WaitForAddress(IThread* crnt_thread, uptr addr,
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::SignalToAddress(uptr addr, SignalType signal_type, u32 value,
+result_t Kernel::signalToAddress(uptr addr, SignalType signal_type, u32 value,
                                  u32 count) {
     LOG_DEBUG(Kernel,
               "SignalToAddress called (addr: 0x{:08x}, "
@@ -1178,20 +1178,20 @@ result_t Kernel::SignalToAddress(uptr addr, SignalType signal_type, u32 value,
             continue;
         }
 
-        waiter->Resume();
+        waiter->resume();
         waiter_node = arbiters.remove(waiter_node_);
     }
 
     return RESULT_SUCCESS;
 }
 
-void Kernel::SynchronizePreemptionState(IThread* crnt_thread) {
+void Kernel::synchronizePreemptionState(IThread* crnt_thread) {
     (void)crnt_thread;
 
     LOG_FUNC_STUBBED(Kernel);
 }
 
-result_t Kernel::CreateSession(bool is_light, u64 name,
+result_t Kernel::createSession(bool is_light, u64 name,
                                hipc::ServerSession*& out_server_session,
                                hipc::ClientSession*& out_client_session) {
     LOG_DEBUG(Kernel, "CreateSession called (is_light: {}, name: 0x{:08x})",
@@ -1211,17 +1211,17 @@ result_t Kernel::CreateSession(bool is_light, u64 name,
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::AcceptSession(hipc::ServerPort* server_port,
+result_t Kernel::acceptSession(hipc::ServerPort* server_port,
                                hipc::ServerSession*& out_server_session) {
     LOG_DEBUG(Kernel, "AcceptSession called (port: {})",
-              server_port->GetDebugName());
+              server_port->getDebugName());
 
-    out_server_session = server_port->AcceptSession();
+    out_server_session = server_port->acceptSession();
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::ReplyAndReceive(IThread* crnt_thread,
+result_t Kernel::replyAndReceive(IThread* crnt_thread,
                                  std::span<SynchronizationObject*> sync_objs,
                                  hipc::ServerSession* reply_target_session,
                                  i64 timeout, u32& out_signalled_index) {
@@ -1230,21 +1230,21 @@ result_t Kernel::ReplyAndReceive(IThread* crnt_thread,
 
     if (reply_target_session != nullptr) {
         // Reply
-        reply_target_session->Reply(crnt_thread->GetTlsPtr());
+        reply_target_session->reply(crnt_thread->getTlsPtr());
     }
 
     // Wait
-    const auto res = WaitSynchronization(crnt_thread, sync_objs, timeout,
+    const auto res = waitSynchronization(crnt_thread, sync_objs, timeout,
                                          out_signalled_index);
     if (res != RESULT_SUCCESS)
         return res;
 
     auto sync_obj = sync_objs[static_cast<usize>(out_signalled_index)];
-    if (sync_obj->IsOfType<hipc::ServerSession>()) {
+    if (sync_obj->isOfType<hipc::ServerSession>()) {
         auto server_session = static_cast<hipc::ServerSession*>(sync_obj);
-        if (server_session->IsClientOpen()) {
+        if (server_session->isClientOpen()) {
             // Receive
-            server_session->Receive(crnt_thread);
+            server_session->receive(crnt_thread);
             return RESULT_SUCCESS;
         } else {
             return MAKE_RESULT(Svc, 123); // SessionClosed
@@ -1254,7 +1254,7 @@ result_t Kernel::ReplyAndReceive(IThread* crnt_thread,
     }
 }
 
-result_t Kernel::CreateCodeMemory(vaddr_t addr, u64 size,
+result_t Kernel::createCodeMemory(vaddr_t addr, u64 size,
                                   CodeMemory*& out_code_memory) {
     LOG_DEBUG(Kernel, "CreateCodeMemory called (addr: 0x{:08x}, size: {})",
               addr, size);
@@ -1264,24 +1264,24 @@ result_t Kernel::CreateCodeMemory(vaddr_t addr, u64 size,
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::ControlCodeMemory(CodeMemory* code_memory,
+result_t Kernel::controlCodeMemory(CodeMemory* code_memory,
                                    CodeMemoryOperation op, vaddr_t addr,
                                    u64 size, MemoryPermission perm) {
     LOG_DEBUG(Kernel,
               "ControlCodeMemory called (code memory: {}, op: {}, addr: "
               "0x{:08x}, size: {}, perm: {})",
-              code_memory->GetDebugName(), op, addr, size, perm);
+              code_memory->getDebugName(), op, addr, size, perm);
 
     // TODO: implement
     LOG_FUNC_WITH_ARGS_STUBBED(
         Kernel,
         "code memory: {}, op: {}, addr: 0x{:08x}, size: 0x{:08x}, perm: {}",
-        code_memory->GetDebugName(), op, addr, size, perm);
+        code_memory->getDebugName(), op, addr, size, perm);
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::GetProcessList(u64* process_id_buffer,
+result_t Kernel::getProcessList(u64* process_id_buffer,
                                 u32 process_id_buffer_size, u32& out_count) {
     LOG_DEBUG(Kernel,
               "GetProcessList called (process ID buffer: {}, "
@@ -1290,8 +1290,8 @@ result_t Kernel::GetProcessList(u64* process_id_buffer,
               process_id_buffer_size);
 
     // TODO: is process_id_buffer_size in bytes or number of process IDs?
-    for (auto it = process_manager.Begin();
-         it != process_manager.End() && process_id_buffer_size >= sizeof(u64);
+    for (auto it = process_manager.begin();
+         it != process_manager.end() && process_id_buffer_size >= sizeof(u64);
          it++) {
         // TODO: what is a process ID?
         *process_id_buffer++ = reinterpret_cast<u64>(*it); // HACK
@@ -1302,12 +1302,12 @@ result_t Kernel::GetProcessList(u64* process_id_buffer,
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::SetProcessMemoryPermission(Process* process, vaddr_t addr,
+result_t Kernel::setProcessMemoryPermission(Process* process, vaddr_t addr,
                                             u64 size, MemoryPermission perm) {
     LOG_DEBUG(Kernel,
               "SetProcessMemoryPermission called (process: {}, addr: 0x{:08x}, "
               "size: {}, perm: {})",
-              process->GetDebugName(), addr, size, perm);
+              process->getDebugName(), addr, size, perm);
 
     // TODO: implement
     (void)process;
@@ -1317,52 +1317,52 @@ result_t Kernel::SetProcessMemoryPermission(Process* process, vaddr_t addr,
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::MapProcessMemory(Process* crnt_process, vaddr_t dst_addr,
+result_t Kernel::mapProcessMemory(Process* crnt_process, vaddr_t dst_addr,
                                   Process* process, vaddr_t src_addr,
                                   u64 size) {
     LOG_DEBUG(Kernel,
               "MapProcessMemory called (crnt_process: {}, dst_addr: 0x{:08x}, "
               "process: {}, src_addr: 0x{:08x}, size: {})",
-              crnt_process->GetDebugName(), dst_addr, process->GetDebugName(),
+              crnt_process->getDebugName(), dst_addr, process->getDebugName(),
               src_addr, size);
 
     // TODO: correct?
-    const auto ptr = process->GetMmu()->UnmapAddr(src_addr);
-    crnt_process->GetMmu()->Map(dst_addr, ztd::Range<uptr>::fromSize(ptr, size),
+    const auto ptr = process->getMmu()->unmapAddr(src_addr);
+    crnt_process->getMmu()->map(dst_addr, ztd::Range<uptr>::fromSize(ptr, size),
                                 {}); // TODO: state
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::MapProcessCodeMemory(Process* process, vaddr_t dst_addr,
+result_t Kernel::mapProcessCodeMemory(Process* process, vaddr_t dst_addr,
                                       vaddr_t src_addr, u64 size) {
     LOG_DEBUG(Kernel,
               "MapProcessCodeMemory called (process: {}, dst_addr: 0x{:08x}, "
               "src_addr: 0x{:08x}, size: {})",
-              process->GetDebugName(), dst_addr, src_addr, size);
+              process->getDebugName(), dst_addr, src_addr, size);
 
-    process->GetMmu()->Map(dst_addr,
+    process->getMmu()->map(dst_addr,
                            ztd::Range<vaddr_t>::fromSize(src_addr, size));
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::UnmapProcessCodeMemory(Process* process, vaddr_t dst_addr,
+result_t Kernel::unmapProcessCodeMemory(Process* process, vaddr_t dst_addr,
                                         vaddr_t src_addr, u64 size) {
     LOG_DEBUG(Kernel,
               "UnmapProcessCodeMemory called (process: {}, dst_addr: 0x{:08x}, "
               "src_addr: 0x{:08x}, size: {})",
-              process->GetDebugName(), dst_addr, src_addr, size);
+              process->getDebugName(), dst_addr, src_addr, size);
 
     // TODO: verify that src_addr is the same as the one used in MapMemory?
     (void)src_addr;
 
-    process->GetMmu()->Unmap(ztd::Range<vaddr_t>::fromSize(dst_addr, size));
+    process->getMmu()->unmap(ztd::Range<vaddr_t>::fromSize(dst_addr, size));
 
     return RESULT_SUCCESS;
 }
 
-void Kernel::TryAcquireMutex(Process* crnt_process, IThread* thread) {
+void Kernel::tryAcquireMutex(Process* crnt_process, IThread* thread) {
     auto mutex = reinterpret_cast<u32*>(thread->mutex_wait_addr);
 
     u32 value = *mutex;
@@ -1380,20 +1380,20 @@ void Kernel::TryAcquireMutex(Process* crnt_process, IThread* thread) {
     if (value == 0) {
         // Mutex acquired
         thread->mutex_wait_addr = 0x0;
-        thread->Resume();
+        thread->resume();
         return;
     }
 
     // Register this thread as a waiter by the owner
-    auto owner = GetMutexOwner(crnt_process, value).value();
-    owner->AddMutexWaiter(thread);
+    auto owner = getMutexOwner(crnt_process, value).value();
+    owner->addMutexWaiter(thread);
 }
 
-void Kernel::UnlockMutex(IThread* thread, uptr mutex_addr) {
+void Kernel::unlockMutex(IThread* thread, uptr mutex_addr) {
     auto mutex = reinterpret_cast<u32*>(mutex_addr);
 
     u32 waiter_count;
-    auto new_owner = thread->RelinquishMutex(mutex_addr, waiter_count);
+    auto new_owner = thread->relinquishMutex(mutex_addr, waiter_count);
     if (new_owner == nullptr) {
         atomic_store(mutex, 0u);
         return;
@@ -1406,7 +1406,7 @@ void Kernel::UnlockMutex(IThread* thread, uptr mutex_addr) {
     atomic_store(mutex, value);
 
     // Resume the owner
-    new_owner->Resume();
+    new_owner->resume();
 }
 
 } // namespace hydra::horizon::kernel

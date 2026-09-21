@@ -2,9 +2,9 @@
 
 namespace hydra::horizon::services::nsd {
 
-DEFINE_SERVICE_COMMAND_TABLE(IManager, 11, GetEnvironmentIdentifier)
+DEFINE_SERVICE_COMMAND_TABLE(IManager, 11, getEnvironmentIdentifier)
 
-result_t IManager::GetEnvironmentIdentifier(
+result_t IManager::getEnvironmentIdentifier(
     OutBuffer<BufferAttr::AutoSelect> out_buffer) {
     // TODO: correct?
     out_buffer.stream->writeNullTerminatedString("Ip1");

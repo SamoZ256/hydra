@@ -4,14 +4,14 @@
 
 namespace hydra::horizon::services::lm {
 
-DEFINE_SERVICE_COMMAND_TABLE(ILogService, 0, OpenLogger)
+DEFINE_SERVICE_COMMAND_TABLE(ILogService, 0, openLogger)
 
-result_t ILogService::OpenLogger(RequestContext* ctx, u64 process_id) {
+result_t ILogService::openLogger(RequestContext* ctx, u64 process_id) {
     // TODO: what is process ID for?
     (void)process_id;
     LOG_DEBUG(Services, "Process ID: {}", process_id);
 
-    AddService(*ctx, new ILogger());
+    addService(*ctx, new ILogger());
     return RESULT_SUCCESS;
 }
 

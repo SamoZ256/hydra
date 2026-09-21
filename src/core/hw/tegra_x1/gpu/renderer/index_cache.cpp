@@ -93,10 +93,10 @@ get_primitive_type_triangle_fan_to_triangle_strip() {
 
 IndexCache::~IndexCache() {
     for (auto& [key, index_buffer] : cache)
-        renderer.FreeTemporaryBuffer(index_buffer);
+        renderer.freeTemporaryBuffer(index_buffer);
 }
 
-BufferView IndexCache::Decode(ICommandBuffer* command_buffer,
+BufferView IndexCache::decode(ICommandBuffer* command_buffer,
                               const IndexDescriptor& descriptor,
                               engines::IndexType& out_type,
                               engines::PrimitiveType& out_primitive_type,
@@ -118,7 +118,7 @@ BufferView IndexCache::Decode(ICommandBuffer* command_buffer,
             break;                                                             \
         } else {                                                               \
             if (descriptor.mem_range)                                          \
-                return renderer.GetBufferCache().Get(command_buffer,           \
+                return renderer.getBufferCache().get(command_buffer,           \
                                                      *descriptor.mem_range);   \
             else                                                               \
                 return BufferView();                                           \
@@ -151,18 +151,18 @@ BufferView IndexCache::Decode(ICommandBuffer* command_buffer,
         break;
     }
 
-    const auto hash = Hash(descriptor);
-    auto& index_buffer = cache[hash];
+    const auto hash_value = hash(descriptor);
+    auto& index_buffer = cache[hash_value];
     if (index_buffer != nullptr)
         return BufferView{index_buffer};
 
-    const auto index_size = get_index_type_size(out_type);
-    index_buffer = renderer.AllocateTemporaryBuffer(
+    const auto index_size = getIndexTypeSize(out_type);
+    index_buffer = renderer.allocateTemporaryBuffer(
         static_cast<u64>(out_count * index_size));
     uptr in_ptr = 0x0;
     if (descriptor.mem_range)
         in_ptr = descriptor.mem_range->getBegin();
-    auto out_ptr = index_buffer->GetPtr();
+    auto out_ptr = index_buffer->getPtr();
 
 #define DECODE(name) decode_##name(in_ptr, out_ptr, out_type, descriptor.count)
 
@@ -182,7 +182,7 @@ BufferView IndexCache::Decode(ICommandBuffer* command_buffer,
     return BufferView{index_buffer};
 } // namespace hydra::hw::tegra_x1::gpu::renderer
 
-u32 IndexCache::Hash(const IndexDescriptor& descriptor) {
+u32 IndexCache::hash(const IndexDescriptor& descriptor) {
     ztd::hash::XxHash32 hash;
     hash.add(descriptor.type);
     hash.add(descriptor.primitive_type);

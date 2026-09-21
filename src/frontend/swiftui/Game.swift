@@ -24,7 +24,7 @@ struct Game: Hashable {
         var version = ""
         let nacp = loader.loadNacp()
         if let nacp = nacp {
-            let title = nacp.getTitle(language: HydraSystemLanguage(rawValue: hydraConfigGetSystemLanguage().pointee))
+            let title = nacp.getTitle(language: HydraSystemLanguage(rawValue: configGetSystemLanguage().pointee))
             name = title.name
             author = title.author
             version = nacp.displayVersion

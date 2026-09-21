@@ -21,13 +21,13 @@ class BlitPipelineCache
   public:
     explicit BlitPipelineCache(MTL::Device* device_);
 
-    void Destroy();
+    void destroy();
 
-    MTL::RenderPipelineState* Create(const BlitPipelineDescriptor& descriptor);
-    void Update([[maybe_unused]] MTL::RenderPipelineState* pipeline) {}
-    u32 Hash(const BlitPipelineDescriptor& descriptor);
+    MTL::RenderPipelineState* create(const BlitPipelineDescriptor& descriptor);
+    void update([[maybe_unused]] MTL::RenderPipelineState* pipeline) {}
+    u32 hash(const BlitPipelineDescriptor& descriptor);
 
-    void DestroyElement(MTL::RenderPipelineState* pipeline);
+    void destroyElement(MTL::RenderPipelineState* pipeline);
 
   private:
     MTL::Device* device;

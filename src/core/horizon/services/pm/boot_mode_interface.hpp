@@ -12,12 +12,12 @@ enum class BootMode : u32 {
 
 class IBootModeInterface : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t GetBootMode(BootMode* out_mode);
+    result_t getBootMode(BootMode* out_mode);
 };
 
 } // namespace hydra::horizon::services::pm

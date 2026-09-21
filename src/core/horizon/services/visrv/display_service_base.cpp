@@ -5,33 +5,33 @@
 namespace hydra::horizon::services::visrv {
 
 // TODO: flags, display ID
-result_t DisplayServiceBase::CreateStrayLayerImpl(
+result_t DisplayServiceBase::createStrayLayerImpl(
     System& system, kernel::Process* process, u32 flags, u64 display_id,
     u64* out_layer_id, u64* out_native_window_size,
     std::optional<ztd::io::MemoryStream> out_parcel_stream) {
     (void)flags;
     (void)display_id;
 
-    const auto binder_handle = system.GetOS().GetDisplayDriver().CreateBinder();
+    const auto binder_handle = system.getOs().getDisplayDriver().createBinder();
     // TODO: what's the display for?
     // auto& display = system.GetOS().GetDisplayDriver().GetDisplay(display_id);
 
-    *out_layer_id = system.GetOS()
-                        .GetDisplayDriver()
-                        .CreateLayer(process, binder_handle)
+    *out_layer_id = system.getOs()
+                        .getDisplayDriver()
+                        .createLayer(process, binder_handle)
                         .GetRaw();
 
     // Parcel
     hosbinder::ParcelWriter parcel_writer(out_parcel_stream.value());
-    parcel_writer.WriteObject(binder_handle.GetRaw(), "dispdrv"_u64);
-    parcel_writer.Finish();
+    parcel_writer.writeObject(binder_handle.GetRaw(), "dispdrv"_u64);
+    parcel_writer.finish();
 
-    *out_native_window_size = parcel_writer.GetWrittenSize();
+    *out_native_window_size = parcel_writer.getWrittenSize();
 
     return RESULT_SUCCESS;
 }
 
-result_t DisplayServiceBase::SetLayerVisibilityImpl(u64 layer_id,
+result_t DisplayServiceBase::setLayerVisibilityImpl(u64 layer_id,
                                                     bool visible) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "layer ID: {}, visible: {}", layer_id,
                                visible);

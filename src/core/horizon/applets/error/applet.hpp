@@ -9,7 +9,7 @@ class Applet : public AppletBase {
     using AppletBase::AppletBase;
 
   protected:
-    result_t Run(System& system) override;
+    result_t run(System& system) override;
 };
 
 } // namespace hydra::horizon::applets::error

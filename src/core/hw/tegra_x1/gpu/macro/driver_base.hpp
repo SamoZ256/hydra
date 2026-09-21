@@ -22,33 +22,33 @@ class DriverBase {
     explicit DriverBase(engines::ThreeD& engine_3d_) : engine_3d{engine_3d_} {}
     virtual ~DriverBase() = default;
 
-    void Execute();
+    void execute();
 
-    void LoadInstructionRamPointer(u32 ptr);
-    void LoadInstructionRam(u32 data);
-    void LoadStartAddressRamPointer(u32 ptr);
-    void LoadStartAddressRam(u32 data);
+    void loadInstructionRamPointer(u32 ptr);
+    void loadInstructionRam(u32 data);
+    void loadStartAddressRamPointer(u32 ptr);
+    void loadStartAddressRam(u32 data);
 
-    void SetIndex(u32 index_) { index = index_; }
-    void LoadParam1(u32 data) { param1 = data; }
-    void LoadParam(u32 data) { param_queue.push(data); }
+    void setIndex(u32 index_) { index = index_; }
+    void loadParam1(u32 data) { param1 = data; }
+    void loadParam(u32 data) { param_queue.push(data); }
 
   protected:
-    virtual void ExecuteImpl(u32 pc, u32 param1) = 0;
+    virtual void executeImpl(u32 pc, u32 param1) = 0;
 
-    virtual u32 InstAlu(AluOperation op, u8 rA, u8 rB) = 0;
-    virtual u32 InstAddImmediate(u8 rA, i32 imm) = 0;
-    virtual u32 InstExtractInsert(u8 bA, u8 rA, u8 bB, u8 rB, u8 size) = 0;
-    virtual u32 InstExtractShiftLeftImmediate(u8 bA, u8 rA, u8 rB, u8 size) = 0;
-    virtual u32 InstExtractShiftLeftRegister(u8 rA, u8 bB, u8 rB, u8 size) = 0;
-    virtual u32 InstRead(u8 rA, u32 imm) = 0;
-    virtual void InstBranch(BranchCondition cond, u8 rA, i32 imm,
+    virtual u32 instAlu(AluOperation op, u8 rA, u8 rB) = 0;
+    virtual u32 instAddImmediate(u8 rA, i32 imm) = 0;
+    virtual u32 instExtractInsert(u8 bA, u8 rA, u8 bB, u8 rB, u8 size) = 0;
+    virtual u32 instExtractShiftLeftImmediate(u8 bA, u8 rA, u8 rB, u8 size) = 0;
+    virtual u32 instExtractShiftLeftRegister(u8 rA, u8 bB, u8 rB, u8 size) = 0;
+    virtual u32 instRead(u8 rA, u32 imm) = 0;
+    virtual void instBranch(BranchCondition cond, u8 rA, i32 imm,
                             bool& branched) = 0;
-    virtual void InstResult(ResultOperation op, u8 rD, u32 value) = 0;
+    virtual void instResult(ResultOperation op, u8 rD, u32 value) = 0;
 
-    bool ParseInstruction(u32 pc);
+    bool parseInstruction(u32 pc);
 
-    u32 FetchParam() {
+    u32 fetchParam() {
         ASSERT_DEBUG(!param_queue.empty(), Macro, "Parameter queue is empty");
 
         u32 param = param_queue.front();
@@ -57,9 +57,9 @@ class DriverBase {
         return param;
     }
 
-    u32 Get3DReg(u32 reg_3d);
-    void SetMethod(u32 value);
-    void Send(u32 arg);
+    u32 get3DReg(u32 reg_3d);
+    void setMethod(u32 value);
+    void send(u32 arg);
 
   private:
     engines::ThreeD& engine_3d;

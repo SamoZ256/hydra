@@ -7,12 +7,12 @@ namespace hydra::frontend::sdl3 {
 
 class Cursor : public input::ICursor {
   public:
-    void Poll(SDL_Event e);
+    void poll(SDL_Event e);
 
     // Touch screen
-    u64 GetNextBeganTouchID() override;
-    u64 GetNextEndedTouchID() override;
-    void GetTouchPosition(u64 id, i32& out_x, i32& out_y) override;
+    u64 getNextBeganTouchId() override;
+    u64 getNextEndedTouchId() override;
+    void getTouchPosition(u64 id, i32& out_x, i32& out_y) override;
 
   private:
     bool just_began{false};

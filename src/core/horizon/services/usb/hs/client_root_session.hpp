@@ -28,7 +28,7 @@ class IClientRootSession : public IService {
     IClientRootSession();
 
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
@@ -36,12 +36,12 @@ class IClientRootSession : public IService {
     kernel::Event* interface_state_change_event;
 
     // Commands
-    result_t BindClientProcess(); // 2.0.0+
-    result_t CreateInterfaceAvailableEvent(
+    result_t bindClientProcess(); // 2.0.0+
+    result_t createInterfaceAvailableEvent(
         kernel::Process* process, Aligned<u8, 2> index,
         DeviceFilter device_filter, OutHandle<HandleAttr::Copy> out_handle);
     result_t
-    GetInterfaceStateChangeEvent(kernel::Process* process,
+    getInterfaceStateChangeEvent(kernel::Process* process,
                                  OutHandle<HandleAttr::Copy> out_handle);
 };
 

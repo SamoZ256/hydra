@@ -4,9 +4,9 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer {
 
 namespace {
 
-void push_sv(std::unordered_set<SvSemantic>& svs,
-             std::unordered_set<u8>& stage_in_outs, u64 addr) {
-    const auto sv = get_sv_access_from_addr(addr).sv;
+void pushSv(std::unordered_set<SvSemantic>& svs,
+            std::unordered_set<u8>& stage_in_outs, u64 addr) {
+    const auto sv = getSvAccessFromAddr(addr).sv;
     if (sv.semantic == SvSemantic::UserInOut)
         stage_in_outs.insert(sv.index);
     else
@@ -15,17 +15,17 @@ void push_sv(std::unordered_set<SvSemantic>& svs,
 
 } // namespace
 
-void MemoryAnalyzer::Analyze(const ir::Module& modul) {
-    for (const auto& [name, function] : modul.GetFunctions()) {
-        for (const auto& [label, block] : function.GetBlocks()) {
-            for (const auto& instruction : block.GetInstructions()) {
+void MemoryAnalyzer::analyze(const ir::Module& modul) {
+    for (const auto& [name, function] : modul.getFunctions()) {
+        for (const auto& [label, block] : function.getBlocks()) {
+            for (const auto& instruction : block.getInstructions()) {
                 // Dst
-                if (instruction.HasDst()) {
-                    const auto& dst = instruction.GetDst();
+                if (instruction.hasDst()) {
+                    const auto& dst = instruction.getDst();
                     // NOLINTNEXTLINE(readability-trivial-switch)
-                    switch (dst.GetKind()) {
+                    switch (dst.getKind()) {
                     case ir::ValueKind::AttrMemory:
-                        HandleAMemStore(dst.GetAttrMemory());
+                        handleAMemStore(dst.getAttrMemory());
                         break;
                     default:
                         break;
@@ -33,13 +33,13 @@ void MemoryAnalyzer::Analyze(const ir::Module& modul) {
                 }
 
                 // Operands
-                for (const auto& operand : instruction.GetOperands()) {
-                    switch (operand.GetKind()) {
+                for (const auto& operand : instruction.getOperands()) {
+                    switch (operand.getKind()) {
                     case ir::ValueKind::AttrMemory:
-                        HandleAMemLoad(operand.GetAttrMemory());
+                        handleAMemLoad(operand.getAttrMemory());
                         break;
                     case ir::ValueKind::ConstMemory:
-                        HandleCMemLoad(operand.GetConstMemory());
+                        handleCMemLoad(operand.getConstMemory());
                         break;
                     default:
                         break;
@@ -47,26 +47,28 @@ void MemoryAnalyzer::Analyze(const ir::Module& modul) {
                 }
 
                 // Texture
-                switch (instruction.GetOpcode()) {
+                switch (instruction.getOpcode()) {
                 case ir::Opcode::TextureSample: {
                     const auto const_buffer_index =
-                        instruction.GetOperand(0).GetRawValue<u32>();
+                        instruction.getOperand(0).getRawValue<u32>();
                     const auto type =
-                        instruction.GetOperand(1).GetRawValue<TextureType>();
-                    const auto flags = instruction.GetOperand(2)
-                                           .GetRawValue<TextureSampleFlags>();
+                        instruction.getOperand(1).getRawValue<TextureType>();
+                    const auto flags = instruction.getOperand(2)
+                                           .getRawValue<TextureSampleFlags>();
                     bool is_depth =
                         any(flags & TextureSampleFlags::DepthCompare);
-                    HandleTextureAccess(const_buffer_index,
-                                        TextureInfo{.type=type, .is_depth=is_depth});
+                    handleTextureAccess(
+                        const_buffer_index,
+                        TextureInfo{.type = type, .is_depth = is_depth});
                     break;
                 }
                 case ir::Opcode::TextureGather: {
                     const auto const_buffer_index =
-                        instruction.GetOperand(0).GetRawValue<u32>();
+                        instruction.getOperand(0).getRawValue<u32>();
                     // TODO: is_depth
-                    HandleTextureAccess(const_buffer_index,
-                                        TextureInfo{.type=TextureType::_2D, .is_depth=false});
+                    handleTextureAccess(const_buffer_index,
+                                        TextureInfo{.type = TextureType::_2D,
+                                                    .is_depth = false});
                     break;
                 }
                 // TODO: TextureQueryDimension?
@@ -78,25 +80,25 @@ void MemoryAnalyzer::Analyze(const ir::Module& modul) {
     }
 }
 
-void MemoryAnalyzer::HandleAMemLoad(const AMem amem) {
+void MemoryAnalyzer::handleAMemLoad(const AMem amem) {
     // TODO: support indexing with src
     ASSERT_DEBUG(amem.reg == RZ, ShaderDecompiler,
                  "Indexing not implemented (src: {})", amem.reg);
-    push_sv(input_svs, stage_inputs, amem.imm);
+    pushSv(input_svs, stage_inputs, amem.imm);
 }
 
-void MemoryAnalyzer::HandleCMemLoad(const CMem cmem) {
+void MemoryAnalyzer::handleCMemLoad(const CMem cmem) {
     const_buffers.insert(cmem.idx);
 }
 
-void MemoryAnalyzer::HandleAMemStore(const AMem amem) {
+void MemoryAnalyzer::handleAMemStore(const AMem amem) {
     // TODO: support indexing with src
     ASSERT_DEBUG(amem.reg == RZ, ShaderDecompiler,
                  "Indexing not implemented (src: {})", amem.reg);
-    push_sv(output_svs, stage_outputs, amem.imm);
+    pushSv(output_svs, stage_outputs, amem.imm);
 }
 
-void MemoryAnalyzer::HandleTextureAccess(u32 const_buffer_index,
+void MemoryAnalyzer::handleTextureAccess(u32 const_buffer_index,
                                          const TextureInfo& info) {
     const auto res = textures.emplace(const_buffer_index, info);
     if (!res.second && (res.first->second.type != info.type ||

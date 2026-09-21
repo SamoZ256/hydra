@@ -19,7 +19,7 @@ RenderPass::RenderPass(const RenderPassDescriptor& descriptor)
             render_pass_descriptor->colorAttachments()->object(i);
         color_attachment->setTexture(
             static_cast<TextureView*>(descriptor.color_targets[i].texture)
-                ->GetTexture());
+                ->getTexture());
         if (color_target.load_action_clear) {
             color_attachment->setLoadAction(MTL::LoadActionClear);
             color_attachment->setClearColor(MTL::ClearColor(
@@ -36,15 +36,15 @@ RenderPass::RenderPass(const RenderPassDescriptor& descriptor)
     // Depth stencil target
     if (descriptor.depth_stencil_target.texture != nullptr) {
         const auto& depth_stencil_target = descriptor.depth_stencil_target;
-        const auto& format_info = to_mtl_pixel_format_info(
-            depth_stencil_target.texture->GetDescriptor().format);
+        const auto& format_info = toMtlPixelFormatInfo(
+            depth_stencil_target.texture->getDescriptor().format);
 
         // Depth
         if (format_info.has_depth) {
             auto depth_attachment = render_pass_descriptor->depthAttachment();
             depth_attachment->setTexture(
                 static_cast<TextureView*>(depth_stencil_target.texture)
-                    ->GetTexture());
+                    ->getTexture());
             if (depth_stencil_target.load_action_clear &&
                 depth_stencil_target.clear_data.clear_depth) {
                 depth_attachment->setLoadAction(MTL::LoadActionClear);
@@ -62,7 +62,7 @@ RenderPass::RenderPass(const RenderPassDescriptor& descriptor)
                 render_pass_descriptor->stencilAttachment();
             stencil_attachment->setTexture(
                 static_cast<TextureView*>(depth_stencil_target.texture)
-                    ->GetTexture());
+                    ->getTexture());
             if (depth_stencil_target.load_action_clear &&
                 depth_stencil_target.clear_data.clear_stencil) {
                 stencil_attachment->setLoadAction(MTL::LoadActionClear);

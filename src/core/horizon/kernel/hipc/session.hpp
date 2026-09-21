@@ -18,8 +18,8 @@ class Session : public AutoObject {
     Session(ServerSession* server_side_, ClientSession* client_side_,
             std::string_view debug_name = "Session");
 
-    void OnServerClose();
-    void OnClientClose();
+    void onServerClose();
+    void onClientClose();
 
   private:
     // TODO: this should be stack allocated, but that wouldn't really work with
@@ -28,7 +28,7 @@ class Session : public AutoObject {
     ClientSession* client_side;
 
   public:
-    GETTER(server_side, GetServerSide);
+    GETTER(server_side, getServerSide);
 };
 
 } // namespace hydra::horizon::kernel::hipc

@@ -10,15 +10,15 @@ class Profile {
     Profile(horizon::services::hid::internal::NpadIndex index_,
             std::string_view name_);
 
-    void Reset() {
+    void reset() {
         button_mappings = {};
         analog_mappings = {};
     }
 
-    void LoadDefaults();
+    void loadDefaults();
 
-    void Serialize();
-    void Deserialize();
+    void serialize();
+    void deserialize();
 
   private:
     horizon::services::hid::internal::NpadIndex index;
@@ -29,19 +29,19 @@ class Profile {
     std::vector<CodeAnalogMapping> analog_mappings;
 
     // Helpers
-    static std::string GetProfilesPath() {
+    static std::string getProfilesPath() {
         return fmt::format("{}/input_profiles",
                            CONFIG_INSTANCE.GetAppDataPath());
     }
 
-    std::string GetPath() const {
-        return fmt::format("{}/{}.toml", GetProfilesPath(), name);
+    std::string getPath() const {
+        return fmt::format("{}/{}.toml", getProfilesPath(), name);
     }
 
   public:
-    CONST_REF_GETTER(device_names, GetDeviceNames);
-    CONST_REF_GETTER(button_mappings, GetButtonMappings);
-    CONST_REF_GETTER(analog_mappings, GetAnalogMappings);
+    CONST_REF_GETTER(device_names, getDeviceNames);
+    CONST_REF_GETTER(button_mappings, getButtonMappings);
+    CONST_REF_GETTER(analog_mappings, getAnalogMappings);
 };
 
 } // namespace hydra::input

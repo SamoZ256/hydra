@@ -14,58 +14,58 @@
 
 namespace hydra::horizon::services::am {
 
-result_t IProxy::GetCommonStateGetter(RequestContext* ctx) {
-    AddService(*ctx, new ICommonStateGetter());
+result_t IProxy::getCommonStateGetter(RequestContext* ctx) {
+    addService(*ctx, new ICommonStateGetter());
     return RESULT_SUCCESS;
 }
 
-result_t IProxy::GetSelfController(RequestContext* ctx) {
-    AddService(*ctx, new ISelfController());
+result_t IProxy::getSelfController(RequestContext* ctx) {
+    addService(*ctx, new ISelfController());
     return RESULT_SUCCESS;
 }
 
-result_t IProxy::GetWindowController(RequestContext* ctx) {
-    AddService(*ctx, new IWindowController());
+result_t IProxy::getWindowController(RequestContext* ctx) {
+    addService(*ctx, new IWindowController());
     return RESULT_SUCCESS;
 }
 
-result_t IProxy::GetAudioController(RequestContext* ctx) {
-    AddService(*ctx, new IAudioController());
+result_t IProxy::getAudioController(RequestContext* ctx) {
+    addService(*ctx, new IAudioController());
     return RESULT_SUCCESS;
 }
 
-result_t IProxy::GetDisplayController(RequestContext* ctx) {
-    AddService(*ctx, new IDisplayController());
+result_t IProxy::getDisplayController(RequestContext* ctx) {
+    addService(*ctx, new IDisplayController());
     return RESULT_SUCCESS;
 }
 
-result_t IProxy::GetProcessWindingController(RequestContext* ctx) {
-    AddService(*ctx, new IProcessWindingController());
+result_t IProxy::getProcessWindingController(RequestContext* ctx) {
+    addService(*ctx, new IProcessWindingController());
     return RESULT_SUCCESS;
 }
 
-result_t IProxy::GetLibraryAppletCreator(RequestContext* ctx) {
-    AddService(*ctx, new ILibraryAppletCreator());
+result_t IProxy::getLibraryAppletCreator(RequestContext* ctx) {
+    addService(*ctx, new ILibraryAppletCreator());
     return RESULT_SUCCESS;
 }
 
-result_t IProxy::GetAppletCommonFunctions(RequestContext* ctx) {
-    AddService(*ctx, new IAppletCommonFunctions());
+result_t IProxy::getAppletCommonFunctions(RequestContext* ctx) {
+    addService(*ctx, new IAppletCommonFunctions());
     return RESULT_SUCCESS;
 }
 
-result_t IProxy::GetHomeMenuFunctions(RequestContext* ctx) {
-    AddService(*ctx, new IHomeMenuFunctions());
+result_t IProxy::getHomeMenuFunctions(RequestContext* ctx) {
+    addService(*ctx, new IHomeMenuFunctions());
     return RESULT_SUCCESS;
 }
 
-result_t IProxy::GetGlobalStateController(RequestContext* ctx) {
-    AddService(*ctx, new IGlobalStateController());
+result_t IProxy::getGlobalStateController(RequestContext* ctx) {
+    addService(*ctx, new IGlobalStateController());
     return RESULT_SUCCESS;
 }
 
-result_t IProxy::GetDebugFunctions(RequestContext* ctx) {
-    AddService(*ctx, new IDebugFunctions());
+result_t IProxy::getDebugFunctions(RequestContext* ctx) {
+    addService(*ctx, new IDebugFunctions());
     return RESULT_SUCCESS;
 }
 

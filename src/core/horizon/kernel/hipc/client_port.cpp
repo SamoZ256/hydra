@@ -8,14 +8,14 @@
 
 namespace hydra::horizon::kernel::hipc {
 
-ClientSession* ClientPort::Connect() {
+ClientSession* ClientPort::connect() {
     auto server_session = new hipc::ServerSession();
     auto client_session = new hipc::ClientSession();
     // TODO: is it fine to just instantiate it like this?
     new hipc::Session(server_session, client_session);
 
     // Connect to server
-    parent->GetServerSide()->ConnectSession(server_session);
+    parent->getServerSide()->connectSession(server_session);
 
     return client_session;
 }

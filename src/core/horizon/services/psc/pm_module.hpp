@@ -86,14 +86,14 @@ class IPmModule : public IService {
     IPmModule();
 
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     kernel::Event* event;
 
     // Commands
-    result_t Initialize(kernel::Process* process, PmModuleId module_id,
+    result_t initialize(kernel::Process* process, PmModuleId module_id,
                         InBuffer<BufferAttr::MapAlias> in_dep_buffer,
                         OutHandle<HandleAttr::Copy> out_event_handle);
 };

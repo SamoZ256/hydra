@@ -6,6 +6,6 @@
 namespace hydra::horizon::services::irsensor::internal {
 
 IrSensorManager::IrSensorManager(System& system)
-    : shared_mem{new kernel::SharedMemory(system.GetCpu(), 0x8000)} {}
+    : shared_mem{new kernel::SharedMemory(system.getCpu(), 0x8000)} {}
 
 } // namespace hydra::horizon::services::irsensor::internal

@@ -20,32 +20,32 @@ class AppletResource {
     ~AppletResource();
 
     // Npad setup
-    void ActivateNpads(NpadRevision revision);
-    void SetupNpads();
+    void activateNpads(NpadRevision revision);
+    void setupNpads();
 
-    void DisconnectNpad(NpadIndex index) {
-        npads[static_cast<usize>(index)].Setup(NpadStyleSet::None);
+    void disconnectNpad(NpadIndex index) {
+        npads[static_cast<usize>(index)].setup(NpadStyleSet::None);
         // TODO: ensure that it doesn't get connected in the future?
     }
 
     // Npad support
-    void ClearSupportedNpads() { supported_npads = {false}; }
-    void SetNpadSupported(NpadIndex index, bool supported) {
+    void clearSupportedNpads() { supported_npads = {false}; }
+    void setNpadSupported(NpadIndex index, bool supported) {
         supported_npads[static_cast<usize>(index)] = supported;
         // TODO: reevaluate npad?
     }
 
     // Update
-    void UpdateNpad(NpadIndex index, const input::NpadState& new_state) {
-        if (!ShouldAcceptInput())
+    void updateNpad(NpadIndex index, const input::NpadState& new_state) {
+        if (!shouldAcceptInput())
             return;
 
-        npads[static_cast<usize>(index)].Update(new_state);
+        npads[static_cast<usize>(index)].update(new_state);
     }
-    void UpdateTouch(const std::map<u32, input::TouchState>& new_state);
+    void updateTouch(const std::map<u32, input::TouchState>& new_state);
 
-    kernel::Event* GetNpadStyleSetUpdateEvent(NpadIndex index) {
-        return npads[static_cast<usize>(index)].GetStyleSetUpdateEvent();
+    kernel::Event* getNpadStyleSetUpdateEvent(NpadIndex index) {
+        return npads[static_cast<usize>(index)].getStyleSetUpdateEvent();
     }
 
   private:
@@ -61,14 +61,14 @@ class AppletResource {
     std::array<Npad, NPAD_COUNT> npads;
 
     // Helpers
-    bool ShouldAcceptInput() const { return active && input_enabled; }
+    bool shouldAcceptInput() const { return active && input_enabled; }
 
   public:
-    GETTER(shared_mem, GetSharedMemory);
-    SETTER(input_enabled, EnableInput);
-    GETTER_AND_SETTER(supported_style_sets, GetSupportedStyleSet,
-                      SetSupportedStyleSet);
-    GETTER_AND_SETTER(joy_hold_type, GetJoyHoldType, SetJoyHoldType);
+    GETTER(shared_mem, getSharedMemory);
+    SETTER(input_enabled, enableInput);
+    GETTER_AND_SETTER(supported_style_sets, getSupportedStyleSet,
+                      setSupportedStyleSet);
+    GETTER_AND_SETTER(joy_hold_type, getJoyHoldType, setJoyHoldType);
 };
 
 } // namespace hydra::horizon::services::hid::internal

@@ -25,41 +25,41 @@ class IFileSystem : public IService {
     explicit IFileSystem(const std::string_view mount_) : mount{mount_} {}
 
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     std::string mount;
 
     // Commands
-    result_t CreateFile(System* system, CreateOption flags, u64 size,
+    result_t createFile(System* system, CreateOption flags, u64 size,
                         InBuffer<BufferAttr::HipcPointer> in_path_buffer);
-    result_t DeleteFile(System* system,
+    result_t deleteFile(System* system,
                         InBuffer<BufferAttr::HipcPointer> in_path_buffer);
-    result_t CreateDirectory(System* system,
+    result_t createDirectory(System* system,
                              InBuffer<BufferAttr::HipcPointer> in_path_buffer);
-    result_t DeleteDirectory(System* system,
+    result_t deleteDirectory(System* system,
                              InBuffer<BufferAttr::HipcPointer> in_path_buffer);
-    result_t DeleteDirectoryRecursively(
+    result_t deleteDirectoryRecursively(
         System* system, InBuffer<BufferAttr::HipcPointer> in_path_buffer);
-    result_t RenameFile(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
+    result_t renameFile(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
                         InBuffer<BufferAttr::HipcPointer> in_new_path_buffer);
-    result_t GetEntryType(System* system,
+    result_t getEntryType(System* system,
                           InBuffer<BufferAttr::HipcPointer> in_path_buffer,
                           EntryType* out_entry_type);
-    result_t OpenFile(RequestContext* ctx, System* system,
+    result_t openFile(RequestContext* ctx, System* system,
                       filesystem::FileOpenFlags flags,
                       InBuffer<BufferAttr::HipcPointer> in_path_buffer);
-    result_t OpenDirectory(RequestContext* ctx, System* system,
+    result_t openDirectory(RequestContext* ctx, System* system,
                            DirectoryFilterFlags filter_flags,
                            InBuffer<BufferAttr::HipcPointer> in_path_buffer);
-    STUB_REQUEST_COMMAND(Commit);
-    result_t GetFreeSpaceSize(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
+    STUB_REQUEST_COMMAND(commit);
+    result_t getFreeSpaceSize(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
                               u64* out_size);
-    result_t GetTotalSpaceSize(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
+    result_t getTotalSpaceSize(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
                                u64* out_size);
     result_t
-    GetFileTimeStampRaw(System* system,
+    getFileTimeStampRaw(System* system,
                         InBuffer<BufferAttr::HipcPointer> in_path_buffer,
                         TimeStampRaw* out_timestamp); // 3.0.0+
 };

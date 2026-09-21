@@ -17,7 +17,7 @@ namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 namespace {
 
-inline ApFlags ToApFlags(horizon::kernel::MemoryPermission perm) {
+inline ApFlags toApFlags(horizon::kernel::MemoryPermission perm) {
     if (any(perm & horizon::kernel::MemoryPermission::Read)) {
         if (any(perm & horizon::kernel::MemoryPermission::Write)) {
             if (any(perm & horizon::kernel::MemoryPermission::Execute)) {
@@ -52,7 +52,7 @@ inline ApFlags ToApFlags(horizon::kernel::MemoryPermission perm) {
 // TODO: this is a horrible way to handle this
 bool page_table_regions[16] = {false};
 
-paddr_t FindFreePageTableRegion() {
+paddr_t findFreePageTableRegion() {
     for (u32 i = 0; i < 16; i++) {
         if (!page_table_regions[i]) {
             page_table_regions[i] = true;
@@ -64,7 +64,7 @@ paddr_t FindFreePageTableRegion() {
     return 0;
 }
 
-void ReleasePageTableRegion(paddr_t addr) {
+void releasePageTableRegion(paddr_t addr) {
     ASSERT(addr >= USER_PAGE_TABLE_REGION_BASE &&
                addr <
                    USER_PAGE_TABLE_REGION_BASE + 16 * PAGE_TABLE_RESERVED_SIZE,
@@ -76,7 +76,7 @@ void ReleasePageTableRegion(paddr_t addr) {
 } // namespace
 
 Mmu::Mmu(System& system)
-    : IMmu(system), user_page_table(FindFreePageTableRegion()) {
+    : IMmu(system), user_page_table(findFreePageTableRegion()) {
     // Loader return address
     // TODO: this should be done in a backend agnostic way (perhaps in the
     // kernel?)
@@ -93,44 +93,44 @@ Mmu::Mmu(System& system)
     */
 }
 
-Mmu::~Mmu() { ReleasePageTableRegion(user_page_table.GetBase()); }
+Mmu::~Mmu() { releasePageTableRegion(user_page_table.getBase()); }
 
-void Mmu::Map(vaddr_t dst_va, ztd::Range<uptr> range,
+void Mmu::map(vaddr_t dst_va, ztd::Range<uptr> range,
               const horizon::kernel::MemoryState state) {
     ASSERT_ALIGNMENT(dst_va, GUEST_PAGE_SIZE, Hypervisor, "destination VA");
     ASSERT_ALIGNMENT(range.getSize(), GUEST_PAGE_SIZE, Hypervisor, "size");
-    user_page_table.Map(dst_va, range, state, ToApFlags(state.perm));
+    user_page_table.map(dst_va, range, state, toApFlags(state.perm));
 }
 
 // HACK: this assumes that the whole src range is stored contiguously in
 // physical memory
-void Mmu::Map(vaddr_t dst_va, ztd::Range<vaddr_t> range) {
+void Mmu::map(vaddr_t dst_va, ztd::Range<vaddr_t> range) {
     ASSERT_ALIGNMENT(range.getBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
     ASSERT_ALIGNMENT(range.getEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
-    const auto region = user_page_table.QueryRegion(range.getBegin());
-    paddr_t pa = region.UnmapAddr(range.getBegin());
+    const auto region = user_page_table.queryRegion(range.getBegin());
+    paddr_t pa = region.unmapAddr(range.getBegin());
     // TODO: also inherit flags
-    user_page_table.Map(dst_va, ztd::Range<uptr>::fromSize(pa, range.getSize()),
-                        region.state, ToApFlags(region.state.perm));
+    user_page_table.map(dst_va, ztd::Range<uptr>::fromSize(pa, range.getSize()),
+                        region.state, toApFlags(region.state.perm));
 }
 
-void Mmu::Unmap(ztd::Range<vaddr_t> range) {
+void Mmu::unmap(ztd::Range<vaddr_t> range) {
     ASSERT_ALIGNMENT(range.getBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
     ASSERT_ALIGNMENT(range.getEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
-    user_page_table.Unmap(range);
+    user_page_table.unmap(range);
 }
 
-void Mmu::Protect(ztd::Range<vaddr_t> range,
+void Mmu::protect(ztd::Range<vaddr_t> range,
                   horizon::kernel::MemoryPermission perm) {
     ASSERT_ALIGNMENT(range.getBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
     ASSERT_ALIGNMENT(range.getEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
-    user_page_table.SetMemoryPermission(range, perm, ToApFlags(perm));
+    user_page_table.setMemoryPermission(range, perm, toApFlags(perm));
 }
 
-uptr Mmu::UnmapAddr(vaddr_t va) const { return user_page_table.UnmapAddr(va); }
+uptr Mmu::unmapAddr(vaddr_t va) const { return user_page_table.unmapAddr(va); }
 
-MemoryRegion Mmu::QueryRegion(vaddr_t va) const {
-    auto region = user_page_table.QueryRegion(va);
+MemoryRegion Mmu::queryRegion(vaddr_t va) const {
+    auto region = user_page_table.queryRegion(va);
 
     return {
         .va = region.va,
@@ -139,28 +139,28 @@ MemoryRegion Mmu::QueryRegion(vaddr_t va) const {
     };
 }
 
-void Mmu::SetMemoryAttribute(ztd::Range<vaddr_t> range,
+void Mmu::setMemoryAttribute(ztd::Range<vaddr_t> range,
                              horizon::kernel::MemoryAttribute mask,
                              horizon::kernel::MemoryAttribute value) {
-    user_page_table.SetMemoryAttribute(range, mask, value);
+    user_page_table.setMemoryAttribute(range, mask, value);
 }
 
-void Mmu::SetWriteTrackingEnabled(ztd::Range<vaddr_t> range, bool enable) {
+void Mmu::setWriteTrackingEnabled(ztd::Range<vaddr_t> range, bool enable) {
     ASSERT_ALIGNMENT(range.getBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
     ASSERT_ALIGNMENT(range.getEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
-    user_page_table.SetWriteTrackingEnabled(range, enable);
+    user_page_table.setWriteTrackingEnabled(range, enable);
 }
 
-bool Mmu::TrySuspendWriteTracking(ztd::Range<vaddr_t> range) {
+bool Mmu::trySuspendWriteTracking(ztd::Range<vaddr_t> range) {
     ASSERT_ALIGNMENT(range.getBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
     ASSERT_ALIGNMENT(range.getEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
-    return user_page_table.TrySuspendWriteTracking(range);
+    return user_page_table.trySuspendWriteTracking(range);
 }
 
-void Mmu::ResumeWriteTracking(ztd::Range<vaddr_t> range) {
+void Mmu::resumeWriteTracking(ztd::Range<vaddr_t> range) {
     ASSERT_ALIGNMENT(range.getBegin(), GUEST_PAGE_SIZE, Hypervisor, "begin");
     ASSERT_ALIGNMENT(range.getEnd(), GUEST_PAGE_SIZE, Hypervisor, "end");
-    user_page_table.ResumeWriteTracking(range);
+    user_page_table.resumeWriteTracking(range);
 }
 
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor

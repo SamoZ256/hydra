@@ -7,23 +7,23 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
-ShaderBase* ShaderCache::Create(const GuestShaderDescriptor& descriptor) {
+ShaderBase* ShaderCache::create(const GuestShaderDescriptor& descriptor) {
     ShaderDescriptor host_descriptor{};
-    host_descriptor.type = engines::to_renderer_shader_type(descriptor.stage);
+    host_descriptor.type = engines::toRendererShaderType(descriptor.stage);
 
     // Decompile
     ztd::io::MemoryStream code_stream(
         std::span(reinterpret_cast<u8*>(descriptor.code_ptr),
                   0x1000)); // TODO: size
-    shader_decomp::Decompile(code_stream, host_descriptor.type,
+    shader_decomp::decompile(code_stream, host_descriptor.type,
                              descriptor.state, host_descriptor.backend,
                              host_descriptor.code,
                              host_descriptor.resource_mapping);
 
-    return renderer.CreateShader(host_descriptor);
+    return renderer.createShader(host_descriptor);
 }
 
-u32 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {
+u32 ShaderCache::hash(const GuestShaderDescriptor& descriptor) {
     ztd::hash::XxHash32 hash;
     hash.add(descriptor.stage);
     hash.add(descriptor.code_ptr);
@@ -60,6 +60,6 @@ u32 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {
     return hash.toHashCode();
 }
 
-void ShaderCache::DestroyElement(ShaderBase* shader) { delete shader; }
+void ShaderCache::destroyElement(ShaderBase* shader) { delete shader; }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

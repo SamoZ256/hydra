@@ -4,6 +4,6 @@
 
 namespace hydra::horizon::kernel::hipc {
 
-ClientSession::~ClientSession() { parent->OnClientClose(); }
+ClientSession::~ClientSession() { parent->onClientClose(); }
 
 } // namespace hydra::horizon::kernel::hipc

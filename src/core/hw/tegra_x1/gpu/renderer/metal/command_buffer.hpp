@@ -43,34 +43,34 @@ class CommandBuffer final : public ICommandBuffer {
     explicit CommandBuffer(MTL::CommandQueue* command_queue);
     ~CommandBuffer() override;
 
-    MTL::RenderCommandEncoder* GetRenderCommandEncoderUnchecked() {
+    MTL::RenderCommandEncoder* getRenderCommandEncoderUnchecked() {
         ASSERT_DEBUG(encoder_type == EncoderType::Render, MetalRenderer,
                      "Render command encoder not active");
         return static_cast<MTL::RenderCommandEncoder*>(command_encoder);
     }
     MTL::RenderCommandEncoder*
-    GetRenderCommandEncoder(MTL::RenderPassDescriptor* render_pass_descriptor);
-    MTL::RenderCommandEncoder* CreateRenderCommandEncoder(
+    getRenderCommandEncoder(MTL::RenderPassDescriptor* render_pass_descriptor);
+    MTL::RenderCommandEncoder* createRenderCommandEncoder(
         MTL::RenderPassDescriptor* render_pass_descriptor);
 
-    MTL::BlitCommandEncoder* GetBlitCommandEncoderUnchecked() {
+    MTL::BlitCommandEncoder* getBlitCommandEncoderUnchecked() {
         ASSERT_DEBUG(encoder_type == EncoderType::Blit, MetalRenderer,
                      "Blit command encoder not active");
         return static_cast<MTL::BlitCommandEncoder*>(command_encoder);
     }
-    MTL::BlitCommandEncoder* GetBlitCommandEncoder();
+    MTL::BlitCommandEncoder* getBlitCommandEncoder();
 
-    void EndEncoding();
+    void endEncoding();
 
     // Encoder state setting
-    void SetRenderPipelineState(MTL::RenderPipelineState* pipeline);
-    void SetDepthStencilState(MTL::DepthStencilState* depth_stencil_state);
-    void SetCullMode(MTL::CullMode cull_mode);
-    void SetFrontFaceWinding(MTL::Winding front_face_winding);
-    void SetBuffer(MTL::Buffer* buffer, u64 offset, ShaderType shader_type,
+    void setRenderPipelineState(MTL::RenderPipelineState* pipeline);
+    void setDepthStencilState(MTL::DepthStencilState* depth_stencil_state);
+    void setCullMode(MTL::CullMode cull_mode);
+    void setFrontFaceWinding(MTL::Winding front_face_winding);
+    void setBuffer(MTL::Buffer* buffer, u64 offset, ShaderType shader_type,
                    u32 index);
-    void SetTexture(MTL::Texture* texture, ShaderType shader_type, u32 index);
-    void SetSampler(MTL::SamplerState* sampler, ShaderType shader_type,
+    void setTexture(MTL::Texture* texture, ShaderType shader_type, u32 index);
+    void setSampler(MTL::SamplerState* sampler, ShaderType shader_type,
                     u32 index);
 
   private:
@@ -81,7 +81,7 @@ class CommandBuffer final : public ICommandBuffer {
     EncoderState encoder_state{};
 
   public:
-    GETTER(command_buffer, GetCommandBuffer);
+    GETTER(command_buffer, getCommandBuffer);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal

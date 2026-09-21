@@ -2,14 +2,14 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder {
 
-void EmitKil(DecoderContext& context, InstKil inst) {
+void emitKil(DecoderContext& context, InstKil inst) {
     const auto conditional =
-        HandlePredCond(context.builder, inst.pred, inst.pred_inv);
+        handlePredCond(context.builder, inst.pred, inst.pred_inv);
 
-    context.builder.OpDiscard();
+    context.builder.opDiscard();
 
     if (conditional)
-        context.builder.OpEndIf();
+        context.builder.opEndIf();
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

@@ -15,10 +15,10 @@ class Stream final : public IStream {
            buffer_finished_callback_fn_t buffer_finished_callback);
     ~Stream() override;
 
-    void Start() override;
-    void Stop() override;
+    void start() override;
+    void stop() override;
 
-    void EnqueueBuffer(buffer_id_t id, std::span<const u8> buffer) override;
+    void enqueueBuffer(buffer_id_t id, std::span<const u8> buffer) override;
 
   private:
     Core& core;
@@ -29,10 +29,10 @@ class Stream final : public IStream {
     std::queue<std::pair<buffer_id_t, std::span<const u8>>> buffer_queue;
     u32 pos_in_buffer{};
 
-    static long DataCallback(cubeb_stream* stream, void* user_data,
+    static long dataCallback(cubeb_stream* stream, void* user_data,
                              const void* input_buffer, void* output_buffer,
                              long num_frames);
-    static void StateCallback(cubeb_stream* stream, void* user_data,
+    static void stateCallback(cubeb_stream* stream, void* user_data,
                               cubeb_state state);
 };
 

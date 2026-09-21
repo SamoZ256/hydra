@@ -3,6 +3,6 @@
 namespace hydra::horizon::services::hid {
 
 DEFINE_SERVICE_COMMAND_TABLE(IActiveVibrationDeviceList, 0,
-                             ActivateVibrationDevice)
+                             activateVibrationDevice)
 
 } // namespace hydra::horizon::services::hid

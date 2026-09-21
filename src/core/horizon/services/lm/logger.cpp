@@ -47,7 +47,7 @@ enum class LogDataChunkKey {
 };
 
 // From Ryujinx
-bool TryReadUleb128(ztd::io::MemoryStream& stream, u32& result) {
+bool tryReadUleb128(ztd::io::MemoryStream& stream, u32& result) {
     result = 0;
     int count = 0;
     u8 encoded;
@@ -78,9 +78,9 @@ ENABLE_ENUM_FLAGS_FORMATTING(hydra::horizon::services::lm::PacketFlags, Head,
 
 namespace hydra::horizon::services::lm {
 
-DEFINE_SERVICE_COMMAND_TABLE(ILogger, 0, Log)
+DEFINE_SERVICE_COMMAND_TABLE(ILogger, 0, log)
 
-result_t ILogger::Log(InBuffer<BufferAttr::AutoSelect> buffer) {
+result_t ILogger::log(InBuffer<BufferAttr::AutoSelect> buffer) {
     ZTD_ASSIGN_OR_RETURN_VALUE(
         auto stream, buffer.stream,
         RESULT_SUCCESS); // TODO: return error on failure?
@@ -95,7 +95,7 @@ result_t ILogger::Log(InBuffer<BufferAttr::AutoSelect> buffer) {
            header.payload_size) { // TODO: correct?
         u32 key;
         u32 size;
-        if (!TryReadUleb128(stream, key) || !TryReadUleb128(stream, size))
+        if (!tryReadUleb128(stream, key) || !tryReadUleb128(stream, size))
             return MAKE_RESULT(
                 Svc, kernel::Error::InvalidCombination); // TODO: module
 

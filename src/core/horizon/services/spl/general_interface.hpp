@@ -26,12 +26,12 @@ enum class ConfigItem : u32 {
 
 class IGeneralInterface : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t GetConfig(ConfigItem item, u64* out_config);
+    result_t getConfig(ConfigItem item, u64* out_config);
 };
 
 } // namespace hydra::horizon::services::spl

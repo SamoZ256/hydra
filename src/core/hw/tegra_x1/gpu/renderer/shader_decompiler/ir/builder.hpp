@@ -7,388 +7,389 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir {
 class Builder {
   public:
     explicit Builder(Module& modul_) : modul{modul_} {
-        SetInsertFunction("main");
-        SetInsertBlock(0x0);
+        setInsertFunction("main");
+        setInsertBlock(0x0);
     }
 
     // Operations
 
     // Data
-    void OpCopy(const Value& dst, const Value& src) {
-        AddInstructionWithDst(Opcode::Copy, dst, {src});
+    void opCopy(const Value& dst, const Value& src) {
+        addInstructionWithDst(Opcode::Copy, dst, {src});
     }
-    Value OpCopy(const Value& src) {
-        return AddInstruction(Opcode::Copy, src.GetType(), {src});
+    Value opCopy(const Value& src) {
+        return addInstruction(Opcode::Copy, src.getType(), {src});
     }
-    Value OpCast(const Value& src, Type dst_type) {
-        return AddInstruction(Opcode::Cast, dst_type, {src});
+    Value opCast(const Value& src, Type dst_type) {
+        return addInstruction(Opcode::Cast, dst_type, {src});
     }
-    Value OpBitCast(const Value& src, Type dst_type) {
-        return AddInstruction(Opcode::BitCast, dst_type, {src});
+    Value opBitCast(const Value& src, Type dst_type) {
+        return addInstruction(Opcode::BitCast, dst_type, {src});
     }
 
     // Arithmetic
-    Value OpAbs(const Value& src) {
-        return AddInstruction(Opcode::Abs, src.GetType(), {src});
+    Value opAbs(const Value& src) {
+        return addInstruction(Opcode::Abs, src.getType(), {src});
     }
-    Value OpNeg(const Value& src) {
-        return AddInstruction(Opcode::Neg, src.GetType(), {src});
+    Value opNeg(const Value& src) {
+        return addInstruction(Opcode::Neg, src.getType(), {src});
     }
-    Value OpAdd(const Value& src_a, const Value& src_b) {
-        ASSERT_DEBUG(src_a.GetType() == src_b.GetType(), ShaderDecompiler,
-                     "Type mismatch for add ({} != {})", src_a.GetType(),
-                     src_b.GetType());
-        return AddInstruction(Opcode::Add, src_a.GetType(), {src_a, src_b});
+    Value opAdd(const Value& src_a, const Value& src_b) {
+        ASSERT_DEBUG(src_a.getType() == src_b.getType(), ShaderDecompiler,
+                     "Type mismatch for add ({} != {})", src_a.getType(),
+                     src_b.getType());
+        return addInstruction(Opcode::Add, src_a.getType(), {src_a, src_b});
     }
-    Value OpMultiply(const Value& src_a, const Value& src_b) {
-        ASSERT_DEBUG(src_a.GetType() == src_b.GetType(), ShaderDecompiler,
-                     "Type mismatch for multiply ({} != {})", src_a.GetType(),
-                     src_b.GetType());
-        return AddInstruction(Opcode::Multiply, src_a.GetType(),
+    Value opMultiply(const Value& src_a, const Value& src_b) {
+        ASSERT_DEBUG(src_a.getType() == src_b.getType(), ShaderDecompiler,
+                     "Type mismatch for multiply ({} != {})", src_a.getType(),
+                     src_b.getType());
+        return addInstruction(Opcode::Multiply, src_a.getType(),
                               {src_a, src_b});
     }
-    Value OpFma(const Value& src_a, const Value& src_b, const Value& src_c) {
-        ASSERT_DEBUG(src_a.GetType() == src_b.GetType(), ShaderDecompiler,
-                     "Type mismatch for fma ({} != {})", src_a.GetType(),
-                     src_b.GetType());
-        ASSERT_DEBUG(src_a.GetType() == src_c.GetType(), ShaderDecompiler,
-                     "Type mismatch for fma ({} != {})", src_a.GetType(),
-                     src_c.GetType());
-        return AddInstruction(Opcode::Fma, src_a.GetType(),
+    Value opFma(const Value& src_a, const Value& src_b, const Value& src_c) {
+        ASSERT_DEBUG(src_a.getType() == src_b.getType(), ShaderDecompiler,
+                     "Type mismatch for fma ({} != {})", src_a.getType(),
+                     src_b.getType());
+        ASSERT_DEBUG(src_a.getType() == src_c.getType(), ShaderDecompiler,
+                     "Type mismatch for fma ({} != {})", src_a.getType(),
+                     src_c.getType());
+        return addInstruction(Opcode::Fma, src_a.getType(),
                               {src_a, src_b, src_c});
     }
-    Value OpMin(const Value& src_a, const Value& src_b) {
-        ASSERT_DEBUG(src_a.GetType() == src_b.GetType(), ShaderDecompiler,
-                     "Type mismatch for min ({} != {})", src_a.GetType(),
-                     src_b.GetType());
-        return AddInstruction(Opcode::Min, src_a.GetType(), {src_a, src_b});
+    Value opMin(const Value& src_a, const Value& src_b) {
+        ASSERT_DEBUG(src_a.getType() == src_b.getType(), ShaderDecompiler,
+                     "Type mismatch for min ({} != {})", src_a.getType(),
+                     src_b.getType());
+        return addInstruction(Opcode::Min, src_a.getType(), {src_a, src_b});
     }
-    Value OpMax(const Value& src_a, const Value& src_b) {
-        ASSERT_DEBUG(src_a.GetType() == src_b.GetType(), ShaderDecompiler,
-                     "Type mismatch for max ({} != {})", src_a.GetType(),
-                     src_b.GetType());
-        return AddInstruction(Opcode::Max, src_a.GetType(), {src_a, src_b});
+    Value opMax(const Value& src_a, const Value& src_b) {
+        ASSERT_DEBUG(src_a.getType() == src_b.getType(), ShaderDecompiler,
+                     "Type mismatch for max ({} != {})", src_a.getType(),
+                     src_b.getType());
+        return addInstruction(Opcode::Max, src_a.getType(), {src_a, src_b});
     }
-    Value OpClamp(const Value& src_a, const Value& src_b, const Value& src_c) {
-        ASSERT_DEBUG(src_a.GetType() == src_b.GetType(), ShaderDecompiler,
-                     "Type mismatch for clamp ({} != {})", src_a.GetType(),
-                     src_b.GetType());
-        ASSERT_DEBUG(src_a.GetType() == src_c.GetType(), ShaderDecompiler,
-                     "Type mismatch for clamp ({} != {})", src_a.GetType(),
-                     src_c.GetType());
-        return AddInstruction(Opcode::Clamp, src_a.GetType(),
+    Value opClamp(const Value& src_a, const Value& src_b, const Value& src_c) {
+        ASSERT_DEBUG(src_a.getType() == src_b.getType(), ShaderDecompiler,
+                     "Type mismatch for clamp ({} != {})", src_a.getType(),
+                     src_b.getType());
+        ASSERT_DEBUG(src_a.getType() == src_c.getType(), ShaderDecompiler,
+                     "Type mismatch for clamp ({} != {})", src_a.getType(),
+                     src_c.getType());
+        return addInstruction(Opcode::Clamp, src_a.getType(),
                               {src_a, src_b, src_c});
     }
 
     // Math
-    Value OpIsNan(const Value& src) {
-        ASSERT_DEBUG(src.GetType().IsFloatingPoint(), ShaderDecompiler,
-                     "Cannot check for NaN with type {}", src.GetType());
-        return AddInstruction(Opcode::IsNan, src.GetType(), {src});
+    Value opIsNan(const Value& src) {
+        ASSERT_DEBUG(src.getType().isFloatingPoint(), ShaderDecompiler,
+                     "Cannot check for NaN with type {}", src.getType());
+        return addInstruction(Opcode::IsNan, src.getType(), {src});
     }
-    Value OpRound(const Value& src) {
-        ASSERT_DEBUG(src.GetType().IsFloatingPoint(), ShaderDecompiler,
-                     "Cannot round with type {}", src.GetType());
-        return AddInstruction(Opcode::Round, src.GetType(), {src});
+    Value opRound(const Value& src) {
+        ASSERT_DEBUG(src.getType().isFloatingPoint(), ShaderDecompiler,
+                     "Cannot round with type {}", src.getType());
+        return addInstruction(Opcode::Round, src.getType(), {src});
     }
-    Value OpFloor(const Value& src) {
-        ASSERT_DEBUG(src.GetType().IsFloatingPoint(), ShaderDecompiler,
-                     "Cannot floor with type {}", src.GetType());
-        return AddInstruction(Opcode::Floor, src.GetType(), {src});
+    Value opFloor(const Value& src) {
+        ASSERT_DEBUG(src.getType().isFloatingPoint(), ShaderDecompiler,
+                     "Cannot floor with type {}", src.getType());
+        return addInstruction(Opcode::Floor, src.getType(), {src});
     }
-    Value OpCeil(const Value& src) {
-        ASSERT_DEBUG(src.GetType().IsFloatingPoint(), ShaderDecompiler,
-                     "Cannot ceil with type {}", src.GetType());
-        return AddInstruction(Opcode::Ceil, src.GetType(), {src});
+    Value opCeil(const Value& src) {
+        ASSERT_DEBUG(src.getType().isFloatingPoint(), ShaderDecompiler,
+                     "Cannot ceil with type {}", src.getType());
+        return addInstruction(Opcode::Ceil, src.getType(), {src});
     }
-    Value OpTrunc(const Value& src) {
-        ASSERT_DEBUG(src.GetType().IsFloatingPoint(), ShaderDecompiler,
-                     "Cannot truncate with type {}", src.GetType());
-        return AddInstruction(Opcode::Trunc, src.GetType(), {src});
+    Value opTrunc(const Value& src) {
+        ASSERT_DEBUG(src.getType().isFloatingPoint(), ShaderDecompiler,
+                     "Cannot truncate with type {}", src.getType());
+        return addInstruction(Opcode::Trunc, src.getType(), {src});
     }
-    Value OpReciprocal(const Value& src) {
-        ASSERT_DEBUG(src.GetType().IsFloatingPoint(), ShaderDecompiler,
-                     "Cannot reciprocal with type {}", src.GetType());
-        return AddInstruction(Opcode::Reciprocal, src.GetType(), {src});
+    Value opReciprocal(const Value& src) {
+        ASSERT_DEBUG(src.getType().isFloatingPoint(), ShaderDecompiler,
+                     "Cannot reciprocal with type {}", src.getType());
+        return addInstruction(Opcode::Reciprocal, src.getType(), {src});
     }
-    Value OpSin(const Value& src) {
-        ASSERT_DEBUG(src.GetType().IsFloatingPoint(), ShaderDecompiler,
-                     "Cannot perform sin with type {}", src.GetType());
-        return AddInstruction(Opcode::Sin, src.GetType(), {src});
+    Value opSin(const Value& src) {
+        ASSERT_DEBUG(src.getType().isFloatingPoint(), ShaderDecompiler,
+                     "Cannot perform sin with type {}", src.getType());
+        return addInstruction(Opcode::Sin, src.getType(), {src});
     }
-    Value OpCos(const Value& src) {
-        ASSERT_DEBUG(src.GetType().IsFloatingPoint(), ShaderDecompiler,
-                     "Cannot perform cos with type {}", src.GetType());
-        return AddInstruction(Opcode::Cos, src.GetType(), {src});
+    Value opCos(const Value& src) {
+        ASSERT_DEBUG(src.getType().isFloatingPoint(), ShaderDecompiler,
+                     "Cannot perform cos with type {}", src.getType());
+        return addInstruction(Opcode::Cos, src.getType(), {src});
     }
-    Value OpExp2(const Value& src) {
-        return AddInstruction(Opcode::Exp2, src.GetType(), {src});
+    Value opExp2(const Value& src) {
+        return addInstruction(Opcode::Exp2, src.getType(), {src});
     }
-    Value OpLog2(const Value& src) {
-        return AddInstruction(Opcode::Log2, src.GetType(), {src});
+    Value opLog2(const Value& src) {
+        return addInstruction(Opcode::Log2, src.getType(), {src});
     }
-    Value OpSqrt(const Value& src) {
-        ASSERT_DEBUG(src.GetType().IsFloatingPoint(), ShaderDecompiler,
-                     "Cannot perform sqrt with type {}", src.GetType());
-        return AddInstruction(Opcode::Sqrt, src.GetType(), {src});
+    Value opSqrt(const Value& src) {
+        ASSERT_DEBUG(src.getType().isFloatingPoint(), ShaderDecompiler,
+                     "Cannot perform sqrt with type {}", src.getType());
+        return addInstruction(Opcode::Sqrt, src.getType(), {src});
     }
-    Value OpReciprocalSqrt(const Value& src) {
-        ASSERT_DEBUG(src.GetType().IsFloatingPoint(), ShaderDecompiler,
+    Value opReciprocalSqrt(const Value& src) {
+        ASSERT_DEBUG(src.getType().isFloatingPoint(), ShaderDecompiler,
                      "Cannot perform reciprocal sqrt with type {}",
-                     src.GetType());
-        return AddInstruction(Opcode::ReciprocalSqrt, src.GetType(), {src});
+                     src.getType());
+        return addInstruction(Opcode::ReciprocalSqrt, src.getType(), {src});
     }
 
     // Logical & Bitwise
-    Value OpNot(const Value& src) {
-        ASSERT_DEBUG(src.GetType() == ScalarType::Bool, ShaderDecompiler,
+    Value opNot(const Value& src) {
+        ASSERT_DEBUG(src.getType() == ScalarType::Bool, ShaderDecompiler,
                      "Cannot perform not with non-boolean type {}",
-                     src.GetType());
-        return AddInstruction(Opcode::Not, ScalarType::Bool, {src});
+                     src.getType());
+        return addInstruction(Opcode::Not, ScalarType::Bool, {src});
     }
-    Value OpBitwiseNot(const Value& src) {
-        ASSERT_DEBUG(src.GetType().IsScalar() &&
-                         (src.GetType().IsInteger() ||
-                          src.GetType() == ScalarType::Bool),
+    Value opBitwiseNot(const Value& src) {
+        ASSERT_DEBUG(src.getType().isScalar() &&
+                         (src.getType().isInteger() ||
+                          src.getType() == ScalarType::Bool),
                      ShaderDecompiler,
                      "Cannot perform bitwise not with non-integer type {}",
-                     src.GetType());
-        return AddInstruction(Opcode::BitwiseNot, src.GetType(), {src});
+                     src.getType());
+        return addInstruction(Opcode::BitwiseNot, src.getType(), {src});
     }
-    Value OpBitwiseAnd(const Value& src_a, const Value& src_b) {
-        ASSERT_DEBUG(src_a.GetType() == src_b.GetType(), ShaderDecompiler,
+    Value opBitwiseAnd(const Value& src_a, const Value& src_b) {
+        ASSERT_DEBUG(src_a.getType() == src_b.getType(), ShaderDecompiler,
                      "Type mismatch for bitwise and ({} != {})",
-                     src_a.GetType(), src_b.GetType());
-        ASSERT_DEBUG(src_a.GetType().IsScalar() &&
-                         (src_a.GetType().IsInteger() ||
-                          src_a.GetType() == ScalarType::Bool),
+                     src_a.getType(), src_b.getType());
+        ASSERT_DEBUG(src_a.getType().isScalar() &&
+                         (src_a.getType().isInteger() ||
+                          src_a.getType() == ScalarType::Bool),
                      ShaderDecompiler,
                      "Cannot perform bitwise and with non-integer type {}",
-                     src_a.GetType());
-        return AddInstruction(Opcode::BitwiseAnd, src_a.GetType(),
+                     src_a.getType());
+        return addInstruction(Opcode::BitwiseAnd, src_a.getType(),
                               {src_a, src_b});
     }
-    Value OpBitwiseOr(const Value& src_a, const Value& src_b) {
-        ASSERT_DEBUG(src_a.GetType() == src_b.GetType(), ShaderDecompiler,
-                     "Type mismatch for bitwise or ({} != {})", src_a.GetType(),
-                     src_b.GetType());
-        ASSERT_DEBUG(src_a.GetType().IsScalar() &&
-                         (src_a.GetType().IsInteger() ||
-                          src_a.GetType() == ScalarType::Bool),
+    Value opBitwiseOr(const Value& src_a, const Value& src_b) {
+        ASSERT_DEBUG(src_a.getType() == src_b.getType(), ShaderDecompiler,
+                     "Type mismatch for bitwise or ({} != {})", src_a.getType(),
+                     src_b.getType());
+        ASSERT_DEBUG(src_a.getType().isScalar() &&
+                         (src_a.getType().isInteger() ||
+                          src_a.getType() == ScalarType::Bool),
                      ShaderDecompiler,
                      "Cannot perform bitwise or with non-integer type {}",
-                     src_a.GetType());
-        return AddInstruction(Opcode::BitwiseOr, src_a.GetType(),
+                     src_a.getType());
+        return addInstruction(Opcode::BitwiseOr, src_a.getType(),
                               {src_a, src_b});
     }
-    Value OpBitwiseXor(const Value& src_a, const Value& src_b) {
-        ASSERT_DEBUG(src_a.GetType() == src_b.GetType(), ShaderDecompiler,
+    Value opBitwiseXor(const Value& src_a, const Value& src_b) {
+        ASSERT_DEBUG(src_a.getType() == src_b.getType(), ShaderDecompiler,
                      "Type mismatch for bitwise xor ({} != {})",
-                     src_a.GetType(), src_b.GetType());
-        ASSERT_DEBUG(src_a.GetType().IsScalar() &&
-                         (src_a.GetType().IsInteger() ||
-                          src_a.GetType() == ScalarType::Bool),
+                     src_a.getType(), src_b.getType());
+        ASSERT_DEBUG(src_a.getType().isScalar() &&
+                         (src_a.getType().isInteger() ||
+                          src_a.getType() == ScalarType::Bool),
                      ShaderDecompiler,
                      "Cannot perform bitwise xor with non-integer type {}",
-                     src_a.GetType());
-        return AddInstruction(Opcode::BitwiseXor, src_a.GetType(),
+                     src_a.getType());
+        return addInstruction(Opcode::BitwiseXor, src_a.getType(),
                               {src_a, src_b});
     }
-    Value OpShiftLeft(const Value& src_a, const Value& src_b) {
-        ASSERT_DEBUG(src_a.GetType().IsScalar() && src_a.GetType().IsInteger(),
+    Value opShiftLeft(const Value& src_a, const Value& src_b) {
+        ASSERT_DEBUG(src_a.getType().isScalar() && src_a.getType().isInteger(),
                      ShaderDecompiler,
                      "Cannot perform shift left with non-integer type {}",
-                     src_a.GetType());
-        ASSERT_DEBUG(src_b.GetType().IsScalar() && src_b.GetType().IsInteger(),
+                     src_a.getType());
+        ASSERT_DEBUG(src_b.getType().isScalar() && src_b.getType().isInteger(),
                      ShaderDecompiler,
                      "Cannot perform shift left with non-integer type {}",
-                     src_b.GetType());
-        return AddInstruction(Opcode::ShiftLeft, src_a.GetType(),
+                     src_b.getType());
+        return addInstruction(Opcode::ShiftLeft, src_a.getType(),
                               {src_a, src_b});
     }
-    Value OpShiftRight(const Value& src_a, const Value& src_b) {
-        ASSERT_DEBUG(src_a.GetType().IsScalar() && src_a.GetType().IsInteger(),
+    Value opShiftRight(const Value& src_a, const Value& src_b) {
+        ASSERT_DEBUG(src_a.getType().isScalar() && src_a.getType().isInteger(),
                      ShaderDecompiler,
                      "Cannot perform shift left with non-integer type {}",
-                     src_a.GetType());
-        ASSERT_DEBUG(src_b.GetType().IsScalar() && src_b.GetType().IsInteger(),
+                     src_a.getType());
+        ASSERT_DEBUG(src_b.getType().isScalar() && src_b.getType().isInteger(),
                      ShaderDecompiler,
                      "Cannot perform shift left with non-integer type {}",
-                     src_b.GetType());
-        return AddInstruction(Opcode::ShiftRight, src_a.GetType(),
+                     src_b.getType());
+        return addInstruction(Opcode::ShiftRight, src_a.getType(),
                               {src_a, src_b});
     }
-    Value OpBitfieldExtract(const Value& src_a, const Value& src_b,
+    Value opBitfieldExtract(const Value& src_a, const Value& src_b,
                             const Value& src_c) {
-        ASSERT_DEBUG(src_a.GetType().IsScalar() && src_a.GetType().IsInteger(),
+        ASSERT_DEBUG(src_a.getType().isScalar() && src_a.getType().isInteger(),
                      ShaderDecompiler,
                      "Cannot perform bitfield extract with non-integer type {}",
-                     src_a.GetType());
-        ASSERT_DEBUG(src_b.GetType().IsScalar() && src_b.GetType().IsInteger(),
+                     src_a.getType());
+        ASSERT_DEBUG(src_b.getType().isScalar() && src_b.getType().isInteger(),
                      ShaderDecompiler,
                      "Cannot perform bitfield extract with non-integer type {}",
-                     src_b.GetType());
-        ASSERT_DEBUG(src_c.GetType().IsScalar() && src_c.GetType().IsInteger(),
+                     src_b.getType());
+        ASSERT_DEBUG(src_c.getType().isScalar() && src_c.getType().isInteger(),
                      ShaderDecompiler,
                      "Cannot perform bitfield extract with non-integer type {}",
-                     src_c.GetType());
-        return AddInstruction(Opcode::BitfieldExtract, src_a.GetType(),
+                     src_c.getType());
+        return addInstruction(Opcode::BitfieldExtract, src_a.getType(),
                               {src_a, src_b, src_c});
     }
 
     // Comparison & Selection
-    Value OpCompareLess(const Value& src_a, const Value& src_b) {
-        ASSERT_DEBUG(src_a.GetType() == src_b.GetType(), ShaderDecompiler,
+    Value opCompareLess(const Value& src_a, const Value& src_b) {
+        ASSERT_DEBUG(src_a.getType() == src_b.getType(), ShaderDecompiler,
                      "Type mismatch for compare less ({} != {})",
-                     src_a.GetType(), src_b.GetType());
-        return AddInstruction(Opcode::CompareLess, ScalarType::Bool,
+                     src_a.getType(), src_b.getType());
+        return addInstruction(Opcode::CompareLess, ScalarType::Bool,
                               {src_a, src_b});
     }
-    Value OpCompareLessOrEqual(const Value& src_a, const Value& src_b) {
-        ASSERT_DEBUG(src_a.GetType() == src_b.GetType(), ShaderDecompiler,
+    Value opCompareLessOrEqual(const Value& src_a, const Value& src_b) {
+        ASSERT_DEBUG(src_a.getType() == src_b.getType(), ShaderDecompiler,
                      "Type mismatch for compare less or equal ({} != {})",
-                     src_a.GetType(), src_b.GetType());
-        return AddInstruction(Opcode::CompareLessOrEqual, ScalarType::Bool,
+                     src_a.getType(), src_b.getType());
+        return addInstruction(Opcode::CompareLessOrEqual, ScalarType::Bool,
                               {src_a, src_b});
     }
-    Value OpCompareGreater(const Value& src_a, const Value& src_b) {
-        ASSERT_DEBUG(src_a.GetType() == src_b.GetType(), ShaderDecompiler,
+    Value opCompareGreater(const Value& src_a, const Value& src_b) {
+        ASSERT_DEBUG(src_a.getType() == src_b.getType(), ShaderDecompiler,
                      "Type mismatch for compare greater ({} != {})",
-                     src_a.GetType(), src_b.GetType());
-        return AddInstruction(Opcode::CompareGreater, ScalarType::Bool,
+                     src_a.getType(), src_b.getType());
+        return addInstruction(Opcode::CompareGreater, ScalarType::Bool,
                               {src_a, src_b});
     }
-    Value OpCompareGreaterOrEqual(const Value& src_a, const Value& src_b) {
-        ASSERT_DEBUG(src_a.GetType() == src_b.GetType(), ShaderDecompiler,
+    Value opCompareGreaterOrEqual(const Value& src_a, const Value& src_b) {
+        ASSERT_DEBUG(src_a.getType() == src_b.getType(), ShaderDecompiler,
                      "Type mismatch for compare greater or equal ({} != {})",
-                     src_a.GetType(), src_b.GetType());
-        return AddInstruction(Opcode::CompareGreaterOrEqual, ScalarType::Bool,
+                     src_a.getType(), src_b.getType());
+        return addInstruction(Opcode::CompareGreaterOrEqual, ScalarType::Bool,
                               {src_a, src_b});
     }
-    Value OpCompareEqual(const Value& src_a, const Value& src_b) {
-        ASSERT_DEBUG(src_a.GetType() == src_b.GetType(), ShaderDecompiler,
+    Value opCompareEqual(const Value& src_a, const Value& src_b) {
+        ASSERT_DEBUG(src_a.getType() == src_b.getType(), ShaderDecompiler,
                      "Type mismatch for compare equal ({} != {})",
-                     src_a.GetType(), src_b.GetType());
-        return AddInstruction(Opcode::CompareEqual, ScalarType::Bool,
+                     src_a.getType(), src_b.getType());
+        return addInstruction(Opcode::CompareEqual, ScalarType::Bool,
                               {src_a, src_b});
     }
-    Value OpCompareNotEqual(const Value& src_a, const Value& src_b) {
-        ASSERT_DEBUG(src_a.GetType() == src_b.GetType(), ShaderDecompiler,
+    Value opCompareNotEqual(const Value& src_a, const Value& src_b) {
+        ASSERT_DEBUG(src_a.getType() == src_b.getType(), ShaderDecompiler,
                      "Type mismatch for compare not equal ({} != {})",
-                     src_a.GetType(), src_b.GetType());
-        return AddInstruction(Opcode::CompareNotEqual, ScalarType::Bool,
+                     src_a.getType(), src_b.getType());
+        return addInstruction(Opcode::CompareNotEqual, ScalarType::Bool,
                               {src_a, src_b});
     }
-    Value OpSelect(const Value& cond, const Value& src_true,
+    Value opSelect(const Value& cond, const Value& src_true,
                    const Value& src_false) {
-        ASSERT_DEBUG(cond.GetType() == ScalarType::Bool, ShaderDecompiler,
+        ASSERT_DEBUG(cond.getType() == ScalarType::Bool, ShaderDecompiler,
                      "Cannot perform select with non-boolean type {}",
-                     cond.GetType());
-        ASSERT_DEBUG(src_true.GetType() == src_false.GetType(),
+                     cond.getType());
+        ASSERT_DEBUG(src_true.getType() == src_false.getType(),
                      ShaderDecompiler, "Type mismatch for select ({} != {})",
-                     src_true.GetType(), src_false.GetType());
-        return AddInstruction(Opcode::Select, src_true.GetType(),
+                     src_true.getType(), src_false.getType());
+        return addInstruction(Opcode::Select, src_true.getType(),
                               {cond, src_true, src_false});
     }
 
     // Control flow
-    void OpBeginIf(const Value& cond) {
-        ASSERT_DEBUG(cond.GetType() == ScalarType::Bool, ShaderDecompiler,
+    void opBeginIf(const Value& cond) {
+        ASSERT_DEBUG(cond.getType() == ScalarType::Bool, ShaderDecompiler,
                      "Cannot perform begin if with non-boolean type {}",
-                     cond.GetType());
-        AddInstructionWithDst(Opcode::BeginIf, std::nullopt, {cond});
+                     cond.getType());
+        addInstructionWithDst(Opcode::BeginIf, std::nullopt, {cond});
     }
-    void OpEndIf() { AddInstructionWithDst(Opcode::EndIf); }
-    void OpBranch(label_t target) {
-        AddInstructionWithDst(Opcode::Branch, std::nullopt,
-                              {Value::Label(target)});
+    void opEndIf() { addInstructionWithDst(Opcode::EndIf); }
+    void opBranch(label_t target) {
+        addInstructionWithDst(Opcode::Branch, std::nullopt,
+                              {Value::createLabel(target)});
     }
-    void OpBranchConditional(const Value& cond, label_t target_true,
+    void opBranchConditional(const Value& cond, label_t target_true,
                              label_t target_false) {
         ASSERT_DEBUG(
-            cond.GetType() == ScalarType::Bool, ShaderDecompiler,
+            cond.getType() == ScalarType::Bool, ShaderDecompiler,
             "Cannot perform branch conditional with non-boolean type {}",
-            cond.GetType());
-        AddInstructionWithDst(
-            Opcode::BranchConditional, std::nullopt,
-            {cond, Value::Label(target_true), Value::Label(target_false)});
+            cond.getType());
+        addInstructionWithDst(Opcode::BranchConditional, std::nullopt,
+                              {cond, Value::createLabel(target_true),
+                               Value::createLabel(target_false)});
     }
 
     // Vector
-    Value OpVectorExtract(const Value& src, u8 index) {
-        ASSERT_DEBUG(src.GetType().IsVector(), ShaderDecompiler,
+    Value opVectorExtract(const Value& src, u8 index) {
+        ASSERT_DEBUG(src.getType().isVector(), ShaderDecompiler,
                      "Cannot perform vector extract with non-vector type {}",
-                     src.GetType());
-        return AddInstruction(Opcode::VectorExtract,
-                              src.GetType().GetVectorType().GetElementType(),
-                              {src, Value::RawValue(index)});
+                     src.getType());
+        return addInstruction(Opcode::VectorExtract,
+                              src.getType().getVectorType().getElementType(),
+                              {src, Value::createRawValue(index)});
     }
-    void OpVectorInsert(const Value& dst, const Value& src, u8 index) {
-        ASSERT_DEBUG(dst.GetType().IsVector(), ShaderDecompiler,
+    void opVectorInsert(const Value& dst, const Value& src, u8 index) {
+        ASSERT_DEBUG(dst.getType().isVector(), ShaderDecompiler,
                      "Cannot perform vector insert with non-vector type {}",
-                     dst.GetType());
-        ASSERT_DEBUG(dst.GetType().GetVectorType().GetElementType() ==
-                         src.GetType().GetScalarType(),
+                     dst.getType());
+        ASSERT_DEBUG(dst.getType().getVectorType().getElementType() ==
+                         src.getType().getScalarType(),
                      ShaderDecompiler,
                      "Element type mismatch for vector insert ({} != {})",
-                     src.GetType(),
-                     dst.GetType().GetVectorType().GetElementType());
-        AddInstructionWithDst(Opcode::VectorInsert, dst,
-                              {src, Value::RawValue(index)});
+                     src.getType(),
+                     dst.getType().getVectorType().getElementType());
+        addInstructionWithDst(Opcode::VectorInsert, dst,
+                              {src, Value::createRawValue(index)});
     }
-    Value OpVectorConstruct(ScalarType element_type,
+    Value opVectorConstruct(ScalarType element_type,
                             const std::vector<Value>& elements) {
         std::vector<Value> operands;
         operands.reserve(elements.size());
         for (const auto& element : elements)
             operands.push_back(element);
-        return AddInstruction(
+        return addInstruction(
             Opcode::VectorConstruct,
-            Type::Vector(element_type, static_cast<u8>(elements.size())),
+            Type::createVector(element_type, static_cast<u8>(elements.size())),
             operands);
     }
 
     // Texture
-    Value OpTextureSample(u32 const_buffer_index, TextureType type,
+    Value opTextureSample(u32 const_buffer_index, TextureType type,
                           TextureSampleFlags flags, const Value& array_index,
                           const Value& coords, const Value& cmp_value,
                           const Value& lod) {
-        ASSERT_DEBUG(coords.GetType().IsVector() &&
-                         coords.GetType().IsFloatingPoint(),
+        ASSERT_DEBUG(coords.getType().isVector() &&
+                         coords.getType().isFloatingPoint(),
                      ShaderDecompiler,
                      "Cannot perform texture sample with non-floating point "
                      "vector type {}",
-                     coords.GetType());
+                     coords.getType());
         // TODO: texture type
-        return AddInstruction(
-            Opcode::TextureSample, Type::Vector(ScalarType::F32, 4),
-            {Value::RawValue(const_buffer_index), Value::RawValue(type),
-             Value::RawValue(flags), array_index, coords, cmp_value, lod});
+        return addInstruction(
+            Opcode::TextureSample, Type::createVector(ScalarType::F32, 4),
+            {Value::createRawValue(const_buffer_index),
+             Value::createRawValue(type), Value::createRawValue(flags),
+             array_index, coords, cmp_value, lod});
     }
     // TODO: more args
-    Value OpTextureGather(u32 const_buffer_index, const Value& coords,
+    Value opTextureGather(u32 const_buffer_index, const Value& coords,
                           u8 component) {
-        ASSERT_DEBUG(coords.GetType().IsVector() &&
-                         coords.GetType().IsFloatingPoint(),
+        ASSERT_DEBUG(coords.getType().isVector() &&
+                         coords.getType().isFloatingPoint(),
                      ShaderDecompiler,
                      "Cannot perform texture gather with non-floating point "
                      "vector type {}",
-                     coords.GetType());
+                     coords.getType());
         // TODO: texture type
-        return AddInstruction(Opcode::TextureGather,
-                              Type::Vector(ScalarType::F32, 4),
-                              {Value::RawValue(const_buffer_index), coords,
-                               Value::RawValue(component)});
+        return addInstruction(Opcode::TextureGather,
+                              Type::createVector(ScalarType::F32, 4),
+                              {Value::createRawValue(const_buffer_index),
+                               coords, Value::createRawValue(component)});
     }
-    Value OpTextureQueryDimension(u32 const_buffer_index, u32 dimension) {
-        return AddInstruction(
-            Opcode::TextureQueryDimension, ScalarType::U32,
-            {Value::RawValue(const_buffer_index), Value::RawValue(dimension)});
+    Value opTextureQueryDimension(u32 const_buffer_index, u32 dimension) {
+        return addInstruction(Opcode::TextureQueryDimension, ScalarType::U32,
+                              {Value::createRawValue(const_buffer_index),
+                               Value::createRawValue(dimension)});
     }
 
     // Exit
-    void OpExit() { AddInstructionWithDst(Opcode::Exit); }
-    void OpDiscard() { AddInstructionWithDst(Opcode::Discard); }
+    void opExit() { addInstructionWithDst(Opcode::Exit); }
+    void opDiscard() { addInstructionWithDst(Opcode::Discard); }
 
   protected:
     Module& modul;
@@ -396,29 +397,29 @@ class Builder {
     Function* insert_func;
     Block* insert_block;
 
-    void AddInstructionWithDst(Opcode opcode,
+    void addInstructionWithDst(Opcode opcode,
                                const std::optional<Value> dst = std::nullopt,
                                const std::vector<Value>& operands = {}) {
         ASSERT_DEBUG(insert_block, ShaderDecompiler, "No insert block");
-        insert_block->AddInstruction(opcode, dst, operands);
+        insert_block->addInstruction(opcode, dst, operands);
     }
 
-    Value AddInstruction(Opcode opcode, Type dst_type,
+    Value addInstruction(Opcode opcode, Type dst_type,
                          const std::vector<Value>& operands = {}) {
         ASSERT_DEBUG(insert_block, ShaderDecompiler, "No insert block");
-        const auto dst = insert_block->CreateLocal(dst_type);
-        insert_block->AddInstruction(opcode, dst, operands);
+        const auto dst = insert_block->createLocal(dst_type);
+        insert_block->addInstruction(opcode, dst, operands);
         return dst;
     }
 
   public:
-    void SetInsertFunction(const std::string& name) {
-        insert_func = &modul.GetFunction(name);
+    void setInsertFunction(const std::string& name) {
+        insert_func = &modul.getFunction(name);
     }
 
-    void SetInsertBlock(const label_t label) {
+    void setInsertBlock(const label_t label) {
         ASSERT_DEBUG(insert_func, ShaderDecompiler, "No insert function");
-        insert_block = &insert_func->GetBlock(label);
+        insert_block = &insert_func->getBlock(label);
     }
 };
 

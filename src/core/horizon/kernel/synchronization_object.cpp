@@ -4,22 +4,22 @@
 
 namespace hydra::horizon::kernel {
 
-void SynchronizationObject::AddWaitingThread(IThread* thread) {
+void SynchronizationObject::addWaitingThread(IThread* thread) {
     std::scoped_lock lock(mutex);
     if (signalled) {
-        thread->Resume(this);
+        thread->resume(this);
     } else {
         ASSERT_DEBUG(waiting_threads.addFirst(thread).has_value(), Kernel,
                      "Fail to add waiting thread");
     }
 }
 
-void SynchronizationObject::RemoveWaitingThread(IThread* thread) {
+void SynchronizationObject::removeWaitingThread(IThread* thread) {
     std::scoped_lock lock(mutex);
     waiting_threads.remove(thread);
 }
 
-void SynchronizationObject::AddSignalCallback(
+void SynchronizationObject::addSignalCallback(
     const signal_callback_fn_t& callback) {
     std::scoped_lock lock(mutex);
     if (signalled)
@@ -28,7 +28,7 @@ void SynchronizationObject::AddSignalCallback(
         signal_callbacks.push_back(callback);
 }
 
-void SynchronizationObject::Signal() {
+void SynchronizationObject::signal() {
     std::scoped_lock lock(mutex);
     if (signalled)
         return;
@@ -38,7 +38,7 @@ void SynchronizationObject::Signal() {
     for (auto waiting_thread = waiting_threads.getHead();
          waiting_thread.has_value();
          waiting_thread = waiting_thread.value()->getNext()) {
-        waiting_thread.value()->get()->Resume(this);
+        waiting_thread.value()->get()->resume(this);
     }
     waiting_threads.clear();
 
@@ -47,7 +47,7 @@ void SynchronizationObject::Signal() {
     signal_callbacks.clear();
 }
 
-bool SynchronizationObject::Clear() {
+bool SynchronizationObject::clear() {
     bool was_signalled;
     {
         std::unique_lock<std::mutex> lock(mutex);

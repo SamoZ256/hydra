@@ -23,7 +23,7 @@ union InstLda {
     BitField64<LsSize, 47, 2> size;
 };
 
-void EmitLda(DecoderContext& context, InstLda inst);
+void emitLda(DecoderContext& context, InstLda inst);
 
 union InstSta {
     BitField64<reg_t, 0, 8> src;
@@ -36,7 +36,7 @@ union InstSta {
     BitField64<LsSize, 47, 2> size;
 };
 
-void EmitSta(DecoderContext& context, InstSta inst);
+void emitSta(DecoderContext& context, InstSta inst);
 
 enum class LsSize2 {
     U8 = 0,
@@ -65,7 +65,7 @@ union InstLdc {
     BitField64<LsSize2, 48, 3> size;
 };
 
-void EmitLdc(DecoderContext& context, InstLdc inst);
+void emitLdc(DecoderContext& context, InstLdc inst);
 
 enum class LsSize3 {
     U8 = 0,
@@ -96,7 +96,7 @@ union InstLdg {
     BitField64<LsSize3, 48, 3> size;
 };
 
-void EmitLdg(DecoderContext& context, InstLdg inst);
+void emitLdg(DecoderContext& context, InstLdg inst);
 
 // TODO: Stg
 
@@ -123,7 +123,7 @@ union InstIpa {
     BitField64<IpaOp, 54, 2> op;
 };
 
-void EmitIpa(DecoderContext& context, InstIpa inst);
+void emitIpa(DecoderContext& context, InstIpa inst);
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder
 

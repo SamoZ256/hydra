@@ -10,7 +10,7 @@ class IHidSystemServer : public IService {
     IHidSystemServer();
 
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
@@ -19,16 +19,16 @@ class IHidSystemServer : public IService {
 
     // Commands
     result_t
-    AcquireHomeButtonEventHandle(kernel::Process* process,
+    acquireHomeButtonEventHandle(kernel::Process* process,
                                  OutHandle<HandleAttr::Copy> out_handle);
     result_t
-    AcquireSleepButtonEventHandle(kernel::Process* process,
+    acquireSleepButtonEventHandle(kernel::Process* process,
                                   OutHandle<HandleAttr::Copy> out_handle);
-    STUB_REQUEST_COMMAND(ApplyNpadSystemCommonPolicy);
+    STUB_REQUEST_COMMAND(applyNpadSystemCommonPolicy);
     result_t
-    GetUniquePadsFromNpad(NpadIdType npad_id, i64* out_count,
+    getUniquePadsFromNpad(NpadIdType npad_id, i64* out_count,
                           OutBuffer<BufferAttr::HipcPointer> out_buffer);
-    result_t EnableAppletToGetInput(u8 enable, u64 aruid);
+    result_t enableAppletToGetInput(u8 enable, u64 aruid);
 };
 
 } // namespace hydra::horizon::services::hid

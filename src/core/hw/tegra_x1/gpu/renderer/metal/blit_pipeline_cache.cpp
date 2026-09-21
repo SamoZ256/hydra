@@ -35,7 +35,7 @@ BlitPipelineCache::BlitPipelineCache(MTL::Device* device_) : device{device_} {
 
     // Function
     auto vertex_blit =
-        CreateFunctionFromSource(device, shader_source, "vertex_blit");
+        createFunctionFromSource(device, shader_source, "vertex_blit");
 
     // Pipeline descriptor
     pipeline_descriptor = MTL::RenderPipelineDescriptor::alloc()->init();
@@ -44,10 +44,10 @@ BlitPipelineCache::BlitPipelineCache(MTL::Device* device_) : device{device_} {
         MTL::PrimitiveTopologyClassTriangle);
 }
 
-void BlitPipelineCache::Destroy() { pipeline_descriptor->release(); }
+void BlitPipelineCache::destroy() { pipeline_descriptor->release(); }
 
 MTL::RenderPipelineState*
-BlitPipelineCache::Create(const BlitPipelineDescriptor& descriptor) {
+BlitPipelineCache::create(const BlitPipelineDescriptor& descriptor) {
     // Source
     auto shader_source = R"(
         #include <metal_stdlib>
@@ -76,7 +76,7 @@ BlitPipelineCache::Create(const BlitPipelineDescriptor& descriptor) {
 
     // Function
     auto fragment_blit =
-        CreateFunctionFromSource(device, shader_source, "fragment_blit");
+        createFunctionFromSource(device, shader_source, "fragment_blit");
 
     // Pipeline
     pipeline_descriptor->setFragmentFunction(fragment_blit);
@@ -108,12 +108,12 @@ BlitPipelineCache::Create(const BlitPipelineDescriptor& descriptor) {
     return pipeline;
 }
 
-u32 BlitPipelineCache::Hash(const BlitPipelineDescriptor& descriptor) {
+u32 BlitPipelineCache::hash(const BlitPipelineDescriptor& descriptor) {
     return static_cast<u32>(descriptor.pixel_format) |
            (static_cast<u32>(descriptor.transparent) << 12);
 }
 
-void BlitPipelineCache::DestroyElement(MTL::RenderPipelineState* pipeline) {
+void BlitPipelineCache::destroyElement(MTL::RenderPipelineState* pipeline) {
     pipeline->release();
 }
 

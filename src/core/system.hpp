@@ -28,25 +28,25 @@ class System {
     explicit System(horizon::ui::IHandler& ui_handler_);
     ~System();
 
-    void SetSurface(void* surface) { gpu.GetRenderer().SetSurface(surface); }
+    void setSurface(void* surface) { gpu.getRenderer().setSurface(surface); }
 
-    void LoadAndStart(horizon::loader::ILoader* loader);
-    void RequestStop();
-    void ForceStop();
+    void loadAndStart(horizon::loader::ILoader* loader);
+    void requestStop();
+    void forceStop();
 
-    void Pause();
-    void Resume();
+    void pause();
+    void resume();
 
-    void NotifyOperationModeChanged() { os.NotifyOperationModeChanged(); }
+    void notifyOperationModeChanged() { os.notifyOperationModeChanged(); }
 
     // TODO: rename?
-    void ProgressFrame(u32 width, u32 height, bool& out_dt_average_updated);
+    void progressFrame(u32 width, u32 height, bool& out_dt_average_updated);
 
-    bool IsRunning() const;
-    f32 GetLastDeltaTimeAverage() const { return last_dt_average; }
+    bool isRunning() const;
+    f32 getLastDeltaTimeAverage() const { return last_dt_average; }
 
-    void TakeScreenshot();
-    void CaptureGpuFrame();
+    void takeScreenshot();
+    void captureGpuFrame();
 
   private:
     horizon::ui::IHandler& ui_handler;
@@ -77,18 +77,18 @@ class System {
     clock_t::time_point last_dt_averaging_time{clock_t::now()};
 
     // Helpers
-    static void TryApplyPatch(horizon::kernel::Process* process,
+    static void tryApplyPatch(horizon::kernel::Process* process,
                               const std::string_view target_filename,
                               const std::filesystem::path& path);
 
   public:
-    GETTER(ui_handler, GetUIHandler);
-    REF_GETTER(wall_clock, GetWallClock);
-    hw::tegra_x1::cpu::ICpu& GetCpu() { return *cpu; }
-    REF_GETTER(gpu, GetGpu);
-    REF_GETTER(input_device_manager, GetInputDeviceManager);
-    audio::ICore& GetAudioCore() { return *audio_core; }
-    REF_GETTER(os, GetOS);
+    GETTER(ui_handler, getUiHandler);
+    REF_GETTER(wall_clock, getWallClock);
+    hw::tegra_x1::cpu::ICpu& getCpu() { return *cpu; }
+    REF_GETTER(gpu, getGpu);
+    REF_GETTER(input_device_manager, getInputDeviceManager);
+    audio::ICore& getAudioCore() { return *audio_core; }
+    REF_GETTER(os, getOs);
 };
 
 } // namespace hydra

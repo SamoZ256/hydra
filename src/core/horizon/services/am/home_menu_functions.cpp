@@ -4,12 +4,12 @@
 
 namespace hydra::horizon::services::am {
 
-DEFINE_SERVICE_COMMAND_TABLE(IHomeMenuFunctions, 10, RequestToGetForeground, 21,
-                             GetPopFromGeneralChannelEvent)
+DEFINE_SERVICE_COMMAND_TABLE(IHomeMenuFunctions, 10, requestToGetForeground, 21,
+                             getPopFromGeneralChannelEvent)
 
-result_t IHomeMenuFunctions::GetPopFromGeneralChannelEvent(
+result_t IHomeMenuFunctions::getPopFromGeneralChannelEvent(
     kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = process->AddHandle(pop_from_general_channel_event);
+    out_handle = process->addHandle(pop_from_general_channel_event);
     return RESULT_SUCCESS;
 }
 

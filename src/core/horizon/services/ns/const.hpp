@@ -6,7 +6,7 @@ struct ApplicationTitle {
     char name[0x200];
     char author[0x100];
 
-    bool IsValid() const { return name[0] != '\0'; }
+    bool isValid() const { return name[0] != '\0'; }
 };
 
 enum class VideoCapture : u8 {
@@ -98,7 +98,7 @@ struct ApplicationControlProperty {
     JitConfiguration jit_configuration;
     u8 reserved_x33c0[0xc40]; // TODO: there is more stuff here
 
-    const ApplicationTitle& GetApplicationTitle(SystemLanguage lang) const;
+    const ApplicationTitle& getApplicationTitle(SystemLanguage lang) const;
 };
 
 } // namespace hydra::horizon::services::ns

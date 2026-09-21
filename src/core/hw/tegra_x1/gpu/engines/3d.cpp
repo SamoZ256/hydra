@@ -14,15 +14,15 @@ namespace hydra::hw::tegra_x1::gpu::engines {
 
 namespace {
 
-macro::DriverBase* CreateMacroDriver(ThreeD& three_d) {
+macro::DriverBase* createMacroDriver(ThreeD& three_d) {
     // TODO: choose based on Macro backend
     return new macro::interpreter::Driver(three_d);
 }
 
-u32 get_image_handle(u32 handle) { return extract_bits(handle, 0, 20); }
-u32 get_sampler_handle(u32 handle) { return extract_bits(handle, 20, 12); }
+u32 getImageHandle(u32 handle) { return extract_bits(handle, 0, 20); }
+u32 getSamplerHandle(u32 handle) { return extract_bits(handle, 20, 12); }
 
-renderer::TextureType ToTextureType(TextureType type) {
+renderer::TextureType toTextureType(TextureType type) {
     switch (type) {
     case TextureType::_1D:
         return renderer::TextureType::_1D;
@@ -56,7 +56,7 @@ constexpr u32 D3D11_BLEND_OP_REV_SUB = 3;
 constexpr u32 D3D11_BLEND_OP_MIN = 4;
 constexpr u32 D3D11_BLEND_OP_MAX = 5;
 
-renderer::BlendOperation get_blend_operation(u32 blend_op) {
+renderer::BlendOperation getBlendOperation(u32 blend_op) {
     switch (blend_op) {
     // GL
     case GL_MIN:
@@ -119,7 +119,7 @@ constexpr u32 D3D11_BLEND_FACTOR_INV_SRC1_ALPHA = 19;
 
 constexpr u32 GL_BLEND_FACTOR_BIT = 0x4000;
 
-renderer::BlendFactor get_blend_factor(u32 blend_factor) {
+renderer::BlendFactor getBlendFactor(u32 blend_factor) {
     if ((blend_factor & GL_BLEND_FACTOR_BIT) != 0u) { // GL
         u32 gl_blend_factor = blend_factor & ~GL_BLEND_FACTOR_BIT;
         switch (gl_blend_factor) {
@@ -192,13 +192,13 @@ renderer::BlendFactor get_blend_factor(u32 blend_factor) {
 
 // Render target width is aligned to the stride, lets try to figure out the real
 // one
-u32 GetMinimumWidth(u32 width, renderer::TextureFormat format, u32 width_hint) {
+u32 getMinimumWidth(u32 width, renderer::TextureFormat format, u32 width_hint) {
     if (width <= width_hint)
         return width;
 
     // Get the smallest width that would still align up to the same GOB
     // count
-    const auto bpp = renderer::get_texture_format_bpp(format);
+    const auto bpp = renderer::getTextureFormatBpp(format);
     const auto alignment = 64 / bpp;
     const auto width_aligned = align(width, alignment);
     // HACK
@@ -212,16 +212,16 @@ u32 GetMinimumWidth(u32 width, renderer::TextureFormat format, u32 width_hint) {
 } // namespace
 
 DEFINE_METHOD_TABLE(ThreeD, INLINE_ENGINE_TABLE, 0x45, 1,
-                    LoadMmeInstructionRamPointer, u32, 0x46, 1,
-                    LoadMmeInstructionRam, u32, 0x47, 1,
-                    LoadMmeStartAddressRamPointer, u32, 0x48, 1,
-                    LoadMmeStartAddressRam, u32, 0x35e, 1, DrawVertexArray, u32,
-                    0x5f8, 1, DrawVertexElements, u32, 0x674, 1, ClearBuffer,
-                    ClearBufferData, 0x6c3, 1, SetReportSemaphore, u32, 0x8c4,
-                    1, FirmwareCall4, u32, 0x8e4, 16, LoadConstBuffer, u32,
-                    0x900, 5 * 8, BindGroup, u32)
+                    loadMmeInstructionRamPointer, u32, 0x46, 1,
+                    loadMmeInstructionRam, u32, 0x47, 1,
+                    loadMmeStartAddressRamPointer, u32, 0x48, 1,
+                    loadMmeStartAddressRam, u32, 0x35e, 1, drawVertexArray, u32,
+                    0x5f8, 1, drawVertexElements, u32, 0x674, 1, clearBuffer,
+                    ClearBufferData, 0x6c3, 1, setReportSemaphore, u32, 0x8c4,
+                    1, firmwareCall4, u32, 0x8e4, 16, loadConstBuffer, u32,
+                    0x900, 5 * 8, bindGroup, u32)
 
-ThreeD::ThreeD(Gpu& gpu_) : gpu{gpu_}, macro_driver{CreateMacroDriver(*this)} {
+ThreeD::ThreeD(Gpu& gpu_) : gpu{gpu_}, macro_driver{createMacroDriver(*this)} {
     // Initialize default state
 
     // Viewports
@@ -245,51 +245,51 @@ ThreeD::ThreeD(Gpu& gpu_) : gpu{gpu_}, macro_driver{CreateMacroDriver(*this)} {
         true;
 }
 
-void ThreeD::FlushMacro() { macro_driver->Execute(); }
+void ThreeD::flushMacro() { macro_driver->execute(); }
 
-void ThreeD::Macro(u32 method, u32 arg) {
+void ThreeD::macro(u32 method, u32 arg) {
     u32 index = (method - MACRO_METHODS_REGION) >> 1;
     LOG_DEBUG(Engines, "Macro (index: 0x{:08x})", index);
     if ((method & 0x1) == 0x0) {
         LOG_DEBUG(Engines, "Parameter1: 0x{:08x}", arg);
-        macro_driver->SetIndex(index);
-        macro_driver->LoadParam1(arg);
+        macro_driver->setIndex(index);
+        macro_driver->loadParam1(arg);
     } else {
         LOG_DEBUG(Engines, "ParameterN: 0x{:08x}", arg);
-        macro_driver->LoadParam(arg);
+        macro_driver->loadParam(arg);
     }
 }
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-void ThreeD::LoadMmeInstructionRamPointer(const u32 index, const u32 ptr) {
-    macro_driver->LoadInstructionRamPointer(ptr);
+void ThreeD::loadMmeInstructionRamPointer(const u32 index, const u32 ptr) {
+    macro_driver->loadInstructionRamPointer(ptr);
 }
 
-void ThreeD::LoadMmeInstructionRam(const u32 index, const u32 data) {
-    macro_driver->LoadInstructionRam(data);
+void ThreeD::loadMmeInstructionRam(const u32 index, const u32 data) {
+    macro_driver->loadInstructionRam(data);
 }
 
-void ThreeD::LoadMmeStartAddressRamPointer(const u32 index, const u32 ptr) {
-    macro_driver->LoadStartAddressRamPointer(ptr);
+void ThreeD::loadMmeStartAddressRamPointer(const u32 index, const u32 ptr) {
+    macro_driver->loadStartAddressRamPointer(ptr);
 }
 
-void ThreeD::LoadMmeStartAddressRam(const u32 index, const u32 data) {
-    macro_driver->LoadStartAddressRam(data);
+void ThreeD::loadMmeStartAddressRam(const u32 index, const u32 data) {
+    macro_driver->loadStartAddressRam(data);
 }
 
-void ThreeD::DrawVertexArray(const u32 index, u32 count) {
+void ThreeD::drawVertexArray(const u32 index, u32 count) {
     auto index_type = IndexType::None;
     auto primitive_type = regs.begin.primitive_type;
     renderer::BufferView index_buffer;
     {
         std::scoped_lock buffer_cache_lock(
-            gpu.GetRenderer().GetBufferCache().GetMutex());
-        if (!DrawInternal())
+            gpu.getRenderer().getBufferCache().getMutex());
+        if (!drawInternal())
             return;
 
-        index_buffer = gpu.GetRenderer().GetIndexCache().Decode(
+        index_buffer = gpu.getRenderer().getIndexCache().decode(
             tls_crnt_command_buffer,
             {.type = index_type,
              .primitive_type = primitive_type,
@@ -297,50 +297,50 @@ void ThreeD::DrawVertexArray(const u32 index, u32 count) {
             index_type, primitive_type, count);
     }
 
-    if (index_buffer.GetBase() != nullptr) {
+    if (index_buffer.getBase() != nullptr) {
         // Bind index buffer
-        gpu.GetRenderer().BindIndexBuffer(index_buffer, index_type);
+        gpu.getRenderer().bindIndexBuffer(index_buffer, index_type);
 
         // Draw
 
         // Vertex start is set as vertex base instead, as start is now index
         // start
         // TODO: instance count
-        gpu.GetRenderer().DrawIndexed(tls_crnt_command_buffer, primitive_type,
+        gpu.getRenderer().drawIndexed(tls_crnt_command_buffer, primitive_type,
                                       0, count, regs.vertex_array_start,
                                       regs.base_instance, 1);
     } else {
         // Draw
         // TODO: instance count
-        gpu.GetRenderer().Draw(tls_crnt_command_buffer, primitive_type,
+        gpu.getRenderer().draw(tls_crnt_command_buffer, primitive_type,
                                regs.vertex_array_start, count,
                                regs.base_instance, 1);
     }
 }
 
-void ThreeD::DrawVertexElements(const u32 index, u32 count) {
+void ThreeD::drawVertexElements(const u32 index, u32 count) {
     auto index_type = regs.index_type;
     auto primitive_type = regs.begin.primitive_type;
     renderer::BufferView index_buffer;
     {
         std::scoped_lock buffer_cache_lock(
-            gpu.GetRenderer().GetBufferCache().GetMutex());
-        if (!DrawInternal())
+            gpu.getRenderer().getBufferCache().getMutex());
+        if (!drawInternal())
             return;
 
         // Index buffer
         gpu_vaddr_t index_buffer_ptr =
-            tls_crnt_gmmu->UnmapAddr(regs.index_buffer_addr);
+            tls_crnt_gmmu->unmapAddr(regs.index_buffer_addr);
         // TODO: uncomment?
         u32 index_buffer_size =
             count *
-            get_index_type_size(
+            getIndexTypeSize(
                 regs.index_type); // u64(regs.index_buffer_limit_addr) + 1
                                   // - u64(regs.index_buffer_addr);
         const auto range =
             ztd::Range<uptr>::fromSize(index_buffer_ptr, index_buffer_size);
 
-        index_buffer = gpu.GetRenderer().GetIndexCache().Decode(
+        index_buffer = gpu.getRenderer().getIndexCache().decode(
             tls_crnt_command_buffer,
             {.type = index_type,
              .primitive_type = primitive_type,
@@ -350,17 +350,17 @@ void ThreeD::DrawVertexElements(const u32 index, u32 count) {
     }
 
     // Bind index buffer
-    ASSERT_DEBUG(index_buffer.GetBase(), Gpu, "Index buffer not found");
-    gpu.GetRenderer().BindIndexBuffer(index_buffer, index_type);
+    ASSERT_DEBUG(index_buffer.getBase(), Gpu, "Index buffer not found");
+    gpu.getRenderer().bindIndexBuffer(index_buffer, index_type);
 
     // Draw
     // TODO: instance count
-    gpu.GetRenderer().DrawIndexed(tls_crnt_command_buffer, primitive_type,
+    gpu.getRenderer().drawIndexed(tls_crnt_command_buffer, primitive_type,
                                   regs.vertex_elements_start, count,
                                   regs.base_vertex, regs.base_instance, 1);
 }
 
-void ThreeD::ClearBuffer(const u32 index, const ClearBufferData data) {
+void ThreeD::clearBuffer(const u32 index, const ClearBufferData data) {
     LOG_DEBUG(Gpu,
               "Depth: {}, stencil: {}, color mask: 0x{:x}, target id: {}, "
               "layer id: {}",
@@ -373,57 +373,57 @@ void ThreeD::ClearBuffer(const u32 index, const ClearBufferData data) {
     // Regular clear
     {
         std::scoped_lock texture_cache_lock(
-            gpu.GetRenderer().GetTextureCache().GetMutex());
-        gpu.GetRenderer().BindRenderPass(GetRenderPass());
+            gpu.getRenderer().getTextureCache().getMutex());
+        gpu.getRenderer().bindRenderPass(getRenderPass());
     }
 
     if (data.color_mask != 0x0)
-        gpu.GetRenderer().ClearColor(tls_crnt_command_buffer, data.target_id,
+        gpu.getRenderer().clearColor(tls_crnt_command_buffer, data.target_id,
                                      data.layer_id, data.color_mask,
                                      regs.clear_color);
 
     if (data.depth)
-        gpu.GetRenderer().ClearDepth(tls_crnt_command_buffer, data.layer_id,
+        gpu.getRenderer().clearDepth(tls_crnt_command_buffer, data.layer_id,
                                      regs.clear_depth);
 
     if (data.stencil)
-        gpu.GetRenderer().ClearStencil(tls_crnt_command_buffer, data.layer_id,
+        gpu.getRenderer().clearStencil(tls_crnt_command_buffer, data.layer_id,
                                        regs.clear_stencil);
 }
 
-void ThreeD::SetReportSemaphore(const u32 index, const u32 data) {
+void ThreeD::setReportSemaphore(const u32 index, const u32 data) {
     ONCE(LOG_FUNC_STUBBED(Engines));
 
-    const uptr ptr = tls_crnt_gmmu->UnmapAddr(regs.report_semaphore_addr);
+    const uptr ptr = tls_crnt_gmmu->unmapAddr(regs.report_semaphore_addr);
 
     // TODO: correct?
     *reinterpret_cast<u32*>(ptr) = regs.report_semaphore_payload;
 }
 
-void ThreeD::FirmwareCall4(const u32 index, const u32 data) {
+void ThreeD::firmwareCall4(const u32 index, const u32 data) {
     ONCE(LOG_FUNC_STUBBED(Engines));
 
     // TODO: find out what this does
     regs.mme_scratch[0] = 0x1;
 }
 
-void ThreeD::LoadConstBuffer(const u32 index, const u32 data) {
+void ThreeD::loadConstBuffer(const u32 index, const u32 data) {
     const uptr const_buffer_gpu_addr =
         static_cast<u64>(regs.const_buffer_selector);
     const uptr gpu_addr = const_buffer_gpu_addr + regs.load_const_buffer_offset;
-    const auto ptr = tls_crnt_gmmu->UnmapAddr(gpu_addr);
+    const auto ptr = tls_crnt_gmmu->unmapAddr(gpu_addr);
 
     *reinterpret_cast<u32*>(ptr) = data;
     regs.load_const_buffer_offset += sizeof(u32);
 
     // Invalidate
     // TODO: invalidate as a whole
-    gpu.GetRenderer().InvalidateMemory(
+    gpu.getRenderer().invalidateMemory(
         ztd::Range<uptr>::fromSize(ptr, sizeof(u32)),
         renderer::MemoryInvalidationScope::BufferCache);
 }
 
-void ThreeD::BindGroup(const u32 index, const u32 data) {
+void ThreeD::bindGroup(const u32 index, const u32 data) {
     const auto shader_stage_index = index / 0x8;
     const auto group = index % 0x8;
 
@@ -436,7 +436,7 @@ void ThreeD::BindGroup(const u32 index, const u32 data) {
         bool valid = (data & 0x1) != 0u;
         if (valid) {
             const uptr const_buffer_gpu_ptr =
-                tls_crnt_gmmu->UnmapAddr(regs.const_buffer_selector);
+                tls_crnt_gmmu->unmapAddr(regs.const_buffer_selector);
 
             const auto range = ztd::Range<uptr>::fromSize(
                 const_buffer_gpu_ptr, regs.const_buffer_selector_size);
@@ -456,7 +456,7 @@ void ThreeD::BindGroup(const u32 index, const u32 data) {
 #pragma GCC diagnostic pop
 
 renderer::ITextureView*
-ThreeD::GetColorTargetTexture(u32 render_target_index) const {
+ThreeD::getColorTargetTexture(u32 render_target_index) const {
     const auto& render_target = regs.color_targets[render_target_index];
 
     const auto gpu_addr = static_cast<u64>(render_target.addr);
@@ -467,7 +467,7 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
         return nullptr;
     }
 
-    const auto format = renderer::to_texture_format(render_target.format);
+    const auto format = renderer::toTextureFormat(render_target.format);
 
     // Depth and layer count
     auto type = renderer::TextureType::_2D;
@@ -488,29 +488,29 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
     u32 stride;
     if (is_linear) {
         width = render_target.width_or_stride /
-                renderer::get_texture_format_bpp(format);
+                renderer::getTextureFormatBpp(format);
         stride = render_target.width_or_stride;
     } else {
         const u32 width_hint = regs.screen_scissor.horizontal.x +
                                regs.screen_scissor.horizontal.width;
         width =
-            GetMinimumWidth(render_target.width_or_stride, format, width_hint);
+            getMinimumWidth(render_target.width_or_stride, format, width_hint);
         stride = 0;
     }
 
     const renderer::TextureDescriptor descriptor(
-        tls_crnt_gmmu->UnmapAddr(gpu_addr), type, format, is_linear, stride,
+        tls_crnt_gmmu->unmapAddr(gpu_addr), type, format, is_linear, stride,
         width, render_target.height, depth, 1, layer_count,
         render_target.tile_mode.width_gobs_log2,
         render_target.tile_mode.height_gobs_log2,
         render_target.tile_mode.depth_gobs_log2,
         render_target.layer_stride * 4);
 
-    return gpu.GetRenderer().GetTextureCache().Find(
+    return gpu.getRenderer().getTextureCache().find(
         tls_crnt_command_buffer, descriptor, renderer::TextureUsage::Write);
 }
 
-renderer::ITextureView* ThreeD::GetDepthStencilTargetTexture() const {
+renderer::ITextureView* ThreeD::getDepthStencilTargetTexture() const {
     const auto gpu_addr = static_cast<u64>(regs.depth_target_addr);
     if (gpu_addr == 0x0) {
         // TODO: is this really an error?
@@ -523,8 +523,8 @@ renderer::ITextureView* ThreeD::GetDepthStencilTargetTexture() const {
                           : renderer::TextureType::_2D;
 
     const renderer::TextureDescriptor descriptor(
-        tls_crnt_gmmu->UnmapAddr(gpu_addr), type,
-        renderer::to_texture_format(regs.depth_target_format), false, 0,
+        tls_crnt_gmmu->unmapAddr(gpu_addr), type,
+        renderer::toTextureFormat(regs.depth_target_format), false, 0,
         regs.depth_target_width, regs.depth_target_height, 1, 1,
         regs.depth_target_array_mode.layers,
         regs.depth_target_tile_mode.width_gobs_log2,
@@ -532,32 +532,32 @@ renderer::ITextureView* ThreeD::GetDepthStencilTargetTexture() const {
         regs.depth_target_tile_mode.depth_gobs_log2,
         regs.depth_target_layer_stride * 4);
 
-    return gpu.GetRenderer().GetTextureCache().Find(
+    return gpu.getRenderer().getTextureCache().find(
         tls_crnt_command_buffer, descriptor, renderer::TextureUsage::Write);
 }
 
-renderer::RenderPassBase* ThreeD::GetRenderPass() const {
+renderer::RenderPassBase* ThreeD::getRenderPass() const {
     renderer::RenderPassDescriptor descriptor{};
 
     // Color targets
     for (u32 i = 0; i < regs.color_target_control.count; i++) {
         descriptor.color_targets[i] = {
             .texture =
-                GetColorTargetTexture(regs.color_target_control.GetMap(i)),
+                getColorTargetTexture(regs.color_target_control.getMap(i)),
         };
     }
 
     // Depth stencil target
     descriptor.depth_stencil_target = {
         .texture =
-            ((regs.depth_target_enabled != 0u) ? GetDepthStencilTargetTexture()
+            ((regs.depth_target_enabled != 0u) ? getDepthStencilTargetTexture()
                                                : nullptr),
     };
 
-    return gpu.GetRenderer().GetRenderPassCache().Find(descriptor);
+    return gpu.getRenderer().getRenderPassCache().Find(descriptor);
 }
 
-renderer::Viewport ThreeD::GetViewport(u32 index) {
+renderer::Viewport ThreeD::getViewport(u32 index) {
     renderer::Viewport res;
 
     const auto& extent = regs.viewports[index];
@@ -627,7 +627,7 @@ renderer::Viewport ThreeD::GetViewport(u32 index) {
     return res;
 }
 
-renderer::Scissor ThreeD::GetScissor(u32 index) {
+renderer::Scissor ThreeD::getScissor(u32 index) {
     const auto& scissor = regs.scissors[index];
     if (scissor.enabled != 0u) {
         return renderer::Scissor(
@@ -641,18 +641,18 @@ renderer::Scissor ThreeD::GetScissor(u32 index) {
     }
 }
 
-renderer::ShaderBase* ThreeD::GetShaderUnchecked(ShaderStage stage) const {
-    return active_shaders[static_cast<u32>(to_renderer_shader_type(stage))];
+renderer::ShaderBase* ThreeD::getShaderUnchecked(ShaderStage stage) const {
+    return active_shaders[static_cast<u32>(toRendererShaderType(stage))];
 }
 
-renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) {
+renderer::ShaderBase* ThreeD::getShader(ShaderStage stage) {
     const auto& program = regs.shader_programs[static_cast<usize>(stage)];
     if (!program.config.enable)
         return nullptr;
 
     uptr gpu_addr =
         static_cast<u64>(regs.shader_program_region) + program.offset;
-    uptr ptr = tls_crnt_gmmu->UnmapAddr(gpu_addr);
+    uptr ptr = tls_crnt_gmmu->unmapAddr(gpu_addr);
 
     renderer::GuestShaderDescriptor descriptor{
         .stage = stage,
@@ -672,25 +672,25 @@ renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) {
             continue;
 
         descriptor.state.color_target_data_types[i] =
-            renderer::to_color_data_type(regs.color_targets[i].format);
+            renderer::toColorDataType(regs.color_targets[i].format);
     }
 
     auto& active_shader =
-        active_shaders[static_cast<u32>(to_renderer_shader_type(stage))];
-    active_shader = gpu.GetRenderer().GetShaderCache().Find(descriptor);
+        active_shaders[static_cast<u32>(toRendererShaderType(stage))];
+    active_shader = gpu.getRenderer().getShaderCache().Find(descriptor);
 
     return active_shader;
 }
 
-renderer::PipelineBase* ThreeD::GetPipeline() {
+renderer::PipelineBase* ThreeD::getPipeline() {
     renderer::PipelineDescriptor descriptor{};
 
     // Shaders
     // TODO: add all shaders
     descriptor.shaders[static_cast<u32>(renderer::ShaderType::Vertex)] =
-        GetShader(ShaderStage::VertexB);
+        getShader(ShaderStage::VertexB);
     descriptor.shaders[static_cast<u32>(renderer::ShaderType::Fragment)] =
-        GetShader(ShaderStage::Fragment);
+        getShader(ShaderStage::Fragment);
 
     // Vertex state
 
@@ -733,45 +733,43 @@ renderer::PipelineBase* ThreeD::GetPipeline() {
     for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
         auto& color_target = descriptor.color_target_states[i];
         color_target.format =
-            renderer::to_texture_format(regs.color_targets[i].format);
+            renderer::toTextureFormat(regs.color_targets[i].format);
         color_target.write_mask = regs.color_write_masks[i];
         color_target.blend_enabled =
             static_cast<bool>(regs.color_blend_enabled[i]);
         if (color_target.blend_enabled) {
             if (regs.independent_blend_enabled != 0u) {
                 const auto& blend_state = regs.independent_blend_state[i];
-                color_target.rgb_op = get_blend_operation(blend_state.rgb_op);
+                color_target.rgb_op = getBlendOperation(blend_state.rgb_op);
                 color_target.src_rgb_factor =
-                    get_blend_factor(blend_state.src_rgb_factor);
+                    getBlendFactor(blend_state.src_rgb_factor);
                 color_target.dst_rgb_factor =
-                    get_blend_factor(blend_state.dst_rgb_factor);
-                color_target.alpha_op =
-                    get_blend_operation(blend_state.alpha_op);
+                    getBlendFactor(blend_state.dst_rgb_factor);
+                color_target.alpha_op = getBlendOperation(blend_state.alpha_op);
                 color_target.src_alpha_factor =
-                    get_blend_factor(blend_state.src_alpha_factor);
+                    getBlendFactor(blend_state.src_alpha_factor);
                 color_target.dst_alpha_factor =
-                    get_blend_factor(blend_state.dst_alpha_factor);
+                    getBlendFactor(blend_state.dst_alpha_factor);
             } else {
                 const auto& blend_state = regs.blend_state;
-                color_target.rgb_op = get_blend_operation(blend_state.rgb_op);
+                color_target.rgb_op = getBlendOperation(blend_state.rgb_op);
                 color_target.src_rgb_factor =
-                    get_blend_factor(blend_state.src_rgb_factor);
+                    getBlendFactor(blend_state.src_rgb_factor);
                 color_target.dst_rgb_factor =
-                    get_blend_factor(blend_state.dst_rgb_factor);
-                color_target.alpha_op =
-                    get_blend_operation(blend_state.alpha_op);
+                    getBlendFactor(blend_state.dst_rgb_factor);
+                color_target.alpha_op = getBlendOperation(blend_state.alpha_op);
                 color_target.src_alpha_factor =
-                    get_blend_factor(blend_state.src_alpha_factor);
+                    getBlendFactor(blend_state.src_alpha_factor);
                 color_target.dst_alpha_factor =
-                    get_blend_factor(blend_state.dst_alpha_factor);
+                    getBlendFactor(blend_state.dst_alpha_factor);
             }
         }
     }
 
-    return gpu.GetRenderer().GetPipelineCache().Find(descriptor);
+    return gpu.getRenderer().getPipelineCache().Find(descriptor);
 }
 
-renderer::BufferView ThreeD::GetVertexBuffer(u32 vertex_array_index) const {
+renderer::BufferView ThreeD::getVertexBuffer(u32 vertex_array_index) const {
     const auto& vertex_array = regs.vertex_arrays[vertex_array_index];
 
     // HACK
@@ -780,16 +778,16 @@ renderer::BufferView ThreeD::GetVertexBuffer(u32 vertex_array_index) const {
         return {};
     }
 
-    const auto ptr = tls_crnt_gmmu->UnmapAddr(vertex_array.addr);
+    const auto ptr = tls_crnt_gmmu->unmapAddr(vertex_array.addr);
     const auto size =
         static_cast<u64>(regs.vertex_array_limits[vertex_array_index]) + 1 -
         static_cast<u64>(vertex_array.addr);
-    return gpu.GetRenderer().GetBufferCache().Get(
+    return gpu.getRenderer().getBufferCache().get(
         tls_crnt_command_buffer, ztd::Range<uptr>::fromSize(ptr, size));
 }
 
 renderer::ITextureView*
-ThreeD::GetTexture(const TextureImageControl& tic) const {
+ThreeD::getTexture(const TextureImageControl& tic) const {
     // HACK
     if (tic.hdr_version == TicHdrVersion::_1DBuffer) {
         LOG_ERROR(Engines, "1D buffer");
@@ -802,8 +800,7 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
         return nullptr;
     }
 
-    const auto format =
-        renderer::to_texture_format(tic.format_word, tic.is_srgb);
+    const auto format = renderer::toTextureFormat(tic.format_word, tic.is_srgb);
 
     bool is_linear = false;
     u32 linear_stride = 0;
@@ -819,7 +816,7 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
         break;
     }
 
-    const auto type = ToTextureType(tic.texture_type);
+    const auto type = toTextureType(tic.texture_type);
 
     u32 depth = tic.depth_minus_one + 1;
     u32 layer_count = 1;
@@ -833,7 +830,7 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
 
     const u32 level_count = tic.mip_max_levels + 1;
     const renderer::TextureDescriptor descriptor(
-        tls_crnt_gmmu->UnmapAddr(gpu_addr), type, format, is_linear,
+        tls_crnt_gmmu->unmapAddr(gpu_addr), type, format, is_linear,
         linear_stride, tic.width_minus_one + 1, tic.height_minus_one + 1, depth,
         level_count, layer_count, tic.sparse_tile_width_gobs_log2,
         tic.tile_height_gobs_log2, tic.tile_depth_gobs_log2);
@@ -843,13 +840,13 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
             format, tic.format_word.swizzle_x, tic.format_word.swizzle_y,
             tic.format_word.swizzle_z, tic.format_word.swizzle_w));
 
-    return gpu.GetRenderer().GetTextureCache().Find(
+    return gpu.getRenderer().getTextureCache().find(
         tls_crnt_command_buffer, descriptor, view_descriptor,
         renderer::TextureUsage::Read);
 }
 
 renderer::SamplerBase*
-ThreeD::GetSampler(const TextureSamplerControl& tsc) const {
+ThreeD::getSampler(const TextureSamplerControl& tsc) const {
     const renderer::SamplerDescriptor descriptor{
         .min_filter = static_cast<renderer::SamplerFilter>(tsc.min_filter),
         .mag_filter = static_cast<renderer::SamplerFilter>(tsc.mag_filter),
@@ -867,21 +864,21 @@ ThreeD::GetSampler(const TextureSamplerControl& tsc) const {
                                  tsc.border_color_b, tsc.border_color_a}),
     };
 
-    return gpu.GetRenderer().GetSamplerCache().Find(descriptor);
+    return gpu.getRenderer().getSamplerCache().Find(descriptor);
 }
 
-void ThreeD::ConfigureShaderStage(
+void ThreeD::configureShaderStage(
     const ShaderStage stage, const TextureImageControl* tex_header_pool,
     const TextureSamplerControl* tex_sampler_pool) {
-    const auto shader_type = to_renderer_shader_type(stage);
+    const auto shader_type = toRendererShaderType(stage);
     const u32 stage_index = static_cast<u32>(stage) -
                             1; // 1 is subtracted, because VertexA is skipped
 
-    const auto shader = GetShaderUnchecked(stage);
-    const auto& resource_mapping = shader->GetDescriptor().resource_mapping;
+    const auto shader = getShaderUnchecked(stage);
+    const auto& resource_mapping = shader->getDescriptor().resource_mapping;
 
     // Uniform buffers
-    gpu.GetRenderer().UnbindUniformBuffers(shader_type);
+    gpu.getRenderer().unbindUniformBuffers(shader_type);
     for (u32 i = 0; i < CONST_BUFFER_BINDING_COUNT; i++) {
         const auto index = resource_mapping.uniform_buffers[i];
         if (index == invalid<u32>())
@@ -894,16 +891,16 @@ void ThreeD::ConfigureShaderStage(
             continue;
         }
 
-        const auto buffer = gpu.GetRenderer().GetBufferCache().Get(
+        const auto buffer = gpu.getRenderer().getBufferCache().get(
             tls_crnt_command_buffer, range);
-        gpu.GetRenderer().BindUniformBuffer(buffer, shader_type, index);
+        gpu.getRenderer().bindUniformBuffer(buffer, shader_type, index);
     }
 
     // TODO: storage buffers
 
     // Textures
     if ((tex_header_pool != nullptr) && (tex_sampler_pool != nullptr)) {
-        gpu.GetRenderer().UnbindTextures(shader_type);
+        gpu.getRenderer().unbindTextures(shader_type);
         auto tex_const_buffer = reinterpret_cast<const u32*>(
             bound_const_buffers[stage_index]
                                [regs.bindless_texture_const_buffer_slot]
@@ -913,28 +910,28 @@ void ThreeD::ConfigureShaderStage(
             const auto texture_handle = tex_const_buffer[const_buffer_index];
 
             // Image
-            const auto image_handle = get_image_handle(texture_handle);
+            const auto image_handle = getImageHandle(texture_handle);
             const auto& tic = tex_header_pool[image_handle];
-            const auto texture = GetTexture(tic);
+            const auto texture = getTexture(tic);
 
             // Sampler
-            const auto sampler_handle = get_sampler_handle(texture_handle);
+            const auto sampler_handle = getSamplerHandle(texture_handle);
             const auto& tsc = tex_sampler_pool[sampler_handle];
-            const auto sampler = GetSampler(tsc);
+            const auto sampler = getSampler(tsc);
 
             if ((texture != nullptr) && (sampler != nullptr))
-                gpu.GetRenderer().BindTexture(texture, sampler, shader_type,
+                gpu.getRenderer().bindTexture(texture, sampler, shader_type,
                                               renderer_index);
         }
     }
 }
 
-bool ThreeD::DrawInternal() {
+bool ThreeD::drawInternal() {
     std::scoped_lock texture_cache_lock(
-        gpu.GetRenderer().GetTextureCache().GetMutex());
+        gpu.getRenderer().getTextureCache().getMutex());
 
     // Flush tracked pages
-    tls_crnt_gmmu->GetMmu()->FlushTrackedPages();
+    tls_crnt_gmmu->getMmu()->flushTrackedPages();
 
     // State
     if (!regs.shader_programs[static_cast<u32>(ShaderStage::VertexB)]
@@ -943,16 +940,16 @@ bool ThreeD::DrawInternal() {
         return false;
     }
 
-    gpu.GetRenderer().BindRenderPass(GetRenderPass());
-    gpu.GetRenderer().BindPipeline(GetPipeline());
+    gpu.getRenderer().bindRenderPass(getRenderPass());
+    gpu.getRenderer().bindPipeline(getPipeline());
 
-    gpu.GetRenderer().SetDepthTestEnabled(regs.depth_test_enabled != 0u);
-    gpu.GetRenderer().SetDepthWriteEnabled(regs.depth_write_enabled != 0u);
-    gpu.GetRenderer().SetDepthCompareOp(regs.depth_compare_op);
+    gpu.getRenderer().setDepthTestEnabled(regs.depth_test_enabled != 0u);
+    gpu.getRenderer().setDepthWriteEnabled(regs.depth_write_enabled != 0u);
+    gpu.getRenderer().setDepthCompareOp(regs.depth_compare_op);
 
     for (u32 i = 0; i < VIEWPORT_COUNT; i++) {
-        gpu.GetRenderer().SetViewport(i, GetViewport(i));
-        gpu.GetRenderer().SetScissor(i, GetScissor(i));
+        gpu.getRenderer().setViewport(i, getViewport(i));
+        gpu.getRenderer().setScissor(i, getScissor(i));
     }
 
     for (u32 i = 0; i < VERTEX_ARRAY_COUNT; i++) {
@@ -960,12 +957,12 @@ bool ThreeD::DrawInternal() {
         // HACK: Super Meat Boy contains invalid vertex arrays with address 4096
         if (!vertex_array.config.enable ||
             (vertex_array.addr.hi == 0 && vertex_array.addr.lo == 4096)) {
-            gpu.GetRenderer().BindVertexBuffer(renderer::BufferView(), i);
+            gpu.getRenderer().bindVertexBuffer(renderer::BufferView(), i);
             continue;
         }
 
-        const auto buffer = GetVertexBuffer(i);
-        gpu.GetRenderer().BindVertexBuffer(buffer, i);
+        const auto buffer = getVertexBuffer(i);
+        gpu.getRenderer().bindVertexBuffer(buffer, i);
     }
 
     // Configure stages
@@ -976,18 +973,18 @@ bool ThreeD::DrawInternal() {
     const auto tex_header_pool =
         tex_header_pool_gpu_addr != 0x0
             ? reinterpret_cast<TextureImageControl*>(
-                  tls_crnt_gmmu->UnmapAddr(tex_header_pool_gpu_addr))
+                  tls_crnt_gmmu->unmapAddr(tex_header_pool_gpu_addr))
             : nullptr;
     const auto tex_sampler_pool =
         tex_sampler_pool_gpu_addr != 0x0
             ? reinterpret_cast<TextureSamplerControl*>(
-                  tls_crnt_gmmu->UnmapAddr(tex_sampler_pool_gpu_addr))
+                  tls_crnt_gmmu->unmapAddr(tex_sampler_pool_gpu_addr))
             : nullptr;
 
     // TODO: configure all stages
-    ConfigureShaderStage(ShaderStage::VertexB, tex_header_pool,
+    configureShaderStage(ShaderStage::VertexB, tex_header_pool,
                          tex_sampler_pool);
-    ConfigureShaderStage(ShaderStage::Fragment, tex_header_pool,
+    configureShaderStage(ShaderStage::Fragment, tex_header_pool,
                          tex_sampler_pool);
 
     return true;

@@ -12,16 +12,16 @@ class ServiceManager {
     ~ServiceManager() {
         std::scoped_lock lock(mutex);
         for (auto& [_, port] : ports)
-            port->Release();
+            port->release();
     }
 
-    void RegisterPort(const Key& port_name, ClientPort* client_port) {
+    void registerPort(const Key& port_name, ClientPort* client_port) {
         std::scoped_lock lock(mutex);
-        client_port->Retain();
+        client_port->retain();
         ports.insert({port_name, client_port});
     }
 
-    void UnregisterPort(const Key& port_name) {
+    void unregisterPort(const Key& port_name) {
         std::scoped_lock lock(mutex);
         auto it = ports.find(port_name);
         ASSERT(it != ports.end(), Kernel, "Port not registered");
@@ -29,7 +29,7 @@ class ServiceManager {
         ports.erase(it);
     }
 
-    ClientPort* GetPort(const Key& port_name) {
+    ClientPort* getPort(const Key& port_name) {
         std::scoped_lock lock(mutex);
         auto it = ports.find(port_name);
         if (it == ports.end())

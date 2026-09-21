@@ -81,7 +81,7 @@ struct ShaderHeader {
 };
 #pragma pack(pop)
 
-void Decompile(ztd::io::MemoryStream& code_stream, const ShaderType type,
+void decompile(ztd::io::MemoryStream& code_stream, const ShaderType type,
                const GuestShaderState& state, ShaderBackend& out_backend,
                std::vector<u8>& out_code,
                ResourceMapping& out_resource_mapping) {
@@ -115,7 +115,7 @@ void Decompile(ztd::io::MemoryStream& code_stream, const ShaderType type,
         decoder::Decoder decoder({.decomp_context = context,
                                   .code_stream = &stream,
                                   .builder = builder});
-        decoder.Decode();
+        decoder.decode();
     }
 
 #define DUMP_CFG 0
@@ -138,7 +138,7 @@ void Decompile(ztd::io::MemoryStream& code_stream, const ShaderType type,
 
     // Memory
     analyzer::MemoryAnalyzer mem_analyzer;
-    mem_analyzer.Analyze(modul);
+    mem_analyzer.analyze(modul);
 
     // Debug
     LOG_DEBUG(ShaderDecompiler, "Module:\n{}", modul);
@@ -163,7 +163,7 @@ void Decompile(ztd::io::MemoryStream& code_stream, const ShaderType type,
         break;
     }
 
-    emitter->Emit(modul);
+    emitter->emit(modul);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp

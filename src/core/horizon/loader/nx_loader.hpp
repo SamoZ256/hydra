@@ -13,11 +13,11 @@ class NxLoader : public ILoader {
   public:
     explicit NxLoader(const filesystem::Directory& dir_);
 
-    u64 GetTitleID() const override { return title_id; }
+    u64 getTitleId() const override { return title_id; }
 
-    const std::string& GetName() const { return title_name; }
+    const std::string& getName() const { return title_name; }
 
-    void LoadProcess(System& system, kernel::Process* process) override;
+    void loadProcess(System& system, kernel::Process* process) override;
 
   private:
     const filesystem::Directory& dir;
@@ -31,10 +31,10 @@ class NxLoader : public ILoader {
     u32 system_resource_size;
 
     // Helpers
-    void ParseInfo();
-    void ParseNpdm();
-    void FindIcon();
-    void LoadCode(System& system, kernel::Process* process,
+    void parseInfo();
+    void parseNpdm();
+    void findIcon();
+    void loadCode(System& system, kernel::Process* process,
                   filesystem::Directory* exefs_dir) const;
 };
 

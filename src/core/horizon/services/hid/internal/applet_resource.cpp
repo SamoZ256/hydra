@@ -3,7 +3,7 @@
 #include "core/horizon/kernel/shared_memory.hpp"
 #include "core/system.hpp"
 
-#define SHARED_MEMORY (*reinterpret_cast<SharedMemory*>(shared_mem->GetPtr()))
+#define SHARED_MEMORY (*reinterpret_cast<SharedMemory*>(shared_mem->getPtr()))
 
 namespace hydra::horizon::services::hid::internal {
 
@@ -11,7 +11,7 @@ namespace hydra::horizon::services::hid::internal {
     Npad { SHARED_MEMORY.npad.entries[i].internal_state }
 
 AppletResource::AppletResource(System& system)
-    : shared_mem{new kernel::SharedMemory(system.GetCpu(), sizeof(SharedMemory),
+    : shared_mem{new kernel::SharedMemory(system.getCpu(), sizeof(SharedMemory),
                                           "HID shared memory")},
       npads{{NPAD_INTERNAL_STATE(0), NPAD_INTERNAL_STATE(1),
              NPAD_INTERNAL_STATE(2), NPAD_INTERNAL_STATE(3),
@@ -23,16 +23,16 @@ AppletResource::AppletResource(System& system)
 
 AppletResource::~AppletResource() { delete shared_mem; }
 
-void AppletResource::ActivateNpads(NpadRevision revision) {
+void AppletResource::activateNpads(NpadRevision revision) {
     active = true;
 
     // TODO: revision affects style sets?
     LOG_NOT_IMPLEMENTED(Services, "{}", revision);
 
-    SetupNpads();
+    setupNpads();
 }
 
-void AppletResource::SetupNpads() {
+void AppletResource::setupNpads() {
     for (u32 i = 0; i < NPAD_COUNT; i++) {
         // TODO: get this from the config
         NpadStyleSet style_set;
@@ -69,13 +69,13 @@ void AppletResource::SetupNpads() {
         if (supported_npads[i] && !any(supported_style_sets & style_set))
             style_set = NpadStyleSet::None;
 
-        npads[i].Setup(style_set);
+        npads[i].setup(style_set);
     }
 }
 
-void AppletResource::UpdateTouch(
+void AppletResource::updateTouch(
     const std::map<u32, input::TouchState>& new_state) {
-    if (!ShouldAcceptInput())
+    if (!shouldAcceptInput())
         return;
 
     auto& lifo = SHARED_MEMORY.touch_screen.lifo;
@@ -91,7 +91,7 @@ void AppletResource::UpdateTouch(
             // TODO: more
         };
     }
-    lifo.WriteNext(state);
+    lifo.writeNext(state);
 }
 
 } // namespace hydra::horizon::services::hid::internal

@@ -4,17 +4,17 @@
 
 namespace hydra::horizon::services::am {
 
-DEFINE_SERVICE_COMMAND_TABLE(ISystemAppletProxy, 0, GetCommonStateGetter, 1,
-                             GetSelfController, 2, GetWindowController, 3,
-                             GetAudioController, 4, GetDisplayController, 10,
-                             GetProcessWindingController, 11,
-                             GetLibraryAppletCreator, 20, GetHomeMenuFunctions,
-                             21, GetGlobalStateController, 22,
-                             GetApplicationCreator, 23,
-                             GetAppletCommonFunctions, 1000, GetDebugFunctions)
+DEFINE_SERVICE_COMMAND_TABLE(ISystemAppletProxy, 0, getCommonStateGetter, 1,
+                             getSelfController, 2, getWindowController, 3,
+                             getAudioController, 4, getDisplayController, 10,
+                             getProcessWindingController, 11,
+                             getLibraryAppletCreator, 20, getHomeMenuFunctions,
+                             21, getGlobalStateController, 22,
+                             getApplicationCreator, 23,
+                             getAppletCommonFunctions, 1000, getDebugFunctions)
 
-result_t ISystemAppletProxy::GetApplicationCreator(RequestContext* ctx) {
-    AddService(*ctx, new IApplicationCreator());
+result_t ISystemAppletProxy::getApplicationCreator(RequestContext* ctx) {
+    addService(*ctx, new IApplicationCreator());
     return RESULT_SUCCESS;
 }
 } // namespace hydra::horizon::services::am

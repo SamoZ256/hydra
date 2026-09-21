@@ -6,35 +6,35 @@
 
 namespace hydra::horizon::services::am {
 
-DEFINE_SERVICE_COMMAND_TABLE(ILibraryAppletCreator, 0, CreateLibraryApplet, 10,
-                             CreateStorage, 11, CreateTransferMemoryStorage)
+DEFINE_SERVICE_COMMAND_TABLE(ILibraryAppletCreator, 0, createLibraryApplet, 10,
+                             createStorage, 11, createTransferMemoryStorage)
 
-result_t ILibraryAppletCreator::CreateLibraryApplet(RequestContext* ctx,
+result_t ILibraryAppletCreator::createLibraryApplet(RequestContext* ctx,
                                                     AppletId id,
                                                     LibraryAppletMode mode) {
     LOG_DEBUG(Services, "ID: {}, mode: {}", id, mode);
 
-    AddService(*ctx, new ILibraryAppletAccessor(id, mode));
+    addService(*ctx, new ILibraryAppletAccessor(id, mode));
     return RESULT_SUCCESS;
 }
 
-result_t ILibraryAppletCreator::CreateStorage(RequestContext* ctx, i64 size) {
+result_t ILibraryAppletCreator::createStorage(RequestContext* ctx, i64 size) {
     LOG_DEBUG(Services, "Size: {}", size);
 
-    AddService(*ctx, new IStorage(std::vector<u8>(static_cast<usize>(size))));
+    addService(*ctx, new IStorage(std::vector<u8>(static_cast<usize>(size))));
     return RESULT_SUCCESS;
 }
 
-result_t ILibraryAppletCreator::CreateTransferMemoryStorage(
+result_t ILibraryAppletCreator::createTransferMemoryStorage(
     kernel::Process* process, RequestContext* ctx,
     InHandle<HandleAttr::Copy> tmem_handle, bool writable, i64 size) {
     (void)writable;
 
-    auto tmem = process->GetHandle<kernel::TransferMemory>(tmem_handle);
+    auto tmem = process->getHandle<kernel::TransferMemory>(tmem_handle);
     const auto ptr =
-        reinterpret_cast<u8*>(process->GetMmu()->UnmapAddr(tmem->GetAddress()));
+        reinterpret_cast<u8*>(process->getMmu()->unmapAddr(tmem->getAddress()));
     std::vector<u8> data(ptr, ptr + static_cast<usize>(size));
-    AddService(*ctx, new IStorage(std::move(data)));
+    addService(*ctx, new IStorage(std::move(data)));
     return RESULT_SUCCESS;
 }
 

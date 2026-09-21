@@ -5,11 +5,11 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
-PipelineBase* PipelineCache::Create(const PipelineDescriptor& descriptor) {
-    return renderer.CreatePipeline(descriptor);
+PipelineBase* PipelineCache::create(const PipelineDescriptor& descriptor) {
+    return renderer.createPipeline(descriptor);
 }
 
-u32 PipelineCache::Hash(const PipelineDescriptor& descriptor) {
+u32 PipelineCache::hash(const PipelineDescriptor& descriptor) {
     ztd::hash::XxHash32 hash;
 
     // Shaders
@@ -56,6 +56,6 @@ u32 PipelineCache::Hash(const PipelineDescriptor& descriptor) {
     return hash.toHashCode();
 }
 
-void PipelineCache::DestroyElement(PipelineBase* pipeline) { delete pipeline; }
+void PipelineCache::destroyElement(PipelineBase* pipeline) { delete pipeline; }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

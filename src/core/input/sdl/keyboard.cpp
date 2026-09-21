@@ -4,7 +4,7 @@
 
 namespace hydra::input::sdl {
 
-bool Keyboard::IsPressedImpl(Key key) {
+bool Keyboard::isPressedImpl(Key key) {
 #define KEY_CASE(key, sdl_key)                                                 \
     case Key::key:                                                             \
         return st[sdl_key];

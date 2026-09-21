@@ -11,13 +11,13 @@ using AppletResourceUserId = u64;
 constexpr AppletResourceUserId ARUID_BEGIN = 0xa000000000000000ull;
 constexpr usize MAX_APPLET_RESOURCES = 0x20;
 
-inline AppletResourceUserId ToAruid(usize index) {
+inline AppletResourceUserId toAruid(usize index) {
     ASSERT_DEBUG(index < MAX_APPLET_RESOURCES, Kernel, "Invalid index {:#x}",
                  index);
     return ARUID_BEGIN + index;
 }
 
-inline usize ToIndex(AppletResourceUserId aruid) {
+inline usize toIndex(AppletResourceUserId aruid) {
     ASSERT_DEBUG(aruid >= ARUID_BEGIN &&
                      aruid < ARUID_BEGIN + MAX_APPLET_RESOURCES,
                  Kernel, "Invalid aruid {:#x}", aruid);
@@ -47,30 +47,30 @@ class AppletResourcePool {
 
     ResourceArray::const_iterator cend() const { return end(); }
 
-    T& CreateResource(kernel::AppletResourceUserId aruid) {
-        auto& resource = GetResourceOpt(aruid);
+    T& createResource(kernel::AppletResourceUserId aruid) {
+        auto& resource = getResourceOpt(aruid);
         ASSERT_DEBUG(!resource.has_value(), Kernel, "Aruid {:#x} already taken",
                      aruid);
         resource.emplace(system);
         return *resource;
     }
 
-    void DestroyResource(kernel::AppletResourceUserId aruid) {
-        auto& resource = GetResourceOpt(aruid);
+    void destroyResource(kernel::AppletResourceUserId aruid) {
+        auto& resource = getResourceOpt(aruid);
         ASSERT_DEBUG(resource.has_value(), Kernel, "Invalid aruid {:#x}",
                      aruid);
         resource = std::nullopt;
     }
 
-    T& GetResource(kernel::AppletResourceUserId aruid) {
-        auto& resource = GetResourceOpt(aruid);
+    T& getResource(kernel::AppletResourceUserId aruid) {
+        auto& resource = getResourceOpt(aruid);
         ASSERT_DEBUG(resource.has_value(), Kernel, "Invalid aruid {:#x}",
                      aruid);
         return *resource;
     }
 
-    const T& GetResource(kernel::AppletResourceUserId aruid) const {
-        auto& resource = GetResourceOpt(aruid);
+    const T& getResource(kernel::AppletResourceUserId aruid) const {
+        auto& resource = getResourceOpt(aruid);
         ASSERT_DEBUG(resource.has_value(), Kernel, "Invalid aruid {:#x}",
                      aruid);
         return *resource;
@@ -81,12 +81,12 @@ class AppletResourcePool {
     ResourceArray resources{};
 
     // Helpers
-    std::optional<T>& GetResourceOpt(AppletResourceUserId aruid) {
-        return resources[ToIndex(aruid)];
+    std::optional<T>& getResourceOpt(AppletResourceUserId aruid) {
+        return resources[toIndex(aruid)];
     }
 
-    const std::optional<T>& GetResourceOpt(AppletResourceUserId aruid) const {
-        return resources[ToIndex(aruid)];
+    const std::optional<T>& getResourceOpt(AppletResourceUserId aruid) const {
+        return resources[toIndex(aruid)];
     }
 };
 

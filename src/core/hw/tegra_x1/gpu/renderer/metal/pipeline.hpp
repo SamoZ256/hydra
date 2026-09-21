@@ -11,7 +11,7 @@ class Pipeline final : public PipelineBase {
     ~Pipeline() override;
 
     // Getters
-    MTL::RenderPipelineState* GetPipeline() const { return pipeline; }
+    MTL::RenderPipelineState* getPipeline() const { return pipeline; }
 
   private:
     MTL::RenderPipelineState* pipeline;

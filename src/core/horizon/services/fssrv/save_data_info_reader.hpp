@@ -7,7 +7,7 @@ namespace hydra::horizon::services::fssrv {
 
 class ISaveDataInfoReader : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
@@ -15,7 +15,7 @@ class ISaveDataInfoReader : public IService {
 
     // Commands
     result_t
-    ReadSaveDataInfo(i64* out_entry_count,
+    readSaveDataInfo(i64* out_entry_count,
                      OutBuffer<BufferAttr::MapAlias> out_entry_buffer) const;
 };
 

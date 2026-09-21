@@ -58,27 +58,27 @@ enum class Key {
 
 class IKeyboard : public IDevice {
   public:
-    bool ActsAsController() const override { return true; }
+    bool actsAsController() const override { return true; }
 
     // Controller
-    bool IsPressed(const Code& code) override {
-        if (code.GetDeviceType() != DeviceType::Keyboard)
+    bool isPressed(const Code& code) override {
+        if (code.getDeviceType() != DeviceType::Keyboard)
             return false;
 
-        const auto key = code.GetValue<Key>();
-        return IsPressedImpl(key);
+        const auto key = code.getValue<Key>();
+        return isPressedImpl(key);
     }
 
-    f32 GetAxisValue(const Code& code) override {
-        if (code.GetDeviceType() != DeviceType::Keyboard)
+    f32 getAxisValue(const Code& code) override {
+        if (code.getDeviceType() != DeviceType::Keyboard)
             return 0.0f;
 
-        const auto key = code.GetValue<Key>();
-        return IsPressedImpl(key) ? 1.0f : 0.0f;
+        const auto key = code.getValue<Key>();
+        return isPressedImpl(key) ? 1.0f : 0.0f;
     }
 
   protected:
-    virtual bool IsPressedImpl(Key key) = 0;
+    virtual bool isPressedImpl(Key key) = 0;
 };
 
 } // namespace hydra::input

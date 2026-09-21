@@ -28,7 +28,7 @@ class Emitter {
           out_code{out_code_}, out_resource_mapping{out_resource_mapping_} {}
     virtual ~Emitter() = default;
 
-    void Emit(const ir::Module& modul);
+    void emit(const ir::Module& modul);
 
   protected:
     const DecompilerContext& context;
@@ -38,122 +38,122 @@ class Emitter {
     std::vector<u8>& out_code;
     ResourceMapping& out_resource_mapping;
 
-    virtual void Start() = 0;
-    virtual void Finish() = 0;
+    virtual void start() = 0;
+    virtual void finish() = 0;
 
-    void EmitInstruction(const ir::Instruction& inst);
+    void emitInstruction(const ir::Instruction& inst);
 
     // Emit
 
-    virtual void EmitFunction(const ir::Function& func) = 0;
+    virtual void emitFunction(const ir::Function& func) = 0;
 
     // Data
-    virtual void EmitCopy(const ir::Value& dst, const ir::Value& src) = 0;
-    virtual void EmitCast(const ir::Value& dst, const ir::Value& src) = 0;
-    virtual void EmitBitCast(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void emitCopy(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void emitCast(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void emitBitCast(const ir::Value& dst, const ir::Value& src) = 0;
 
     // Arithmetic
-    virtual void EmitAbs(const ir::Value& dst, const ir::Value& src) = 0;
-    virtual void EmitNeg(const ir::Value& dst, const ir::Value& src) = 0;
-    virtual void EmitAdd(const ir::Value& dst, const ir::Value& srcA,
+    virtual void emitAbs(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void emitNeg(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void emitAdd(const ir::Value& dst, const ir::Value& srcA,
                          const ir::Value& srcB) = 0;
-    virtual void EmitMultiply(const ir::Value& dst, const ir::Value& srcA,
+    virtual void emitMultiply(const ir::Value& dst, const ir::Value& srcA,
                               const ir::Value& srcB) = 0;
-    virtual void EmitFma(const ir::Value& dst, const ir::Value& srcA,
+    virtual void emitFma(const ir::Value& dst, const ir::Value& srcA,
                          const ir::Value& srcB, const ir::Value& srcC) = 0;
-    virtual void EmitMin(const ir::Value& dst, const ir::Value& srcA,
+    virtual void emitMin(const ir::Value& dst, const ir::Value& srcA,
                          const ir::Value& srcB) = 0;
-    virtual void EmitMax(const ir::Value& dst, const ir::Value& srcA,
+    virtual void emitMax(const ir::Value& dst, const ir::Value& srcA,
                          const ir::Value& srcB) = 0;
-    virtual void EmitClamp(const ir::Value& dst, const ir::Value& srcA,
+    virtual void emitClamp(const ir::Value& dst, const ir::Value& srcA,
                            const ir::Value& srcB, const ir::Value& srcC) = 0;
 
     // Math
-    virtual void EmitIsNan(const ir::Value& dst, const ir::Value& src) = 0;
-    virtual void EmitRound(const ir::Value& dst, const ir::Value& src) = 0;
-    virtual void EmitFloor(const ir::Value& dst, const ir::Value& src) = 0;
-    virtual void EmitCeil(const ir::Value& dst, const ir::Value& src) = 0;
-    virtual void EmitTrunc(const ir::Value& dst, const ir::Value& src) = 0;
-    virtual void EmitReciprocal(const ir::Value& dst, const ir::Value& src) = 0;
-    virtual void EmitSin(const ir::Value& dst, const ir::Value& src) = 0;
-    virtual void EmitCos(const ir::Value& dst, const ir::Value& src) = 0;
-    virtual void EmitExp2(const ir::Value& dst, const ir::Value& src) = 0;
-    virtual void EmitLog2(const ir::Value& dst, const ir::Value& src) = 0;
-    virtual void EmitSqrt(const ir::Value& dst, const ir::Value& src) = 0;
-    virtual void EmitReciprocalSqrt(const ir::Value& dst,
+    virtual void emitIsNan(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void emitRound(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void emitFloor(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void emitCeil(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void emitTrunc(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void emitReciprocal(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void emitSin(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void emitCos(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void emitExp2(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void emitLog2(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void emitSqrt(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void emitReciprocalSqrt(const ir::Value& dst,
                                     const ir::Value& src) = 0;
 
     // Logical & Bitwise
-    virtual void EmitNot(const ir::Value& dst, const ir::Value& src) = 0;
-    virtual void EmitBitwiseNot(const ir::Value& dst, const ir::Value& src) = 0;
-    virtual void EmitBitwiseAnd(const ir::Value& dst, const ir::Value& srcA,
+    virtual void emitNot(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void emitBitwiseNot(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void emitBitwiseAnd(const ir::Value& dst, const ir::Value& srcA,
                                 const ir::Value& srcB) = 0;
-    virtual void EmitBitwiseOr(const ir::Value& dst, const ir::Value& srcA,
+    virtual void emitBitwiseOr(const ir::Value& dst, const ir::Value& srcA,
                                const ir::Value& srcB) = 0;
-    virtual void EmitBitwiseXor(const ir::Value& dst, const ir::Value& srcA,
+    virtual void emitBitwiseXor(const ir::Value& dst, const ir::Value& srcA,
                                 const ir::Value& srcB) = 0;
-    virtual void EmitShiftLeft(const ir::Value& dst, const ir::Value& src_a,
+    virtual void emitShiftLeft(const ir::Value& dst, const ir::Value& src_a,
                                const ir::Value& src_b) = 0;
-    virtual void EmitShiftRight(const ir::Value& dst, const ir::Value& src_a,
+    virtual void emitShiftRight(const ir::Value& dst, const ir::Value& src_a,
                                 const ir::Value& src_b) = 0;
-    virtual void EmitBitfieldExtract(const ir::Value& dst,
+    virtual void emitBitfieldExtract(const ir::Value& dst,
                                      const ir::Value& src_a,
                                      const ir::Value& src_b,
                                      const ir::Value& src_c) = 0;
 
     // Comparison & Selection
-    virtual void EmitCompareLess(const ir::Value& dst, const ir::Value& srcA,
+    virtual void emitCompareLess(const ir::Value& dst, const ir::Value& srcA,
                                  const ir::Value& srcB) = 0;
-    virtual void EmitCompareLessOrEqual(const ir::Value& dst,
+    virtual void emitCompareLessOrEqual(const ir::Value& dst,
                                         const ir::Value& srcA,
                                         const ir::Value& srcB) = 0;
-    virtual void EmitCompareGreater(const ir::Value& dst, const ir::Value& srcA,
+    virtual void emitCompareGreater(const ir::Value& dst, const ir::Value& srcA,
                                     const ir::Value& srcB) = 0;
-    virtual void EmitCompareGreaterOrEqual(const ir::Value& dst,
+    virtual void emitCompareGreaterOrEqual(const ir::Value& dst,
                                            const ir::Value& srcA,
                                            const ir::Value& srcB) = 0;
-    virtual void EmitCompareEqual(const ir::Value& dst, const ir::Value& srcA,
+    virtual void emitCompareEqual(const ir::Value& dst, const ir::Value& srcA,
                                   const ir::Value& srcB) = 0;
-    virtual void EmitCompareNotEqual(const ir::Value& dst,
+    virtual void emitCompareNotEqual(const ir::Value& dst,
                                      const ir::Value& srcA,
                                      const ir::Value& srcB) = 0;
-    virtual void EmitSelect(const ir::Value& dst, const ir::Value& cond,
+    virtual void emitSelect(const ir::Value& dst, const ir::Value& cond,
                             const ir::Value& src_true,
                             const ir::Value& src_false) = 0;
 
     // Control flow
-    virtual void EmitBeginIf(const ir::Value& cond) = 0;
-    virtual void EmitEndIf() = 0;
-    virtual void EmitBranch(label_t target) = 0;
-    virtual void EmitBranchConditional(const ir::Value& cond,
+    virtual void emitBeginIf(const ir::Value& cond) = 0;
+    virtual void emitEndIf() = 0;
+    virtual void emitBranch(label_t target) = 0;
+    virtual void emitBranchConditional(const ir::Value& cond,
                                        label_t target_true,
                                        label_t target_false) = 0;
 
     // Vector
-    virtual void EmitVectorExtract(const ir::Value& dst, const ir::Value& src,
+    virtual void emitVectorExtract(const ir::Value& dst, const ir::Value& src,
                                    u8 index) = 0;
-    virtual void EmitVectorInsert(const ir::Value& dst, const ir::Value& src,
+    virtual void emitVectorInsert(const ir::Value& dst, const ir::Value& src,
                                   u8 index) = 0;
     virtual void
-    EmitVectorConstruct(const ir::Value& dst,
+    emitVectorConstruct(const ir::Value& dst,
                         const std::vector<ir::Value>& elements) = 0;
 
     // Texture
-    virtual void EmitTextureSample(const ir::Value& dst, u32 const_buffer_index,
+    virtual void emitTextureSample(const ir::Value& dst, u32 const_buffer_index,
                                    TextureType type, TextureSampleFlags flags,
                                    const ir::Value& array_index,
                                    const ir::Value& coords,
                                    const ir::Value& cmp_value,
                                    const ir::Value& lod) = 0;
-    virtual void EmitTextureGather(const ir::Value& dst, u32 const_buffer_index,
+    virtual void emitTextureGather(const ir::Value& dst, u32 const_buffer_index,
                                    const ir::Value& coords, u8 component) = 0;
-    virtual void EmitTextureQueryDimension(const ir::Value& dst,
+    virtual void emitTextureQueryDimension(const ir::Value& dst,
                                            u32 const_buffer_index,
                                            u32 dimension) = 0;
 
     // Exit
-    virtual void EmitExit() = 0;
-    virtual void EmitDiscard() = 0;
+    virtual void emitExit() = 0;
+    virtual void emitDiscard() = 0;
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen

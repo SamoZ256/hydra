@@ -6,32 +6,32 @@
 namespace hydra::horizon::services::hid {
 
 DEFINE_SERVICE_COMMAND_TABLE(IHidSystemServer, 101,
-                             AcquireHomeButtonEventHandle, 121,
-                             AcquireSleepButtonEventHandle, 303,
-                             ApplyNpadSystemCommonPolicy, 321,
-                             GetUniquePadsFromNpad, 503, EnableAppletToGetInput)
+                             acquireHomeButtonEventHandle, 121,
+                             acquireSleepButtonEventHandle, 303,
+                             applyNpadSystemCommonPolicy, 321,
+                             getUniquePadsFromNpad, 503, enableAppletToGetInput)
 
 IHidSystemServer::IHidSystemServer()
     : home_button_event{new kernel::Event(false, "Home button event")},
       sleep_button_event{new kernel::Event(false, "Sleep button event")} {}
 
-result_t IHidSystemServer::AcquireHomeButtonEventHandle(
+result_t IHidSystemServer::acquireHomeButtonEventHandle(
     kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
     LOG_FUNC_STUBBED(Services);
 
-    out_handle = process->AddHandle(home_button_event);
+    out_handle = process->addHandle(home_button_event);
     return RESULT_SUCCESS;
 }
 
-result_t IHidSystemServer::AcquireSleepButtonEventHandle(
+result_t IHidSystemServer::acquireSleepButtonEventHandle(
     kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
     LOG_FUNC_STUBBED(Services);
 
-    out_handle = process->AddHandle(sleep_button_event);
+    out_handle = process->addHandle(sleep_button_event);
     return RESULT_SUCCESS;
 }
 
-result_t IHidSystemServer::GetUniquePadsFromNpad(
+result_t IHidSystemServer::getUniquePadsFromNpad(
     NpadIdType npad_id, i64* out_count,
     OutBuffer<BufferAttr::HipcPointer> out_buffer) {
     (void)out_buffer;
@@ -43,7 +43,7 @@ result_t IHidSystemServer::GetUniquePadsFromNpad(
     return RESULT_SUCCESS;
 }
 
-result_t IHidSystemServer::EnableAppletToGetInput(u8 enable, u64 aruid) {
+result_t IHidSystemServer::enableAppletToGetInput(u8 enable, u64 aruid) {
     (void)aruid;
 
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "enable: {}", enable);

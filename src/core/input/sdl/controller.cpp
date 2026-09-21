@@ -6,7 +6,7 @@
 
 namespace hydra::input::sdl {
 
-bool Controller::IsPressedImpl(ControllerInput input) {
+bool Controller::isPressedImpl(ControllerInput input) {
 #define BUTTON_CASE(input, sdl_button)                                         \
     case ControllerInput::input:                                               \
         return SDL_GetGamepadButton(handle, sdl_button);                       \
@@ -43,17 +43,17 @@ bool Controller::IsPressedImpl(ControllerInput input) {
     }
 }
 
-f32 positive_axis_to_float(i16 value) {
+f32 positiveAxisToFloat(i16 value) {
     return std::max(static_cast<i16>(0), value) /
            static_cast<f32>(std::numeric_limits<i16>::max());
 }
 
-f32 negative_axis_to_float(i16 value) {
+f32 negativeAxisToFloat(i16 value) {
     return std::min(static_cast<i16>(0), value) /
            static_cast<f32>(std::numeric_limits<i16>::min());
 }
 
-f32 Controller::GetAxisValueImpl(ControllerInput input) {
+f32 Controller::getAxisValueImpl(ControllerInput input) {
 #define AXIS_CASE(input, sdl_dpad, direction)                                  \
     case ControllerInput::input:                                               \
         value = SDL_GetGamepadAxis(handle, sdl_dpad);                          \
@@ -79,13 +79,13 @@ f32 Controller::GetAxisValueImpl(ControllerInput input) {
 
     switch (dir) {
     case AnalogStickDirection::Right:
-        return positive_axis_to_float(value);
+        return positiveAxisToFloat(value);
     case AnalogStickDirection::Left:
-        return negative_axis_to_float(value);
+        return negativeAxisToFloat(value);
     case AnalogStickDirection::Up:
-        return negative_axis_to_float(value);
+        return negativeAxisToFloat(value);
     case AnalogStickDirection::Down:
-        return positive_axis_to_float(value);
+        return positiveAxisToFloat(value);
     }
 }
 

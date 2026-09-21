@@ -6,13 +6,13 @@ namespace hydra::horizon::services::nifm {
 
 class IStaticService : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t CreateGeneralServiceOld(RequestContext* ctx);
-    result_t CreateGeneralService(RequestContext* ctx);
+    result_t createGeneralServiceOld(RequestContext* ctx);
+    result_t createGeneralService(RequestContext* ctx);
 };
 
 } // namespace hydra::horizon::services::nifm

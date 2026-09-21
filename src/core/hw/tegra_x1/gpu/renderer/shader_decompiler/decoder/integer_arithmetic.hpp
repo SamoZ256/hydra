@@ -36,7 +36,7 @@ union InstIadd32I {
     BitField64<AvgMode, 55, 2> avg_mode;
 };
 
-void EmitIadd32I(DecoderContext& context, InstIadd32I inst);
+void emitIadd32I(DecoderContext& context, InstIadd32I inst);
 
 union InstIscaddBase {
     BitField64<reg_t, 0, 8> dst;
@@ -60,7 +60,7 @@ union InstIscadd32I {
     BitField64<u32, 53, 5> shift;
 };
 
-void EmitIscadd32I(DecoderContext& context, InstIscadd32I inst);
+void emitIscadd32I(DecoderContext& context, InstIscadd32I inst);
 
 enum class XmadCop {
     Cfull = 0,
@@ -92,7 +92,7 @@ union InstXmadR {
     BitField64<XmadCop, 50, 3> cop;
 };
 
-void EmitXmadR(DecoderContext& context, InstXmadR inst);
+void emitXmadR(DecoderContext& context, InstXmadR inst);
 
 union InstXmadRC {
     InstXmadBase base;
@@ -103,7 +103,7 @@ union InstXmadRC {
     BitField64<bool, 52, 1> hilo_b;
 };
 
-void EmitXmadRC(DecoderContext& context, InstXmadRC inst);
+void emitXmadRC(DecoderContext& context, InstXmadRC inst);
 
 union InstXmadC {
     InstXmadBase base;
@@ -114,7 +114,7 @@ union InstXmadC {
     BitField64<bool, 52, 1> hilo_b;
 };
 
-void EmitXmadC(DecoderContext& context, InstXmadC inst);
+void emitXmadC(DecoderContext& context, InstXmadC inst);
 
 union InstXmadI {
     InstXmadBase base;
@@ -125,6 +125,6 @@ union InstXmadI {
     BitField64<XmadCop, 50, 3> cop;
 };
 
-void EmitXmadI(DecoderContext& context, InstXmadI inst);
+void emitXmadI(DecoderContext& context, InstXmadI inst);
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

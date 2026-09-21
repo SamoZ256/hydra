@@ -9,7 +9,7 @@ class Keyboard : public IKeyboard {
     Keyboard() = default;
 
   protected:
-    bool IsPressedImpl(Key key) override;
+    bool isPressedImpl(Key key) override;
 };
 
 } // namespace hydra::input::sdl

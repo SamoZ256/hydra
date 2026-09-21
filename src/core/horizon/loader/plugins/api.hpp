@@ -97,8 +97,8 @@ using CreateContextFnT = ReturnValue<CreateContextResult, void*> (*)(
 
 using DestroyContextFnT = u32 (*)(void*);
 
-using add_file = void (*)(void*, filesystem::Directory*, Slice<const char>,
-                         void*);
+using AddFileFnT = void (*)(void*, filesystem::Directory*, Slice<const char>,
+                            void*);
 
 enum class CreateLoaderFromFileResult : u32 {
     Success = 0,
@@ -106,8 +106,10 @@ enum class CreateLoaderFromFileResult : u32 {
     UnsupportedFile = 2,
 };
 
-using CreateLoaderFromFileFnT = ReturnValue<CreateLoaderFromFileResult, void*> (
-    *)(void*, void*, add_file, void*, Slice<const char>);
+using CreateLoaderFromFileFnT =
+    ReturnValue<CreateLoaderFromFileResult, void*> (*)(void*, void*, AddFileFnT,
+                                                       void*,
+                                                       Slice<const char>);
 
 using LoaderDestroyFnT = void (*)(void*);
 

@@ -16,7 +16,7 @@ class ISelfController : public IService {
     ISelfController();
 
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
@@ -24,30 +24,30 @@ class ISelfController : public IService {
     kernel::Event* accumulated_suspended_tick_changed_event;
 
     // Commands
-    result_t Exit(kernel::Process* process);
-    result_t LockExit(kernel::Process* process);
-    result_t UnlockExit(kernel::Process* process);
+    result_t exit(kernel::Process* process);
+    result_t lockExit(kernel::Process* process);
+    result_t unlockExit(kernel::Process* process);
     result_t
-    GetLibraryAppletLaunchableEvent(kernel::Process* process,
+    getLibraryAppletLaunchableEvent(kernel::Process* process,
                                     OutHandle<HandleAttr::Copy> out_handle);
-    STUB_REQUEST_COMMAND(SetScreenShotPermission);
-    STUB_REQUEST_COMMAND(SetOperationModeChangedNotification);
-    STUB_REQUEST_COMMAND(SetPerformanceModeChangedNotification);
-    STUB_REQUEST_COMMAND(SetFocusHandlingMode);
-    STUB_REQUEST_COMMAND(SetRestartMessageEnabled);
-    STUB_REQUEST_COMMAND(SetOutOfFocusSuspendingEnabled);
-    STUB_REQUEST_COMMAND(SetAlbumImageOrientation);
-    result_t CreateManagedDisplayLayer(System* system, kernel::Process* process,
+    STUB_REQUEST_COMMAND(setScreenShotPermission);
+    STUB_REQUEST_COMMAND(setOperationModeChangedNotification);
+    STUB_REQUEST_COMMAND(setPerformanceModeChangedNotification);
+    STUB_REQUEST_COMMAND(setFocusHandlingMode);
+    STUB_REQUEST_COMMAND(setRestartMessageEnabled);
+    STUB_REQUEST_COMMAND(setOutOfFocusSuspendingEnabled);
+    STUB_REQUEST_COMMAND(setAlbumImageOrientation);
+    result_t createManagedDisplayLayer(System* system, kernel::Process* process,
                                        u64* out_layer_id);
-    result_t IsSystemBufferSharingEnabled();
-    result_t CreateManagedDisplaySeparableLayer(System* system,
+    result_t isSystemBufferSharingEnabled();
+    result_t createManagedDisplaySeparableLayer(System* system,
                                                 kernel::Process* process,
                                                 u64* out_display_layer_id,
                                                 u64* out_recording_layer_id);
-    STUB_REQUEST_COMMAND(SetHandlesRequestToDisplay);
-    result_t SetIdleTimeDetectionExtension(IdleTimeDetectionExtension ext);
-    STUB_REQUEST_COMMAND(SetWirelessPriorityMode);
-    result_t GetAccumulatedSuspendedTickChangedEvent(
+    STUB_REQUEST_COMMAND(setHandlesRequestToDisplay);
+    result_t setIdleTimeDetectionExtension(IdleTimeDetectionExtension ext);
+    STUB_REQUEST_COMMAND(setWirelessPriorityMode);
+    result_t getAccumulatedSuspendedTickChangedEvent(
         kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle);
 };
 

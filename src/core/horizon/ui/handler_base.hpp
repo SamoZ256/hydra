@@ -10,11 +10,11 @@ class IHandler {
     virtual ~IHandler() = default;
 
     // TODO: detail
-    virtual void ShowMessageDialog(const MessageDialogType type,
+    virtual void showMessageDialog(const MessageDialogType type,
                                    const std::string& title,
                                    const std::string& message) = 0;
     virtual applets::software_keyboard::SoftwareKeyboardResult
-    ShowSoftwareKeyboard(const std::string& header_text,
+    showSoftwareKeyboard(const std::string& header_text,
                          const std::string& sub_text,
                          const std::string& guide_text,
                          std::string& out_text) = 0;

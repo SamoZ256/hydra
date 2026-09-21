@@ -5,16 +5,16 @@
 
 namespace hydra::horizon::services::fssrv {
 
-DEFINE_SERVICE_COMMAND_TABLE(IFile, 0, Read, 1, Write, 2, Flush, 3, SetSize, 4,
-                             GetSize)
+DEFINE_SERVICE_COMMAND_TABLE(IFile, 0, read, 1, write, 2, flush, 3, setSize, 4,
+                             getSize)
 
 IFile::IFile(filesystem::IFile* file_, filesystem::FileOpenFlags flags)
-    : file{file_}, stream{file->Open(flags)} {}
+    : file{file_}, stream{file->open(flags)} {}
 
 IFile::~IFile() { delete stream; }
 
 // TODO: option
-result_t IFile::Read(Aligned<u32, 8> option, u64 offset, u64 size,
+result_t IFile::read(Aligned<u32, 8> option, u64 offset, u64 size,
                      u64* out_written_size,
                      OutBuffer<BufferAttr::MapAlias> out_buffer) {
     (void)option;
@@ -36,7 +36,7 @@ result_t IFile::Read(Aligned<u32, 8> option, u64 offset, u64 size,
 }
 
 // TODO: option
-result_t IFile::Write(Aligned<u32, 8> option, u64 offset, u64 size,
+result_t IFile::write(Aligned<u32, 8> option, u64 offset, u64 size,
                       InBuffer<BufferAttr::MapAlias> in_buffer) {
     (void)option;
 
@@ -48,18 +48,18 @@ result_t IFile::Write(Aligned<u32, 8> option, u64 offset, u64 size,
     return RESULT_SUCCESS;
 }
 
-result_t IFile::Flush() {
-    file->Flush();
+result_t IFile::flush() {
+    file->flush();
     return RESULT_SUCCESS;
 }
 
-result_t IFile::SetSize(u64 size) {
-    file->Resize(size);
+result_t IFile::setSize(u64 size) {
+    file->resize(size);
     return RESULT_SUCCESS;
 }
 
-result_t IFile::GetSize(u64* out_size) {
-    *out_size = file->GetSize();
+result_t IFile::getSize(u64* out_size) {
+    *out_size = file->getSize();
     return RESULT_SUCCESS;
 }
 

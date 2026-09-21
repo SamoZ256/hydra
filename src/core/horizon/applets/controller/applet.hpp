@@ -12,12 +12,12 @@ class Applet : public AppletBase {
     using AppletBase::AppletBase;
 
   protected:
-    result_t Run(System& system) override;
+    result_t run(System& system) override;
 
   private:
     template <usize max_supported_players>
-    result_t RunControllerSupport(System& system) {
-        const auto arg = PopInData<SupportArg<max_supported_players>>();
+    result_t runControllerSupport(System& system) {
+        const auto arg = popInData<SupportArg<max_supported_players>>();
 
         (void)system;
         LOG_FUNC_WITH_ARGS_STUBBED(
@@ -34,7 +34,7 @@ class Applet : public AppletBase {
             player_count_min = player_count_max = 1;
 
         // HACK
-        PushOutData(ResultInfoInternal{
+        pushOutData(ResultInfoInternal{
             .info =
                 {
                     .player_count = player_count_min,

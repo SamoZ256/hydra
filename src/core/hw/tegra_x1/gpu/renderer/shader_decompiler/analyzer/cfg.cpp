@@ -4,25 +4,25 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer {
 
-CfgBasicBlock* CfgBuilder::Build(const ir::Function& function) {
-    for (const auto& [label, block] : function.GetBlocks()) {
-        auto cfg_block = GetBlock(label);
-        const auto& last_inst = block.GetInstructions().back();
-        switch (last_inst.GetOpcode()) {
+CfgBasicBlock* CfgBuilder::build(const ir::Function& function) {
+    for (const auto& [label, block] : function.getBlocks()) {
+        auto cfg_block = getBlock(label);
+        const auto& last_inst = block.getInstructions().back();
+        switch (last_inst.getOpcode()) {
         case ir::Opcode::Branch:
             cfg_block->edge = {
                 .type = CfgBlockEdgeType::Branch,
-                .branch.target = GetBlock(last_inst.GetOperand(0).GetLabel()),
+                .branch.target = getBlock(last_inst.getOperand(0).getLabel()),
             };
             break;
         case ir::Opcode::BranchConditional:
             cfg_block->edge = {
                 .type = CfgBlockEdgeType::BranchConditional,
                 .branch_conditional = {
-                    .cond = last_inst.GetOperand(0),
-                    .target_true = GetBlock(last_inst.GetOperand(1).GetLabel()),
+                    .cond = last_inst.getOperand(0),
+                    .target_true = getBlock(last_inst.getOperand(1).getLabel()),
                     .target_false =
-                        GetBlock(last_inst.GetOperand(2).GetLabel()),
+                        getBlock(last_inst.getOperand(2).getLabel()),
                 }};
             break;
         case ir::Opcode::Exit:
@@ -32,7 +32,7 @@ CfgBasicBlock* CfgBuilder::Build(const ir::Function& function) {
             break;
         default:
             LOG_ERROR(ShaderDecompiler, "Invalid last instruction opcode {}",
-                      last_inst.GetOpcode());
+                      last_inst.getOpcode());
             break;
         }
     }

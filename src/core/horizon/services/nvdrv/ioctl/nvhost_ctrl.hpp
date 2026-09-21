@@ -11,9 +11,9 @@ struct NvHostEvent {
 
 class NvHostCtrl : public FdBase {
   public:
-    NvResult Ioctl([[maybe_unused]] IoctlContext& context, u32 type,
+    NvResult ioctl([[maybe_unused]] IoctlContext& context, u32 type,
                    u32 nr) override;
-    NvResult QueryEvent(u32 event_id_u32, kernel::Event*& out_event) override;
+    NvResult queryEvent(u32 event_id_u32, kernel::Event*& out_event) override;
 
   private:
     constexpr static usize EVENT_COUNT = 64;
@@ -21,13 +21,13 @@ class NvHostCtrl : public FdBase {
     NvHostEvent events[EVENT_COUNT] = {{}};
 
     // Ioctls
-    NvResult GetConfig(std::array<char, 0x41> name, std::array<char, 0x41> key,
+    NvResult getConfig(std::array<char, 0x41> name, std::array<char, 0x41> key,
                        std::array<u8, 0x101>* out_value);
-    NvResult SyncptWaitEvent(u32 id, u32 tresh, i32 timeout, u32* out_value);
-    NvResult SyncptWaitEventEx(u32 id, u32 tresh, i32 timeout,
+    NvResult syncptWaitEvent(u32 id, u32 tresh, i32 timeout, u32* out_value);
+    NvResult syncptWaitEventEx(u32 id, u32 tresh, i32 timeout,
                                InOutSingle<u32> out_value);
-    NvResult SyncptAllocEvent(u32 slot);
-    NvResult SyncptFreeEvent(u32 slot);
+    NvResult syncptAllocEvent(u32 slot);
+    NvResult syncptFreeEvent(u32 slot);
 };
 
 } // namespace hydra::horizon::services::nvdrv::ioctl

@@ -23,8 +23,8 @@ class ContentArchive final : public Directory {
     u64 title_id;
 
   public:
-    GETTER(content_type, GetContentType);
-    GETTER(title_id, GetTitleID);
+    GETTER(content_type, getContentType);
+    GETTER(title_id, getTitleId);
 };
 
 } // namespace hydra::horizon::filesystem

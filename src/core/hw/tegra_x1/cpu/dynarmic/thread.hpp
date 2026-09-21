@@ -22,23 +22,23 @@ class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
            IMemory* tls_mem, vaddr_t tls_mem_base);
     ~Thread() override;
 
-    void Run() override;
+    void run() override;
 
-    void NotifyMemoryChanged(ztd::Range<vaddr_t> mem_range) override {
+    void notifyMemoryChanged(ztd::Range<vaddr_t> mem_range) override {
         jit->InvalidateCacheRange(mem_range.getBegin(), mem_range.getSize());
     }
 
     // Debug
-    void InsertBreakpoint([[maybe_unused]] vaddr_t addr) override {
+    void insertBreakpoint([[maybe_unused]] vaddr_t addr) override {
         LOG_FATAL(Dynarmic, "This should not happen");
     }
-    void RemoveBreakpoint([[maybe_unused]] vaddr_t addr) override {
+    void removeBreakpoint([[maybe_unused]] vaddr_t addr) override {
         LOG_FATAL(Dynarmic, "This should not happen");
     }
-    void SingleStep() override {
-        DeserializeState();
+    void singleStep() override {
+        deserializeState();
         jit->Step();
-        SerializeState();
+        serializeState();
     }
 
   private:
@@ -92,8 +92,8 @@ class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
     u64 GetTicksRemaining() override { return ticks_left; }
 
     // State
-    void SerializeState();
-    void DeserializeState();
+    void serializeState();
+    void deserializeState();
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::dynarmic

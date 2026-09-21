@@ -6,23 +6,23 @@
 namespace hydra::horizon::services::am {
 
 DEFINE_SERVICE_COMMAND_TABLE(
-    ICommonStateGetter, 0, GetEventHandle, 1, ReceiveMessage, 4,
-    DisallowToEnterSleep, 5, GetOperationMode, 6, GetPerformanceMode, 9,
-    GetCurrentFocusState, 60, GetDefaultDisplayResolution, 61,
-    GetDefaultDisplayResolutionChangeEvent, 66, SetCpuBoostMode, 900,
-    SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled)
+    ICommonStateGetter, 0, getEventHandle, 1, receiveMessage, 4,
+    disallowToEnterSleep, 5, getOperationMode, 6, getPerformanceMode, 9,
+    getCurrentFocusState, 60, getDefaultDisplayResolution, 61,
+    getDefaultDisplayResolutionChangeEvent, 66, setCpuBoostMode, 900,
+    setRequestExitToLibraryAppletAtExecuteNextProgramEnabled)
 
 result_t
-ICommonStateGetter::GetEventHandle(kernel::Process* process,
+ICommonStateGetter::getEventHandle(kernel::Process* process,
                                    OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = process->AddHandle(process->GetAppletState().GetMsgEvent());
+    out_handle = process->addHandle(process->getAppletState().getMsgEvent());
     return RESULT_SUCCESS;
 }
 
 result_t
-ICommonStateGetter::ReceiveMessage(kernel::Process* process,
+ICommonStateGetter::receiveMessage(kernel::Process* process,
                                    kernel::AppletMessage* out_message) {
-    const auto msg = process->GetAppletState().ReceiveMessage();
+    const auto msg = process->getAppletState().receiveMessage();
     if (msg == kernel::AppletMessage::None)
         return MAKE_RESULT(Am, 0x3);
     LOG_DEBUG(Services, "Message: {}", msg);
@@ -31,35 +31,35 @@ ICommonStateGetter::ReceiveMessage(kernel::Process* process,
     return RESULT_SUCCESS;
 }
 
-result_t ICommonStateGetter::GetOperationMode(OperationMode* out_mode) {
+result_t ICommonStateGetter::getOperationMode(OperationMode* out_mode) {
     *out_mode = CONFIG_INSTANCE.GetHandheldMode() ? OperationMode::Handheld
                                                   : OperationMode::Console;
     return RESULT_SUCCESS;
 }
 
-result_t ICommonStateGetter::GetDefaultDisplayResolution(System* system,
+result_t ICommonStateGetter::getDefaultDisplayResolution(System* system,
                                                          i32* out_width,
                                                          i32* out_height) {
-    const auto res = system->GetOS().GetDisplayResolution();
+    const auto res = system->getOs().getDisplayResolution();
     *out_width = static_cast<i32>(res.x());
     *out_height = static_cast<i32>(res.y());
     return RESULT_SUCCESS;
 }
 
-result_t ICommonStateGetter::GetDefaultDisplayResolutionChangeEvent(
+result_t ICommonStateGetter::getDefaultDisplayResolutionChangeEvent(
     kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = process->AddHandle(default_display_resolution_change_event);
+    out_handle = process->addHandle(default_display_resolution_change_event);
     return RESULT_SUCCESS;
 }
 
 result_t
-ICommonStateGetter::GetCurrentFocusState(kernel::Process* process,
+ICommonStateGetter::getCurrentFocusState(kernel::Process* process,
                                          kernel::AppletFocusState* out_state) {
-    *out_state = process->GetAppletState().GetFocusState();
+    *out_state = process->getAppletState().getFocusState();
     return RESULT_SUCCESS;
 }
 
-result_t ICommonStateGetter::SetCpuBoostMode(oe::CpuBoostMode mode) {
+result_t ICommonStateGetter::setCpuBoostMode(oe::CpuBoostMode mode) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "mode: {}", mode);
 
     // TODO: pass mode to apm::ISystemManage::SetCpuBoostMode

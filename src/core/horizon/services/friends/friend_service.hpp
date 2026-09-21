@@ -6,12 +6,12 @@ namespace hydra::horizon::services::friends {
 
 class IFriendService : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    STUB_REQUEST_COMMAND(UpdateUserPresence);
+    STUB_REQUEST_COMMAND(updateUserPresence);
 };
 
 } // namespace hydra::horizon::services::friends

@@ -9,27 +9,27 @@ CommandBuffer::CommandBuffer(MTL::CommandQueue* command_queue) {
 }
 
 CommandBuffer::~CommandBuffer() {
-    EndEncoding();
+    endEncoding();
     command_buffer->commit();
     // HACK: wait until completed
     command_buffer->waitUntilCompleted();
     command_buffer->release();
 }
 
-MTL::RenderCommandEncoder* CommandBuffer::GetRenderCommandEncoder(
+MTL::RenderCommandEncoder* CommandBuffer::getRenderCommandEncoder(
     MTL::RenderPassDescriptor* render_pass_descriptor) {
     if (render_pass_descriptor == encoder_state.render_pass)
-        return GetRenderCommandEncoderUnchecked();
+        return getRenderCommandEncoderUnchecked();
 
     encoder_state.render_pass = render_pass_descriptor;
     encoder_state.render = {};
 
-    return CreateRenderCommandEncoder(render_pass_descriptor);
+    return createRenderCommandEncoder(render_pass_descriptor);
 }
 
-MTL::RenderCommandEncoder* CommandBuffer::CreateRenderCommandEncoder(
+MTL::RenderCommandEncoder* CommandBuffer::createRenderCommandEncoder(
     MTL::RenderPassDescriptor* render_pass_descriptor) {
-    EndEncoding();
+    endEncoding();
 
     TMP_AUTORELEASE_POOL_BEGIN();
     command_encoder =
@@ -39,14 +39,14 @@ MTL::RenderCommandEncoder* CommandBuffer::CreateRenderCommandEncoder(
     encoder_type = EncoderType::Render;
     encoder_state.render_pass = render_pass_descriptor;
 
-    return GetRenderCommandEncoderUnchecked();
+    return getRenderCommandEncoderUnchecked();
 }
 
-MTL::BlitCommandEncoder* CommandBuffer::GetBlitCommandEncoder() {
+MTL::BlitCommandEncoder* CommandBuffer::getBlitCommandEncoder() {
     if (encoder_type == EncoderType::Blit)
-        return GetBlitCommandEncoderUnchecked();
+        return getBlitCommandEncoderUnchecked();
 
-    EndEncoding();
+    endEncoding();
 
     TMP_AUTORELEASE_POOL_BEGIN();
     command_encoder = command_buffer->blitCommandEncoder()->retain();
@@ -54,10 +54,10 @@ MTL::BlitCommandEncoder* CommandBuffer::GetBlitCommandEncoder() {
 
     encoder_type = EncoderType::Blit;
 
-    return GetBlitCommandEncoderUnchecked();
+    return getBlitCommandEncoderUnchecked();
 }
 
-void CommandBuffer::EndEncoding() {
+void CommandBuffer::endEncoding() {
     if (encoder_type == EncoderType::None)
         return;
 
@@ -70,46 +70,46 @@ void CommandBuffer::EndEncoding() {
     encoder_state.render_pass = nullptr;
 }
 
-void CommandBuffer::SetRenderPipelineState(MTL::RenderPipelineState* pipeline) {
+void CommandBuffer::setRenderPipelineState(MTL::RenderPipelineState* pipeline) {
     auto& bound_pipeline = encoder_state.render.pipeline;
     if (pipeline == bound_pipeline)
         return;
 
-    GetRenderCommandEncoderUnchecked()->setRenderPipelineState(pipeline);
+    getRenderCommandEncoderUnchecked()->setRenderPipelineState(pipeline);
     bound_pipeline = pipeline;
 }
 
-void CommandBuffer::SetDepthStencilState(
+void CommandBuffer::setDepthStencilState(
     MTL::DepthStencilState* depth_stencil_state) {
     auto& bound_depth_stencil_state = encoder_state.render.depth_stencil_state;
     if (depth_stencil_state == bound_depth_stencil_state)
         return;
 
-    GetRenderCommandEncoderUnchecked()->setDepthStencilState(
+    getRenderCommandEncoderUnchecked()->setDepthStencilState(
         depth_stencil_state);
     bound_depth_stencil_state = depth_stencil_state;
 }
 
-void CommandBuffer::SetCullMode(MTL::CullMode cull_mode) {
+void CommandBuffer::setCullMode(MTL::CullMode cull_mode) {
     auto& bound_cull_mode = encoder_state.render.cull_mode;
     if (cull_mode == bound_cull_mode)
         return;
 
-    GetRenderCommandEncoderUnchecked()->setCullMode(cull_mode);
+    getRenderCommandEncoderUnchecked()->setCullMode(cull_mode);
     bound_cull_mode = cull_mode;
 }
 
-void CommandBuffer::SetFrontFaceWinding(MTL::Winding front_face_winding) {
+void CommandBuffer::setFrontFaceWinding(MTL::Winding front_face_winding) {
     auto& bound_front_face_winding = encoder_state.render.front_face_winding;
     if (front_face_winding == bound_front_face_winding)
         return;
 
-    GetRenderCommandEncoderUnchecked()->setFrontFacingWinding(
+    getRenderCommandEncoderUnchecked()->setFrontFacingWinding(
         front_face_winding);
     bound_front_face_winding = front_face_winding;
 }
 
-void CommandBuffer::SetBuffer(MTL::Buffer* buffer, u64 offset,
+void CommandBuffer::setBuffer(MTL::Buffer* buffer, u64 offset,
                               ShaderType shader_type, u32 index) {
     ASSERT_DEBUG(index < BUFFER_COUNT, MetalRenderer, "Invalid buffer index {}",
                  index);
@@ -123,11 +123,11 @@ void CommandBuffer::SetBuffer(MTL::Buffer* buffer, u64 offset,
 
     switch (shader_type) {
     case ShaderType::Vertex:
-        GetRenderCommandEncoderUnchecked()->setVertexBuffer(buffer, offset,
+        getRenderCommandEncoderUnchecked()->setVertexBuffer(buffer, offset,
                                                             index);
         break;
     case ShaderType::Fragment:
-        GetRenderCommandEncoderUnchecked()->setFragmentBuffer(buffer, offset,
+        getRenderCommandEncoderUnchecked()->setFragmentBuffer(buffer, offset,
                                                               index);
         break;
     default:
@@ -138,7 +138,7 @@ void CommandBuffer::SetBuffer(MTL::Buffer* buffer, u64 offset,
     bound_buffer.offset = offset;
 }
 
-void CommandBuffer::SetTexture(MTL::Texture* texture, ShaderType shader_type,
+void CommandBuffer::setTexture(MTL::Texture* texture, ShaderType shader_type,
                                u32 index) {
     ASSERT_DEBUG(index < TEXTURE_COUNT, MetalRenderer,
                  "Invalid texture index {}", index);
@@ -150,10 +150,10 @@ void CommandBuffer::SetTexture(MTL::Texture* texture, ShaderType shader_type,
 
     switch (shader_type) {
     case ShaderType::Vertex:
-        GetRenderCommandEncoderUnchecked()->setVertexTexture(texture, index);
+        getRenderCommandEncoderUnchecked()->setVertexTexture(texture, index);
         break;
     case ShaderType::Fragment:
-        GetRenderCommandEncoderUnchecked()->setFragmentTexture(texture, index);
+        getRenderCommandEncoderUnchecked()->setFragmentTexture(texture, index);
         break;
     default:
         LOG_ERROR(MetalRenderer, "Invalid shader type {}", shader_type);
@@ -162,7 +162,7 @@ void CommandBuffer::SetTexture(MTL::Texture* texture, ShaderType shader_type,
     bound_texture = texture;
 }
 
-void CommandBuffer::SetSampler(MTL::SamplerState* sampler,
+void CommandBuffer::setSampler(MTL::SamplerState* sampler,
                                ShaderType shader_type, u32 index) {
     ASSERT_DEBUG(index < TEXTURE_COUNT, MetalRenderer,
                  "Invalid texture index {}", index);
@@ -174,11 +174,11 @@ void CommandBuffer::SetSampler(MTL::SamplerState* sampler,
 
     switch (shader_type) {
     case ShaderType::Vertex:
-        GetRenderCommandEncoderUnchecked()->setVertexSamplerState(sampler,
+        getRenderCommandEncoderUnchecked()->setVertexSamplerState(sampler,
                                                                   index);
         break;
     case ShaderType::Fragment:
-        GetRenderCommandEncoderUnchecked()->setFragmentSamplerState(sampler,
+        getRenderCommandEncoderUnchecked()->setFragmentSamplerState(sampler,
                                                                     index);
         break;
     default:

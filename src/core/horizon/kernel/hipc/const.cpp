@@ -16,7 +16,7 @@ u8* get_buffer_ptr(const hw::tegra_x1::cpu::IMmu* mmu,
     if (size == 0x0)
         return nullptr;
 
-    return reinterpret_cast<u8*>(mmu->UnmapAddr(addr));
+    return reinterpret_cast<u8*>(mmu->unmapAddr(addr));
 }
 
 u8* get_static_ptr(const hw::tegra_x1::cpu::IMmu* mmu,
@@ -31,11 +31,11 @@ u8* get_static_ptr(const hw::tegra_x1::cpu::IMmu* mmu,
     if (size == 0x0)
         return nullptr;
 
-    return reinterpret_cast<u8*>(mmu->UnmapAddr(addr));
+    return reinterpret_cast<u8*>(mmu->unmapAddr(addr));
 }
 
-u8* get_list_entry_ptr(const hw::tegra_x1::cpu::IMmu* mmu,
-                       const RecvListEntry& descriptor, u64& size) {
+u8* getListEntryPtr(const hw::tegra_x1::cpu::IMmu* mmu,
+                    const RecvListEntry& descriptor, u64& size) {
     uptr addr = descriptor.address_low |
                 static_cast<u64>(descriptor.address_high) << 32;
     if (addr == 0x0)
@@ -45,7 +45,7 @@ u8* get_list_entry_ptr(const hw::tegra_x1::cpu::IMmu* mmu,
     if (size == 0x0)
         return nullptr;
 
-    return reinterpret_cast<u8*>(mmu->UnmapAddr(addr));
+    return reinterpret_cast<u8*>(mmu->unmapAddr(addr));
 }
 
 } // namespace hydra::horizon::kernel::hipc

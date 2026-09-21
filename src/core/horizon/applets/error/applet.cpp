@@ -6,9 +6,9 @@
 
 namespace hydra::horizon::applets::error {
 
-result_t Applet::Run(System& system) {
+result_t Applet::run(System& system) {
     // TODO: PopInData
-    auto param_reader = PopInDataRaw();
+    auto param_reader = popInDataRaw();
     const auto param_common = param_reader.read<ParamCommon>();
 
     // TODO: context (if present)
@@ -20,7 +20,7 @@ result_t Applet::Run(System& system) {
         const auto param = param_reader.read<ParamForApplicationError>();
 
         // TODO: handle empty messages
-        system.GetUIHandler().ShowMessageDialog(
+        system.getUiHandler().showMessageDialog(
             ui::MessageDialogType::Error,
             fmt::format("Error (0x{:x})", param.error_code_number),
             fmt::format("{}\n{}", param.dialog_message,
@@ -38,7 +38,7 @@ result_t Applet::Run(System& system) {
         break;
     }
 
-    PushOutData(ret);
+    pushOutData(ret);
 
     return RESULT_SUCCESS;
 }

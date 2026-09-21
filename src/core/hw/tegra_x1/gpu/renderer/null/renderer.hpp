@@ -48,76 +48,76 @@ class Renderer : public IRenderer {
     ~Renderer() override;
 
     // Surface
-    void SetSurface(void* surface) override;
-    ISurfaceCompositor* AcquireNextSurface() override;
+    void setSurface(void* surface) override;
+    ISurfaceCompositor* acquireNextSurface() override;
 
     // Buffer
-    BufferBase* CreateBuffer(u64 size) override;
-    BufferBase* AllocateTemporaryBuffer(const u64 size) override;
-    void FreeTemporaryBuffer(BufferBase* buffer) override;
+    BufferBase* createBuffer(u64 size) override;
+    BufferBase* allocateTemporaryBuffer(const u64 size) override;
+    void freeTemporaryBuffer(BufferBase* buffer) override;
 
     // Texture
-    ITexture* CreateTexture(const TextureDescriptor& descriptor) override;
-    void BlitTexture(ICommandBuffer* command_buffer, ITextureView* src,
+    ITexture* createTexture(const TextureDescriptor& descriptor) override;
+    void blitTexture(ICommandBuffer* command_buffer, ITextureView* src,
                      float3 src_origin, uint3 src_size, u32 src_level,
                      u32 src_layer, ITextureView* dst, float3 dst_origin,
                      uint3 dst_size, u32 dst_level, u32 dst_layer,
                      u32 level_count, u32 layer_count) override;
 
     // Sampler
-    SamplerBase* CreateSampler(const SamplerDescriptor& descriptor) override;
+    SamplerBase* createSampler(const SamplerDescriptor& descriptor) override;
 
     // Command buffer
-    ICommandBuffer* CreateCommandBuffer() override;
+    ICommandBuffer* createCommandBuffer() override;
 
     // Render pass
     RenderPassBase*
-    CreateRenderPass(const RenderPassDescriptor& descriptor) override;
-    void BindRenderPass(const RenderPassBase* render_pass) override;
+    createRenderPass(const RenderPassDescriptor& descriptor) override;
+    void bindRenderPass(const RenderPassBase* render_pass) override;
 
     // Clear
-    void ClearColor(ICommandBuffer* command_buffer, u32 render_target_id,
+    void clearColor(ICommandBuffer* command_buffer, u32 render_target_id,
                     u32 layer, u8 mask, const uint4 color) override;
-    void ClearDepth(ICommandBuffer* command_buffer, u32 layer,
+    void clearDepth(ICommandBuffer* command_buffer, u32 layer,
                     const float value) override;
-    void ClearStencil(ICommandBuffer* command_buffer, u32 layer,
+    void clearStencil(ICommandBuffer* command_buffer, u32 layer,
                       const u32 value) override;
 
     // Shader
-    ShaderBase* CreateShader(const ShaderDescriptor& descriptor) override;
+    ShaderBase* createShader(const ShaderDescriptor& descriptor) override;
 
     // Pipeline
-    PipelineBase* CreatePipeline(const PipelineDescriptor& descriptor) override;
-    void BindPipeline(const PipelineBase* pipeline) override;
+    PipelineBase* createPipeline(const PipelineDescriptor& descriptor) override;
+    void bindPipeline(const PipelineBase* pipeline) override;
 
     // Depth stencil
-    void SetDepthTestEnabled(bool enabled) override;
-    void SetDepthWriteEnabled(bool enabled) override;
-    void SetDepthCompareOp(engines::CompareOp op) override;
+    void setDepthTestEnabled(bool enabled) override;
+    void setDepthWriteEnabled(bool enabled) override;
+    void setDepthCompareOp(engines::CompareOp op) override;
 
     // Viewport and scissor
-    void SetViewport(u32 index, const Viewport& viewport) override;
-    void SetScissor(u32 index, const Scissor& scissor) override;
+    void setViewport(u32 index, const Viewport& viewport) override;
+    void setScissor(u32 index, const Scissor& scissor) override;
 
     // Resource binding
-    void BindVertexBuffer(const BufferView& buffer, u32 index) override;
-    void BindIndexBuffer(const BufferView& index_buffer,
+    void bindVertexBuffer(const BufferView& buffer, u32 index) override;
+    void bindIndexBuffer(const BufferView& index_buffer,
                          engines::IndexType index_type) override;
-    void BindUniformBuffer(const BufferView& buffer, ShaderType shader_type,
+    void bindUniformBuffer(const BufferView& buffer, ShaderType shader_type,
                            u32 index) override;
-    void BindTexture(ITextureView* texture, SamplerBase* sampler,
+    void bindTexture(ITextureView* texture, SamplerBase* sampler,
                      ShaderType shader_type, u32 index) override;
 
     // Resource unbinding
-    void UnbindUniformBuffers(ShaderType shader_type) override;
-    void UnbindTextures(ShaderType shader_type) override;
+    void unbindUniformBuffers(ShaderType shader_type) override;
+    void unbindTextures(ShaderType shader_type) override;
 
     // Draw
-    void Draw(ICommandBuffer* command_buffer,
+    void draw(ICommandBuffer* command_buffer,
               const engines::PrimitiveType primitive_type, const u32 start,
               const u32 count, const u32 base_instance,
               const u32 instance_count) override;
-    void DrawIndexed(ICommandBuffer* command_buffer,
+    void drawIndexed(ICommandBuffer* command_buffer,
                      const engines::PrimitiveType primitive_type,
                      const u32 start, const u32 count, const u32 base_vertex,
                      const u32 base_instance,
@@ -125,8 +125,8 @@ class Renderer : public IRenderer {
 
   protected:
     // Capture
-    void BeginCapture() override;
-    void EndCapture() override;
+    void beginCapture() override;
+    void endCapture() override;
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::null

@@ -2,9 +2,9 @@
 
 namespace hydra::horizon::services::mii {
 
-DEFINE_SERVICE_COMMAND_TABLE(IImageDatabaseService, 0, Initialize, 11, GetCount)
+DEFINE_SERVICE_COMMAND_TABLE(IImageDatabaseService, 0, initialize, 11, getCount)
 
-result_t IImageDatabaseService::Initialize(bool use_database,
+result_t IImageDatabaseService::initialize(bool use_database,
                                            bool* out_is_dirty) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "use database: {}", use_database);
 
@@ -13,7 +13,7 @@ result_t IImageDatabaseService::Initialize(bool use_database,
     return RESULT_SUCCESS;
 }
 
-result_t IImageDatabaseService::GetCount(u32* out_count) {
+result_t IImageDatabaseService::getCount(u32* out_count) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK

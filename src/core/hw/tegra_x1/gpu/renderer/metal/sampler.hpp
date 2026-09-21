@@ -11,7 +11,7 @@ class Sampler final : public SamplerBase {
     ~Sampler() override;
 
     // Getters
-    MTL::SamplerState* GetSampler() const { return mtl_sampler; }
+    MTL::SamplerState* getSampler() const { return mtl_sampler; }
 
   private:
     MTL::SamplerState* mtl_sampler;

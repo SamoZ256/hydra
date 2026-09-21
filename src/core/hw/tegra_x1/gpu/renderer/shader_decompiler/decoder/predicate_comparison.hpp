@@ -21,7 +21,7 @@ union InstPset {
     BitField64<bool, 47, 1> write_cc;
 };
 
-void EmitPset(DecoderContext& context, InstPset inst);
+void emitPset(DecoderContext& context, InstPset inst);
 
 union InstPsetp {
     BitField64<pred_t, 0, 3> dst_inv_pred;
@@ -38,6 +38,6 @@ union InstPsetp {
     BitField64<BoolOp, 45, 2> b_op_c;
 };
 
-void EmitPsetp(DecoderContext& context, InstPsetp inst);
+void emitPsetp(DecoderContext& context, InstPsetp inst);
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

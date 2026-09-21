@@ -5,8 +5,8 @@
 
 namespace hydra::horizon::applets::player_select {
 
-result_t Applet::Run(System& system) {
-    auto settings_reader = PopInDataRaw();
+result_t Applet::run(System& system) {
+    auto settings_reader = popInDataRaw();
     const auto settings = settings_reader.read<UiSettings>();
     (void)settings;
 
@@ -15,12 +15,12 @@ result_t Applet::Run(System& system) {
     // return that
     UiReturnArg ret{
         .result = RESULT_SUCCESS,
-        .selected_user = system.GetOS()
-                             .GetUserManager()
-                             .GetUserIDs()[0], // TODO: use the active user ID
+        .selected_user = system.getOs()
+                             .getUserManager()
+                             .getUserIDs()[0], // TODO: use the active user ID
     };
 
-    PushOutData(ret);
+    pushOutData(ret);
 
     return RESULT_SUCCESS;
 }

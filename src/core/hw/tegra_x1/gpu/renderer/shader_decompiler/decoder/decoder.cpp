@@ -22,15 +22,15 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder {
 
-void Decoder::Decode() {
+void Decoder::decode() {
     crnt_block = &blocks[0x0];
     while (crnt_block != nullptr) {
-        ParseNextInstruction();
+        parseNextInstruction();
     }
 }
 
-void Decoder::ParseNextInstruction() {
-    const u32 pc = GetPC();
+void Decoder::parseNextInstruction() {
+    const u32 pc = getPc();
     const auto inst = context.code_stream->read<instruction_t>();
     if ((pc % 4) == 0) // Sched
         return;
@@ -40,7 +40,7 @@ void Decoder::ParseNextInstruction() {
 #define INST0(value, mask) if ((inst & mask##ull) == value##ull)
 #define INST(value, mask) else INST0(value, mask)
 
-#define EMIT(op) Emit##op(context, std::bit_cast<Inst##op>(inst))
+#define EMIT(op) emit##op(context, std::bit_cast<Inst##op>(inst))
 
     INST0(0xfbe0000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("out");
@@ -61,10 +61,10 @@ void Decoder::ParseNextInstruction() {
             if (!pred_inv) {
                 // Pop and then inherit
                 crnt_block->sync_point_stack.pop();
-                InheritSyncPoints(target);
+                inheritSyncPoints(target);
 
-                context.builder.OpBranch(target);
-                EndBlock();
+                context.builder.opBranch(target);
+                endBlock();
             } else {
                 // TODO: how does sync behave with never?
                 LOG_FATAL(ShaderDecompiler, "Never sync");
@@ -72,15 +72,16 @@ void Decoder::ParseNextInstruction() {
         } else { // Conditional
             // Inherit for the continuation block, then pop and inherit for sync
             // block
-            InheritSyncPoints(pc + 1);
+            inheritSyncPoints(pc + 1);
             // TODO: should this pop? (probably not)
             crnt_block->sync_point_stack.pop();
-            InheritSyncPoints(target);
+            inheritSyncPoints(target);
 
-            context.builder.OpBranchConditional(
-                NotIf(context.builder, ir::Value::Predicate(pred), pred_inv),
+            context.builder.opBranchConditional(
+                notIf(context.builder, ir::Value::createPredicate(pred),
+                      pred_inv),
                 target, pc + 1);
-            EndBlock();
+            endBlock();
         }
     }
     INST(0xf0f0000000000000, 0xfff8000000000000) {
@@ -219,14 +220,14 @@ void Decoder::ParseNextInstruction() {
 
         if (pred == PT) {
             if (!pred_inv) {
-                context.builder.OpExit();
-                EndBlock();
+                context.builder.opExit();
+                endBlock();
             }
         } else {
-            context.builder.OpBeginIf(
-                NotIf(context.builder, ir::Value::Predicate(pred), pred_inv));
-            context.builder.OpExit();
-            context.builder.OpEndIf();
+            context.builder.opBeginIf(notIf(
+                context.builder, ir::Value::createPredicate(pred), pred_inv));
+            context.builder.opExit();
+            context.builder.opEndIf();
         }
     }
     INST(0xe2f0000000000000, 0xfff0000000000000) {
@@ -263,7 +264,7 @@ void Decoder::ParseNextInstruction() {
                 static_cast<i32>(sizeof(instruction_t)) +
             1);
 
-        PushSyncPoint(target);
+        pushSyncPoint(target);
     }
     INST(0xe280000000000020, 0xfff0000000000020) {
         COMMENT_NOT_IMPLEMENTED("plongjmp");
@@ -304,17 +305,18 @@ void Decoder::ParseNextInstruction() {
 
         if (pred == PT) {
             if (!pred_inv) {
-                InheritSyncPoints(target);
-                context.builder.OpBranch(target);
-                EndBlock();
+                inheritSyncPoints(target);
+                context.builder.opBranch(target);
+                endBlock();
             }
         } else {
-            InheritSyncPoints(target);
-            InheritSyncPoints(pc + 1);
-            context.builder.OpBranchConditional(
-                NotIf(context.builder, ir::Value::Predicate(pred), pred_inv),
+            inheritSyncPoints(target);
+            inheritSyncPoints(pc + 1);
+            context.builder.opBranchConditional(
+                notIf(context.builder, ir::Value::createPredicate(pred),
+                      pred_inv),
                 target, pc + 1);
-            EndBlock();
+            endBlock();
         }
     }
     INST(0xe230000000000000, 0xfff0000000000000) {

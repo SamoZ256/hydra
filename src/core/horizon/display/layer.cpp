@@ -10,20 +10,20 @@
 
 namespace hydra::horizon::display {
 
-bool Layer::AcquirePresentTexture(
+bool Layer::acquirePresentTexture(
     hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer) {
     // Get the buffer to present
-    auto& binder = system.GetOS().GetDisplayDriver().GetBinder(binder_handle);
+    auto& binder = system.getOs().getDisplayDriver().getBinder(binder_handle);
 
     BqBufferInput input;
-    i32 slot = binder.ConsumeBuffer(input);
+    i32 slot = binder.consumeBuffer(input);
     if (slot == -1)
         return false;
-    const auto& buffer = binder.GetBuffer(slot);
+    const auto& buffer = binder.getBuffer(slot);
 
     // Texture
-    present_texture = system.GetGpu().GetTexture(
-        command_buffer, process->GetMmu(), buffer.nv_buffer);
+    present_texture = system.getGpu().getTexture(
+        command_buffer, process->getMmu(), buffer.nv_buffer);
 
     // Rect
     src_rect = {};
@@ -36,12 +36,12 @@ bool Layer::AcquirePresentTexture(
     // HACK
     if (src_rect.size.x() == 0) {
         src_rect.size.x() = static_cast<i32>(
-            present_texture.value()->GetBase()->GetDescriptor().width);
+            present_texture.value()->getBase()->getDescriptor().width);
         ONCE(LOG_WARN(Other, "Invalid src width"));
     }
     if (src_rect.size.y() == 0) {
         src_rect.size.y() = static_cast<i32>(
-            present_texture.value()->GetBase()->GetDescriptor().height);
+            present_texture.value()->getBase()->getDescriptor().height);
         ONCE(LOG_WARN(Other, "Invalid src height"));
     }
 
@@ -61,7 +61,7 @@ bool Layer::AcquirePresentTexture(
     return true;
 }
 
-void Layer::Present(hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer,
+void Layer::present(hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer,
                     hw::tegra_x1::gpu::renderer::ISurfaceCompositor* compositor,
                     FloatRect2D dst_rect, f32 dst_scale, bool transparent) {
     ZTD_ASSIGN_OR_RETURN(auto present_tex, present_texture);
@@ -71,15 +71,15 @@ void Layer::Present(hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer,
         dst_rect.size = float2(size) * dst_scale;
 
     // Draw
-    compositor->DrawTexture(command_buffer, present_tex, src_rect, dst_rect,
+    compositor->drawTexture(command_buffer, present_tex, src_rect, dst_rect,
                             transparent);
 }
 
-AccumulatedTime Layer::GetAccumulatedDT() {
-    return system.GetOS()
-        .GetDisplayDriver()
-        .GetBinder(binder_handle)
-        .GetAccumulatedDT();
+AccumulatedTime Layer::getAccumulatedDt() {
+    return system.getOs()
+        .getDisplayDriver()
+        .getBinder(binder_handle)
+        .getAccumulatedDt();
 }
 
 } // namespace hydra::horizon::display

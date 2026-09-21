@@ -4,10 +4,10 @@
 
 namespace hydra::horizon::services::ovln {
 
-DEFINE_SERVICE_COMMAND_TABLE(ISenderService, 0, OpenSender)
+DEFINE_SERVICE_COMMAND_TABLE(ISenderService, 0, openSender)
 
-result_t ISenderService::OpenSender(RequestContext* ctx) {
-    AddService(*ctx, new ISender());
+result_t ISenderService::openSender(RequestContext* ctx) {
+    addService(*ctx, new ISender());
     return RESULT_SUCCESS;
 }
 

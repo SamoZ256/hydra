@@ -2,7 +2,7 @@
 
 namespace hydra::horizon::services::nfc {
 
-result_t INfc::Initialize(u64 aruid, u64 zero,
+result_t INfc::initialize(u64 aruid, u64 zero,
                           InBuffer<BufferAttr::MapAlias> in_version_buffer) {
     (void)aruid;
     (void)zero;
@@ -11,7 +11,7 @@ result_t INfc::Initialize(u64 aruid, u64 zero,
     return RESULT_SUCCESS;
 }
 
-result_t INfc::GetState(u32* out_state) {
+result_t INfc::getState(u32* out_state) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK

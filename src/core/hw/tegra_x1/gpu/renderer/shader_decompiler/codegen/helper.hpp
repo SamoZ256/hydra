@@ -4,7 +4,7 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen {
 
-inline ir::ScalarType ToType(engines::VertexAttribType vertex_attrib_type) {
+inline ir::ScalarType toType(engines::VertexAttribType vertex_attrib_type) {
     switch (vertex_attrib_type) {
     case engines::VertexAttribType::Snorm:
         return ir::ScalarType::F32;
@@ -27,7 +27,7 @@ inline ir::ScalarType ToType(engines::VertexAttribType vertex_attrib_type) {
     }
 }
 
-inline ir::ScalarType ToType(ColorDataType color_data_type) {
+inline ir::ScalarType toType(ColorDataType color_data_type) {
     switch (color_data_type) {
     case ColorDataType::Float:
         return ir::ScalarType::F32;

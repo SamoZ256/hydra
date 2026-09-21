@@ -20,7 +20,7 @@ class Port : public AutoObject {
     ClientPort* client_side;
 
   public:
-    GETTER(server_side, GetServerSide);
+    GETTER(server_side, getServerSide);
 };
 
 } // namespace hydra::horizon::kernel::hipc

@@ -2,9 +2,9 @@
 
 namespace hydra::horizon::services::ts {
 
-DEFINE_SERVICE_COMMAND_TABLE(IMeasurementServer, 1, GetTemperature)
+DEFINE_SERVICE_COMMAND_TABLE(IMeasurementServer, 1, getTemperature)
 
-result_t IMeasurementServer::GetTemperature(Location location,
+result_t IMeasurementServer::getTemperature(Location location,
                                             i32* out_temperature_celsius) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "location: {}", location);
 

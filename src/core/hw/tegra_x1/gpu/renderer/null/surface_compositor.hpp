@@ -11,11 +11,11 @@ class SurfaceCompositor final : public ISurfaceCompositor {
     SurfaceCompositor();
     ~SurfaceCompositor() override;
 
-    void DrawTexture(ICommandBuffer* command_buffer,
+    void drawTexture(ICommandBuffer* command_buffer,
                      const ITextureView* texture, const FloatRect2D src_rect,
                      const FloatRect2D dst_rect, bool transparent,
                      f32 opacity) override;
-    void Present(ICommandBuffer* command_buffer) override;
+    void present(ICommandBuffer* command_buffer) override;
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::null

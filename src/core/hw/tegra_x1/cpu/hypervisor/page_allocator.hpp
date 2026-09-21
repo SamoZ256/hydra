@@ -21,10 +21,10 @@ class PageAllocator {
     PageAllocator(paddr_t base_pa_, usize page_count);
     ~PageAllocator();
 
-    Page GetNextPage();
+    Page getNextPage();
 
     // Getters
-    paddr_t GetBase() const { return base_pa; }
+    paddr_t getBase() const { return base_pa; }
 
   private:
     paddr_t base_pa;
@@ -33,7 +33,7 @@ class PageAllocator {
     u32 current_page_in_allocation = 0;
     usize current_page = 0;
 
-    void Allocate(usize page_count = PAGE_COUNT_ALIGNMENT);
+    void allocate(usize page_count = PAGE_COUNT_ALIGNMENT);
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor

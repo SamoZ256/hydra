@@ -2,18 +2,18 @@
 
 namespace hydra::horizon::services::codec {
 
-DEFINE_SERVICE_COMMAND_TABLE(IHardwareOpusDecoder, 0, DecodeInterleavedOld)
+DEFINE_SERVICE_COMMAND_TABLE(IHardwareOpusDecoder, 0, decodeInterleavedOld)
 
-result_t IHardwareOpusDecoder::DecodeInterleavedOld(
+result_t IHardwareOpusDecoder::decodeInterleavedOld(
     InBuffer<BufferAttr::MapAlias> in_opus_buffer, i32* out_decoded_data_size,
     i32* out_decoded_sample_count,
     OutBuffer<BufferAttr::MapAlias> out_pcm_buffer) {
-    return DecodeInterleavedImpl(in_opus_buffer.stream, out_decoded_data_size,
+    return decodeInterleavedImpl(in_opus_buffer.stream, out_decoded_data_size,
                                  out_decoded_sample_count,
                                  out_pcm_buffer.stream);
 }
 
-result_t IHardwareOpusDecoder::DecodeInterleavedImpl(
+result_t IHardwareOpusDecoder::decodeInterleavedImpl(
     std::optional<ztd::io::MemoryStream> in_opus_stream,
     i32* out_decoded_data_size, i32* out_decoded_sample_count,
     std::optional<ztd::io::MemoryStream> out_pcm_stream) {

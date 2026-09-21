@@ -5,22 +5,22 @@
 
 namespace hydra::horizon::services::audio {
 
-DEFINE_SERVICE_COMMAND_TABLE(IAudioRendererManager, 0, OpenAudioRenderer, 1,
-                             GetWorkBufferSize, 2, GetAudioDeviceService, 4,
-                             GetAudioDeviceServiceWithRevisionInfo)
+DEFINE_SERVICE_COMMAND_TABLE(IAudioRendererManager, 0, openAudioRenderer, 1,
+                             getWorkBufferSize, 2, getAudioDeviceService, 4,
+                             getAudioDeviceServiceWithRevisionInfo)
 
-result_t IAudioRendererManager::OpenAudioRenderer(
+result_t IAudioRendererManager::openAudioRenderer(
     RequestContext* ctx, Aligned<AudioRendererParameters, 56> params,
     u64 work_buffer_size, u64 aruid) {
     (void)aruid;
 
-    AddService(*ctx, new IAudioRenderer(params, work_buffer_size));
+    addService(*ctx, new IAudioRenderer(params, work_buffer_size));
     return RESULT_SUCCESS;
 }
 
 // TODO: cleanup
 result_t
-IAudioRendererManager::GetWorkBufferSize(AudioRendererParameters params,
+IAudioRendererManager::getWorkBufferSize(AudioRendererParameters params,
                                          u64* out_size) {
     LOG_FUNC_STUBBED(Services);
 
@@ -35,7 +35,7 @@ IAudioRendererManager::GetWorkBufferSize(AudioRendererParameters params,
                            (params.mix_buffer_count + 6),
                        0x40u);
 
-    if (IsAudioRendererFeatureSupported(AudioFeature::Splitter,
+    if (isAudioRendererFeatureSupported(AudioFeature::Splitter,
                                         params.revision)) {
         u32 count = params.submix_count + 1;
         u64 node_count = align(count, 0x40u);
@@ -54,7 +54,7 @@ IAudioRendererManager::GetWorkBufferSize(AudioRendererParameters params,
 
     buffer_sz +=
         (0x20 * (params.effect_count + (4 * params.voice_count))) + 0x50;
-    if (IsAudioRendererFeatureSupported(AudioFeature::Splitter,
+    if (isAudioRendererFeatureSupported(AudioFeature::Splitter,
                                         params.revision)) {
         buffer_sz += static_cast<u64>(0xE0 * params._unknown_x2c);
         buffer_sz += static_cast<u64>(0x20 * params.splitter_count);
@@ -84,18 +84,18 @@ IAudioRendererManager::GetWorkBufferSize(AudioRendererParameters params,
     return RESULT_SUCCESS;
 }
 
-result_t IAudioRendererManager::GetAudioDeviceService(RequestContext* ctx,
+result_t IAudioRendererManager::getAudioDeviceService(RequestContext* ctx,
                                                       u64 aruid) {
     (void)aruid;
 
-    AddService(*ctx, new IAudioDevice());
+    addService(*ctx, new IAudioDevice());
     return RESULT_SUCCESS;
 }
 
-result_t IAudioRendererManager::GetAudioDeviceServiceWithRevisionInfo(
+result_t IAudioRendererManager::getAudioDeviceServiceWithRevisionInfo(
     RequestContext* ctx) {
     // TODO: revision info
-    AddService(*ctx, new IAudioDevice());
+    addService(*ctx, new IAudioDevice());
     return RESULT_SUCCESS;
 }
 

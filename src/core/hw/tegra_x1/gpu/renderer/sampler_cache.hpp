@@ -16,13 +16,13 @@ class SamplerCache
   public:
     explicit SamplerCache(IRenderer& renderer_) : renderer{renderer_} {}
 
-    void Destroy() {}
+    void destroy() {}
 
-    SamplerBase* Create(const SamplerDescriptor& descriptor);
-    void Update([[maybe_unused]] SamplerBase* sampler) {}
-    static u32 Hash(const SamplerDescriptor& descriptor);
+    SamplerBase* create(const SamplerDescriptor& descriptor);
+    void update([[maybe_unused]] SamplerBase* sampler) {}
+    static u32 hash(const SamplerDescriptor& descriptor);
 
-    static void DestroyElement(SamplerBase* sampler);
+    static void destroyElement(SamplerBase* sampler);
 
   private:
     IRenderer& renderer;

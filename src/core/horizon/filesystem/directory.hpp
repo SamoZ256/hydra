@@ -12,47 +12,47 @@ class Directory : public IEntry {
     explicit Directory(const std::string_view host_path);
     ~Directory() override;
 
-    bool IsDirectory() const override { return true; }
+    bool isDirectory() const override { return true; }
 
-    void Save(std::string_view host_path) const override;
+    void save(std::string_view host_path) const override;
 
     // TODO: use exceptions
-    [[nodiscard]] FsResult Delete(bool recursive = false) override;
+    [[nodiscard]] FsResult deleteEntry(bool recursive = false) override;
 
-    [[nodiscard]] FsResult AddEntry(const std::string_view path, IEntry* entry,
+    [[nodiscard]] FsResult addEntry(const std::string_view path, IEntry* entry,
                                     bool add_intermediate = false);
-    [[nodiscard]] FsResult AddEntry(const std::string_view path,
+    [[nodiscard]] FsResult addEntry(const std::string_view path,
                                     const std::string_view host_path,
                                     bool add_intermediate = false);
 
-    [[nodiscard]] FsResult DeleteEntry(const std::string_view path,
+    [[nodiscard]] FsResult deleteEntry(const std::string_view path,
                                        bool recursive = false);
 
-    [[nodiscard]] FsResult GetEntry(const std::string_view path,
+    [[nodiscard]] FsResult getEntry(const std::string_view path,
                                     IEntry*& out_entry) const;
-    [[nodiscard]] FsResult GetFile(const std::string_view path,
+    [[nodiscard]] FsResult getFile(const std::string_view path,
                                    IFile*& out_file) const;
-    [[nodiscard]] FsResult GetDirectory(const std::string_view path,
+    [[nodiscard]] FsResult getDirectory(const std::string_view path,
                                         Directory*& out_directory) const;
 
   protected:
     std::map<std::string, IEntry*> entries;
 
   public:
-    CONST_REF_GETTER(entries, GetEntries);
+    CONST_REF_GETTER(entries, getEntries);
 
   private:
     // Impl
-    FsResult AddEntryImpl(const std::span<std::string_view> path, IEntry* entry,
+    FsResult addEntryImpl(const std::span<std::string_view> path, IEntry* entry,
                           bool add_intermediate = false);
-    FsResult DeleteEntryImpl(const std::span<std::string_view> path,
+    FsResult deleteEntryImpl(const std::span<std::string_view> path,
                              bool recursive = false);
-    FsResult GetEntryImpl(const std::span<std::string_view> path,
+    FsResult getEntryImpl(const std::span<std::string_view> path,
                           IEntry*& out_entry) const;
 
     // Helpers
-    static void BreakPath(std::string_view path,
-                   std::vector<std::string_view>& out_path) ;
+    static void breakPath(std::string_view path,
+                          std::vector<std::string_view>& out_path);
 };
 
 } // namespace hydra::horizon::filesystem

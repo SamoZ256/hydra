@@ -27,7 +27,7 @@ union InstTxq {
     BitField64<TextureQuery, 22, 7> query;
 };
 
-void EmitTxq(DecoderContext& context, InstTxq inst);
+void emitTxq(DecoderContext& context, InstTxq inst);
 
 enum class TextureComponent {
     R = 0,
@@ -75,8 +75,8 @@ union InstTexsTlds {
 using InstTexs = InstTexsTlds;
 using InstTlds = InstTexsTlds;
 
-void EmitTexs(DecoderContext& context, InstTexs inst);
-void EmitTlds(DecoderContext& context, InstTlds inst);
+void emitTexs(DecoderContext& context, InstTexs inst);
+void emitTlds(DecoderContext& context, InstTlds inst);
 
 enum class TextureDimension {
     _1D = 0,
@@ -115,7 +115,7 @@ union InstTex {
     BitField64<bool, 58, 1> lc;
 };
 
-void EmitTex(DecoderContext& context, InstTex inst);
+void emitTex(DecoderContext& context, InstTex inst);
 
 union InstTld4 {
     BitField64<reg_t, 0, 8> dst;
@@ -135,7 +135,7 @@ union InstTld4 {
     BitField64<bool, 58, 1> lc;
 };
 
-void EmitTld4(DecoderContext& context, InstTld4 inst);
+void emitTld4(DecoderContext& context, InstTld4 inst);
 
 union InstTld4s {
     BitField64<reg_t, 0, 8> dst0;
@@ -151,7 +151,7 @@ union InstTld4s {
     BitField64<bool, 51, 1> aoffi;
 };
 
-void EmitTld4s(DecoderContext& context, InstTld4s inst);
+void emitTld4s(DecoderContext& context, InstTld4s inst);
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder
 

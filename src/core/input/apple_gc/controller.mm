@@ -4,7 +4,7 @@
 
 namespace hydra::input::apple_gc {
 
-bool Controller::IsPressedImpl(ControllerInput input) {
+bool Controller::isPressedImpl(ControllerInput input) {
     const auto controller = reinterpret_cast<GCController*>(handle);
 
 #define BUTTON_CASE(input, gc_button)                                          \
@@ -50,7 +50,7 @@ bool Controller::IsPressedImpl(ControllerInput input) {
     return controller.physicalInputProfile.buttons[gc_button_name].isPressed;
 }
 
-f32 Controller::GetAxisValueImpl(ControllerInput input) {
+f32 Controller::getAxisValueImpl(ControllerInput input) {
 #define AXIS_CASE(input, gc_dpad, direction)                                   \
     case ControllerInput::input:                                               \
         gc_dpad_name = GCInput##gc_dpad;                                       \

@@ -4,18 +4,18 @@ namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 PageAllocator::PageAllocator(paddr_t base_pa_, usize page_count)
     : base_pa{base_pa_} {
-    Allocate(page_count);
+    allocate(page_count);
 }
 
 PageAllocator::~PageAllocator() {
     for (const auto allocation : allocations) {
-        FreeVmMemory(allocation.ptr, GUEST_PAGE_SIZE * allocation.page_count);
+        freeVmMemory(allocation.ptr, GUEST_PAGE_SIZE * allocation.page_count);
     }
 }
 
-Page PageAllocator::GetNextPage() {
+Page PageAllocator::getNextPage() {
     if (current_page_in_allocation >= allocations.back().page_count) {
-        Allocate();
+        allocate();
         current_page_in_allocation = 0;
     }
 
@@ -27,11 +27,11 @@ Page PageAllocator::GetNextPage() {
     return page;
 }
 
-void PageAllocator::Allocate(usize page_count) {
+void PageAllocator::allocate(usize page_count) {
     page_count = align(page_count, PAGE_COUNT_ALIGNMENT);
 
     const u64 size = page_count * GUEST_PAGE_SIZE;
-    uptr ptr = AllocateVmMemory(size);
+    uptr ptr = allocateVmMemory(size);
 
     const paddr_t pa = base_pa + current_page * GUEST_PAGE_SIZE;
     HV_ASSERT_SUCCESS(

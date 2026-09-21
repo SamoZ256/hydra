@@ -69,9 +69,9 @@ struct CfgBasicBlock {
     bool visited{false};
 
     // TODO: this function is horrible...
-    CfgBasicBlock* Clone() const {
+    CfgBasicBlock* clone() const {
         auto clone = new CfgBasicBlock(*this);
-        clone->Walk([](CfgBasicBlock* b) {
+        clone->walk([](CfgBasicBlock* b) {
             switch (b->edge.type) {
             case CfgBlockEdgeType::Branch:
                 b->edge.branch.target =
@@ -93,7 +93,7 @@ struct CfgBasicBlock {
         return clone;
     }
 
-    bool IsSameAs(const CfgBasicBlock* other) const {
+    bool isSameAs(const CfgBasicBlock* other) const {
         if (other == this)
             return true;
 
@@ -105,28 +105,28 @@ struct CfgBasicBlock {
 
         switch (edge.type) {
         case CfgBlockEdgeType::Branch:
-            return edge.branch.target->IsSameAs(other->edge.branch.target);
+            return edge.branch.target->isSameAs(other->edge.branch.target);
         case CfgBlockEdgeType::BranchConditional:
-            return edge.branch_conditional.target_true->IsSameAs(
+            return edge.branch_conditional.target_true->isSameAs(
                        other->edge.branch_conditional.target_true) &&
-                   edge.branch_conditional.target_false->IsSameAs(
+                   edge.branch_conditional.target_false->isSameAs(
                        other->edge.branch_conditional.target_false);
         default:
             return true;
         }
     }
 
-    void Walk(const std::function<bool(CfgBasicBlock*)>& visitor) {
-        WalkImpl(visitor);
+    void walk(const std::function<bool(CfgBasicBlock*)>& visitor) {
+        walkImpl(visitor);
 
         // Mark all nodes as not visited
-        MarkNotVisited();
+        markNotVisited();
     }
 
-    bool CanJumpTo(const CfgBasicBlock* target) {
+    bool canJumpTo(const CfgBasicBlock* target) {
         bool can_jump = false;
-        Walk([&can_jump, target](CfgBasicBlock* b) {
-            if (b->IsSameAs(target)) {
+        walk([&can_jump, target](CfgBasicBlock* b) {
+            if (b->isSameAs(target)) {
                 can_jump = true;
                 return false;
             }
@@ -137,22 +137,22 @@ struct CfgBasicBlock {
         return can_jump;
     }
 
-    bool CanDirectlyJumpTo(const CfgBasicBlock* target) const {
+    bool canDirectlyJumpTo(const CfgBasicBlock* target) const {
         switch (edge.type) {
         case CfgBlockEdgeType::Branch:
-            return edge.branch.target->IsSameAs(target);
+            return edge.branch.target->isSameAs(target);
         case CfgBlockEdgeType::BranchConditional:
-            return edge.branch_conditional.target_true->IsSameAs(target) ||
-                   edge.branch_conditional.target_false->IsSameAs(target);
+            return edge.branch_conditional.target_true->isSameAs(target) ||
+                   edge.branch_conditional.target_false->isSameAs(target);
         default:
             return false;
         }
     }
 
-    CfgBasicBlock* FindMergeBlock(CfgBasicBlock* other) {
+    CfgBasicBlock* findMergeBlock(CfgBasicBlock* other) {
         CfgBasicBlock* merge_block = nullptr;
-        Walk([&](CfgBasicBlock* b) {
-            if (other->CanJumpTo(b)) {
+        walk([&](CfgBasicBlock* b) {
+            if (other->canJumpTo(b)) {
                 merge_block = b;
                 return false;
             }
@@ -165,7 +165,7 @@ struct CfgBasicBlock {
 
     // Debug
 #ifdef HYDRA_DEBUG
-    void Log(const u32 indent = 0) const {
+    void log(const u32 indent = 0) const {
         LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Block: {}", PASS_INDENT(indent),
                   label);
         LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Edge: {}",
@@ -190,15 +190,15 @@ struct CfgBasicBlock {
         }
     }
 #else
-    void Log([[maybe_unused]] const u32 indent = 0) const {}
+    void log([[maybe_unused]] const u32 indent = 0) const {}
 #endif
 
-    void WriteToDot(std::ostream& os) {
+    void writeToDot(std::ostream& os) {
         fmt::print(os, "digraph CFG {{\n");
         fmt::print(os, "    node [shape=box];\n");
         fmt::print(os, "    edge [arrowhead=normal];\n");
 
-        Walk([&os](CfgBasicBlock* b) {
+        walk([&os](CfgBasicBlock* b) {
             fmt::print(os, "    {} [label=\"{:x}\"];\n", b->label,
                        static_cast<u32>(b->label));
             switch (b->edge.type) {
@@ -223,7 +223,7 @@ struct CfgBasicBlock {
     }
 
   private:
-    bool WalkImpl(const std::function<bool(CfgBasicBlock*)>& visitor) {
+    bool walkImpl(const std::function<bool(CfgBasicBlock*)>& visitor) {
         if (visited)
             return true;
 
@@ -231,13 +231,13 @@ struct CfgBasicBlock {
 
         switch (edge.type) {
         case CfgBlockEdgeType::Branch:
-            if (!edge.branch.target->WalkImpl(visitor))
+            if (!edge.branch.target->walkImpl(visitor))
                 return false;
             break;
         case CfgBlockEdgeType::BranchConditional:
-            if (!edge.branch_conditional.target_true->WalkImpl(visitor))
+            if (!edge.branch_conditional.target_true->walkImpl(visitor))
                 return false;
-            if (!edge.branch_conditional.target_false->WalkImpl(visitor))
+            if (!edge.branch_conditional.target_false->walkImpl(visitor))
                 return false;
             break;
         default:
@@ -248,7 +248,7 @@ struct CfgBasicBlock {
         return visitor(this);
     }
 
-    void MarkNotVisited() {
+    void markNotVisited() {
         if (!visited)
             return;
 
@@ -256,11 +256,11 @@ struct CfgBasicBlock {
 
         switch (edge.type) {
         case CfgBlockEdgeType::Branch:
-            edge.branch.target->MarkNotVisited();
+            edge.branch.target->markNotVisited();
             break;
         case CfgBlockEdgeType::BranchConditional:
-            edge.branch_conditional.target_true->MarkNotVisited();
-            edge.branch_conditional.target_false->MarkNotVisited();
+            edge.branch_conditional.target_true->markNotVisited();
+            edge.branch_conditional.target_false->markNotVisited();
             break;
         default:
             break;
@@ -270,13 +270,13 @@ struct CfgBasicBlock {
 
 class CfgBuilder {
   public:
-    CfgBasicBlock* Build(const ir::Function& function);
+    CfgBasicBlock* build(const ir::Function& function);
 
   private:
     std::map<label_t, CfgBasicBlock*> blocks;
 
     // Helpers
-    CfgBasicBlock* GetBlock(label_t label) {
+    CfgBasicBlock* getBlock(label_t label) {
         auto& block = blocks[label];
         if (block == nullptr)
             block = new CfgBasicBlock{.label = label};

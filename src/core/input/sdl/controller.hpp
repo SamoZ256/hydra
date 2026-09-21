@@ -12,8 +12,8 @@ class Controller : public IController {
     ~Controller() override { SDL_CloseGamepad(handle); }
 
   protected:
-    bool IsPressedImpl(ControllerInput input) override;
-    f32 GetAxisValueImpl(ControllerInput input) override;
+    bool isPressedImpl(ControllerInput input) override;
+    f32 getAxisValueImpl(ControllerInput input) override;
 
   private:
     SDL_Gamepad* handle;

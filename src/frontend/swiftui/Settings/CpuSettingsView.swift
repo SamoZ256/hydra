@@ -7,7 +7,7 @@ let hypervisorEnabled = false
 #endif
 
 struct CpuSettingsView: View {
-    @State private var cpuBackend = HydraCpuBackend(rawValue: hydraConfigGetCpuBackend().pointee)
+    @State private var cpuBackend = HydraCpuBackend(rawValue: configGetCpuBackend().pointee)
 
     var body: some View {
         Spacer()
@@ -23,7 +23,7 @@ struct CpuSettingsView: View {
                             .tag(HYDRA_CPU_BACKEND_DYNARMIC.rawValue)
                     }
                     .onChange(of: self.cpuBackend.rawValue) { _, newValue in
-                        hydraConfigGetCpuBackend().pointee = newValue
+                        configGetCpuBackend().pointee = newValue
                     }
                 }
 

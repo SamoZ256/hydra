@@ -12,16 +12,16 @@ class IDeviceList {
     ZTD_MAKE_NON_COPYABLE(IDeviceList);
     ZTD_MAKE_NON_MOVABLE(IDeviceList);
 
-    virtual void PumpEvents() {}
+    virtual void pumpEvents() {}
 
-    void AddDevice(std::string_view name, IDevice* device) {
+    void addDevice(std::string_view name, IDevice* device) {
         std::scoped_lock lock(mutex);
         const auto res = devices.emplace(name, device);
         ASSERT(res.second, Input, "{} already connected", name);
         LOG_INFO(Input, "Device connected: {}", name);
     }
 
-    void RemoveDevice(std::string_view name) {
+    void removeDevice(std::string_view name) {
         std::scoped_lock lock(mutex);
         const auto it = devices.find(name);
         ASSERT(it != devices.end(), Input, "{} not connected", name);
@@ -29,7 +29,7 @@ class IDeviceList {
         LOG_INFO(Input, "Device disconnected: {}", name);
     }
 
-    IDevice* GetDevice(std::string_view name) {
+    IDevice* getDevice(std::string_view name) {
         auto it = devices.find(name);
         if (it == devices.end())
             return nullptr;
@@ -42,7 +42,7 @@ class IDeviceList {
     std::map<std::string, std::unique_ptr<IDevice>, std::less<>> devices;
 
   public:
-    REF_GETTER(mutex, GetMutex);
+    REF_GETTER(mutex, getMutex);
 };
 
 } // namespace hydra::input

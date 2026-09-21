@@ -12,18 +12,18 @@ class DeviceManager {
   public:
     DeviceManager();
 
-    void PumpEvents() { device_list->PumpEvents(); }
+    void pumpEvents() { device_list->pumpEvents(); }
 
-    NpadState PollNpad(horizon::services::hid::internal::NpadIndex index);
-    std::map<u32, TouchState> PollTouch();
+    NpadState pollNpad(horizon::services::hid::internal::NpadIndex index);
+    std::map<u32, TouchState> pollTouch();
 
     // Touch screen devices
-    void ConnectTouchScreenDevice(std::string_view name, IDevice* device) {
-        device_list->AddDevice(name, device);
+    void connectTouchScreenDevice(std::string_view name, IDevice* device) {
+        device_list->addDevice(name, device);
     }
 
-    void DisconnectTouchScreenDevice(std::string_view name) {
-        device_list->RemoveDevice(name);
+    void disconnectTouchScreenDevice(std::string_view name) {
+        device_list->removeDevice(name);
     }
 
   private:
@@ -35,8 +35,8 @@ class DeviceManager {
     u16 available_finger_mask{0xffff};
 
     // Helpers
-    u32 BeginTouch();
-    void EndTouch(u32 finger_id);
+    u32 beginTouch();
+    void endTouch(u32 finger_id);
 };
 
 } // namespace hydra::input

@@ -8,15 +8,15 @@ class NvDispDisp : public FdBase {
   public:
     explicit NvDispDisp(u32 display_index_) : display_index{display_index_} {}
 
-    NvResult Ioctl([[maybe_unused]] IoctlContext& context, u32 type,
+    NvResult ioctl([[maybe_unused]] IoctlContext& context, u32 type,
                    u32 nr) override;
 
   private:
     u32 display_index;
 
     // Ioctls
-    NvResult GetWindow(u32 unknown_x0);
-    NvResult SetCmu(InOutSingle<std::array<u8, 2458>> inout_unknown_x0);
+    NvResult getWindow(u32 unknown_x0);
+    NvResult setCmu(InOutSingle<std::array<u8, 2458>> inout_unknown_x0);
 };
 
 } // namespace hydra::horizon::services::nvdrv::ioctl

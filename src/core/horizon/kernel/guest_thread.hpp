@@ -19,24 +19,24 @@ class GuestThread : public IThread {
                 i32 priority, std::string_view debug_name = "Guest thread");
     ~GuestThread() override;
 
-    void SetEntryPoint(vaddr_t entry_point_) { entry_point = entry_point_; }
-    void SetReturnAddress(vaddr_t return_address_) {
+    void setEntryPoint(vaddr_t entry_point_) { entry_point = entry_point_; }
+    void setReturnAddress(vaddr_t return_address_) {
         return_address = return_address_;
     }
-    void SetArg(u32 index, u64 value) {
+    void setArg(u32 index, u64 value) {
         ASSERT(index < sizeof_array(args), Kernel, "Invalid argument index {}",
                index);
         args[index] = value;
     }
 
-    uptr GetTlsPtr() const override;
+    uptr getTlsPtr() const override;
 
   protected:
     vaddr_t entry_point{invalid<vaddr_t>()};
     vaddr_t return_address{invalid<vaddr_t>()};
     u64 args[2] = {0};
 
-    void Run() override;
+    void run() override;
 
   private:
     System& system;
@@ -48,7 +48,7 @@ class GuestThread : public IThread {
     hw::tegra_x1::cpu::IThread* thread{nullptr};
 
   public:
-    GETTER(thread, GetThread);
+    GETTER(thread, getThread);
 };
 
 } // namespace hydra::horizon::kernel

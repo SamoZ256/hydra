@@ -46,7 +46,7 @@ struct SettingsView: View {
             .frame(maxWidth: 660, minHeight: 100)
             .frame(width: 660, height: 440) // TODO: Don't hardcode
             .onDisappear {
-                hydraConfigSerialize()
+                configSerialize()
             }
         #else
             NavigationView {
@@ -84,7 +84,7 @@ struct SettingsView: View {
                 .navigationTitle("Settings")
             }
             .onDisappear {
-                hydraConfigSerialize()
+                configSerialize()
             }
         #endif
     }

@@ -49,69 +49,69 @@ class IThread : public SynchronizationObject {
           priority{priority_} {}
     ~IThread() noexcept override;
 
-    void Start();
+    void start();
 
     // Messages
-    void Stop() {
-        SendMessage({.type = ThreadMessageType::Stop, .supervisor = false});
+    void stop() {
+        sendMessage({.type = ThreadMessageType::Stop, .supervisor = false});
     }
     // TODO: SupervisorStop?
-    void Pause() {
-        SendMessage({.type = ThreadMessageType::Pause, .supervisor = false});
+    void pause() {
+        sendMessage({.type = ThreadMessageType::Pause, .supervisor = false});
     }
-    void SupervisorPause() {
-        SendMessage({.type = ThreadMessageType::Pause, .supervisor = true});
+    void supervisorPause() {
+        sendMessage({.type = ThreadMessageType::Pause, .supervisor = true});
     }
-    void Resume(SynchronizationObject* signalled_obj = nullptr) {
-        SendMessage({.type = ThreadMessageType::Resume,
+    void resume(SynchronizationObject* signalled_obj = nullptr) {
+        sendMessage({.type = ThreadMessageType::Resume,
                      .supervisor = false,
                      .payload = {.resume = {.signalled = true,
                                             .signalled_obj = signalled_obj}}});
     }
-    void CancelSync() {
-        SendMessage({.type = ThreadMessageType::Resume,
+    void cancelSync() {
+        sendMessage({.type = ThreadMessageType::Resume,
                      .supervisor = false,
                      .payload = {.resume = {.signalled = false}}});
     }
-    void SupervisorResume() {
-        SendMessage({.type = ThreadMessageType::Resume, .supervisor = true});
+    void supervisorResume() {
+        sendMessage({.type = ThreadMessageType::Resume, .supervisor = true});
     }
 
     // Must not be called from a different thread
-    bool ProcessMessages(i64 pause_timeout_ns = INFINITE_TIMEOUT);
-    bool WasSignalled() const {
+    bool processMessages(i64 pause_timeout_ns = INFINITE_TIMEOUT);
+    bool wasSignalled() const {
         ASSERT_DEBUG(sync_info, Kernel, "No signal info present");
         const auto& sync_info_value = sync_info.value();
         ASSERT_DEBUG(!sync_info_value.signalled_obj, Kernel,
                      "Unexpected signalled object {}",
-                     sync_info_value.signalled_obj->GetDebugName());
+                     sync_info_value.signalled_obj->getDebugName());
         return sync_info_value.signalled;
     }
-    bool ConsumeSignalledObject(SynchronizationObject*& out_obj) const {
+    bool consumeSignalledObject(SynchronizationObject*& out_obj) const {
         ASSERT_DEBUG(sync_info, Kernel, "No signal info present");
         const auto& sync_info_value = sync_info.value();
         if (!sync_info_value.signalled)
             return false;
 
         ASSERT_DEBUG(sync_info_value.signalled_obj, Kernel,
-                     "Expected signalled object (self: {})", GetDebugName());
+                     "Expected signalled object (self: {})", getDebugName());
         out_obj = sync_info_value.signalled_obj;
         return true;
     }
 
-    bool IsStoppingOrStopped() const {
+    bool isStoppingOrStopped() const {
         return state == ThreadState::Stopping || state == ThreadState::Stopped;
     }
 
-    virtual uptr GetTlsPtr() const = 0;
+    virtual uptr getTlsPtr() const = 0;
 
   protected:
     Process* process;
 
-    virtual void Run() = 0;
+    virtual void run() = 0;
 
     // Helpers
-    void Reset() {
+    void reset() {
         state = ThreadState::Created;
         msg_queue = {};
         mutex_wait_addr = 0x0;
@@ -148,22 +148,22 @@ class IThread : public SynchronizationObject {
     // Helpers
 
     // Messages
-    void SendMessage(ThreadMessage msg);
-    bool ProcessMessagesImpl();
+    void sendMessage(ThreadMessage msg);
+    bool processMessagesImpl();
 
     // Mutex
-    void AddMutexWaiter(IThread* waiter);
-    void RemoveMutexWaiter(IThread* waiter);
-    IThread* RelinquishMutex(uptr mutex_addr, u32& out_waiter_count);
+    void addMutexWaiter(IThread* waiter);
+    void removeMutexWaiter(IThread* waiter);
+    IThread* relinquishMutex(uptr mutex_addr, u32& out_waiter_count);
 
   public:
-    GETTER(process, GetProcess);
-    GETTER(state, GetState);
+    GETTER(process, getProcess);
+    GETTER(state, getState);
 };
 
 inline thread_local IThread* tls_current_thread = nullptr;
 
-std::optional<IThread*> GetMutexOwner(Process* process, u32 mutex);
-std::optional<IThread*> GetMutexOwner(Process* process, u32* mutex_ptr);
+std::optional<IThread*> getMutexOwner(Process* process, u32 mutex);
+std::optional<IThread*> getMutexOwner(Process* process, u32* mutex_ptr);
 
 } // namespace hydra::horizon::kernel

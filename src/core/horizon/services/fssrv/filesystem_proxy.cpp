@@ -13,12 +13,12 @@ namespace hydra::horizon::services::fssrv {
 
 namespace {
 
-std::string get_save_data_mount(kernel::Process* process,
-                                const SaveDataAttribute& attr) {
+std::string getSaveDataMount(kernel::Process* process,
+                             const SaveDataAttribute& attr) {
     u64 title_id = attr.title_id;
     // TODO: is this correct?
     if (title_id == 0x0)
-        title_id = process->GetTitleID();
+        title_id = process->getTitleId();
 
     switch (attr.type) {
     case SaveDataType::Account:
@@ -36,18 +36,18 @@ std::string get_save_data_mount(kernel::Process* process,
 } // namespace
 
 DEFINE_SERVICE_COMMAND_TABLE(
-    IFileSystemProxy, 0, OpenFileSystem, 1, SetCurrentProcess, 8,
-    OpenFileSystemWithIdObsolete, 11, OpenBisFileSystem, 18,
-    OpenSdCardFileSystem, 22, CreateSaveDataFileSystem, 51,
-    OpenSaveDataFileSystem, 52,
-    ReadSaveDataFileSystemExtraDataBySaveDataSpaceId, 53,
-    OpenReadOnlySaveDataFileSystem, 61, OpenSaveDataInfoReaderBySaveDataSpaceId,
-    200, OpenDataStorageByCurrentProcess, 201, OpenDataStorageByProgramId, 202,
-    OpenDataStorageByDataId, 203, OpenPatchDataStorageByCurrentProcess, 1003,
-    DisableAutoSaveDataCreation, 1005, GetGlobalAccessLogMode)
+    IFileSystemProxy, 0, openFileSystem, 1, setCurrentProcess, 8,
+    openFileSystemWithIdObsolete, 11, openBisFileSystem, 18,
+    openSdCardFileSystem, 22, createSaveDataFileSystem, 51,
+    openSaveDataFileSystem, 52,
+    readSaveDataFileSystemExtraDataBySaveDataSpaceId, 53,
+    openReadOnlySaveDataFileSystem, 61, openSaveDataInfoReaderBySaveDataSpaceId,
+    200, openDataStorageByCurrentProcess, 201, openDataStorageByProgramId, 202,
+    openDataStorageByDataId, 203, openPatchDataStorageByCurrentProcess, 1003,
+    disableAutoSaveDataCreation, 1005, getGlobalAccessLogMode)
 
 // TODO: type
-result_t IFileSystemProxy::OpenFileSystem(
+result_t IFileSystemProxy::openFileSystem(
     RequestContext* ctx, FileSystemProxyType type,
     InBuffer<BufferAttr::HipcPointer> path_buffer) {
     (void)type;
@@ -56,13 +56,13 @@ result_t IFileSystemProxy::OpenFileSystem(
     const auto mount = path_buffer.stream->readNullTerminatedString();
     LOG_DEBUG(Services, "Mount: {}", mount);
 
-    AddService(*ctx, new IFileSystem(mount));
+    addService(*ctx, new IFileSystem(mount));
 
     return RESULT_SUCCESS;
 }
 
 // TODO: type
-result_t IFileSystemProxy::OpenFileSystemWithIdObsolete(
+result_t IFileSystemProxy::openFileSystemWithIdObsolete(
     RequestContext* ctx, FileSystemProxyType type, u64 program_id,
     InBuffer<BufferAttr::HipcPointer> path_buffer) {
     (void)type;
@@ -72,12 +72,12 @@ result_t IFileSystemProxy::OpenFileSystemWithIdObsolete(
     const auto mount = path_buffer.stream->readNullTerminatedString();
     LOG_DEBUG(Services, "Mount: {}", mount);
 
-    AddService(*ctx, new IFileSystem(mount));
+    addService(*ctx, new IFileSystem(mount));
 
     return RESULT_SUCCESS;
 }
 
-result_t IFileSystemProxy::OpenBisFileSystem(
+result_t IFileSystemProxy::openBisFileSystem(
     BisPartitionId partition_id,
     InBuffer<BufferAttr::HipcPointer> unknown_buffer) {
     const auto unknown =
@@ -90,22 +90,22 @@ result_t IFileSystemProxy::OpenBisFileSystem(
     return MAKE_RESULT(Fs, 1771);
 }
 
-result_t IFileSystemProxy::OpenSdCardFileSystem(RequestContext* ctx) {
+result_t IFileSystemProxy::openSdCardFileSystem(RequestContext* ctx) {
     // TODO: correct?
-    AddService(*ctx, new IFileSystem(FS_SD_MOUNT));
+    addService(*ctx, new IFileSystem(FS_SD_MOUNT));
     return RESULT_SUCCESS;
 }
 
 // TODO: creation and meta info
-result_t IFileSystemProxy::CreateSaveDataFileSystem(
+result_t IFileSystemProxy::createSaveDataFileSystem(
     System* system, kernel::Process* process, SaveDataAttribute attr,
     SaveDataCreationInfo creation_info, SaveDataMetaInfo meta_info) {
     (void)creation_info;
     (void)meta_info;
 
-    std::string mount = get_save_data_mount(process, attr);
+    std::string mount = getSaveDataMount(process, attr);
     const auto res =
-        system->GetOS().GetFilesystem().CreateDirectory(mount, true);
+        system->getOs().getFilesystem().createDirectory(mount, true);
     ASSERT(res == filesystem::FsResult::Success ||
                res == filesystem::FsResult::AlreadyExists,
            Services, "Failed to create save data directory: {}", res);
@@ -113,7 +113,7 @@ result_t IFileSystemProxy::CreateSaveDataFileSystem(
     return RESULT_SUCCESS;
 }
 
-result_t IFileSystemProxy::ReadSaveDataFileSystemExtraDataBySaveDataSpaceId(
+result_t IFileSystemProxy::readSaveDataFileSystemExtraDataBySaveDataSpaceId(
     Aligned<SaveDataSpaceId, 8> space_id, u64 save_id,
     OutBuffer<BufferAttr::MapAlias> out_buffer) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "space ID: {}, save ID: {}", space_id,
@@ -127,35 +127,35 @@ result_t IFileSystemProxy::ReadSaveDataFileSystemExtraDataBySaveDataSpaceId(
     return RESULT_SUCCESS;
 }
 
-result_t IFileSystemProxy::OpenSaveDataFileSystem(
+result_t IFileSystemProxy::openSaveDataFileSystem(
     RequestContext* ctx, System* system, kernel::Process* process,
     Aligned<SaveDataSpaceId, 8> space_id, SaveDataAttribute attr) {
-    return OpenSaveDataFileSystemImpl(ctx, system, process, space_id, attr,
+    return openSaveDataFileSystemImpl(ctx, system, process, space_id, attr,
                                       false);
 }
 
-result_t IFileSystemProxy::OpenReadOnlySaveDataFileSystem(
+result_t IFileSystemProxy::openReadOnlySaveDataFileSystem(
     RequestContext* ctx, System* system, kernel::Process* process,
     Aligned<SaveDataSpaceId, 8> space_id, SaveDataAttribute attr) {
-    return OpenSaveDataFileSystemImpl(ctx, system, process, space_id, attr,
+    return openSaveDataFileSystemImpl(ctx, system, process, space_id, attr,
                                       true);
 }
 
 // TODO: space ID
-result_t IFileSystemProxy::OpenSaveDataInfoReaderBySaveDataSpaceId(
+result_t IFileSystemProxy::openSaveDataInfoReaderBySaveDataSpaceId(
     RequestContext* ctx, SaveDataSpaceId space_id) {
     (void)space_id;
 
-    AddService(*ctx, new ISaveDataInfoReader());
+    addService(*ctx, new ISaveDataInfoReader());
     return RESULT_SUCCESS;
 }
 
-result_t IFileSystemProxy::OpenDataStorageByCurrentProcess(
+result_t IFileSystemProxy::openDataStorageByCurrentProcess(
     RequestContext* ctx, System* system, kernel::Process* process) {
-    return OpenDataStorageByProgramId(ctx, system, process->GetTitleID());
+    return openDataStorageByProgramId(ctx, system, process->getTitleId());
 }
 
-result_t IFileSystemProxy::OpenDataStorageByProgramId(RequestContext* ctx,
+result_t IFileSystemProxy::openDataStorageByProgramId(RequestContext* ctx,
                                                       System* system,
                                                       u64 program_id) {
     LOG_DEBUG(Services, "Program ID: 0x{:016x}", program_id);
@@ -165,19 +165,19 @@ result_t IFileSystemProxy::OpenDataStorageByProgramId(RequestContext* ctx,
 
     filesystem::IFile* file = nullptr;
     const auto res =
-        system->GetOS().GetFilesystem().GetFile(FS_SD_MOUNT "/rom/romFS", file);
+        system->getOs().getFilesystem().getFile(FS_SD_MOUNT "/rom/romFS", file);
     if (res != filesystem::FsResult::Success) {
         LOG_WARN(Services, "Data storage does not exist");
         return MAKE_RESULT(Fs, res);
     }
 
-    AddService(*ctx, new IStorage(file, filesystem::FileOpenFlags::Read));
+    addService(*ctx, new IStorage(file, filesystem::FileOpenFlags::Read));
 
     return RESULT_SUCCESS;
 }
 
 result_t
-IFileSystemProxy::OpenDataStorageByDataId(RequestContext* ctx, System* system,
+IFileSystemProxy::openDataStorageByDataId(RequestContext* ctx, System* system,
                                           Aligned<ncm::StorageID, 8> storage_id,
                                           u64 data_id) {
     LOG_FUNC_NOT_IMPLEMENTED(Services);
@@ -190,7 +190,7 @@ IFileSystemProxy::OpenDataStorageByDataId(RequestContext* ctx, System* system,
     switch (storage_id.Get()) {
     case ncm::StorageID::BuiltInSystem: {
         // TODO: correct?
-        const auto res = system->GetOS().GetFilesystem().GetFile(
+        const auto res = system->getOs().getFilesystem().getFile(
             fmt::format(FS_FIRMWARE_PATH "/{:016x}/public data", data_id),
             file);
         ASSERT(res == filesystem::FsResult::Success, Services,
@@ -205,42 +205,42 @@ IFileSystemProxy::OpenDataStorageByDataId(RequestContext* ctx, System* system,
     }
 
     filesystem::ContentArchive content_archive(file);
-    const auto res = content_archive.GetFile("data", file);
+    const auto res = content_archive.getFile("data", file);
     if (res != filesystem::FsResult::Success) {
         LOG_WARN(Services, "Data storage does not have romFS");
         return MAKE_RESULT(Fs, res);
     }
 
-    AddService(*ctx, new IStorage(file, filesystem::FileOpenFlags::Read));
+    addService(*ctx, new IStorage(file, filesystem::FileOpenFlags::Read));
 
     return RESULT_SUCCESS;
 }
 
 result_t
-IFileSystemProxy::OpenPatchDataStorageByCurrentProcess(RequestContext* ctx,
+IFileSystemProxy::openPatchDataStorageByCurrentProcess(RequestContext* ctx,
                                                        System* system) {
     LOG_NOT_IMPLEMENTED(Services, "OpenPatchDataStorageByCurrentProcess");
 
     // HACK
     filesystem::IFile* file = nullptr;
     const auto res =
-        system->GetOS().GetFilesystem().GetFile(FS_SD_MOUNT "/rom/romFS", file);
+        system->getOs().getFilesystem().getFile(FS_SD_MOUNT "/rom/romFS", file);
     if (res != filesystem::FsResult::Success) {
         LOG_WARN(Services, "Data storage does not exist");
         return MAKE_RESULT(Fs, res);
     }
 
-    AddService(*ctx, new IStorage(file, filesystem::FileOpenFlags::Read));
+    addService(*ctx, new IStorage(file, filesystem::FileOpenFlags::Read));
 
     return RESULT_SUCCESS;
 }
 
-result_t IFileSystemProxy::DisableAutoSaveDataCreation() {
+result_t IFileSystemProxy::disableAutoSaveDataCreation() {
     LOG_FUNC_STUBBED(Services);
     return RESULT_SUCCESS;
 }
 
-result_t IFileSystemProxy::GetGlobalAccessLogMode(u32* out_log_mode) {
+result_t IFileSystemProxy::getGlobalAccessLogMode(u32* out_log_mode) {
     LOG_FUNC_STUBBED(Services);
 
     // TODO: what should this be?
@@ -248,7 +248,7 @@ result_t IFileSystemProxy::GetGlobalAccessLogMode(u32* out_log_mode) {
     return RESULT_SUCCESS;
 }
 
-result_t IFileSystemProxy::OpenSaveDataFileSystemImpl(
+result_t IFileSystemProxy::openSaveDataFileSystemImpl(
     RequestContext* ctx, System* system, kernel::Process* process,
     SaveDataSpaceId space_id, SaveDataAttribute attr, bool read_only) {
     (void)space_id;
@@ -256,12 +256,12 @@ result_t IFileSystemProxy::OpenSaveDataFileSystemImpl(
 
     // TODO: support read only
 
-    std::string mount = get_save_data_mount(process, attr);
-    AddService(*ctx, new IFileSystem(mount));
+    std::string mount = getSaveDataMount(process, attr);
+    addService(*ctx, new IFileSystem(mount));
 
     // TODO: correct?
     const auto res =
-        system->GetOS().GetFilesystem().CreateDirectory(mount, true);
+        system->getOs().getFilesystem().createDirectory(mount, true);
     ASSERT_DEBUG(res == filesystem::FsResult::Success ||
                      res == filesystem::FsResult::AlreadyExists,
                  Services, "Failed to create save data directory: {}", res);

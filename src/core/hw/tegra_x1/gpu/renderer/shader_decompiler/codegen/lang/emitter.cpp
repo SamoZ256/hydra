@@ -6,47 +6,47 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang {
 
-void LangEmitter::Start() {
+void LangEmitter::start() {
     // Header
-    EmitHeader();
-    WriteNewline();
+    emitHeader();
+    writeNewline();
 
     // Type aliases
-    EmitTypeAliases();
-    WriteNewline();
+    emitTypeAliases();
+    writeNewline();
 
     // Reg type
-    EnterScope("union Reg");
-    Write("u8 _u8;");
-    Write("u16 _u16;");
-    Write("u32 _u32;");
-    Write("i8 _i8;");
-    Write("i16 _i16;");
-    Write("i32 _i32;");
-    Write("f16 _f16;");
-    Write("f32 _f32;");
-    Write("half2 _2xf16;");
-    ExitScopeEmpty(true);
-    WriteNewline();
+    enterScope("union Reg");
+    write("u8 _u8;");
+    write("u16 _u16;");
+    write("u32 _u32;");
+    write("i8 _i8;");
+    write("i16 _i16;");
+    write("i32 _i32;");
+    write("f16 _f16;");
+    write("f32 _f32;");
+    write("half2 _2xf16;");
+    exitScopeEmpty(true);
+    writeNewline();
 
     // State
-    EnterScope("struct State");
-    Write("Reg r[256];");
-    Write("bool p[8];"); // TODO: is the size correct?
+    enterScope("struct State");
+    write("Reg r[256];");
+    write("bool p[8];"); // TODO: is the size correct?
     // TODO: move this to the backend
-    for (auto index : memory_analyzer.GetConstBuffers())
-        Write("constant Reg* c{};", index);
-    Write("Reg a_in[0x200];");  // TODO: what should the size be?
-    Write("Reg a_out[0x200];"); // TODO: what should the size be?
-    EmitStateBindings();
-    ExitScopeEmpty(true);
-    WriteNewline();
+    for (auto index : memory_analyzer.getConstBuffers())
+        write("constant Reg* c{};", index);
+    write("Reg a_in[0x200];");  // TODO: what should the size be?
+    write("Reg a_out[0x200];"); // TODO: what should the size be?
+    emitStateBindings();
+    exitScopeEmpty(true);
+    writeNewline();
 
     // Declarations
-    EmitDeclarations();
+    emitDeclarations();
 }
 
-void LangEmitter::Finish() {
+void LangEmitter::finish() {
     ASSERT_DEBUG(indent == 0, ShaderDecompiler,
                  "Scope not fully exited (indentation: {})", indent);
 
@@ -60,18 +60,18 @@ void LangEmitter::Finish() {
     LOG_DEBUG(ShaderDecompiler, "decompiled: \"\n{}\"", code_str);
 }
 
-void LangEmitter::EmitMainFunctionPrologue() {
+void LangEmitter::emitMainFunctionPrologue() {
     // State
-    WriteStatement("State state");
+    writeStatement("State state");
 
     // Inputs
     // TODO: these are provided in the shader header, no need for analysis
 
 #define ADD_INPUT(sv_semantic, index, base, c)                                 \
     {                                                                          \
-        WriteStatement("{} = as_type<uint>({})",                               \
-                       GetAttrMemoryStr({RZ, base + c * 0x4, true}),           \
-                       GetSvAccessQualifiedStr(                                \
+        writeStatement("{} = as_type<uint>({})",                               \
+                       getAttrMemoryStr({RZ, base + c * 0x4, true}),           \
+                       getSvAccessQualifiedStr(                                \
                            SvAccess(Sv(sv_semantic, index), c), false));       \
     }
 #define ADD_INPUT_1(sv_semantic, index, base)                                  \
@@ -104,14 +104,14 @@ void LangEmitter::EmitMainFunctionPrologue() {
             const auto sv = Sv(SvSemantic::UserInOut, i);
             for (u8 c = 0; c < 4; c++) {
                 const auto attr =
-                    GetAttrMemoryStr({RZ, 0x80u + i * 0x10u + c * 0x4u, true});
+                    getAttrMemoryStr({RZ, 0x80u + i * 0x10u + c * 0x4u, true});
                 const auto qualified_name =
-                    GetSvAccessQualifiedStr(SvAccess(sv, c), false);
+                    getSvAccessQualifiedStr(SvAccess(sv, c), false);
                 if (needs_scaling)
-                    WriteStatement("{} = as_type<uint>((float){})", attr,
+                    writeStatement("{} = as_type<uint>((float){})", attr,
                                    qualified_name);
                 else
-                    WriteStatement("{} = as_type<uint>({})", attr,
+                    writeStatement("{} = as_type<uint>({})", attr,
                                    qualified_name);
             }
         }
@@ -122,7 +122,7 @@ void LangEmitter::EmitMainFunctionPrologue() {
         break;
     case ShaderType::Fragment:
         ADD_INPUT_VEC4(SvSemantic::Position, invalid<u8>(), SV_POSITION_BASE);
-        for (const auto input : memory_analyzer.GetStageInputs())
+        for (const auto input : memory_analyzer.getStageInputs())
             ADD_INPUT_VEC4(SvSemantic::UserInOut, input,
                            SV_USER_IN_OUT_BASE + input * 0x10);
 
@@ -133,35 +133,35 @@ void LangEmitter::EmitMainFunctionPrologue() {
 
 #undef ADD_INPUT
 
-    WriteNewline();
+    writeNewline();
 
     // Constant memory
-    for (auto index : memory_analyzer.GetConstBuffers())
-        WriteStatement("state.c{} = c{}", index, index);
-    WriteNewline();
+    for (auto index : memory_analyzer.getConstBuffers())
+        writeStatement("state.c{} = c{}", index, index);
+    writeNewline();
 
-    EmitStateBindingAssignments();
+    emitStateBindingAssignments();
 }
 
-void LangEmitter::EmitFunction(const ir::Function& func) {
+void LangEmitter::emitFunction(const ir::Function& func) {
     // Block enum
-    EnterScope("enum class Block_{}", func.GetName());
-    Write("None = -1,");
-    for (const auto& [label, block] : func.GetBlocks()) {
-        Write("{} = {},", label, static_cast<u32>(label));
+    enterScope("enum class Block_{}", func.getName());
+    write("None = -1,");
+    for (const auto& [label, block] : func.getBlocks()) {
+        write("{} = {},", label, static_cast<u32>(label));
     }
-    ExitScopeEmpty(true);
-    WriteNewline();
+    exitScopeEmpty(true);
+    writeNewline();
 
     // Blocks
-    for (const auto& [_, block] : func.GetBlocks())
-        EmitBlock(func, block);
+    for (const auto& [_, block] : func.getBlocks())
+        emitBlock(func, block);
 
     // Function
     // TODO: function name
     std::string name = "main";
     if (name == "main") {
-        EmitMainPrototype();
+        emitMainPrototype();
     } else
         LOG_FATAL(ShaderDecompiler,
                   "Custom functions not implemented (name: {})", name);
@@ -174,19 +174,19 @@ void LangEmitter::EmitFunction(const ir::Function& func) {
     */
 
     // Caller loop
-    WriteStatement("auto next = Block_{}::{}", func.GetName(), label_t(0x0));
-    EnterScope("while (next != Block_{}::None)", func.GetName());
-    EnterScope("switch (next)");
-    for (const auto& [label, block] : func.GetBlocks()) {
+    writeStatement("auto next = Block_{}::{}", func.getName(), label_t(0x0));
+    enterScope("while (next != Block_{}::None)", func.getName());
+    enterScope("switch (next)");
+    for (const auto& [label, block] : func.getBlocks()) {
         indent--;
-        Write("case Block_{}::{}:", func.GetName(), label);
+        write("case Block_{}::{}:", func.getName(), label);
         indent++;
-        WriteStatement("next = func_{}(state)", label);
-        WriteStatement("break");
+        writeStatement("next = func_{}(state)", label);
+        writeStatement("break");
     }
-    ExitScopeEmpty();
-    ExitScopeEmpty();
-    WriteNewline();
+    exitScopeEmpty();
+    exitScopeEmpty();
+    writeNewline();
 
     // Exit
     // Outputs
@@ -195,10 +195,10 @@ void LangEmitter::EmitFunction(const ir::Function& func) {
         // TODO: don't hardcode the bit cast type
 #define ADD_OUTPUT(sv_semantic, index, base, c)                                \
     {                                                                          \
-        WriteStatement("{} = as_type<float>({})",                              \
-                       GetSvAccessQualifiedStr(                                \
+        writeStatement("{} = as_type<float>({})",                              \
+                       getSvAccessQualifiedStr(                                \
                            SvAccess(Sv(sv_semantic, index), c), true),         \
-                       GetAttrMemoryStr({RZ, base + c * 0x4, false}));         \
+                       getAttrMemoryStr({RZ, base + c * 0x4, false}));         \
     }
 #define ADD_OUTPUT_1(sv_semantic, index, base)                                 \
     ADD_OUTPUT(sv_semantic, index, base, 0)
@@ -210,7 +210,7 @@ void LangEmitter::EmitFunction(const ir::Function& func) {
     }
 
         ADD_OUTPUT_VEC4(SvSemantic::Position, invalid<u8>(), SV_POSITION_BASE);
-        for (const auto output : memory_analyzer.GetStageOutputs())
+        for (const auto output : memory_analyzer.getStageOutputs())
             ADD_OUTPUT_VEC4(SvSemantic::UserInOut, output,
                             SV_USER_IN_OUT_BASE + output * 0x10);
 
@@ -224,24 +224,24 @@ void LangEmitter::EmitFunction(const ir::Function& func) {
                 continue;
 
             for (u8 c = 0; c < 4; c++) {
-                WriteStatement(
+                writeStatement(
                     "{} = as_type<{}>({})",
-                    GetSvAccessQualifiedStr(
+                    getSvAccessQualifiedStr(
                         SvAccess(Sv(SvSemantic::UserInOut, i), c), true),
-                    ToType(color_target_data_type), GetRegisterStr(i * 4 + c));
+                    toType(color_target_data_type), getRegisterStr(i * 4 + c));
             }
         }
         break;
     default:
         break;
     }
-    WriteNewline();
+    writeNewline();
 
-    EmitExitReturn();
+    emitExitReturn();
 
     // Emit
     // EmitNode(func, entry_node);
-    ExitScopeEmpty();
+    exitScopeEmpty();
 }
 
 /*
@@ -259,10 +259,10 @@ void LangEmitter::EmitNode(const ir::Function& func,
             EmitExit();
             break;
         case analyzer::LastStatement::Break:
-            WriteStatement("break");
+            writeStatement("break");
             break;
         case analyzer::LastStatement::Continue:
-            WriteStatement("continue");
+            writeStatement("continue");
             break;
         }
     } else if (auto block = dynamic_cast<const analyzer::CfgBlock*>(node)) {
@@ -271,29 +271,29 @@ void LangEmitter::EmitNode(const ir::Function& func,
     } else if (auto if_block =
                    dynamic_cast<const analyzer::CfgIfBlock*>(node)) {
         // If
-        EnterScope("if ({})", GetValueStr(if_block->cond));
+        enterScope("if ({})", GetValueStr(if_block->cond));
         EmitNode(func, if_block->then_block);
         ExitScopeEmpty();
     } else if (auto if_else_block =
                    dynamic_cast<const analyzer::CfgIfElseBlock*>(node)) {
         // If
-        EnterScope("if ({})", GetValueStr(if_else_block->cond));
+        enterScope("if ({})", GetValueStr(if_else_block->cond));
         EmitNode(func, if_else_block->then_block);
         ExitScopeEmpty();
 
         // Else
-        EnterScope("else");
+        enterScope("else");
         EmitNode(func, if_else_block->else_block);
         ExitScopeEmpty();
     } else if (auto while_block =
                    dynamic_cast<const analyzer::CfgWhileBlock*>(node)) {
         // While
         if (!while_block->IsDoWhile()) {
-            EnterScope("while ({})", GetValueStr(if_block->cond));
+            enterScope("while ({})", GetValueStr(if_block->cond));
             EmitNode(func, while_block->body_block);
             ExitScopeEmpty();
         } else {
-            EnterScope("do");
+            enterScope("do");
             EmitNode(func, while_block->body_block);
             ExitScope("while ({})", GetValueStr(if_block->cond));
         }
@@ -303,219 +303,219 @@ void LangEmitter::EmitNode(const ir::Function& func,
 }
 */
 
-void LangEmitter::EmitBlock(const ir::Function& func, const ir::Block& block) {
-    EnterScope("Block_{} func_{}(thread State& state)", func.GetName(),
-               block.GetLabel());
+void LangEmitter::emitBlock(const ir::Function& func, const ir::Block& block) {
+    enterScope("Block_{} func_{}(thread State& state)", func.getName(),
+               block.getLabel());
 
     // Block enum alias
-    WriteStatement("using Block = Block_{}", func.GetName());
-    WriteNewline();
+    writeStatement("using Block = Block_{}", func.getName());
+    writeNewline();
 
     // Temporary
-    EnterScope("union");
-    Write("int4 i;");
-    Write("uint4 u;");
-    Write("float4 f;");
-    ExitScope("temp");
-    WriteNewline();
+    enterScope("union");
+    write("int4 i;");
+    write("uint4 u;");
+    write("float4 f;");
+    exitScope("temp");
+    writeNewline();
 
-    for (const auto& instruction : block.GetInstructions())
-        EmitInstruction(instruction);
-    ExitScopeEmpty();
+    for (const auto& instruction : block.getInstructions())
+        emitInstruction(instruction);
+    exitScopeEmpty();
 }
 
 // Data
-void LangEmitter::EmitCopy(const ir::Value& dst, const ir::Value& src) {
-    StoreValue(dst, "{}", GetValueStr(src));
+void LangEmitter::emitCopy(const ir::Value& dst, const ir::Value& src) {
+    storeValue(dst, "{}", getValueStr(src));
 }
 
-void LangEmitter::EmitCast(const ir::Value& dst, const ir::Value& src) {
-    StoreValue(dst, "({}({}))", GetTypeStr(dst.GetType()), GetValueStr(src));
+void LangEmitter::emitCast(const ir::Value& dst, const ir::Value& src) {
+    storeValue(dst, "({}({}))", getTypeStr(dst.getType()), getValueStr(src));
 }
 
 // Arithmetic
-void LangEmitter::EmitAbs(const ir::Value& dst, const ir::Value& src) {
-    StoreValue(dst, "abs({})", GetValueStr(src));
+void LangEmitter::emitAbs(const ir::Value& dst, const ir::Value& src) {
+    storeValue(dst, "abs({})", getValueStr(src));
 }
 
-void LangEmitter::EmitNeg(const ir::Value& dst, const ir::Value& src) {
-    StoreValue(dst, "(-{})", GetValueStr(src));
+void LangEmitter::emitNeg(const ir::Value& dst, const ir::Value& src) {
+    storeValue(dst, "(-{})", getValueStr(src));
 }
 
-void LangEmitter::EmitAdd(const ir::Value& dst, const ir::Value& srcA,
+void LangEmitter::emitAdd(const ir::Value& dst, const ir::Value& srcA,
                           const ir::Value& srcB) {
-    StoreValue(dst, "({} + {})", GetValueStr(srcA), GetValueStr(srcB));
+    storeValue(dst, "({} + {})", getValueStr(srcA), getValueStr(srcB));
 }
 
-void LangEmitter::EmitMultiply(const ir::Value& dst, const ir::Value& srcA,
+void LangEmitter::emitMultiply(const ir::Value& dst, const ir::Value& srcA,
                                const ir::Value& srcB) {
-    StoreValue(dst, "({} * {})", GetValueStr(srcA), GetValueStr(srcB));
+    storeValue(dst, "({} * {})", getValueStr(srcA), getValueStr(srcB));
 }
 
-void LangEmitter::EmitFma(const ir::Value& dst, const ir::Value& srcA,
+void LangEmitter::emitFma(const ir::Value& dst, const ir::Value& srcA,
                           const ir::Value& srcB, const ir::Value& srcC) {
-    StoreValue(dst, "fma({}, {}, {})", GetValueStr(srcA), GetValueStr(srcB),
-               GetValueStr(srcC));
+    storeValue(dst, "fma({}, {}, {})", getValueStr(srcA), getValueStr(srcB),
+               getValueStr(srcC));
 }
 
-void LangEmitter::EmitMin(const ir::Value& dst, const ir::Value& srcA,
+void LangEmitter::emitMin(const ir::Value& dst, const ir::Value& srcA,
                           const ir::Value& srcB) {
-    StoreValue(dst, "min({}, {})", GetValueStr(srcA), GetValueStr(srcB));
+    storeValue(dst, "min({}, {})", getValueStr(srcA), getValueStr(srcB));
 }
 
-void LangEmitter::EmitMax(const ir::Value& dst, const ir::Value& srcA,
+void LangEmitter::emitMax(const ir::Value& dst, const ir::Value& srcA,
                           const ir::Value& srcB) {
-    StoreValue(dst, "max({}, {})", GetValueStr(srcA), GetValueStr(srcB));
+    storeValue(dst, "max({}, {})", getValueStr(srcA), getValueStr(srcB));
 }
 
-void LangEmitter::EmitClamp(const ir::Value& dst, const ir::Value& srcA,
+void LangEmitter::emitClamp(const ir::Value& dst, const ir::Value& srcA,
                             const ir::Value& srcB, const ir::Value& srcC) {
-    StoreValue(dst, "clamp({}, {}, {})", GetValueStr(srcA), GetValueStr(srcB),
-               GetValueStr(srcC));
+    storeValue(dst, "clamp({}, {}, {})", getValueStr(srcA), getValueStr(srcB),
+               getValueStr(srcC));
 }
 
 // Math
-void LangEmitter::EmitRound(const ir::Value& dst, const ir::Value& src) {
-    StoreValue(dst, "round({})", GetValueStr(src));
+void LangEmitter::emitRound(const ir::Value& dst, const ir::Value& src) {
+    storeValue(dst, "round({})", getValueStr(src));
 }
 
-void LangEmitter::EmitFloor(const ir::Value& dst, const ir::Value& src) {
-    StoreValue(dst, "floor({})", GetValueStr(src));
+void LangEmitter::emitFloor(const ir::Value& dst, const ir::Value& src) {
+    storeValue(dst, "floor({})", getValueStr(src));
 }
 
-void LangEmitter::EmitCeil(const ir::Value& dst, const ir::Value& src) {
-    StoreValue(dst, "ceil({})", GetValueStr(src));
+void LangEmitter::emitCeil(const ir::Value& dst, const ir::Value& src) {
+    storeValue(dst, "ceil({})", getValueStr(src));
 }
 
-void LangEmitter::EmitTrunc(const ir::Value& dst, const ir::Value& src) {
-    StoreValue(dst, "trunc({})", GetValueStr(src));
+void LangEmitter::emitTrunc(const ir::Value& dst, const ir::Value& src) {
+    storeValue(dst, "trunc({})", getValueStr(src));
 }
 
 // Logical & Bitwise
-void LangEmitter::EmitNot(const ir::Value& dst, const ir::Value& src) {
-    StoreValue(dst, "(!{})", GetValueStr(src));
+void LangEmitter::emitNot(const ir::Value& dst, const ir::Value& src) {
+    storeValue(dst, "(!{})", getValueStr(src));
 }
 
-void LangEmitter::EmitBitwiseNot(const ir::Value& dst, const ir::Value& src) {
-    StoreValue(dst, "(~{})", GetValueStr(src));
+void LangEmitter::emitBitwiseNot(const ir::Value& dst, const ir::Value& src) {
+    storeValue(dst, "(~{})", getValueStr(src));
 }
 
-void LangEmitter::EmitBitwiseAnd(const ir::Value& dst, const ir::Value& srcA,
+void LangEmitter::emitBitwiseAnd(const ir::Value& dst, const ir::Value& srcA,
                                  const ir::Value& srcB) {
-    StoreValue(dst, "({} & {})", GetValueStr(srcA), GetValueStr(srcB));
+    storeValue(dst, "({} & {})", getValueStr(srcA), getValueStr(srcB));
 }
 
-void LangEmitter::EmitBitwiseOr(const ir::Value& dst, const ir::Value& srcA,
+void LangEmitter::emitBitwiseOr(const ir::Value& dst, const ir::Value& srcA,
                                 const ir::Value& srcB) {
-    StoreValue(dst, "({} | {})", GetValueStr(srcA), GetValueStr(srcB));
+    storeValue(dst, "({} | {})", getValueStr(srcA), getValueStr(srcB));
 }
 
-void LangEmitter::EmitBitwiseXor(const ir::Value& dst, const ir::Value& srcA,
+void LangEmitter::emitBitwiseXor(const ir::Value& dst, const ir::Value& srcA,
                                  const ir::Value& srcB) {
-    StoreValue(dst, "({} ^ {})", GetValueStr(srcA), GetValueStr(srcB));
+    storeValue(dst, "({} ^ {})", getValueStr(srcA), getValueStr(srcB));
 }
 
-void LangEmitter::EmitShiftLeft(const ir::Value& dst, const ir::Value& src_a,
+void LangEmitter::emitShiftLeft(const ir::Value& dst, const ir::Value& src_a,
                                 const ir::Value& src_b) {
-    StoreValue(dst, "({} << {})", GetValueStr(src_a), GetValueStr(src_b));
+    storeValue(dst, "({} << {})", getValueStr(src_a), getValueStr(src_b));
 }
 
-void LangEmitter::EmitShiftRight(const ir::Value& dst, const ir::Value& src_a,
+void LangEmitter::emitShiftRight(const ir::Value& dst, const ir::Value& src_a,
                                  const ir::Value& src_b) {
-    StoreValue(dst, "({} >> {})", GetValueStr(src_a), GetValueStr(src_b));
+    storeValue(dst, "({} >> {})", getValueStr(src_a), getValueStr(src_b));
 }
 
 // Comparison & Selection
-void LangEmitter::EmitCompareLess(const ir::Value& dst, const ir::Value& srcA,
+void LangEmitter::emitCompareLess(const ir::Value& dst, const ir::Value& srcA,
                                   const ir::Value& srcB) {
-    StoreValue(dst, "({} < {})", GetValueStr(srcA), GetValueStr(srcB));
+    storeValue(dst, "({} < {})", getValueStr(srcA), getValueStr(srcB));
 }
 
-void LangEmitter::EmitCompareLessOrEqual(const ir::Value& dst,
+void LangEmitter::emitCompareLessOrEqual(const ir::Value& dst,
                                          const ir::Value& srcA,
                                          const ir::Value& srcB) {
-    StoreValue(dst, "({} <= {})", GetValueStr(srcA), GetValueStr(srcB));
+    storeValue(dst, "({} <= {})", getValueStr(srcA), getValueStr(srcB));
 }
 
-void LangEmitter::EmitCompareGreater(const ir::Value& dst,
+void LangEmitter::emitCompareGreater(const ir::Value& dst,
                                      const ir::Value& srcA,
                                      const ir::Value& srcB) {
-    StoreValue(dst, "({} > {})", GetValueStr(srcA), GetValueStr(srcB));
+    storeValue(dst, "({} > {})", getValueStr(srcA), getValueStr(srcB));
 }
 
-void LangEmitter::EmitCompareGreaterOrEqual(const ir::Value& dst,
+void LangEmitter::emitCompareGreaterOrEqual(const ir::Value& dst,
                                             const ir::Value& srcA,
                                             const ir::Value& srcB) {
-    StoreValue(dst, "({} >= {})", GetValueStr(srcA), GetValueStr(srcB));
+    storeValue(dst, "({} >= {})", getValueStr(srcA), getValueStr(srcB));
 }
 
-void LangEmitter::EmitCompareEqual(const ir::Value& dst, const ir::Value& srcA,
+void LangEmitter::emitCompareEqual(const ir::Value& dst, const ir::Value& srcA,
                                    const ir::Value& srcB) {
-    StoreValue(dst, "({} == {})", GetValueStr(srcA), GetValueStr(srcB));
+    storeValue(dst, "({} == {})", getValueStr(srcA), getValueStr(srcB));
 }
 
-void LangEmitter::EmitCompareNotEqual(const ir::Value& dst,
+void LangEmitter::emitCompareNotEqual(const ir::Value& dst,
                                       const ir::Value& srcA,
                                       const ir::Value& srcB) {
-    StoreValue(dst, "({} != {})", GetValueStr(srcA), GetValueStr(srcB));
+    storeValue(dst, "({} != {})", getValueStr(srcA), getValueStr(srcB));
 }
 
-void LangEmitter::EmitSelect(const ir::Value& dst, const ir::Value& cond,
+void LangEmitter::emitSelect(const ir::Value& dst, const ir::Value& cond,
                              const ir::Value& src_true,
                              const ir::Value& src_false) {
-    StoreValue(dst, "({} ? {} : {})", GetValueStr(cond), GetValueStr(src_true),
-               GetValueStr(src_false));
+    storeValue(dst, "({} ? {} : {})", getValueStr(cond), getValueStr(src_true),
+               getValueStr(src_false));
 }
 
 // Control flow
-void LangEmitter::EmitBeginIf(const ir::Value& cond) {
-    EnterScope("if ({})", GetValueStr(cond));
+void LangEmitter::emitBeginIf(const ir::Value& cond) {
+    enterScope("if ({})", getValueStr(cond));
 }
 
-void LangEmitter::EmitEndIf() { ExitScopeEmpty(); }
+void LangEmitter::emitEndIf() { exitScopeEmpty(); }
 
-void LangEmitter::EmitBranch(label_t target) {
+void LangEmitter::emitBranch(label_t target) {
     // LOG_FATAL(ShaderDecompiler, "Should not happen");
-    WriteStatement("return Block::{}", target);
+    writeStatement("return Block::{}", target);
 }
 
-void LangEmitter::EmitBranchConditional(const ir::Value& cond,
+void LangEmitter::emitBranchConditional(const ir::Value& cond,
                                         label_t target_true,
                                         label_t target_false) {
     // LOG_FATAL(ShaderDecompiler, "Should not happen");
-    EnterScope("if ({})", GetValueStr(cond));
-    WriteStatement("return Block::{}", target_true);
-    ExitScopeEmpty();
-    EnterScope("else");
-    WriteStatement("return Block::{}", target_false);
-    ExitScopeEmpty();
+    enterScope("if ({})", getValueStr(cond));
+    writeStatement("return Block::{}", target_true);
+    exitScopeEmpty();
+    enterScope("else");
+    writeStatement("return Block::{}", target_false);
+    exitScopeEmpty();
 }
 
 // Vector
-void LangEmitter::EmitVectorExtract(const ir::Value& dst, const ir::Value& src,
+void LangEmitter::emitVectorExtract(const ir::Value& dst, const ir::Value& src,
                                     u8 index) {
-    StoreValue(dst, "({}.{})", GetValueStr(src),
-               GetComponentStrFromIndex(index));
+    storeValue(dst, "({}.{})", getValueStr(src),
+               getComponentStrFromIndex(index));
 }
 
-void LangEmitter::EmitVectorInsert(const ir::Value& dst, const ir::Value& src,
+void LangEmitter::emitVectorInsert(const ir::Value& dst, const ir::Value& src,
                                    u8 index) {
-    WriteStatement("{}.{} = {}", GetValueStr(dst),
-                   GetComponentStrFromIndex(index), GetValueStr(src));
+    writeStatement("{}.{} = {}", getValueStr(dst),
+                   getComponentStrFromIndex(index), getValueStr(src));
 }
 
-void LangEmitter::EmitVectorConstruct(const ir::Value& dst,
+void LangEmitter::emitVectorConstruct(const ir::Value& dst,
                                       const std::vector<ir::Value>& elements) {
     std::string str;
     for (u32 i = 0; i < elements.size(); i++) {
         if (i != 0)
             str += ", ";
-        str += GetValueStr(elements[i]);
+        str += getValueStr(elements[i]);
     }
-    StoreValue(dst, "{}({})", GetTypeStr(dst.GetType()), str);
+    storeValue(dst, "{}({})", getTypeStr(dst.getType()), str);
 }
 
 // Exit
-void LangEmitter::EmitExit() { WriteStatement("return Block::None"); }
+void LangEmitter::emitExit() { writeStatement("return Block::None"); }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang

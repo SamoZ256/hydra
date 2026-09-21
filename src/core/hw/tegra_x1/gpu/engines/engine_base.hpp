@@ -8,15 +8,15 @@
         break;
 
 #define DEFINE_METHOD_TABLE(type, ...)                                         \
-    void type::Method(u32 method, u32 arg) {                                   \
+    void type::method(u32 method, u32 arg) {                                   \
         if (method >= MACRO_METHODS_REGION) {                                  \
-            Macro(method, arg);                                                \
+            macro(method, arg);                                                \
             return;                                                            \
         }                                                                      \
         switch (method) {                                                      \
             ZTD_FOR_EACH_0_4(METHOD_CASE, __VA_ARGS__)                         \
         default:                                                               \
-            WriteReg(method, arg);                                             \
+            writeReg(method, arg);                                             \
             break;                                                             \
         }                                                                      \
     }
@@ -31,14 +31,14 @@ class EngineBase {
   public:
     virtual ~EngineBase() = default;
 
-    virtual void Method(u32 method, u32 arg) = 0;
+    virtual void method(u32 method, u32 arg) = 0;
 
-    virtual void FlushMacro() {
+    virtual void flushMacro() {
         LOG_FATAL(Engines, "This engine does not support macros");
     }
 
   protected:
-    virtual void Macro(u32 method, u32 arg) {
+    virtual void macro(u32 method, u32 arg) {
         LOG_FATAL(Engines,
                   "This engine does not support macros (method: 0x{:08x}, arg: "
                   "0x{:08x})",
@@ -51,7 +51,7 @@ class EngineWithRegsBase : public EngineBase {
   public:
 #define REG_COUNT (sizeof(RegsT) / sizeof(u32))
 
-    u32 GetReg(u32 reg) const {
+    u32 getReg(u32 reg) const {
         ASSERT_DEBUG(reg < REG_COUNT, Engines, "Invalid register 0x{:08x}",
                      reg);
         return regs_raw[reg];
@@ -63,7 +63,7 @@ class EngineWithRegsBase : public EngineBase {
         u32 regs_raw[REG_COUNT];
     };
 
-    void WriteReg(u32 reg, u32 value) {
+    void writeReg(u32 reg, u32 value) {
         ASSERT_DEBUG(reg < REG_COUNT, Engines, "Invalid reg 0x{:08x}", reg);
         LOG_DEBUG(Engines, "Writing to reg 0x{:03x} (value: 0x{:08x})", reg,
                   value);

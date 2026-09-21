@@ -12,16 +12,16 @@ class IHomeMenuFunctions : public IService {
               new kernel::Event(false, "Pop from general channel event")} {}
 
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     kernel::Event* pop_from_general_channel_event;
 
     // Commands
-    STUB_REQUEST_COMMAND(RequestToGetForeground);
+    STUB_REQUEST_COMMAND(requestToGetForeground);
     result_t
-    GetPopFromGeneralChannelEvent(kernel::Process* process,
+    getPopFromGeneralChannelEvent(kernel::Process* process,
                                   OutHandle<HandleAttr::Copy> out_handle);
 };
 

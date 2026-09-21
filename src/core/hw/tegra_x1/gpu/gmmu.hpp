@@ -19,11 +19,11 @@ class GMmu : public GenericMmu<GMmu, AddressSpace> {
   public:
     explicit GMmu(cpu::IMmu* mmu_) : mmu{mmu_} {}
 
-    static u64 ImplGetSize(const AddressSpace& as) { return as.size; }
+    static u64 implGetSize(const AddressSpace& as) { return as.size; }
 
-    AddressSpace& UnmapAddrToAddressSpace(uptr gpu_addr) {
+    AddressSpace& unmapAddrToAddressSpace(uptr gpu_addr) {
         uptr base;
-        auto addr_space = FindAddrImplRef(gpu_addr, base);
+        auto addr_space = findAddrImplRef(gpu_addr, base);
         ASSERT_DEBUG(addr_space, Gpu,
                      "Address space not found for Gpu address 0x{:x}",
                      gpu_addr);
@@ -31,23 +31,23 @@ class GMmu : public GenericMmu<GMmu, AddressSpace> {
         return *addr_space;
     }
 
-    uptr UnmapAddr(uptr gpu_addr) const;
+    uptr unmapAddr(uptr gpu_addr) const;
 
-    void MapImpl([[maybe_unused]] uptr base, [[maybe_unused]] AddressSpace as) {
+    void mapImpl([[maybe_unused]] uptr base, [[maybe_unused]] AddressSpace as) {
     }
-    void UnmapImpl([[maybe_unused]] uptr base,
+    void unmapImpl([[maybe_unused]] uptr base,
                    [[maybe_unused]] AddressSpace as) {}
 
     // Address space
-    uptr CreateAddressSpace(ztd::Range<vaddr_t> range, uptr gpu_addr);
+    uptr createAddressSpace(ztd::Range<vaddr_t> range, uptr gpu_addr);
 
-    uptr AllocatePrivateAddressSpace(u64 size, uptr gpu_addr) {
-        return CreateAddressSpace(ztd::Range<vaddr_t>::fromSize(0x0, size),
+    uptr allocatePrivateAddressSpace(u64 size, uptr gpu_addr) {
+        return createAddressSpace(ztd::Range<vaddr_t>::fromSize(0x0, size),
                                   gpu_addr);
     }
 
-    uptr MapBufferToAddressSpace(ztd::Range<vaddr_t> range, uptr gpu_addr) {
-        return CreateAddressSpace(range, gpu_addr);
+    uptr mapBufferToAddressSpace(ztd::Range<vaddr_t> range, uptr gpu_addr) {
+        return createAddressSpace(range, gpu_addr);
     }
 
     // TODO
@@ -68,7 +68,7 @@ class GMmu : public GenericMmu<GMmu, AddressSpace> {
     uptr address_space_base{GPU_PAGE_SIZE};
 
   public:
-    GETTER(mmu, GetMmu);
+    GETTER(mmu, getMmu);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu

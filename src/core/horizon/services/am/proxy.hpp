@@ -7,17 +7,17 @@ namespace hydra::horizon::services::am {
 class IProxy : public IService {
   protected:
     // Commands
-    result_t GetCommonStateGetter(RequestContext* ctx);
-    result_t GetSelfController(RequestContext* ctx);
-    result_t GetWindowController(RequestContext* ctx);
-    result_t GetAudioController(RequestContext* ctx);
-    result_t GetDisplayController(RequestContext* ctx);
-    result_t GetProcessWindingController(RequestContext* ctx);
-    result_t GetLibraryAppletCreator(RequestContext* ctx);
-    result_t GetAppletCommonFunctions(RequestContext* ctx); // 7.0.0+
-    result_t GetHomeMenuFunctions(RequestContext* ctx);     // 15.0.0+
-    result_t GetGlobalStateController(RequestContext* ctx); // 15.0.0+
-    result_t GetDebugFunctions(RequestContext* ctx);
+    result_t getCommonStateGetter(RequestContext* ctx);
+    result_t getSelfController(RequestContext* ctx);
+    result_t getWindowController(RequestContext* ctx);
+    result_t getAudioController(RequestContext* ctx);
+    result_t getDisplayController(RequestContext* ctx);
+    result_t getProcessWindingController(RequestContext* ctx);
+    result_t getLibraryAppletCreator(RequestContext* ctx);
+    result_t getAppletCommonFunctions(RequestContext* ctx); // 7.0.0+
+    result_t getHomeMenuFunctions(RequestContext* ctx);     // 15.0.0+
+    result_t getGlobalStateController(RequestContext* ctx); // 15.0.0+
+    result_t getDebugFunctions(RequestContext* ctx);
 };
 
 } // namespace hydra::horizon::services::am

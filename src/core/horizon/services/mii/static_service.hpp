@@ -6,12 +6,12 @@ namespace hydra::horizon::services::mii {
 
 class IStaticService : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t GetDatabaseService(RequestContext* ctx);
+    result_t getDatabaseService(RequestContext* ctx);
 };
 
 } // namespace hydra::horizon::services::mii

@@ -4,27 +4,27 @@
 
 namespace hydra::horizon::services::timesrv {
 
-DEFINE_SERVICE_COMMAND_TABLE(ITimeZoneService, 0, GetDeviceLocationName, 4,
-                             LoadTimeZoneRule, 100, ToCalendarTime, 101,
-                             ToCalendarTimeWithMyRule, 201, ToPosixTime, 202,
-                             ToPosixTimeWithMyRule)
+DEFINE_SERVICE_COMMAND_TABLE(ITimeZoneService, 0, getDeviceLocationName, 4,
+                             loadTimeZoneRule, 100, toCalendarTime, 101,
+                             toCalendarTimeWithMyRule, 201, toPosixTime, 202,
+                             toPosixTimeWithMyRule)
 
-result_t ITimeZoneService::GetDeviceLocationName(RequestContext* ctx,
+result_t ITimeZoneService::getDeviceLocationName(RequestContext* ctx,
                                                  LocationName* out_name) {
-    const auto name = ctx->system.GetOS()
-                          .GetTimeManager()
-                          .GetTimeZoneManager()
-                          .GetDeviceLocationName();
+    const auto name = ctx->system.getOs()
+                          .getTimeManager()
+                          .getTimeZoneManager()
+                          .getDeviceLocationName();
     std::memcpy(out_name->name, name.data(), name.size());
     out_name->name[name.size()] = '\0';
     return RESULT_SUCCESS;
 }
 
-result_t ITimeZoneService::LoadTimeZoneRule(
+result_t ITimeZoneService::loadTimeZoneRule(
     RequestContext* ctx, LocationName location_name,
     OutBuffer<BufferAttr::MapAlias> out_rule_buffer) {
     TimeZoneRule rule;
-    ctx->system.GetOS().GetTimeManager().GetTimeZoneManager().LoadRule(
+    ctx->system.getOs().getTimeManager().getTimeZoneManager().loadRule(
         location_name.name, rule);
 
     out_rule_buffer.stream->write(rule);
@@ -32,28 +32,28 @@ result_t ITimeZoneService::LoadTimeZoneRule(
 }
 
 result_t
-ITimeZoneService::ToCalendarTime(i64 posix_time,
+ITimeZoneService::toCalendarTime(i64 posix_time,
                                  InBuffer<BufferAttr::MapAlias> in_rule_buffer,
                                  ToCalendarTimeWithMyRuleOut* out) {
-    return ToCalendarTimeImpl(posix_time,
+    return toCalendarTimeImpl(posix_time,
                               in_rule_buffer.stream->read<TimeZoneRule>(),
                               out->time, out->additional_info);
 }
 
 result_t
-ITimeZoneService::ToCalendarTimeWithMyRule(RequestContext* ctx, i64 posix_time,
+ITimeZoneService::toCalendarTimeWithMyRule(RequestContext* ctx, i64 posix_time,
                                            ToCalendarTimeWithMyRuleOut* out) {
-    return ToCalendarTimeImpl(
+    return toCalendarTimeImpl(
         posix_time,
-        ctx->system.GetOS().GetTimeManager().GetTimeZoneManager().GetMyRule(),
+        ctx->system.getOs().getTimeManager().getTimeZoneManager().getMyRule(),
         out->time, out->additional_info);
 }
 
-result_t ITimeZoneService::ToPosixTime(
+result_t ITimeZoneService::toPosixTime(
     CalendarTime calendar_time, InBuffer<BufferAttr::MapAlias> in_rule_buffer,
     i32* out_count, OutBuffer<BufferAttr::HipcPointer> out_buffer) {
     i64 time;
-    const auto res = ToPosixTimeImpl(
+    const auto res = toPosixTimeImpl(
         calendar_time, in_rule_buffer.stream->read<TimeZoneRule>(), time);
 
     out_buffer.stream->write(time);
@@ -61,13 +61,13 @@ result_t ITimeZoneService::ToPosixTime(
     return res;
 }
 
-result_t ITimeZoneService::ToPosixTimeWithMyRule(
+result_t ITimeZoneService::toPosixTimeWithMyRule(
     RequestContext* ctx, CalendarTime calendar_time, i32* out_count,
     OutBuffer<BufferAttr::HipcPointer> out_buffer) {
     i64 time;
-    const auto res = ToPosixTimeImpl(
+    const auto res = toPosixTimeImpl(
         calendar_time,
-        ctx->system.GetOS().GetTimeManager().GetTimeZoneManager().GetMyRule(),
+        ctx->system.getOs().getTimeManager().getTimeZoneManager().getMyRule(),
         time);
 
     out_buffer.stream->write(time);
@@ -75,7 +75,7 @@ result_t ITimeZoneService::ToPosixTimeWithMyRule(
     return res;
 }
 
-result_t ITimeZoneService::ToCalendarTimeImpl(
+result_t ITimeZoneService::toCalendarTimeImpl(
     i64 posix_time, const TimeZoneRule& rule, CalendarTime& out_time,
     CalendarAdditionalInfo& out_additional_info) {
     // Find the type
@@ -125,7 +125,7 @@ result_t ITimeZoneService::ToCalendarTimeImpl(
     return RESULT_SUCCESS;
 }
 
-result_t ITimeZoneService::ToPosixTimeImpl(const CalendarTime& calendar_time,
+result_t ITimeZoneService::toPosixTimeImpl(const CalendarTime& calendar_time,
                                            const TimeZoneRule& rule,
                                            i64& out_time) {
     (void)rule;

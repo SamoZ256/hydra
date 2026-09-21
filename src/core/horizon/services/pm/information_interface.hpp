@@ -6,12 +6,12 @@ namespace hydra::horizon::services::pm {
 
 class IInformationInterface : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t GetProgramId(kernel::Process* process, u64* out_program_id);
+    result_t getProgramId(kernel::Process* process, u64* out_program_id);
 };
 
 } // namespace hydra::horizon::services::pm

@@ -46,22 +46,24 @@ class Thread : public IThread {
            vaddr_t tls_mem_base);
     ~Thread() override;
 
-    void Run() override;
+    void run() override;
 
-    void SetupVTimer();
+    void setupVTimer();
 
-    void UpdateVTimer();
+    void updateVTimer();
 
     // Debug
-    void InsertBreakpoint(vaddr_t addr) override {
-        SendMessage({.type=ThreadMessageType::InsertBreakpoint,
-                     .payload={.insert_breakpoint = {addr}}});
+    void insertBreakpoint(vaddr_t addr) override {
+        sendMessage({.type = ThreadMessageType::InsertBreakpoint,
+                     .payload = {.insert_breakpoint = {addr}}});
     }
-    void RemoveBreakpoint(vaddr_t addr) override {
-        SendMessage({.type=ThreadMessageType::RemoveBreakpoint,
-                     .payload={.remove_breakpoint = {addr}}});
+    void removeBreakpoint(vaddr_t addr) override {
+        sendMessage({.type = ThreadMessageType::RemoveBreakpoint,
+                     .payload = {.remove_breakpoint = {addr}}});
     }
-    void SingleStep() override { SendMessage({.type=ThreadMessageType::SingleStep}); }
+    void singleStep() override {
+        sendMessage({.type = ThreadMessageType::SingleStep});
+    }
 
   private:
     Cpu& cpu;
@@ -80,24 +82,24 @@ class Thread : public IThread {
     std::queue<ThreadMessage> msg_queue;
 
     // State
-    void SerializeState();
-    void DeserializeState();
+    void serializeState();
+    void deserializeState();
 
-    void InstructionTrap(u32 esr);
+    void instructionTrap(u32 esr);
 
     // Helpers
-    u64 GetReg(hv_reg_t reg) const {
+    u64 getReg(hv_reg_t reg) const {
         u64 value;
         HV_ASSERT_SUCCESS(hv_vcpu_get_reg(vcpu, reg, &value));
 
         return value;
     }
 
-    void SetReg(hv_reg_t reg, u64 value) const {
+    void setReg(hv_reg_t reg, u64 value) const {
         HV_ASSERT_SUCCESS(hv_vcpu_set_reg(vcpu, reg, value));
     }
 
-    u128 GetSimdFpReg(u8 reg) const {
+    u128 getSimdFpReg(u8 reg) const {
         hv_simd_fp_uchar16_t value;
         HV_ASSERT_SUCCESS(hv_vcpu_get_simd_fp_reg(
             vcpu, static_cast<hv_simd_fp_reg_t>(HV_SIMD_FP_REG_Q0 + reg),
@@ -107,31 +109,31 @@ class Thread : public IThread {
         return std::bit_cast<u128>(value);
     }
 
-    void SetSimdFpReg(u8 reg, u128 value) const {
+    void setSimdFpReg(u8 reg, u128 value) const {
         // TODO: correct?
         HV_ASSERT_SUCCESS(hv_vcpu_set_simd_fp_reg(
             vcpu, static_cast<hv_simd_fp_reg_t>(HV_SIMD_FP_REG_Q0 + reg),
             std::bit_cast<hv_simd_fp_uchar16_t>(value)));
     }
 
-    u64 GetSysReg(hv_sys_reg_t reg) const {
+    u64 getSysReg(hv_sys_reg_t reg) const {
         u64 value;
         HV_ASSERT_SUCCESS(hv_vcpu_get_sys_reg(vcpu, reg, &value));
 
         return value;
     }
 
-    void SetSysReg(hv_sys_reg_t reg, u64 value) const {
+    void setSysReg(hv_sys_reg_t reg, u64 value) const {
         HV_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(vcpu, reg, value));
     }
 
     // Messages
-    void SendMessage(const ThreadMessage& message) {
+    void sendMessage(const ThreadMessage& message) {
         std::scoped_lock lock(msg_mutex);
         msg_queue.push(message);
     }
 
-    void ProcessMessages();
+    void processMessages();
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor

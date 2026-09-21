@@ -16,7 +16,7 @@ class TextureView final : public ITextureView {
     MTL::Texture* texture;
 
   public:
-    GETTER(texture, GetTexture);
+    GETTER(texture, getTexture);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal

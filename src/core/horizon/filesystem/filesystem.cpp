@@ -32,51 +32,51 @@ namespace hydra::horizon::filesystem {
 Filesystem::Filesystem() {
     // SD card
     std::filesystem::create_directories(CONFIG_INSTANCE.GetSdCardPath());
-    MountImpl(FS_SD_MOUNT, new Directory(CONFIG_INSTANCE.GetSdCardPath()));
+    mountImpl(FS_SD_MOUNT, new Directory(CONFIG_INSTANCE.GetSdCardPath()));
 
     // Save
     std::filesystem::create_directories(CONFIG_INSTANCE.GetSavePath());
-    MountImpl(FS_SAVE_MOUNT, new Directory(CONFIG_INSTANCE.GetSavePath()));
+    mountImpl(FS_SAVE_MOUNT, new Directory(CONFIG_INSTANCE.GetSavePath()));
 
     // Cache
     // TODO: support mounting to a real host path as well
-    Mount(FS_CACHE_MOUNT);
+    mount(FS_CACHE_MOUNT);
 
     // Content
-    Mount(FS_CONTENT_MOUNT);
+    mount(FS_CONTENT_MOUNT);
 
     // Firmware
-    InstallFirmware();
+    installFirmware();
 }
 
-void Filesystem::Mount(const std::string_view mount) {
-    MountImpl(mount, new Directory());
+void Filesystem::mount(const std::string_view mount) {
+    mountImpl(mount, new Directory());
 }
 
-void Filesystem::Mount(const std::string_view mount,
+void Filesystem::mount(const std::string_view mount,
                        const std::string_view root_path) {
     Directory* root;
-    auto res = GetDirectory(root_path, root);
+    auto res = getDirectory(root_path, root);
     ASSERT(res == FsResult::Success, Filesystem,
            "Failed to get root directory \"{}\" for mount \"{}\"", root_path,
            mount);
-    MountImpl(mount, root);
+    mountImpl(mount, root);
 }
 
-FsResult Filesystem::AddEntry(const std::string_view path, IEntry* entry,
+FsResult Filesystem::addEntry(const std::string_view path, IEntry* entry,
                               bool add_intermediate) {
     VERIFY_PATH(path);
-    return device.AddEntry(entry_path, entry, add_intermediate);
+    return device.addEntry(entry_path, entry, add_intermediate);
 }
 
-FsResult Filesystem::AddEntry(const std::string_view path,
+FsResult Filesystem::addEntry(const std::string_view path,
                               const std::string_view host_path,
                               bool add_intermediate) {
     VERIFY_PATH(path);
-    return device.AddEntry(entry_path, host_path, add_intermediate);
+    return device.addEntry(entry_path, host_path, add_intermediate);
 }
 
-FsResult Filesystem::CreateFile(const std::string_view path, u64 size,
+FsResult Filesystem::createFile(const std::string_view path, u64 size,
                                 bool add_intermediate) {
     GET_MOUNT(path);
 
@@ -85,56 +85,56 @@ FsResult Filesystem::CreateFile(const std::string_view path, u64 size,
         const auto host_path =
             fmt::format("{}{}", CONFIG_INSTANCE.GetSdCardPath(), entry_path);
         auto file = new DiskFile(host_path, true);
-        file->Resize(size);
-        return AddEntry(path, file, add_intermediate);
+        file->resize(size);
+        return addEntry(path, file, add_intermediate);
     } else if (mount == FS_SAVE_MOUNT) {
         const auto host_path =
             fmt::format("{}{}", CONFIG_INSTANCE.GetSavePath(), entry_path);
         auto file = new DiskFile(host_path, true);
-        file->Resize(size);
-        return AddEntry(path, file, add_intermediate);
+        file->resize(size);
+        return addEntry(path, file, add_intermediate);
     } else {
         LOG_WARN(Filesystem,
                  "Could not find host path for path \"{}\", falling back to "
                  "memory backed file",
                  path);
-        return AddEntry(path, new MemoryFile(size), add_intermediate);
+        return addEntry(path, new MemoryFile(size), add_intermediate);
     }
 }
 
-FsResult Filesystem::CreateDirectory(const std::string_view path,
+FsResult Filesystem::createDirectory(const std::string_view path,
                                      bool add_intermediate) {
-    return AddEntry(path, new Directory(), add_intermediate);
+    return addEntry(path, new Directory(), add_intermediate);
 }
 
-FsResult Filesystem::DeleteEntry(const std::string_view path, bool recursive) {
+FsResult Filesystem::deleteEntry(const std::string_view path, bool recursive) {
     VERIFY_PATH(path);
-    return device.DeleteEntry(entry_path, recursive);
+    return device.deleteEntry(entry_path, recursive);
 }
 
-FsResult Filesystem::GetEntry(const std::string_view path, IEntry*& out_entry) {
+FsResult Filesystem::getEntry(const std::string_view path, IEntry*& out_entry) {
     VERIFY_PATH(path);
-    return device.GetEntry(entry_path, out_entry);
+    return device.getEntry(entry_path, out_entry);
 }
 
-FsResult Filesystem::GetFile(const std::string_view path, IFile*& out_file) {
+FsResult Filesystem::getFile(const std::string_view path, IFile*& out_file) {
     VERIFY_PATH(path);
-    return device.GetFile(entry_path, out_file);
+    return device.getFile(entry_path, out_file);
 }
 
-FsResult Filesystem::GetDirectory(const std::string_view path,
+FsResult Filesystem::getDirectory(const std::string_view path,
                                   Directory*& out_directory) {
     VERIFY_PATH(path);
-    return device.GetDirectory(entry_path, out_directory);
+    return device.getDirectory(entry_path, out_directory);
 }
 
-void Filesystem::MountImpl(const std::string_view mount, Directory* root) {
+void Filesystem::mountImpl(const std::string_view mount, Directory* root) {
     VERIFY_MOUNT(mount);
     devices.emplace(mount, root);
     LOG_INFO(Filesystem, "Mounted \"{}\"", mount);
 }
 
-void Filesystem::InstallFirmware() {
+void Filesystem::installFirmware() {
     const auto& firmware_path = CONFIG_INSTANCE.GetFirmwarePath();
     if (!std::filesystem::exists(firmware_path)) {
         LOG_WARN(Horizon, "Firmware path does not exist");
@@ -158,23 +158,23 @@ void Filesystem::InstallFirmware() {
         auto file = new DiskFile(entry.path().string());
         ContentArchive content_archive(file);
 
-        auto res = AddEntry(fmt::format(FS_FIRMWARE_PATH "/{:016x}/{}",
-                                        content_archive.GetTitleID(),
-                                        content_archive.GetContentType()),
+        auto res = addEntry(fmt::format(FS_FIRMWARE_PATH "/{:016x}/{}",
+                                        content_archive.getTitleId(),
+                                        content_archive.getContentType()),
                             file, true);
         ASSERT(res == FsResult::Success, Horizon,
                "Failed to add firmware entry {:016x}: {}",
-               content_archive.GetTitleID(), res);
+               content_archive.getTitleId(), res);
     }
 
     for (const auto& [path, filename] : firmware_titles_map) {
         filesystem::IFile* file;
-        auto res = GetFile(fmt::format(FS_FIRMWARE_PATH "/{}", path), file);
+        auto res = getFile(fmt::format(FS_FIRMWARE_PATH "/{}", path), file);
         ASSERT(res == FsResult::Success, Horizon,
                "Failed to get firmware entry {}: {}", path, res);
 
         res =
-            AddEntry(fmt::format(FS_FIRMWARE_PATH "/{}", filename), file, true);
+            addEntry(fmt::format(FS_FIRMWARE_PATH "/{}", filename), file, true);
         ASSERT(res == FsResult::Success, Horizon,
                "Failed to add firmware entry alias \"{}\": {}", filename, res);
     }

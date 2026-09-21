@@ -50,12 +50,12 @@ typedef void (*TextInputCallback)(const char* text, void* user_data);
         NSString* text = [self.textField stringValue];
         const char* cText = [text UTF8String];
 
-        if (self.callback) {
+        if (self.callback != nullptr) {
             self.callback(cText, self.userData);
         }
     } else {
         // Cancel button pressed or dialog closed
-        if (self.callback) {
+        if (self.callback != nullptr) {
             self.callback(NULL, self.userData);
         }
     }
@@ -83,12 +83,12 @@ struct Result {
     bool ok;
 };
 
-static void text_input_callback(const char* text, void* user_data) {
+static void textInputCallback(const char* text, void* user_data) {
     auto result = reinterpret_cast<Result*>(user_data);
 
     std::unique_lock lock(result->mutex);
 
-    if (text) {
+    if (text != nullptr) {
         result->text = text;
         result->ok = true;
     } else {
@@ -105,7 +105,7 @@ Native::Native() { text_input_delegate = [[TextInputDelegate alloc] init]; }
 
 Native::~Native() { [text_input_delegate release]; }
 
-bool Native::ShowInputTextDialog(const std::string& header_text,
+bool Native::showInputTextDialog(const std::string& header_text,
                                  const std::string& sub_text,
                                  const std::string& guide_text,
                                  std::string& out_text) {
@@ -120,7 +120,7 @@ bool Native::ShowInputTextDialog(const std::string& header_text,
     dispatch_async(dispatch_get_main_queue(), ^{
       [text_input_delegate showTextInputDialog:ns_title
                                    placeholder:ns_placeholder
-                                      callback:text_input_callback
+                                      callback:textInputCallback
                                       userData:result_ptr];
     });
 

@@ -5,7 +5,7 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
-MTL::TextureType ToMtlTextureType(TextureType type);
+MTL::TextureType toMtlTextureType(TextureType type);
 
 struct PixelFormatInfo {
     MTL::PixelFormat pixel_format;
@@ -15,33 +15,31 @@ struct PixelFormatInfo {
     // TODO: format decoder
 };
 
-const PixelFormatInfo& to_mtl_pixel_format_info(TextureFormat format);
-inline MTL::PixelFormat to_mtl_pixel_format(TextureFormat format) {
-    return to_mtl_pixel_format_info(format).pixel_format;
+const PixelFormatInfo& toMtlPixelFormatInfo(TextureFormat format);
+inline MTL::PixelFormat toMtlPixelFormat(TextureFormat format) {
+    return toMtlPixelFormatInfo(format).pixel_format;
 }
 
-MTL::CullMode ToMtlCullMode(const engines::CullFaceMode mode);
-MTL::Winding ToMtlWinding(const engines::Winding winding);
+MTL::CullMode toMtlCullMode(const engines::CullFaceMode mode);
+MTL::Winding toMtlWinding(const engines::Winding winding);
 
 MTL::PrimitiveType
-to_mtl_primitive_type(const engines::PrimitiveType primitive_type);
-MTL::IndexType to_mtl_index_type(engines::IndexType index_type);
+toMtlPrimitiveType(const engines::PrimitiveType primitive_type);
+MTL::IndexType toMtlIndexType(engines::IndexType index_type);
 
-MTL::VertexFormat to_mtl_vertex_format(engines::VertexAttribType type,
-                                       engines::VertexAttribSize size,
-                                       bool bgra);
+MTL::VertexFormat toMtlVertexFormat(engines::VertexAttribType type,
+                                    engines::VertexAttribSize size, bool bgra);
 
-MTL::CompareFunction to_mtl_compare_func(engines::CompareOp depth_compare_op);
+MTL::CompareFunction toMtlCompareFunc(engines::CompareOp depth_compare_op);
 
-MTL::TextureSwizzle to_mtl_swizzle(const ImageSwizzle swizzle);
+MTL::TextureSwizzle toMtlSwizzle(const ImageSwizzle swizzle);
 
-MTL::BlendOperation to_mtl_blend_operation(const BlendOperation blend_op);
-MTL::BlendFactor to_mtl_blend_factor(const BlendFactor blend_factor);
+MTL::BlendOperation toMtlBlendOperation(const BlendOperation blend_op);
+MTL::BlendFactor toMtlBlendFactor(const BlendFactor blend_factor);
 
-MTL::SamplerMinMagFilter
-to_mtl_sampler_min_mag_filter(const SamplerFilter filter);
-MTL::SamplerMipFilter to_mtl_sampler_mip_filter(const SamplerMipFilter filter);
+MTL::SamplerMinMagFilter toMtlSamplerMinMagFilter(const SamplerFilter filter);
+MTL::SamplerMipFilter toMtlSamplerMipFilter(const SamplerMipFilter filter);
 MTL::SamplerAddressMode
-to_mtl_sampler_address_mode(const SamplerAddressMode address_mode);
+toMtlSamplerAddressMode(const SamplerAddressMode address_mode);
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal

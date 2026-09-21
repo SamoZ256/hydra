@@ -15,9 +15,9 @@ class INfc : public IService {
 
   protected:
     // Commands
-    result_t Initialize(u64 aruid, u64 zero,
+    result_t initialize(u64 aruid, u64 zero,
                         InBuffer<BufferAttr::MapAlias> in_version_buffer);
-    result_t GetState(u32* out_state);
+    result_t getState(u32* out_state);
 
   private:
     // TODO: use

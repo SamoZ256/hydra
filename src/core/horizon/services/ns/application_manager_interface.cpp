@@ -24,9 +24,9 @@ struct ApplicationRecord {
 } // namespace
 
 DEFINE_SERVICE_COMMAND_TABLE(IApplicationManagerInterface, 0,
-                             ListApplicationRecord)
+                             listApplicationRecord)
 
-result_t IApplicationManagerInterface::ListApplicationRecord(
+result_t IApplicationManagerInterface::listApplicationRecord(
     i32 entry_offset, i32* out_entry_count,
     OutBuffer<BufferAttr::MapAlias> out_record_buffer) {
     (void)out_record_buffer;

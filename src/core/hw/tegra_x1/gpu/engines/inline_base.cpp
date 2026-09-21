@@ -8,13 +8,13 @@ namespace hydra::hw::tegra_x1::gpu::engines {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-void InlineBase::LaunchDMAImpl(Gpu& gpu, RegsInline& regs, const u32 index,
+void InlineBase::launchDmaImpl(Gpu& gpu, RegsInline& regs, const u32 index,
                                const u32 data) {
     (void)this;
     LOG_FUNC_WITH_ARGS_STUBBED(Engines, "index: {}, data: {:#x}", index, data);
 }
 
-void InlineBase::LoadInlineDataImpl(Gpu& gpu, RegsInline& regs, const u32 index,
+void InlineBase::loadInlineDataImpl(Gpu& gpu, RegsInline& regs, const u32 index,
                                     const u32 data) {
     inline_data.push_back(data);
     // TODO: correct?
@@ -24,14 +24,14 @@ void InlineBase::LoadInlineDataImpl(Gpu& gpu, RegsInline& regs, const u32 index,
         // TODO: determine what type of copy this is based on launch DMA args
 
         // Buffer to buffer
-        uptr dst_ptr = tls_crnt_gmmu->UnmapAddr(regs.offset_out);
+        uptr dst_ptr = tls_crnt_gmmu->unmapAddr(regs.offset_out);
         memcpy(reinterpret_cast<void*>(dst_ptr), inline_data.data(),
                inline_data.size() * sizeof(u32));
         inline_data.clear();
 
         // Invalidate
-        gpu.GetRenderer().InvalidateMemory(
-            ztd::Range<uptr>::fromSize(dst_ptr, inline_data.size() * sizeof(u32)));
+        gpu.getRenderer().invalidateMemory(ztd::Range<uptr>::fromSize(
+            dst_ptr, inline_data.size() * sizeof(u32)));
     }
 }
 

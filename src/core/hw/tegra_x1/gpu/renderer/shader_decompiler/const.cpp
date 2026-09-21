@@ -2,7 +2,7 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
-SvAccess get_sv_access_from_addr(u64 addr) {
+SvAccess getSvAccessFromAddr(u64 addr) {
     ASSERT_ALIGNMENT_DEBUG(addr, 4, ShaderDecompiler, "Address");
 
     struct SvBase {

@@ -17,7 +17,7 @@ class SharedFontManager {
     explicit SharedFontManager(System& system_);
     ~SharedFontManager();
 
-    void LoadFonts();
+    void loadFonts();
 
   private:
     System& system;
@@ -27,11 +27,11 @@ class SharedFontManager {
     FontState states[6]{};
 
     // Helpers
-    void LoadFont(const SharedFontType type);
+    void loadFont(const SharedFontType type);
 
   public:
-    GETTER(shared_memory, GetSharedMemory);
-    const FontState& GetState(SharedFontType type) const {
+    GETTER(shared_memory, getSharedMemory);
+    const FontState& getState(SharedFontType type) const {
         return states[static_cast<u32>(type)];
     }
 };

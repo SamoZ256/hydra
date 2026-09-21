@@ -4,7 +4,7 @@
 
 namespace hydra::hw::tegra_x1::cpu {
 
-void IThread::GetStackTrace(const stack_frame_callback_fn_t& callback) {
+void IThread::getStackTrace(const stack_frame_callback_fn_t& callback) {
     u64 fp = state.fp;
     u64 lr = state.lr;
 
@@ -17,7 +17,7 @@ void IThread::GetStackTrace(const stack_frame_callback_fn_t& callback) {
             break;
         }
 
-        const auto fp_ptr = mmu->UnmapAddr(fp);
+        const auto fp_ptr = mmu->unmapAddr(fp);
         if (fp_ptr == 0x0)
             break;
 

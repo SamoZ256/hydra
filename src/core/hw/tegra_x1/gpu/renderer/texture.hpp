@@ -15,21 +15,22 @@ class ITexture {
     virtual ~ITexture() = default;
 
     virtual ITextureView*
-    CreateView(const TextureViewDescriptor& view_descriptor) = 0;
+    createView(const TextureViewDescriptor& view_descriptor) = 0;
 
     // Copying
-    virtual void CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
+    virtual void copyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
                           const ztd::Range<u32> dst_levels,
                           const ztd::Range<u32> dst_layers) = 0;
-    void CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src) {
-        CopyFrom(command_buffer, src, ztd::Range<u32>(0, descriptor.level_count),
+    void copyFrom(ICommandBuffer* command_buffer, const BufferBase* src) {
+        copyFrom(command_buffer, src,
+                 ztd::Range<u32>(0, descriptor.level_count),
                  ztd::Range<u32>(0, descriptor.layer_count));
     }
-    virtual void CopyFrom(ICommandBuffer* command_buffer, const ITexture* src,
+    virtual void copyFrom(ICommandBuffer* command_buffer, const ITexture* src,
                           const u32 src_level, const u32 src_layer,
                           const u32 dst_level, const u32 dst_layer,
                           const u32 level_count, const u32 layer_count) = 0;
-    virtual void CopyFrom(ICommandBuffer* command_buffer, const ITexture* src,
+    virtual void copyFrom(ICommandBuffer* command_buffer, const ITexture* src,
                           const uint3 src_origin, const u32 src_level,
                           const u32 src_layer, const uint3 dst_origin,
                           const u32 dst_level, const u32 dst_layer,
@@ -39,7 +40,7 @@ class ITexture {
     const TextureDescriptor descriptor;
 
   public:
-    CONST_REF_GETTER(descriptor, GetDescriptor);
+    CONST_REF_GETTER(descriptor, getDescriptor);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

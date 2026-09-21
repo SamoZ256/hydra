@@ -14,12 +14,12 @@ class HostThread : public IThread {
         : IThread(process, priority, debug_name),
           run_callback{std::move(run_callback_)}, tls(TLS_SIZE) {}
 
-    uptr GetTlsPtr() const override {
+    uptr getTlsPtr() const override {
         return reinterpret_cast<uptr>(tls.data());
     }
 
   protected:
-    void Run() override;
+    void run() override;
 
   private:
     run_callback_fn_t run_callback;

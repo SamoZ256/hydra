@@ -15,10 +15,11 @@ class ITextureView {
     virtual ~ITextureView() = default;
 
     // Copying
-    void CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
-                  const ztd::Range<u32> dst_levels, const ztd::Range<u32> dst_layers);
-    void CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src);
-    void CopyFrom(ICommandBuffer* command_buffer, const ITextureView* src,
+    void copyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
+                  const ztd::Range<u32> dst_levels,
+                  const ztd::Range<u32> dst_layers);
+    void copyFrom(ICommandBuffer* command_buffer, const BufferBase* src);
+    void copyFrom(ICommandBuffer* command_buffer, const ITextureView* src,
                   const u32 src_level, const u32 src_layer, const u32 dst_level,
                   const u32 dst_layer, const u32 level_count,
                   const u32 layer_count);
@@ -28,8 +29,8 @@ class ITextureView {
     const TextureViewDescriptor descriptor;
 
   public:
-    GETTER(base, GetBase);
-    CONST_REF_GETTER(descriptor, GetDescriptor);
+    GETTER(base, getBase);
+    CONST_REF_GETTER(descriptor, getDescriptor);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

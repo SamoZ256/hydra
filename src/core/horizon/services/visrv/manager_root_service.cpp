@@ -5,18 +5,18 @@
 namespace hydra::horizon::services::visrv {
 
 // TODO: is this really correct?
-DEFINE_SERVICE_COMMAND_TABLE(IManagerRootService, 0, GetDisplayService, 2,
-                             GetDisplayServiceWithProxyNameExchange)
+DEFINE_SERVICE_COMMAND_TABLE(IManagerRootService, 0, getDisplayService, 2,
+                             getDisplayServiceWithProxyNameExchange)
 
-result_t IManagerRootService::GetDisplayService(RequestContext* ctx) {
-    AddService(*ctx, new IApplicationDisplayService());
+result_t IManagerRootService::getDisplayService(RequestContext* ctx) {
+    addService(*ctx, new IApplicationDisplayService());
     return RESULT_SUCCESS;
 }
 
-result_t IManagerRootService::GetDisplayServiceWithProxyNameExchange(
+result_t IManagerRootService::getDisplayServiceWithProxyNameExchange(
     RequestContext* ctx) {
     // TODO: should take input u64 and u32
-    AddService(*ctx, new IApplicationDisplayService());
+    addService(*ctx, new IApplicationDisplayService());
     return RESULT_SUCCESS;
 }
 

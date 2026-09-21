@@ -18,20 +18,20 @@ enum class Module : u32 {
 
 class IRequest : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t InitializeOld(Module module, u32 priority, u32 event_clear_mode);
-    result_t FinalizeOld(Module module);
-    result_t SetAndWaitOld(Module module, u32 setting_min, u32 setting_max);
-    result_t GetOld(Module module, u32* out_setting_current);
-    result_t Initialize(Module module, u32 priority, u32 event_clear_mode,
+    result_t initializeOld(Module module, u32 priority, u32 event_clear_mode);
+    result_t finalizeOld(Module module);
+    result_t setAndWaitOld(Module module, u32 setting_min, u32 setting_max);
+    result_t getOld(Module module, u32* out_setting_current);
+    result_t initialize(Module module, u32 priority, u32 event_clear_mode,
                         u32* out_request_id);
-    result_t Finalize(u32 request_id);
-    result_t SetAndWait(u32 request_id, u32 setting_min, u32 setting_max);
-    result_t Get(u32 request_id, u32* out_setting_current);
+    result_t finalize(u32 request_id);
+    result_t setAndWait(u32 request_id, u32 setting_min, u32 setting_max);
+    result_t get(u32 request_id, u32* out_setting_current);
 };
 
 } // namespace hydra::horizon::services::mmnv

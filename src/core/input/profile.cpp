@@ -20,7 +20,7 @@ namespace hydra::input {
 
 namespace {
 
-std::optional<u32> ToValue(DeviceType type, const std::string_view value_str) {
+std::optional<u32> toValue(DeviceType type, const std::string_view value_str) {
     switch (type) {
     case DeviceType::Keyboard: {
         const auto key_opt = ToKey(value_str);
@@ -43,7 +43,7 @@ std::optional<u32> ToValue(DeviceType type, const std::string_view value_str) {
     }
 }
 
-std::string ValueToString(DeviceType device_type, u32 value) {
+std::string valueToString(DeviceType device_type, u32 value) {
     switch (device_type) {
     case DeviceType::Keyboard:
         return fmt::format("{}", Key(value));
@@ -57,7 +57,7 @@ std::string ValueToString(DeviceType device_type, u32 value) {
     }
 }
 
-std::optional<Code> ToCode(const std::string_view str) {
+std::optional<Code> toCode(const std::string_view str) {
     const auto slash_pos = str.find('/');
     if (slash_pos == std::string::npos) {
         LOG_ERROR(Input, "Invalid input code format: {}", str);
@@ -74,7 +74,7 @@ std::optional<Code> ToCode(const std::string_view str) {
 
     // Value
     const auto value_str = str.substr(slash_pos + 1);
-    const auto value = ToValue(device_type.value(), value_str);
+    const auto value = toValue(device_type.value(), value_str);
     if (value == std::nullopt) {
         LOG_ERROR(Input, "Invalid value: {}", value_str);
         return std::nullopt;
@@ -83,7 +83,7 @@ std::optional<Code> ToCode(const std::string_view str) {
     return Code(device_type.value(), value.value());
 }
 
-AnalogStickAxis ToAnalogStickAxis(const std::string_view str) {
+AnalogStickAxis toAnalogStickAxis(const std::string_view str) {
     // TODO: clean this up?
     if (str == "l_right") {
         return {.is_left = true, .direction = AnalogStickDirection::Right};
@@ -107,7 +107,7 @@ AnalogStickAxis ToAnalogStickAxis(const std::string_view str) {
     }
 }
 
-std::string AnalogStickDirectionToString(const AnalogStickDirection& dir) {
+std::string analogStickDirectionToString(const AnalogStickDirection& dir) {
     switch (dir) {
     case AnalogStickDirection::Right:
         return "right";
@@ -120,10 +120,10 @@ std::string AnalogStickDirectionToString(const AnalogStickDirection& dir) {
     }
 }
 
-std::string AnalogStickAxisToString(const AnalogStickAxis& axis) {
+std::string analogStickAxisToString(const AnalogStickAxis& axis) {
     return fmt::format(
         "{}_{}", axis.is_left ? "l" : "r",
-        hydra::input::AnalogStickDirectionToString(axis.direction));
+        hydra::input::analogStickDirectionToString(axis.direction));
 }
 
 } // namespace
@@ -146,8 +146,8 @@ struct into<hydra::input::Code> {
     template <typename TC>
     static basic_value<TC> into_toml(const hydra::input::Code& obj) {
         return fmt::format(
-            "{}/{}", obj.GetDeviceType(),
-            hydra::input::ValueToString(obj.GetDeviceType(), obj.GetValue()));
+            "{}/{}", obj.getDeviceType(),
+            hydra::input::valueToString(obj.getDeviceType(), obj.getValue()));
     }
 };
 
@@ -156,7 +156,7 @@ struct from<hydra::input::AnalogStickAxis> {
     template <typename TC>
     static hydra::input::AnalogStickAxis from_toml(const basic_value<TC>& v) {
         const auto str = v.as_string();
-        return hydra::input::ToAnalogStickAxis(str);
+        return hydra::input::toAnalogStickAxis(str);
     }
 };
 
@@ -165,7 +165,7 @@ struct into<hydra::input::AnalogStickAxis> {
     template <typename TC>
     static basic_value<TC>
     into_toml(const hydra::input::AnalogStickAxis& axis) {
-        return hydra::input::AnalogStickAxisToString(axis);
+        return hydra::input::analogStickAxisToString(axis);
     }
 };
 
@@ -176,14 +176,14 @@ namespace hydra::input {
 Profile::Profile(horizon::services::hid::internal::NpadIndex index_,
                  std::string_view name_)
     : index{index_}, name{name_} {
-    const auto path = GetProfilesPath();
+    const auto path = getProfilesPath();
     if (!std::filesystem::exists(path))
         std::filesystem::create_directory(path);
 
-    Deserialize();
+    deserialize();
 }
 
-void Profile::LoadDefaults() {
+void Profile::loadDefaults() {
     // NOLINTNEXTLINE(readability-trivial-switch)
     switch (index) {
     case horizon::services::hid::internal::NpadIndex::No1: {
@@ -304,12 +304,12 @@ void Profile::LoadDefaults() {
     }
 }
 
-void Profile::Serialize() {
+void Profile::serialize() {
     // TODO: check if changed?
 
     // TODO: why is the order of everything reversed in the saved config?
 
-    std::ofstream config_file(GetPath());
+    std::ofstream config_file(getPath());
     if (!config_file.is_open()) {
         LOG_ERROR(Common, "Failed to open npad config file");
         return;
@@ -345,7 +345,7 @@ void Profile::Serialize() {
     {
         auto& analog = data.at("AnalogSticks");
         for (const auto& mapping : analog_mappings) {
-            const auto axis_str = AnalogStickAxisToString(mapping.axis);
+            const auto axis_str = analogStickAxisToString(mapping.axis);
             bool has_entry = analog.contains(axis_str);
             auto& axis = analog[axis_str];
             if (!has_entry)
@@ -358,14 +358,14 @@ void Profile::Serialize() {
     config_file.close();
 }
 
-void Profile::Deserialize() {
-    const std::string path = GetPath();
+void Profile::deserialize() {
+    const std::string path = getPath();
 
     // Check if exists
     bool exists = std::filesystem::exists(path);
     if (!exists) {
-        LoadDefaults();
-        Serialize();
+        loadDefaults();
+        serialize();
         return;
     }
 
@@ -387,7 +387,7 @@ void Profile::Deserialize() {
                 continue;
 
             for (const auto& mapping : mappings.second.as_array()) {
-                const auto& code = ToCode(mapping.as_string());
+                const auto& code = toCode(mapping.as_string());
                 if (!code)
                     continue;
 
@@ -401,9 +401,9 @@ void Profile::Deserialize() {
     if (data.contains("AnalogSticks")) {
         const auto& analog = data.at("AnalogSticks");
         for (const auto& mappings : analog.as_table()) {
-            const auto axis = ToAnalogStickAxis(mappings.first);
+            const auto axis = toAnalogStickAxis(mappings.first);
             for (const auto& mapping : mappings.second.as_array()) {
-                const auto& code = ToCode(mapping.as_string());
+                const auto& code = toCode(mapping.as_string());
                 if (!code)
                     continue;
 

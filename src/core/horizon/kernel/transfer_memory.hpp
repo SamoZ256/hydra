@@ -20,9 +20,9 @@ class TransferMemory : public AutoObject {
     MemoryPermission perm;
 
   public:
-    GETTER(addr, GetAddress);
-    GETTER(size, GetSize);
-    GETTER(perm, GetPermission);
+    GETTER(addr, getAddress);
+    GETTER(size, getSize);
+    GETTER(perm, getPermission);
 };
 
 } // namespace hydra::horizon::kernel

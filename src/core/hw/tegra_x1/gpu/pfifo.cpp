@@ -60,8 +60,8 @@ struct CommandHeader {
 };
 
 template <typename T>
-T Read(uptr& gpu_addr) {
-    T word = tls_crnt_gmmu->Load<T>(gpu_addr);
+T read(uptr& gpu_addr) {
+    T word = tls_crnt_gmmu->load<T>(gpu_addr);
     gpu_addr += sizeof(T);
 
     return word;
@@ -69,7 +69,7 @@ T Read(uptr& gpu_addr) {
 
 } // namespace
 
-Pfifo::Pfifo(Gpu& gpu_) : gpu{gpu_}, thread(&Pfifo::ThreadFunc, this) {}
+Pfifo::Pfifo(Gpu& gpu_) : gpu{gpu_}, thread(&Pfifo::threadFunc, this) {}
 
 Pfifo::~Pfifo() {
     stop = true;
@@ -77,7 +77,7 @@ Pfifo::~Pfifo() {
     thread.join();
 }
 
-void Pfifo::SubmitEntries(GMmu& gmmu, std::span<const GpfifoEntry> entries,
+void Pfifo::submitEntries(GMmu& gmmu, std::span<const GpfifoEntry> entries,
                           GpfifoFlags flags) {
     LOG_DEBUG(Gpu, "Flags: {}", flags);
 
@@ -91,8 +91,8 @@ void Pfifo::SubmitEntries(GMmu& gmmu, std::span<const GpfifoEntry> entries,
     cond_var.notify_all();
 }
 
-void Pfifo::ThreadFunc() {
-    DEBUGGER_MANAGER_INSTANCE.GetDebuggerForCurrentProcess().RegisterThisThread(
+void Pfifo::threadFunc() {
+    DEBUGGER_MANAGER_INSTANCE.getDebuggerForCurrentProcess().registerThisThread(
         "GPU thread");
 
     std::unique_lock lock(mutex);
@@ -111,9 +111,9 @@ void Pfifo::ThreadFunc() {
             // Entries
             // TODO: flags
             tls_crnt_gmmu = &entry_list.gmmu;
-            tls_crnt_command_buffer = gpu.GetRenderer().CreateCommandBuffer();
+            tls_crnt_command_buffer = gpu.getRenderer().createCommandBuffer();
             for (const auto& entry : entry_list.entries)
-                SubmitEntry(entry);
+                submitEntry(entry);
             delete tls_crnt_command_buffer;
             tls_crnt_command_buffer = nullptr;
             tls_crnt_gmmu = nullptr;
@@ -122,11 +122,11 @@ void Pfifo::ThreadFunc() {
         }
     }
 
-    DEBUGGER_MANAGER_INSTANCE.GetDebuggerForCurrentProcess()
-        .UnregisterThisThread();
+    DEBUGGER_MANAGER_INSTANCE.getDebuggerForCurrentProcess()
+        .unregisterThisThread();
 }
 
-void Pfifo::SubmitEntry(const GpfifoEntry entry) {
+void Pfifo::submitEntry(const GpfifoEntry entry) {
     LOG_DEBUG(
         Gpu,
         "Gpfifo entry (addr lo: {:#x}, addr hi: {:#x}, size: {:#x}, allow "
@@ -140,13 +140,13 @@ void Pfifo::SubmitEntry(const GpfifoEntry entry) {
     uptr end = gpu_addr + entry.size * sizeof(u32);
 
     while (gpu_addr < end) {
-        if (!SubmitCommand(gpu_addr))
+        if (!submitCommand(gpu_addr))
             break;
     }
 }
 
-bool Pfifo::SubmitCommand(uptr& gpu_addr) {
-    const auto header = Read<CommandHeader>(gpu_addr);
+bool Pfifo::submitCommand(uptr& gpu_addr) {
+    const auto header = read<CommandHeader>(gpu_addr);
     LOG_DEBUG(
         Gpu, "Method: {:#x}, subchannel: {}, arg: {:#x}, secondary opcode: {}",
         header.method, header.subchannel, header.arg, header.secondary_opcode);
@@ -171,7 +171,7 @@ bool Pfifo::SubmitCommand(uptr& gpu_addr) {
     }
     case SecondaryOpcode::IncMethod:
         for (u32 i = 0; i < header.arg; i++)
-            ProcessMethodArg(header.subchannel, gpu_addr, offset, true);
+            processMethodArg(header.subchannel, gpu_addr, offset, true);
         break;
     case SecondaryOpcode::Grp2UseTert: {
         const auto tert = static_cast<TertiaryOpcode>(header.arg & 0x3);
@@ -185,14 +185,14 @@ bool Pfifo::SubmitCommand(uptr& gpu_addr) {
     }
     case SecondaryOpcode::NonIncMethod:
         for (u32 i = 0; i < header.arg; i++)
-            ProcessMethodArg(header.subchannel, gpu_addr, offset, false);
+            processMethodArg(header.subchannel, gpu_addr, offset, false);
         break;
     case SecondaryOpcode::ImmDataMethod:
-        gpu.SubchannelMethod(header.subchannel, offset, header.arg);
+        gpu.subchannelMethod(header.subchannel, offset, header.arg);
         break;
     case SecondaryOpcode::OneInc:
         for (u32 i = 0; i < header.arg; i++)
-            ProcessMethodArg(header.subchannel, gpu_addr, offset, i == 0);
+            processMethodArg(header.subchannel, gpu_addr, offset, i == 0);
         break;
     default:
         LOG_NOT_IMPLEMENTED(Gpu, "Secondary opcode {}",
@@ -203,15 +203,15 @@ bool Pfifo::SubmitCommand(uptr& gpu_addr) {
     // TODO: is it okay to prefetch the parameters and then execute the
     // macro?
     if (header.method >= MACRO_METHODS_REGION)
-        gpu.SubchannelFlushMacro(header.subchannel);
+        gpu.subchannelFlushMacro(header.subchannel);
 
     return true;
 }
 
-void Pfifo::ProcessMethodArg(u32 subchannel, uptr& gpu_addr, u32& method,
+void Pfifo::processMethodArg(u32 subchannel, uptr& gpu_addr, u32& method,
                              bool increment) {
-    u32 arg = Read<u32>(gpu_addr);
-    gpu.SubchannelMethod(subchannel, method, arg);
+    u32 arg = read<u32>(gpu_addr);
+    gpu.subchannelMethod(subchannel, method, arg);
     if (increment)
         method++;
 }

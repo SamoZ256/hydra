@@ -4,10 +4,10 @@
 
 namespace hydra::horizon::services::am {
 
-DEFINE_SERVICE_COMMAND_TABLE(IStorage, 0, Open)
+DEFINE_SERVICE_COMMAND_TABLE(IStorage, 0, open)
 
-result_t IStorage::Open(RequestContext* ctx) {
-    AddService(*ctx, new IStorageAccessor(data));
+result_t IStorage::open(RequestContext* ctx) {
+    addService(*ctx, new IStorageAccessor(data));
     return RESULT_SUCCESS;
 }
 

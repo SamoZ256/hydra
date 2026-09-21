@@ -11,7 +11,7 @@ struct TextureInfo {
 
 class MemoryAnalyzer {
   public:
-    void Analyze(const ir::Module& modul);
+    void analyze(const ir::Module& modul);
 
   private:
     std::unordered_set<SvSemantic> input_svs;
@@ -22,18 +22,18 @@ class MemoryAnalyzer {
     std::map<u32, TextureInfo> textures;
 
     // Helpers
-    void HandleAMemLoad(const AMem amem);
-    void HandleCMemLoad(const CMem cmem);
-    void HandleAMemStore(const AMem amem);
-    void HandleTextureAccess(u32 const_buffer_index, const TextureInfo& info);
+    void handleAMemLoad(const AMem amem);
+    void handleCMemLoad(const CMem cmem);
+    void handleAMemStore(const AMem amem);
+    void handleTextureAccess(u32 const_buffer_index, const TextureInfo& info);
 
   public:
-    CONST_REF_GETTER(input_svs, GetInputSVs);
-    CONST_REF_GETTER(output_svs, GetOutputSVs);
-    CONST_REF_GETTER(stage_inputs, GetStageInputs);
-    CONST_REF_GETTER(stage_outputs, GetStageOutputs);
-    CONST_REF_GETTER(const_buffers, GetConstBuffers);
-    CONST_REF_GETTER(textures, GetTextures);
+    CONST_REF_GETTER(input_svs, getInputSVs);
+    CONST_REF_GETTER(output_svs, getOutputSVs);
+    CONST_REF_GETTER(stage_inputs, getStageInputs);
+    CONST_REF_GETTER(stage_outputs, getStageOutputs);
+    CONST_REF_GETTER(const_buffers, getConstBuffers);
+    CONST_REF_GETTER(textures, getTextures);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer

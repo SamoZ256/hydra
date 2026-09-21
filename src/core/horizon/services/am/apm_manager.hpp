@@ -6,12 +6,12 @@ namespace hydra::horizon::services::am {
 
 class IApmManager : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t OpenSession(RequestContext* ctx);
+    result_t openSession(RequestContext* ctx);
 };
 
 } // namespace hydra::horizon::services::am

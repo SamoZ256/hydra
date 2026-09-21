@@ -12,68 +12,68 @@ class AppletBase {
         : controller{controller_} {}
     virtual ~AppletBase() noexcept = default;
 
-    void Start(System& system);
+    void start(System& system);
 
-    result_t GetResult() const { return result; }
+    result_t getResult() const { return result; }
 
   protected:
-    virtual result_t Run(System& system) = 0;
+    virtual result_t run(System& system) = 0;
 
     // Helpers
 
     // Data
-    ztd::io::MemoryStream PopInDataRaw() {
-        auto data = controller.PopInData()->GetData();
+    ztd::io::MemoryStream popInDataRaw() {
+        auto data = controller.popInData()->getData();
         return {data};
     }
 
     template <typename T>
-    T PopInData() {
-        auto stream = PopInDataRaw();
+    T popInData() {
+        auto stream = popInDataRaw();
         ASSERT(stream.getSize() >= sizeof(T), Applets,
                "Not enough space ({} < {})", stream.getSize(), sizeof(T));
 
         return stream.read<T>();
     }
 
-    void PushOutDataRaw(std::vector<u8> data) {
-        controller.PushOutData(new services::am::IStorage(std::move(data)));
+    void pushOutDataRaw(std::vector<u8> data) {
+        controller.pushOutData(new services::am::IStorage(std::move(data)));
     }
 
     template <typename T>
-    void PushOutData(const T& data) {
+    void pushOutData(const T& data) {
         std::vector<u8> bytes(sizeof(T));
         std::memcpy(bytes.data(), &data, sizeof(T));
-        PushOutDataRaw(std::move(bytes));
+        pushOutDataRaw(std::move(bytes));
     }
 
     // Interactive data
-    ztd::io::MemoryStream PopInteractiveInDataRaw() {
+    ztd::io::MemoryStream popInteractiveInDataRaw() {
         // TODO: wait
         // controller.GetInteractiveInDataEvent().Wait();
-        auto data = controller.PopInteractiveInData()->GetData();
+        auto data = controller.popInteractiveInData()->getData();
         return {data};
     }
 
     template <typename T>
-    T PopInteractiveInData() {
-        auto stream = PopInteractiveInDataRaw();
+    T popInteractiveInData() {
+        auto stream = popInteractiveInDataRaw();
         ASSERT(stream.getSize() >= sizeof(T), Applets,
                "Not enough space ({} < {})", stream.getSize(), sizeof(T));
 
         return stream.read<T>();
     }
 
-    void PushInteractiveOutDataRaw(std::vector<u8> data) {
-        controller.PushInteractiveOutData(
+    void pushInteractiveOutDataRaw(std::vector<u8> data) {
+        controller.pushInteractiveOutData(
             new services::am::IStorage(std::move(data)));
     }
 
     template <typename T>
-    void PushInteractiveOutData(const T& data) {
+    void pushInteractiveOutData(const T& data) {
         std::vector<u8> bytes(sizeof(T));
         std::memcpy(bytes.data(), &data, sizeof(T));
-        PushInteractiveOutDataRaw(std::move(bytes));
+        pushInteractiveOutDataRaw(std::move(bytes));
     }
 
   private:

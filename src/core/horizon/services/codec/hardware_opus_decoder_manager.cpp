@@ -5,9 +5,9 @@
 namespace hydra::horizon::services::codec {
 
 DEFINE_SERVICE_COMMAND_TABLE(IHardwareOpusDecoderManager, 0,
-                             OpenHardwareOpusDecoder, 1, GetWorkBufferSize)
+                             openHardwareOpusDecoder, 1, getWorkBufferSize)
 
-result_t IHardwareOpusDecoderManager::OpenHardwareOpusDecoder(
+result_t IHardwareOpusDecoderManager::openHardwareOpusDecoder(
     RequestContext* ctx, i32 sample_rate, i32 channel_count,
     u32 work_buffer_size) {
     // TODO: params
@@ -18,11 +18,11 @@ result_t IHardwareOpusDecoderManager::OpenHardwareOpusDecoder(
               "Sample rate: {}, channel count: {}, work buffer size: 0x{:x}",
               sample_rate, channel_count, work_buffer_size);
 
-    AddService(*ctx, new IHardwareOpusDecoder());
+    addService(*ctx, new IHardwareOpusDecoder());
     return RESULT_SUCCESS;
 }
 
-result_t IHardwareOpusDecoderManager::GetWorkBufferSize(i32 sample_rate,
+result_t IHardwareOpusDecoderManager::getWorkBufferSize(i32 sample_rate,
                                                         i32 channel_count,
                                                         u32* out_size) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "sample rate: {}, channel count: {}",

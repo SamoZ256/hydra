@@ -2,9 +2,9 @@
 
 namespace hydra::horizon::services::spl {
 
-DEFINE_SERVICE_COMMAND_TABLE(IGeneralInterface, 0, GetConfig)
+DEFINE_SERVICE_COMMAND_TABLE(IGeneralInterface, 0, getConfig)
 
-result_t IGeneralInterface::GetConfig(ConfigItem item, u64* out_config) {
+result_t IGeneralInterface::getConfig(ConfigItem item, u64* out_config) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "config item: {}", item);
 
     // HACK

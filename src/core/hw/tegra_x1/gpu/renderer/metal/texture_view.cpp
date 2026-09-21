@@ -7,15 +7,15 @@ namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 TextureView::TextureView(Texture* base, const TextureViewDescriptor& descriptor)
     : ITextureView(base, descriptor) {
-    const auto& pixel_format_info = to_mtl_pixel_format_info(descriptor.format);
+    const auto& pixel_format_info = toMtlPixelFormatInfo(descriptor.format);
 
     // Swizzle
     // TODO: remove component indices
     MTL::TextureSwizzle swizzle_components[] = {
-        to_mtl_swizzle(descriptor.swizzle_channels.r),
-        to_mtl_swizzle(descriptor.swizzle_channels.g),
-        to_mtl_swizzle(descriptor.swizzle_channels.b),
-        to_mtl_swizzle(descriptor.swizzle_channels.a)};
+        toMtlSwizzle(descriptor.swizzle_channels.r),
+        toMtlSwizzle(descriptor.swizzle_channels.g),
+        toMtlSwizzle(descriptor.swizzle_channels.b),
+        toMtlSwizzle(descriptor.swizzle_channels.a)};
     MTL::TextureSwizzleChannels swizzle_channels_mtl(
         swizzle_components[pixel_format_info.component_indices[0]],
         swizzle_components[pixel_format_info.component_indices[1]],
@@ -42,8 +42,8 @@ TextureView::TextureView(Texture* base, const TextureViewDescriptor& descriptor)
         break;
     }
 
-    texture = base->GetTexture()->newTextureView(
-        to_mtl_pixel_format(descriptor.format), ToMtlTextureType(type),
+    texture = base->getTexture()->newTextureView(
+        toMtlPixelFormat(descriptor.format), toMtlTextureType(type),
         NS::Range(descriptor.levels.getBegin(), descriptor.levels.getSize()),
         NS::Range(descriptor.layers.getBegin(), descriptor.layers.getSize()),
         swizzle_channels_mtl);

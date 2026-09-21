@@ -4,47 +4,47 @@
 
 namespace hydra::horizon::services::audio {
 
-DEFINE_SERVICE_COMMAND_TABLE(IAudioOutManager, 0, ListAudioOuts, 1,
-                             OpenAudioOut, 2, ListAudioOutsAuto, 3,
-                             OpenAudioOutAuto)
+DEFINE_SERVICE_COMMAND_TABLE(IAudioOutManager, 0, listAudioOuts, 1,
+                             openAudioOut, 2, listAudioOutsAuto, 3,
+                             openAudioOutAuto)
 
 result_t
-IAudioOutManager::ListAudioOuts(u32* out_count,
+IAudioOutManager::listAudioOuts(u32* out_count,
                                 OutBuffer<BufferAttr::MapAlias> out_buffer) {
-    return ListAudioOutsImpl(out_count, out_buffer.stream);
+    return listAudioOutsImpl(out_count, out_buffer.stream);
 }
 
-result_t IAudioOutManager::OpenAudioOut(
+result_t IAudioOutManager::openAudioOut(
     RequestContext* ctx, u32 sample_rate, u16 channel_count,
     [[maybe_unused]] u16 _reserved, u64 aruid,
     InBuffer<BufferAttr::MapAlias> in_device_name_buffer, u32* out_sample_rate,
     u32* out_channel_count, PcmFormat* out_format, AudioOutState* out_state,
     OutBuffer<BufferAttr::MapAlias> out_device_name_buffer) {
-    return OpenAudioOutImpl(ctx, sample_rate, channel_count, aruid,
+    return openAudioOutImpl(ctx, sample_rate, channel_count, aruid,
                             in_device_name_buffer.stream, out_sample_rate,
                             out_channel_count, out_format, out_state,
                             out_device_name_buffer.stream);
 }
 
-result_t IAudioOutManager::ListAudioOutsAuto(
+result_t IAudioOutManager::listAudioOutsAuto(
     u32* out_count, OutBuffer<BufferAttr::AutoSelect> out_buffer) {
-    return ListAudioOutsImpl(out_count, out_buffer.stream);
+    return listAudioOutsImpl(out_count, out_buffer.stream);
 }
 
-result_t IAudioOutManager::OpenAudioOutAuto(
+result_t IAudioOutManager::openAudioOutAuto(
     RequestContext* ctx, u32 sample_rate, u16 channel_count,
     [[maybe_unused]] u16 _reserved, u64 aruid,
     InBuffer<BufferAttr::AutoSelect> in_device_name_buffer,
     u32* out_sample_rate, u32* out_channel_count, PcmFormat* out_format,
     AudioOutState* out_state,
     OutBuffer<BufferAttr::AutoSelect> out_device_name_buffer) {
-    return OpenAudioOutImpl(ctx, sample_rate, channel_count, aruid,
+    return openAudioOutImpl(ctx, sample_rate, channel_count, aruid,
                             in_device_name_buffer.stream, out_sample_rate,
                             out_channel_count, out_format, out_state,
                             out_device_name_buffer.stream);
 }
 
-result_t IAudioOutManager::ListAudioOutsImpl(
+result_t IAudioOutManager::listAudioOutsImpl(
     u32* out_count, std::optional<ztd::io::MemoryStream> out_stream) {
     (void)out_stream;
 
@@ -55,7 +55,7 @@ result_t IAudioOutManager::ListAudioOutsImpl(
     return RESULT_SUCCESS;
 }
 
-result_t IAudioOutManager::OpenAudioOutImpl(
+result_t IAudioOutManager::openAudioOutImpl(
     RequestContext* ctx, u32 sample_rate, u16 channel_count, u64 aruid,
     std::optional<ztd::io::MemoryStream> in_device_name_stream,
     u32* out_sample_rate, u32* out_channel_count, PcmFormat* out_format,
@@ -87,7 +87,7 @@ result_t IAudioOutManager::OpenAudioOutImpl(
     std::string device_name_out = "Hydra audio device";
     out_device_name_stream->writeNullTerminatedString(device_name_out);
 
-    AddService(*ctx,
+    addService(*ctx,
                new IAudioOut(ctx->system, format, sample_rate, channel_count));
     return RESULT_SUCCESS;
 }

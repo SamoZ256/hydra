@@ -8,7 +8,7 @@ Port::Port(ServerPort* server_side_, ClientPort* client_side_,
            std::string_view debug_name)
     : AutoObject(TYPE_ID, debug_name), server_side{server_side_},
       client_side{client_side_} {
-    client_side->SetParent(this);
+    client_side->setParent(this);
 }
 
 } // namespace hydra::horizon::kernel::hipc

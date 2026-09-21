@@ -11,7 +11,7 @@ class RenderPassBase {
     virtual ~RenderPassBase() = default;
 
     // Getters
-    const RenderPassDescriptor& GetDescriptor() const { return descriptor; }
+    const RenderPassDescriptor& getDescriptor() const { return descriptor; }
 
   protected:
     const RenderPassDescriptor descriptor;

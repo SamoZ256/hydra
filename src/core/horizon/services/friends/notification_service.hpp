@@ -13,7 +13,7 @@ class INotificationService : public IService {
     explicit INotificationService(uuid_t user_id_);
 
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
@@ -23,9 +23,9 @@ class INotificationService : public IService {
     kernel::Event* event;
 
     // Commands
-    result_t GetEvent(kernel::Process* process,
+    result_t getEvent(kernel::Process* process,
                       OutHandle<HandleAttr::Copy> out_handle); // 2.0.0+
-    STUB_REQUEST_COMMAND(Clear);                               // 2.0.0+
+    STUB_REQUEST_COMMAND(clear);                               // 2.0.0+
 };
 
 } // namespace hydra::horizon::services::friends

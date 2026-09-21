@@ -2,7 +2,7 @@
 
 namespace hydra::horizon::services::nfp {
 
-DEFINE_SERVICE_COMMAND_TABLE(IUser, 0, Initialize, 2, ListDevices, 19, GetState,
-                             23, AttachAvailabilityChangeEvent)
+DEFINE_SERVICE_COMMAND_TABLE(IUser, 0, initialize, 2, listDevices, 19, getState,
+                             23, attachAvailabilityChangeEvent)
 
 } // namespace hydra::horizon::services::nfp

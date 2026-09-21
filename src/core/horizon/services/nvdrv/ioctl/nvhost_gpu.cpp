@@ -17,9 +17,9 @@ enum class EventId {
 }
 
 DEFINE_IOCTL2_TABLE(NvHostGpu, DEFINE_IOCTL2_TABLE_ENTRY(NvHostGpu, 0x48, 0x1b,
-                                                         SubmitGpfifo))
+                                                         submitGpfifo))
 
-NvResult NvHostGpu::QueryEvent(u32 event_id_u32, kernel::Event*& out_event) {
+NvResult NvHostGpu::queryEvent(u32 event_id_u32, kernel::Event*& out_event) {
     auto event_id = static_cast<EventId>(event_id_u32);
     switch (event_id) {
     case EventId::SmExceptionBptIntReport:
@@ -39,15 +39,15 @@ NvResult NvHostGpu::QueryEvent(u32 event_id_u32, kernel::Event*& out_event) {
 }
 
 // TODO: gpfifo
-NvResult NvHostGpu::SubmitGpfifo(
+NvResult NvHostGpu::submitGpfifo(
     System* system, kernel::Process* process, u64 gpfifo, u32 num_entries,
     InOut<hw::tegra_x1::gpu::GpfifoFlags, u32> inout_flags_and_detailed_error,
     InOutSingle<hw::tegra_x1::gpu::Fence> inout_fence,
     const hw::tegra_x1::gpu::GpfifoEntry* entries) {
     (void)gpfifo;
 
-    system->GetGpu().GetPfifo().SubmitEntries(
-        process->GetGMmu(),
+    system->getGpu().getPfifo().submitEntries(
+        process->getGMmu(),
         std::span<const hw::tegra_x1::gpu::GpfifoEntry>(entries, num_entries),
         inout_flags_and_detailed_error);
 
@@ -57,7 +57,7 @@ NvResult NvHostGpu::SubmitGpfifo(
     return NvResult::Success;
 }
 
-NvResult NvHostGpu::AllocObjCtx(u32 class_num, u32 flags, u64* out_obj_id) {
+NvResult NvHostGpu::allocObjCtx(u32 class_num, u32 flags, u64* out_obj_id) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "class number: {}, flags: {:#x}",
                                class_num, flags);
 
@@ -66,21 +66,21 @@ NvResult NvHostGpu::AllocObjCtx(u32 class_num, u32 flags, u64* out_obj_id) {
     return NvResult::Success;
 }
 
-NvResult NvHostGpu::ZCullBind(gpu_vaddr_t addr, u32 mode,
+NvResult NvHostGpu::zCullBind(gpu_vaddr_t addr, u32 mode,
                               [[maybe_unused]] u32 reserved) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "address: {:#x}, mode: {}", addr,
                                mode);
     return NvResult::Success;
 }
 
-NvResult NvHostGpu::SetErrorNotifier(u64 offset, u64 size, u32 mem,
+NvResult NvHostGpu::setErrorNotifier(u64 offset, u64 size, u32 mem,
                                      [[maybe_unused]] u32 reserved) {
     LOG_FUNC_WITH_ARGS_STUBBED(
         Services, "offset: {:#x}, size: {:#x}, memory: {}", offset, size, mem);
     return NvResult::Success;
 }
 
-NvResult NvHostGpu::GetErrorNotification(u64* out_timestamp, u32* out_info32,
+NvResult NvHostGpu::getErrorNotification(u64* out_timestamp, u32* out_info32,
                                          u16* out_info16, u64* out_status) {
     LOG_FUNC_STUBBED(Services);
 
@@ -93,7 +93,7 @@ NvResult NvHostGpu::GetErrorNotification(u64* out_timestamp, u32* out_info32,
 }
 
 NvResult
-NvHostGpu::AllocGpfifoEX(u32 num_entries, u32 num_jobs, u32 flags,
+NvHostGpu::allocGpfifoEx(u32 num_entries, u32 num_jobs, u32 flags,
                          hw::tegra_x1::gpu::Fence* out_fence,
                          [[maybe_unused]] std::array<u32, 3> reserved) {
     LOG_FUNC_WITH_ARGS_STUBBED(

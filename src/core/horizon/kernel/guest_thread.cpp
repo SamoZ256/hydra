@@ -15,43 +15,43 @@ GuestThread::GuestThread(System& system_, Process* process,
                          std::string_view debug_name)
     : IThread(process, priority, debug_name), system{system_},
       stack_top_addr{stack_top_addr_} {
-    tls_mem = process->CreateTlsMemory(tls_addr);
+    tls_mem = process->createTlsMemory(tls_addr);
 }
 
 GuestThread::~GuestThread() { delete tls_mem; }
 
-uptr GuestThread::GetTlsPtr() const { return tls_mem->GetPtr(); }
+uptr GuestThread::getTlsPtr() const { return tls_mem->getPtr(); }
 
-void GuestThread::Run() {
+void GuestThread::run() {
     // Create
     ASSERT(entry_point != invalid<vaddr_t>(), Kernel, "Invalid entry point");
-    thread = system.GetCpu().CreateThread(
-        system.GetWallClock(), process->GetMmu(),
+    thread = system.getCpu().createThread(
+        system.getWallClock(), process->getMmu(),
         {.svc_handler =
              [this](hw::tegra_x1::cpu::IThread* hw_thread, u64 id) {
-                 system.GetOS().GetKernel().SupervisorCall(process, this,
+                 system.getOs().getKernel().supervisorCall(process, this,
                                                            hw_thread, id);
              },
          .stop_requested =
              [this] {
-                 ProcessMessages();
-                 return GetState() == ThreadState::Stopping;
+                 processMessages();
+                 return getState() == ThreadState::Stopping;
              },
          .supervisor_pause =
              [this] {
-                 SupervisorPause();
-                 DEBUGGER_MANAGER_INSTANCE.GetDebugger(process)
-                     .NotifySupervisorPaused(this, debugger::Signal::SigTrap);
+                 supervisorPause();
+                 DEBUGGER_MANAGER_INSTANCE.getDebugger(process)
+                     .notifySupervisorPaused(this, debugger::Signal::SigTrap);
              },
          .breakpoint_hit =
              [this] {
-                 DEBUGGER_MANAGER_INSTANCE.GetDebugger(process).BreakpointHit(
+                 DEBUGGER_MANAGER_INSTANCE.getDebugger(process).breakpointHit(
                      this);
              }},
         tls_mem, tls_addr);
 
     // Initialize state
-    auto& state = thread->GetState();
+    auto& state = thread->getState();
     state.pc = entry_point;
     state.sp = stack_top_addr;
     state.lr = return_address;
@@ -59,9 +59,9 @@ void GuestThread::Run() {
         state.r[i] = args[i];
 
     // Run
-    GET_CURRENT_PROCESS_DEBUGGER().RegisterGuestThreadForThisThread(this);
-    thread->Run();
-    GET_CURRENT_PROCESS_DEBUGGER().UnregisterGuestThreadForThisThread();
+    GET_CURRENT_PROCESS_DEBUGGER().registerGuestThreadForThisThread(this);
+    thread->run();
+    GET_CURRENT_PROCESS_DEBUGGER().unregisterGuestThreadForThisThread();
 
     // Cleanup
     delete thread;

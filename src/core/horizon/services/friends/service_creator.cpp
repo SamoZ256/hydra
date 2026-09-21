@@ -5,17 +5,17 @@
 
 namespace hydra::horizon::services::friends {
 
-DEFINE_SERVICE_COMMAND_TABLE(IServiceCreator, 0, CreateFriendService, 1,
-                             CreateNotificationService)
+DEFINE_SERVICE_COMMAND_TABLE(IServiceCreator, 0, createFriendService, 1,
+                             createNotificationService)
 
-result_t IServiceCreator::CreateFriendService(RequestContext* ctx) {
-    AddService(*ctx, new IFriendService());
+result_t IServiceCreator::createFriendService(RequestContext* ctx) {
+    addService(*ctx, new IFriendService());
     return RESULT_SUCCESS;
 }
 
-result_t IServiceCreator::CreateNotificationService(RequestContext* ctx,
+result_t IServiceCreator::createNotificationService(RequestContext* ctx,
                                                     uuid_t user_id) {
-    AddService(*ctx, new INotificationService(user_id));
+    addService(*ctx, new INotificationService(user_id));
     return RESULT_SUCCESS;
 }
 

@@ -4,15 +4,15 @@
 
 namespace hydra::horizon::services::am {
 
-DEFINE_SERVICE_COMMAND_TABLE(IOverlayAppletProxy, 0, GetCommonStateGetter, 1,
-                             GetSelfController, 2, GetWindowController, 3,
-                             GetAudioController, 4, GetDisplayController, 11,
-                             GetLibraryAppletCreator, 20, GetOverlayFunctions,
-                             21, GetAppletCommonFunctions, 1000,
-                             GetDebugFunctions)
+DEFINE_SERVICE_COMMAND_TABLE(IOverlayAppletProxy, 0, getCommonStateGetter, 1,
+                             getSelfController, 2, getWindowController, 3,
+                             getAudioController, 4, getDisplayController, 11,
+                             getLibraryAppletCreator, 20, getOverlayFunctions,
+                             21, getAppletCommonFunctions, 1000,
+                             getDebugFunctions)
 
-result_t IOverlayAppletProxy::GetOverlayFunctions(RequestContext* ctx) {
-    AddService(*ctx, new IOverlayFunctions());
+result_t IOverlayAppletProxy::getOverlayFunctions(RequestContext* ctx) {
+    addService(*ctx, new IOverlayFunctions());
     return RESULT_SUCCESS;
 }
 

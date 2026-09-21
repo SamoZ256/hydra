@@ -7,14 +7,14 @@ namespace hydra::horizon::services::ssl::sf {
 
 class ISslService : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t CreateContext(RequestContext* ctx, Aligned<SslVersion, 8> version,
+    result_t createContext(RequestContext* ctx, Aligned<SslVersion, 8> version,
                            u64 pid_placeholder);
-    result_t SetInterfaceVersion(SystemVersion version);
+    result_t setInterfaceVersion(SystemVersion version);
 };
 
 } // namespace hydra::horizon::services::ssl::sf

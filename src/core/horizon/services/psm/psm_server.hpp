@@ -77,18 +77,18 @@ struct BatteryChargeInfoFields {
 
 class IPsmServer : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t GetBatteryChargePercentage(u32* out_percentage);
-    result_t GetChargerType(ChargerType* out_type);
-    result_t OpenSession(RequestContext* ctx);
-    result_t GetRawBatteryChargePercentage(f64* out_percentage);
-    result_t IsEnoughPowerSupplied(bool* out_is_enough);
-    result_t GetBatteryAgePercentage(f64* out_percentage);
-    result_t GetBatteryChargeInfoFields(BatteryChargeInfoFields* out_fields);
+    result_t getBatteryChargePercentage(u32* out_percentage);
+    result_t getChargerType(ChargerType* out_type);
+    result_t openSession(RequestContext* ctx);
+    result_t getRawBatteryChargePercentage(f64* out_percentage);
+    result_t isEnoughPowerSupplied(bool* out_is_enough);
+    result_t getBatteryAgePercentage(f64* out_percentage);
+    result_t getBatteryChargeInfoFields(BatteryChargeInfoFields* out_fields);
 };
 
 } // namespace hydra::horizon::services::psm

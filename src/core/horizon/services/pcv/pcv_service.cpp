@@ -28,9 +28,9 @@ ENABLE_ENUM_FORMATTING(
 
 namespace hydra::horizon::services::pcv {
 
-DEFINE_SERVICE_COMMAND_TABLE(IPcvService, 2, SetClockRate, 3, GetClockRate)
+DEFINE_SERVICE_COMMAND_TABLE(IPcvService, 2, setClockRate, 3, getClockRate)
 
-result_t IPcvService::SetClockRate(ModuleId module_id, u32 rate) {
+result_t IPcvService::setClockRate(ModuleId module_id, u32 rate) {
     if (module_id >= ModuleId::Count) {
         LOG_ERROR(Services, "Invalid module ID {}", module_id);
         return MAKE_RESULT(Svc,
@@ -41,7 +41,7 @@ result_t IPcvService::SetClockRate(ModuleId module_id, u32 rate) {
     return RESULT_SUCCESS;
 }
 
-result_t IPcvService::GetClockRate(ModuleId module_id, u32* out_rate) {
+result_t IPcvService::getClockRate(ModuleId module_id, u32* out_rate) {
     if (module_id >= ModuleId::Count) {
         LOG_ERROR(Services, "Invalid module ID {}", module_id);
         return MAKE_RESULT(Svc,

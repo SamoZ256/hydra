@@ -4,10 +4,10 @@
 
 namespace hydra::horizon::services::nfc {
 
-DEFINE_SERVICE_COMMAND_TABLE(IUserManager, 0, CreateUserInterface)
+DEFINE_SERVICE_COMMAND_TABLE(IUserManager, 0, createUserInterface)
 
-result_t IUserManager::CreateUserInterface(RequestContext* ctx) {
-    AddService(*ctx, new IUser());
+result_t IUserManager::createUserInterface(RequestContext* ctx) {
+    addService(*ctx, new IUser());
     return RESULT_SUCCESS;
 }
 

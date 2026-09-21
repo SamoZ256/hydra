@@ -30,17 +30,17 @@ Window::Window(int argc, const char* argv[]) : system(*this) {
     argc--;
     ASSERT(argc <= 1, SDL3Window, "Expected at most 1 argument, got {}", argc);
     if (argc >= 1)
-        BeginEmulation(argv[0]);
+        beginEmulation(argv[0]);
 }
 
 Window::~Window() {
-    system.GetInputDeviceManager().DisconnectTouchScreenDevice("cursor");
+    system.getInputDeviceManager().disconnectTouchScreenDevice("cursor");
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
 }
 
-void Window::Run() {
+void Window::run() {
     bool running = true;
     while (running) {
         SDL_Event e;
@@ -50,49 +50,49 @@ void Window::Run() {
                 running = false;
                 break;
             case SDL_EVENT_DROP_FILE:
-                BeginEmulation(e.drop.data);
+                beginEmulation(e.drop.data);
                 break;
             case SDL_EVENT_KEY_DOWN: {
                 SDL_Keymod modifiers = SDL_GetModState();
 #ifdef __APPLE__
-                if (modifiers & SDL_KMOD_GUI) {
+                if ((modifiers & SDL_KMOD_GUI) != 0) {
 #else
                 if (modifiers & SDL_KMOD_CTRL) {
 #endif
                     if (e.key.key == SDLK_T) {
-                        system.TakeScreenshot();
+                        system.takeScreenshot();
                     } else if (e.key.key == SDLK_O) {
                         auto& handheld_mode = CONFIG_INSTANCE.GetHandheldMode();
                         handheld_mode = !handheld_mode;
-                        system.NotifyOperationModeChanged();
+                        system.notifyOperationModeChanged();
                     } else if (e.key.key == SDLK_P) {
-                        system.CaptureGpuFrame();
+                        system.captureGpuFrame();
                     }
                 }
                 break;
             }
             default:
-                cursor.Poll(e);
+                cursor.poll(e);
                 break;
             }
         }
 
-        if (system.IsRunning()) {
+        if (system.isRunning()) {
             // Present
             i32 width, height;
             SDL_GetWindowSize(window, &width, &height);
             bool dt_average_updated;
-            system.ProgressFrame(static_cast<u32>(width),
+            system.progressFrame(static_cast<u32>(width),
                                  static_cast<u32>(height), dt_average_updated);
 
             // Update window title
             if (dt_average_updated)
-                UpdateWindowTitle();
+                updateWindowTitle();
         }
     }
 }
 
-void Window::ShowMessageDialog(const horizon::ui::MessageDialogType type,
+void Window::showMessageDialog(const horizon::ui::MessageDialogType type,
                                const std::string& title,
                                const std::string& message) {
     SDL_MessageBoxFlags flags = 0;
@@ -113,35 +113,35 @@ void Window::ShowMessageDialog(const horizon::ui::MessageDialogType type,
 }
 
 horizon::applets::software_keyboard::SoftwareKeyboardResult
-Window::ShowSoftwareKeyboard(const std::string& header_text,
+Window::showSoftwareKeyboard(const std::string& header_text,
                              const std::string& sub_text,
                              const std::string& guide_text,
                              std::string& out_text) {
-    return native.ShowInputTextDialog(header_text, sub_text, guide_text,
+    return native.showInputTextDialog(header_text, sub_text, guide_text,
                                       out_text)
                ? horizon::applets::software_keyboard::SoftwareKeyboardResult::OK
                : horizon::applets::software_keyboard::SoftwareKeyboardResult::
                      Cancel;
 }
 
-void Window::BeginEmulation(const std::string& path) {
+void Window::beginEmulation(const std::string& path) {
     // Create loader
     // TODO: support loading applets from firmware
     // TODO: display error when loading fails
     ZTD_ASSIGN_OR_RETURN(auto loader,
-                         horizon::loader::ILoader::CreateFromPath(path));
+                         horizon::loader::ILoader::createFromPath(path));
 
     // Connect cursor as a touch screen device
-    system.GetInputDeviceManager().ConnectTouchScreenDevice("cursor", &cursor);
+    system.getInputDeviceManager().connectTouchScreenDevice("cursor", &cursor);
 
     // Start
-    system.SetSurface(SDL_GetRenderMetalLayer(renderer));
-    system.LoadAndStart(loader);
-    title_id = loader->GetTitleID();
+    system.setSurface(SDL_GetRenderMetalLayer(renderer));
+    system.loadAndStart(loader);
+    title_id = loader->getTitleId();
 }
 
-void Window::UpdateWindowTitle() {
-    const auto dt = system.GetLastDeltaTimeAverage();
+void Window::updateWindowTitle() {
+    const auto dt = system.getLastDeltaTimeAverage();
     std::string fps_str;
     if (dt == 0.0f)
         fps_str = "0";
@@ -152,10 +152,10 @@ void Window::UpdateWindowTitle() {
     const auto title =
         fmt::format("Hydra | TODO(TITLE_NAME) - 0x{:016x} | {} | {} FPS",
                     title_id, CONFIG_INSTANCE.GetGpuRenderer(), fps_str);
-    SetWindowTitle(title);
+    setWindowTitle(title);
 }
 
-void Window::SetWindowTitle(const std::string& title) {
+void Window::setWindowTitle(const std::string& title) {
     SDL_SetWindowTitle(window, title.c_str());
 }
 

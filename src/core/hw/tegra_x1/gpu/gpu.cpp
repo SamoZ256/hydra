@@ -12,7 +12,7 @@ namespace hydra::hw::tegra_x1::gpu {
 
 namespace {
 
-renderer::IRenderer* CreateRenderer() {
+renderer::IRenderer* createRenderer() {
     const auto renderer_type = CONFIG_INSTANCE.GetGpuRenderer();
     switch (renderer_type) {
     case GpuRenderer::Metal:
@@ -38,9 +38,9 @@ struct SetObjectArg {
 Gpu::Gpu() noexcept
     : pfifo(*this), three_d_engine(*this), compute_engine(*this),
       inline_engine(*this), two_d_engine(*this), copy_engine(*this),
-      renderer{CreateRenderer()} {}
+      renderer{createRenderer()} {}
 
-void Gpu::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
+void Gpu::subchannelMethod(u32 subchannel, u32 method, u32 arg) {
     if (method == 0x0) { // SetEngine
         ASSERT_DEBUG(subchannel <= SUBCHANNEL_COUNT, Gpu,
                      "Invalid subchannel {}", subchannel);
@@ -79,17 +79,17 @@ void Gpu::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
         return;
     }
 
-    const auto engine = GetEngineAtSubchannel(subchannel);
+    const auto engine = getEngineAtSubchannel(subchannel);
     if (!engine)
         LOG_FATAL(Gpu, "Invalid subchannel {}", subchannel);
 
-    (*engine)->Method(method, arg);
+    (*engine)->method(method, arg);
 }
 
 renderer::ITextureView*
-Gpu::GetTexture(renderer::ICommandBuffer* command_buffer, cpu::IMmu* mmu,
+Gpu::getTexture(renderer::ICommandBuffer* command_buffer, cpu::IMmu* mmu,
                 const NvGraphicsBuffer& buff) {
-    std::scoped_lock texture_cache_lock(renderer->GetTextureCache().GetMutex());
+    std::scoped_lock texture_cache_lock(renderer->getTextureCache().getMutex());
 
     const auto& plane = buff.planes[0];
 
@@ -103,14 +103,14 @@ Gpu::GetTexture(renderer::ICommandBuffer* command_buffer, cpu::IMmu* mmu,
 
     // TODO: why are there more planes?
     const renderer::TextureDescriptor descriptor(
-        mmu->UnmapAddr(GetMap(static_cast<u32>(buff.nvmap_id)).value()->addr +
+        mmu->unmapAddr(getMap(static_cast<u32>(buff.nvmap_id)).value()->addr +
                        plane.offset),
         renderer::TextureType::_2D,
-        renderer::to_texture_format(plane.color_format), is_linear, plane.pitch,
+        renderer::toTextureFormat(plane.color_format), is_linear, plane.pitch,
         plane.width, plane.height, 1, 1, 1, 0x0, plane.block_height_gobs_log2,
         0x0);
 
-    return renderer->GetTextureCache().Find(command_buffer, descriptor,
+    return renderer->getTextureCache().find(command_buffer, descriptor,
                                             renderer::TextureUsage::Present);
 }
 

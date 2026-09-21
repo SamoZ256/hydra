@@ -36,7 +36,7 @@ enum class ControllerInput {
     RightSR,
 };
 
-inline bool ControllerInputIsStick(ControllerInput input) {
+inline bool controllerInputIsStick(ControllerInput input) {
     return input == ControllerInput::StickLLeft ||
            input == ControllerInput::StickLUp ||
            input == ControllerInput::StickLRight ||
@@ -49,34 +49,34 @@ inline bool ControllerInputIsStick(ControllerInput input) {
 
 class IController : public IDevice {
   public:
-    bool ActsAsController() const override { return true; }
+    bool actsAsController() const override { return true; }
 
     // Controller
-    bool IsPressed(const Code& code) override {
-        if (code.GetDeviceType() != DeviceType::Controller)
+    bool isPressed(const Code& code) override {
+        if (code.getDeviceType() != DeviceType::Controller)
             return false;
 
-        const auto input = code.GetValue<ControllerInput>();
-        if (ControllerInputIsStick(input))
-            return GetAxisValueImpl(input) > 0.5f;
+        const auto input = code.getValue<ControllerInput>();
+        if (controllerInputIsStick(input))
+            return getAxisValueImpl(input) > 0.5f;
         else
-            return IsPressedImpl(input);
+            return isPressedImpl(input);
     }
 
-    f32 GetAxisValue(const Code& code) override {
-        if (code.GetDeviceType() != DeviceType::Controller)
+    f32 getAxisValue(const Code& code) override {
+        if (code.getDeviceType() != DeviceType::Controller)
             return 0.0f;
 
-        const auto input = code.GetValue<ControllerInput>();
-        if (ControllerInputIsStick(input))
-            return GetAxisValueImpl(input);
+        const auto input = code.getValue<ControllerInput>();
+        if (controllerInputIsStick(input))
+            return getAxisValueImpl(input);
         else
-            return IsPressedImpl(input) ? 1.0f : 0.0f;
+            return isPressedImpl(input) ? 1.0f : 0.0f;
     }
 
   protected:
-    virtual bool IsPressedImpl(ControllerInput input) = 0;
-    virtual f32 GetAxisValueImpl(ControllerInput input) = 0;
+    virtual bool isPressedImpl(ControllerInput input) = 0;
+    virtual f32 getAxisValueImpl(ControllerInput input) = 0;
 };
 
 } // namespace hydra::input

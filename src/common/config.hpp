@@ -8,7 +8,7 @@
 #include "common/log.hpp"
 #include "common/types.hpp"
 
-#define CONFIG_INSTANCE Config::GetInstance()
+#define CONFIG_INSTANCE Config::getInstance()
 
 namespace hydra {
 
@@ -78,7 +78,7 @@ struct LoaderPlugin {
 
 class Config {
   public:
-    static Config& GetInstance() {
+    static Config& getInstance() {
         static Config g_config;
         return g_config;
     }

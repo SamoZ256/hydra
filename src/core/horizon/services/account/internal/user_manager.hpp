@@ -14,13 +14,13 @@ struct Avatar {
 class UserManager {
   public:
     UserManager();
-    ~UserManager() { Flush(); }
+    ~UserManager() { flush(); }
 
-    void Flush();
+    void flush();
 
-    uuid_t CreateUser();
+    uuid_t createUser();
 
-    std::vector<uuid_t> GetUserIDs() const {
+    std::vector<uuid_t> getUserIDs() const {
         std::vector<uuid_t> ids;
         ids.reserve(users.size());
         for (const auto& [id, _] : users)
@@ -29,18 +29,18 @@ class UserManager {
         return ids;
     }
 
-    usize GetUserCount() const { return users.size(); }
-    User& GetUser(uuid_t user_id) { return GetPair(user_id).first; }
-    bool UserExists(uuid_t user_id) const { return users.contains(user_id); }
+    usize getUserCount() const { return users.size(); }
+    User& getUser(uuid_t user_id) { return getPair(user_id).first; }
+    bool userExists(uuid_t user_id) const { return users.contains(user_id); }
 
     // Avatar
-    void LoadSystemAvatars(filesystem::Filesystem& fs);
-    const std::vector<uchar4>& LoadAvatarImage(std::string_view path,
+    void loadSystemAvatars(filesystem::Filesystem& fs);
+    const std::vector<uchar4>& loadAvatarImage(std::string_view path,
                                                u32& out_dimensions);
-    void LoadAvatarImageAsJpeg(std::string_view path, uchar3 bg_color,
+    void loadAvatarImageAsJpeg(std::string_view path, uchar3 bg_color,
                                std::vector<u8>& out_data);
 
-    std::string_view GetAvatarPath(u32 index) const {
+    std::string_view getAvatarPath(u32 index) const {
         // TODO: not the best way to index into a map
         auto it = avatars.begin();
         std::advance(it, index);
@@ -52,32 +52,32 @@ class UserManager {
     std::map<std::string, Avatar> avatars;
 
     // Helpers
-    std::pair<User, u64>& GetPair(uuid_t user_id) {
+    std::pair<User, u64>& getPair(uuid_t user_id) {
         auto it = users.find(user_id);
         ASSERT(it != users.end(), Horizon, "Invalid user {:032x}", user_id);
 
         return it->second;
     }
 
-    static std::string GetUsersPath() {
+    static std::string getUsersPath() {
         return fmt::format("{}/user", CONFIG_INSTANCE.GetAppDataPath());
     }
 
-    static std::string GetUserPath(uuid_t user_id) {
-        return fmt::format("{}/{:032x}.husr", GetUsersPath(), user_id);
+    static std::string getUserPath(uuid_t user_id) {
+        return fmt::format("{}/{:032x}.husr", getUsersPath(), user_id);
     }
 
-    void Serialize(uuid_t user_id);
-    void Deserialize(uuid_t user_id);
+    void serialize(uuid_t user_id);
+    void deserialize(uuid_t user_id);
 
     enum class PreloadAvatarError {
         LoadImageFailed,
         ImageNotASquare,
     };
-    static void PreloadAvatar(Avatar& avatar, bool is_compressed);
+    static void preloadAvatar(Avatar& avatar, bool is_compressed);
 
   public:
-    CONST_REF_GETTER(avatars, GetAvatars);
+    CONST_REF_GETTER(avatars, getAvatars);
 };
 
 } // namespace hydra::horizon::services::account::internal

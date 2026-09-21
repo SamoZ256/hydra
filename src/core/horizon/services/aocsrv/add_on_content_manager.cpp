@@ -2,10 +2,10 @@
 
 namespace hydra::horizon::services::aocsrv {
 
-DEFINE_SERVICE_COMMAND_TABLE(IAddOnContentManager, 2, CountAddOnContent, 3,
-                             ListAddOnContent, 50, CheckAddOnContentMountStatus)
+DEFINE_SERVICE_COMMAND_TABLE(IAddOnContentManager, 2, countAddOnContent, 3,
+                             listAddOnContent, 50, checkAddOnContentMountStatus)
 
-result_t IAddOnContentManager::CountAddOnContent(i64* out_count) {
+result_t IAddOnContentManager::countAddOnContent(i64* out_count) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK
@@ -13,7 +13,7 @@ result_t IAddOnContentManager::CountAddOnContent(i64* out_count) {
     return RESULT_SUCCESS;
 }
 
-result_t IAddOnContentManager::ListAddOnContent(
+result_t IAddOnContentManager::listAddOnContent(
     u32 start_index, u32 buffer_size, u32* out_count,
     OutBuffer<BufferAttr::MapAlias> out_buffer) {
     (void)out_buffer;

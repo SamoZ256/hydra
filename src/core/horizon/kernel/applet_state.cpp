@@ -6,35 +6,35 @@
 namespace hydra::horizon::kernel {
 
 AppletState::AppletState(Kernel& kernel_)
-    : kernel{kernel_}, aruid{kernel.AllocateAppletResourceUserId()},
+    : kernel{kernel_}, aruid{kernel.allocateAppletResourceUserId()},
       msg_event{new Event(false, "Message event")} {}
 
 AppletState::~AppletState() {
-    msg_event->Release();
-    kernel.ReleaseAppletResourceUserId(aruid);
+    msg_event->release();
+    kernel.releaseAppletResourceUserId(aruid);
 }
 
-void AppletState::SendMessage(AppletMessage msg) {
+void AppletState::sendMessage(AppletMessage msg) {
     std::scoped_lock lock(mutex);
-    SendMessageImpl(msg);
+    sendMessageImpl(msg);
 }
 
-void AppletState::SetFocusState(AppletFocusState focus_state_) {
+void AppletState::setFocusState(AppletFocusState focus_state_) {
     {
         std::scoped_lock lock(mutex);
-        SendMessageImpl(AppletMessage::FocusStateChanged);
+        sendMessageImpl(AppletMessage::FocusStateChanged);
         if (focus_state_ == AppletFocusState::InFocus)
-            SendMessageImpl(AppletMessage::ChangeIntoForeground);
+            sendMessageImpl(AppletMessage::ChangeIntoForeground);
     }
     focus_state = focus_state_;
 }
 
-void AppletState::PushPreselectedUser(uuid_t user_id) {
+void AppletState::pushPreselectedUser(uuid_t user_id) {
     std::scoped_lock lock(mutex);
     user_ids.push(user_id);
 }
 
-AppletMessage AppletState::ReceiveMessage() {
+AppletMessage AppletState::receiveMessage() {
     std::scoped_lock lock(mutex);
     if (msg_queue.empty()) {
         return AppletMessage::None;
@@ -45,13 +45,13 @@ AppletMessage AppletState::ReceiveMessage() {
 
     // Clear event
     if (msg_queue.empty())
-        msg_event->Clear();
+        msg_event->clear();
 
     return msg;
 }
 
 std::vector<u8>
-AppletState::PopLaunchParameter(const LaunchParameterKind kind) {
+AppletState::popLaunchParameter(const LaunchParameterKind kind) {
     std::scoped_lock lock(mutex);
     // NOLINTNEXTLINE(readability-trivial-switch)
     switch (kind) {
@@ -80,11 +80,11 @@ AppletState::PopLaunchParameter(const LaunchParameterKind kind) {
     }
 }
 
-void AppletState::SendMessageImpl(AppletMessage msg) {
+void AppletState::sendMessageImpl(AppletMessage msg) {
     msg_queue.push(msg);
 
     // Signal event
-    msg_event->Signal();
+    msg_event->signal();
 }
 
 } // namespace hydra::horizon::kernel

@@ -2,9 +2,9 @@
 
 namespace hydra::horizon::services::am {
 
-DEFINE_SERVICE_COMMAND_TABLE(IProcessWindingController, 0, GetLaunchReason)
+DEFINE_SERVICE_COMMAND_TABLE(IProcessWindingController, 0, getLaunchReason)
 
-result_t IProcessWindingController::GetLaunchReason(
+result_t IProcessWindingController::getLaunchReason(
     AppletProcessLaunchReason* out_reason) {
     LOG_FUNC_STUBBED(Services);
 

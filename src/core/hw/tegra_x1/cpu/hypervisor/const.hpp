@@ -53,7 +53,7 @@ enum class ApFlags : u64 {
 constexpr u64 AP_FLAGS_MASK =
     (1ull << PNX_SHIFT) | (1ull << UXN_SHIFT) | (3ull << AP_SHIFT);
 
-inline uptr AllocateVmMemory(u64 size) {
+inline uptr allocateVmMemory(u64 size) {
     ASSERT_ALIGNMENT(size, APPLE_PAGE_SIZE, Hypervisor, "size")
 
     void* ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
@@ -62,7 +62,7 @@ inline uptr AllocateVmMemory(u64 size) {
     return reinterpret_cast<uptr>(ptr);
 }
 
-inline void FreeVmMemory(paddr_t addr, u64 size) {
+inline void freeVmMemory(paddr_t addr, u64 size) {
     ASSERT_ALIGNMENT(size, APPLE_PAGE_SIZE, Hypervisor, "size")
 
     auto res = munmap(reinterpret_cast<void*>(addr), size);

@@ -34,7 +34,7 @@ union InstHadd2R {
     BitField64<bool, 38, 1> neg_a;
 };
 
-void EmitHadd2R(DecoderContext& context, InstHadd2R inst);
+void emitHadd2R(DecoderContext& context, InstHadd2R inst);
 
 union InstHadd2C {
     InstHadd2Base base;
@@ -46,7 +46,7 @@ union InstHadd2C {
     BitField64<bool, 56, 1> neg_b;
 };
 
-void EmitHadd2C(DecoderContext& context, InstHadd2C inst);
+void emitHadd2C(DecoderContext& context, InstHadd2C inst);
 
 union InstHadd2I {
     InstHadd2Base base;
@@ -56,12 +56,12 @@ union InstHadd2I {
     BitField64<u32, 56, 1> h1_imm10_9;
     BitField64<bool, 52, 1> sat;
 
-    u32 GetH1Imm10() const {
+    u32 getH1Imm10() const {
         return h1_imm10_0.Get() | (h1_imm10_9.Get() << 9);
     }
 };
 
-void EmitHadd2I(DecoderContext& context, InstHadd2I inst);
+void emitHadd2I(DecoderContext& context, InstHadd2I inst);
 
 union InstHadd2_32I {
     BitField64<reg_t, 0, 8> dst;
@@ -75,7 +75,7 @@ union InstHadd2_32I {
     BitField64<bool, 56, 1> neg_a;
 };
 
-void EmitHadd2_32I(DecoderContext& context, InstHadd2_32I inst);
+void emitHadd2_32I(DecoderContext& context, InstHadd2_32I inst);
 
 union InstHmul2Base {
     BitField64<reg_t, 0, 8> dst;
@@ -97,7 +97,7 @@ union InstHmul2R {
     BitField64<bool, 32, 1> sat;
 };
 
-void EmitHmul2R(DecoderContext& context, InstHmul2R inst);
+void emitHmul2R(DecoderContext& context, InstHmul2R inst);
 
 union InstHmul2C {
     InstHmul2Base base;
@@ -108,7 +108,7 @@ union InstHmul2C {
     BitField64<bool, 54, 1> abs_b;
 };
 
-void EmitHmul2C(DecoderContext& context, InstHmul2C inst);
+void emitHmul2C(DecoderContext& context, InstHmul2C inst);
 
 union InstHmul2I {
     InstHmul2Base base;
@@ -118,12 +118,12 @@ union InstHmul2I {
     BitField64<u32, 56, 1> h1_imm10_9;
     BitField64<bool, 52, 1> sat;
 
-    u32 GetH1Imm10() const {
+    u32 getH1Imm10() const {
         return h1_imm10_0.Get() | (h1_imm10_9.Get() << 9);
     }
 };
 
-void EmitHmul2I(DecoderContext& context, InstHmul2I inst);
+void emitHmul2I(DecoderContext& context, InstHmul2I inst);
 
 union InstHmul2_32I {
     BitField64<reg_t, 0, 8> dst;
@@ -136,7 +136,7 @@ union InstHmul2_32I {
     BitField64<u32, 55, 2> fmz; // TODO
 };
 
-void EmitHmul2_32I(DecoderContext& context, InstHmul2_32I inst);
+void emitHmul2_32I(DecoderContext& context, InstHmul2_32I inst);
 
 union InstHfma2Base {
     BitField64<reg_t, 0, 8> dst;
@@ -159,7 +159,7 @@ union InstHfma2R {
     BitField64<reg_t, 39, 8> src_c;
 };
 
-void EmitHfma2R(DecoderContext& context, InstHfma2R inst);
+void emitHfma2R(DecoderContext& context, InstHfma2R inst);
 
 union InstHfma2RC {
     InstHfma2Base base;
@@ -173,7 +173,7 @@ union InstHfma2RC {
     BitField64<u32, 57, 2> fmz; // TODO
 };
 
-void EmitHfma2RC(DecoderContext& context, InstHfma2RC inst);
+void emitHfma2RC(DecoderContext& context, InstHfma2RC inst);
 
 union InstHfma2C {
     InstHfma2Base base;
@@ -187,7 +187,7 @@ union InstHfma2C {
     BitField64<u32, 57, 2> fmz; // TODO
 };
 
-void EmitHfma2C(DecoderContext& context, InstHfma2C inst);
+void emitHfma2C(DecoderContext& context, InstHfma2C inst);
 
 union InstHfma2I {
     InstHfma2Base base;
@@ -200,12 +200,12 @@ union InstHfma2I {
     BitField64<u32, 56, 1> h1_imm10_9;
     BitField64<u32, 57, 2> fmz; // TODO
 
-    u32 GetH1Imm10() const {
+    u32 getH1Imm10() const {
         return h1_imm10_0.Get() | (h1_imm10_9.Get() << 9);
     }
 };
 
-void EmitHfma2I(DecoderContext& context, InstHfma2I inst);
+void emitHfma2I(DecoderContext& context, InstHfma2I inst);
 
 union InstHfma2_32I {
     BitField64<reg_t, 0, 8> dst;
@@ -218,6 +218,6 @@ union InstHfma2_32I {
     BitField64<u32, 55, 2> fmz; // TODO
 };
 
-void EmitHfma2_32I(DecoderContext& context, InstHfma2_32I inst);
+void emitHfma2_32I(DecoderContext& context, InstHfma2_32I inst);
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

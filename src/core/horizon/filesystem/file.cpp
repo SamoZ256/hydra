@@ -2,7 +2,7 @@
 
 namespace hydra::horizon::filesystem {
 
-void IFile::Save(std::string_view host_path) const {
+void IFile::save(std::string_view host_path) const {
     // Create file
     // HACK: construct a temporary string
     ZTD_ASSIGN_OR(auto file,
@@ -17,7 +17,7 @@ void IFile::Save(std::string_view host_path) const {
 
     // Read
     const auto stream =
-        const_cast<IFile*>(this)->Open(FileOpenFlags::Read); // HACK
+        const_cast<IFile*>(this)->open(FileOpenFlags::Read); // HACK
 
     std::array<u8, 0x800> buffer;
     while (stream->getSeek() < stream->getSize()) {

@@ -15,7 +15,7 @@ class IAppletResource : public IService {
     ~IAppletResource() override;
 
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
@@ -24,7 +24,7 @@ class IAppletResource : public IService {
     internal::AppletResource& resource;
 
     // Commands
-    result_t GetSharedMemoryHandle(kernel::Process* process,
+    result_t getSharedMemoryHandle(kernel::Process* process,
                                    OutHandle<HandleAttr::Copy> out_handle);
 };
 

@@ -12,7 +12,7 @@ class IrSensorManager {
     kernel::SharedMemory* shared_mem;
 
   public:
-    GETTER(shared_mem, GetSharedMemory);
+    GETTER(shared_mem, getSharedMemory);
 };
 
 } // namespace hydra::horizon::services::irsensor::internal

@@ -10,24 +10,24 @@ class StreamAdapter : public ztd::io::IStream {
   public:
     StreamAdapter(Plugin& extension_, void* handle_) noexcept
         : plugin{extension_}, handle{handle_} {}
-    ~StreamAdapter() noexcept override { plugin.StreamDestroy(handle); }
+    ~StreamAdapter() noexcept override { plugin.streamDestroy(handle); }
 
     u64 getSeek() const noexcept override {
-        return plugin.StreamGetSeek(handle);
+        return plugin.streamGetSeek(handle);
     }
     void seekTo(u64 seek) noexcept override {
-        plugin.StreamSeekTo(handle, seek);
+        plugin.streamSeekTo(handle, seek);
     }
     void seekBy(u64 offset) noexcept override {
-        plugin.StreamSeekBy(handle, offset);
+        plugin.streamSeekBy(handle, offset);
     }
 
     u64 getSize() const noexcept override {
-        return plugin.StreamGetSize(handle);
+        return plugin.streamGetSize(handle);
     }
 
     void readRaw(std::span<u8> buffer) noexcept override {
-        plugin.StreamReadRaw(handle, buffer);
+        plugin.streamReadRaw(handle, buffer);
     }
 
   private:
@@ -39,14 +39,14 @@ class FileAdapter : public filesystem::IFile {
   public:
     FileAdapter(Plugin& extension_, void* handle_)
         : plugin{extension_}, handle{handle_} {}
-    ~FileAdapter() override { plugin.FileDestroy(handle); }
+    ~FileAdapter() override { plugin.fileDestroy(handle); }
 
-    ztd::io::IStream* Open(filesystem::FileOpenFlags flags) override {
+    ztd::io::IStream* open(filesystem::FileOpenFlags flags) override {
         (void)flags;
-        return new StreamAdapter(plugin, plugin.FileOpen(handle));
+        return new StreamAdapter(plugin, plugin.fileOpen(handle));
     }
 
-    u64 GetSize() const override { return plugin.FileGetSize(handle); }
+    u64 getSize() const override { return plugin.fileGetSize(handle); }
 
   private:
     Plugin& plugin;
@@ -69,10 +69,10 @@ class Loader : public NxLoader {
     void* handle;
 };
 
-void AddFile(void* plugin, filesystem::Directory* dir,
+void addFile(void* plugin, filesystem::Directory* dir,
              api::Slice<const char> path, void* handle) {
     const std::string_view path_str(path.data, path.size);
-    const auto res = dir->AddEntry(
+    const auto res = dir->addEntry(
         path_str, new FileAdapter(*reinterpret_cast<Plugin*>(plugin), handle),
         true);
     ASSERT(res == filesystem::FsResult::Success, Loader,
@@ -81,7 +81,7 @@ void AddFile(void* plugin, filesystem::Directory* dir,
 
 } // namespace
 
-std::expected<Plugin, Plugin::Error> Plugin::Create(const std::string& path) {
+std::expected<Plugin, Plugin::Error> Plugin::create(const std::string& path) {
     Plugin plugin;
 
     plugin.library = dlopen(path.data(), RTLD_LAZY);
@@ -89,50 +89,51 @@ std::expected<Plugin, Plugin::Error> Plugin::Create(const std::string& path) {
         return std::unexpected(Error::LoadFailed);
 
     // Functions
-    plugin.get_api_version = plugin.LoadFunction<api::Function::GetApiVersion,
+    plugin.get_api_version = plugin.loadFunction<api::Function::GetApiVersion,
                                                  api::GetApiVersionFnT>();
-    plugin.query = plugin.LoadFunction<api::Function::Query, api::QueryFnT>();
-    plugin.create_context = plugin.LoadFunction<api::Function::CreateContext,
+    plugin.query_fn =
+        plugin.loadFunction<api::Function::Query, api::QueryFnT>();
+    plugin.create_context = plugin.loadFunction<api::Function::CreateContext,
                                                 api::CreateContextFnT>();
-    plugin.destroy_context = plugin.LoadFunction<api::Function::DestroyContext,
+    plugin.destroy_context = plugin.loadFunction<api::Function::DestroyContext,
                                                  api::DestroyContextFnT>();
     plugin.create_loader_from_file =
-        plugin.LoadFunction<api::Function::CreateLoaderFromFile,
+        plugin.loadFunction<api::Function::CreateLoaderFromFile,
                             api::CreateLoaderFromFileFnT>();
-    plugin.loader_destroy = plugin.LoadFunction<api::Function::LoaderDestroy,
+    plugin.loader_destroy = plugin.loadFunction<api::Function::LoaderDestroy,
                                                 api::LoaderDestroyFnT>();
     plugin.file_destroy =
-        plugin.LoadFunction<api::Function::FileDestroy, api::FileDestroyFnT>();
+        plugin.loadFunction<api::Function::FileDestroy, api::FileDestroyFnT>();
     plugin.file_open =
-        plugin.LoadFunction<api::Function::FileOpen, api::FileOpenFnT>();
+        plugin.loadFunction<api::Function::FileOpen, api::FileOpenFnT>();
     plugin.file_get_size =
-        plugin.LoadFunction<api::Function::FileGetSize, api::FileGetSizeFnT>();
-    plugin.stream_destroy = plugin.LoadFunction<api::Function::StreamDestroy,
+        plugin.loadFunction<api::Function::FileGetSize, api::FileGetSizeFnT>();
+    plugin.stream_destroy = plugin.loadFunction<api::Function::StreamDestroy,
                                                 api::StreamDestroyFnT>();
-    plugin.stream_get_seek = plugin.LoadFunction<api::Function::StreamGetSeek,
+    plugin.stream_get_seek = plugin.loadFunction<api::Function::StreamGetSeek,
                                                  api::StreamGetSeekFnT>();
     plugin.stream_seek_to =
         plugin
-            .LoadFunction<api::Function::StreamSeekTo, api::StreamSeekToFnT>();
+            .loadFunction<api::Function::StreamSeekTo, api::StreamSeekToFnT>();
     plugin.stream_seek_by =
         plugin
-            .LoadFunction<api::Function::StreamSeekBy, api::StreamSeekByFnT>();
-    plugin.stream_get_size = plugin.LoadFunction<api::Function::StreamGetSize,
+            .loadFunction<api::Function::StreamSeekBy, api::StreamSeekByFnT>();
+    plugin.stream_get_size = plugin.loadFunction<api::Function::StreamGetSize,
                                                  api::StreamGetSizeFnT>();
-    plugin.stream_read_raw = plugin.LoadFunction<api::Function::StreamReadRaw,
+    plugin.stream_read_raw = plugin.loadFunction<api::Function::StreamReadRaw,
                                                  api::StreamReadRawFnT>();
 
     // API version
-    if (plugin.GetApiVersion() != 1)
+    if (plugin.getApiVersion() != 1)
         return std::unexpected(Error::UnsupportedApiVersion);
 
     // Info
-    plugin.name = plugin.QueryString(api::QueryType::Name);
-    plugin.display_version = plugin.QueryString(api::QueryType::DisplayVersion);
+    plugin.name = plugin.queryString(api::QueryType::Name);
+    plugin.display_version = plugin.queryString(api::QueryType::DisplayVersion);
     plugin.supported_formats = Split<std::string_view>(
-        plugin.QueryString(api::QueryType::SupportedFormats), ',');
+        plugin.queryString(api::QueryType::SupportedFormats), ',');
     const auto api_option_configs_buffer =
-        plugin.Query(api::QueryType::OptionConfigs);
+        plugin.query(api::QueryType::OptionConfigs);
     const auto api_option_configs =
         std::span(reinterpret_cast<const api::OptionConfig*>(
                       api_option_configs_buffer.data()),
@@ -171,9 +172,9 @@ std::expected<Plugin, Plugin::Error> Plugin::Create(const std::string& path) {
 }
 
 std::expected<Plugin, Plugin::Error>
-Plugin::Create(const std::string& path,
+Plugin::create(const std::string& path,
                const std::map<std::string, std::string>& options) {
-    return Create(path).and_then(
+    return create(path).and_then(
         [=](Plugin plugin) -> std::expected<Plugin, Error> {
             // Verify that all required options are present
             for (const auto& config : plugin.option_configs) {
@@ -184,7 +185,7 @@ Plugin::Create(const std::string& path,
 
             // Create context
             ZTD_ASSIGN_OR_RETURN_ERROR(plugin.context,
-                                       plugin.CreateContext(options));
+                                       plugin.createContext(options));
 
             return plugin;
         });
@@ -192,30 +193,32 @@ Plugin::Create(const std::string& path,
 
 Plugin::~Plugin() {
     if (context != nullptr)
-        DestroyContext();
+        destroyContext();
     if (library != nullptr)
         dlclose(library);
 }
 
-std::optional<NxLoader*> Plugin::Load(std::string_view path) {
+std::optional<NxLoader*> Plugin::load(std::string_view path) {
     const auto root_dir = new filesystem::Directory();
-    return CreateLoaderFromFile(root_dir, path)
+    return createLoaderFromFile(root_dir, path)
         .transform([root_dir, this](void* handle) {
             return new Loader(*this, handle, *root_dir);
         });
 }
 
-u64 Plugin::GetApiVersion() { return get_api_version(); }
+u64 Plugin::getApiVersion() { return get_api_version(); }
 
-std::span<const u8> Plugin::Query(api::QueryType what) { return query(what); }
+std::span<const u8> Plugin::query(api::QueryType what) {
+    return query_fn(what);
+}
 
-std::string_view Plugin::QueryString(api::QueryType what) {
-    const auto buffer = Query(what);
+std::string_view Plugin::queryString(api::QueryType what) {
+    const auto buffer = query(what);
     return {reinterpret_cast<const char*>(buffer.data()), buffer.size()};
 }
 
 std::expected<void*, Plugin::Error>
-Plugin::CreateContext(const std::map<std::string, std::string>& options) {
+Plugin::createContext(const std::map<std::string, std::string>& options) {
     std::vector<api::Option> options_vec;
     options_vec.reserve(options.size());
     for (const auto& [key, value] : options) {
@@ -231,12 +234,12 @@ Plugin::CreateContext(const std::map<std::string, std::string>& options) {
     return ret.value;
 }
 
-void Plugin::DestroyContext() { destroy_context(context); }
+void Plugin::destroyContext() { destroy_context(context); }
 
 std::optional<void*>
-Plugin::CreateLoaderFromFile(filesystem::Directory* root_dir,
+Plugin::createLoaderFromFile(filesystem::Directory* root_dir,
                              std::string_view path) {
-    const auto ret = create_loader_from_file(context, this, AddFile, root_dir,
+    const auto ret = create_loader_from_file(context, this, addFile, root_dir,
                                              api::Slice(std::span(path)));
     if (ret.res != api::CreateLoaderFromFileResult::Success) {
         return std::nullopt;
@@ -245,29 +248,29 @@ Plugin::CreateLoaderFromFile(filesystem::Directory* root_dir,
     return ret.value;
 }
 
-void Plugin::LoaderDestroy(void* loader) { loader_destroy(loader); }
+void Plugin::loaderDestroy(void* loader) { loader_destroy(loader); }
 
-void Plugin::FileDestroy(void* file) { file_destroy(file); }
+void Plugin::fileDestroy(void* file) { file_destroy(file); }
 
-void* Plugin::FileOpen(void* file) { return file_open(file); }
+void* Plugin::fileOpen(void* file) { return file_open(file); }
 
-u64 Plugin::FileGetSize(void* file) { return file_get_size(file); }
+u64 Plugin::fileGetSize(void* file) { return file_get_size(file); }
 
-void Plugin::StreamDestroy(void* stream) { stream_destroy(stream); }
+void Plugin::streamDestroy(void* stream) { stream_destroy(stream); }
 
-u64 Plugin::StreamGetSeek(void* stream) { return stream_get_seek(stream); }
+u64 Plugin::streamGetSeek(void* stream) { return stream_get_seek(stream); }
 
-void Plugin::StreamSeekTo(void* stream, u64 offset) {
+void Plugin::streamSeekTo(void* stream, u64 offset) {
     stream_seek_to(stream, offset);
 }
 
-void Plugin::StreamSeekBy(void* stream, u64 offset) {
+void Plugin::streamSeekBy(void* stream, u64 offset) {
     stream_seek_by(stream, offset);
 }
 
-u64 Plugin::StreamGetSize(void* stream) { return stream_get_size(stream); }
+u64 Plugin::streamGetSize(void* stream) { return stream_get_size(stream); }
 
-void Plugin::StreamReadRaw(void* stream, std::span<u8> buffer) {
+void Plugin::streamReadRaw(void* stream, std::span<u8> buffer) {
     stream_read_raw(stream, api::Slice(buffer));
 }
 

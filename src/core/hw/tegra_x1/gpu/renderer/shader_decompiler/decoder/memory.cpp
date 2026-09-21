@@ -5,10 +5,10 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder {
 namespace {
 
 // TODO: p, todo
-void EmitLoadAttribute(DecoderContext& context, pred_t pred, bool pred_inv,
+void emitLoadAttribute(DecoderContext& context, pred_t pred, bool pred_inv,
                        bool is_input, LsSize size, reg_t dst, reg_t src,
                        u32 src_offset) {
-    const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
+    const auto conditional = handlePredCond(context.builder, pred, pred_inv);
 
     u32 count;
     switch (size) {
@@ -31,23 +31,23 @@ void EmitLoadAttribute(DecoderContext& context, pred_t pred, bool pred_inv,
     std::vector<ir::Value> values;
     values.reserve(count);
     for (u32 i = 0; i < count; i++) {
-        values.push_back(context.builder.OpCopy(ir::Value::AttrMemory(
+        values.push_back(context.builder.opCopy(ir::Value::createAttrMemory(
             AMem(src, src_offset + i * sizeof(u32), is_input))));
     }
 
     for (u32 i = 0; i < count; i++) {
-        context.builder.OpCopy(ir::Value::Register(dst + static_cast<u8>(i)),
-                               values[i]);
+        context.builder.opCopy(
+            ir::Value::createRegister(dst + static_cast<u8>(i)), values[i]);
     }
 
     if (conditional)
-        context.builder.OpEndIf();
+        context.builder.opEndIf();
 }
 
 // TODO: p, todo
-void EmitStoreAttribute(DecoderContext& context, pred_t pred, bool pred_inv,
+void emitStoreAttribute(DecoderContext& context, pred_t pred, bool pred_inv,
                         LsSize size, reg_t dst, u32 dst_offset, reg_t src) {
-    const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
+    const auto conditional = handlePredCond(context.builder, pred, pred_inv);
 
     u32 count;
     switch (size) {
@@ -68,19 +68,20 @@ void EmitStoreAttribute(DecoderContext& context, pred_t pred, bool pred_inv,
     }
 
     for (u32 i = 0; i < count; i++) {
-        context.builder.OpCopy(ir::Value::AttrMemory(AMem(
-                                   dst, dst_offset + i * sizeof(u32), false)),
-                               ir::Value::Register(src + static_cast<u8>(i)));
+        context.builder.opCopy(
+            ir::Value::createAttrMemory(
+                AMem(dst, dst_offset + i * sizeof(u32), false)),
+            ir::Value::createRegister(src + static_cast<u8>(i)));
     }
 
     if (conditional)
-        context.builder.OpEndIf();
+        context.builder.opEndIf();
 }
 
-void EmitLoadConstant(DecoderContext& context, pred_t pred, bool pred_inv,
+void emitLoadConstant(DecoderContext& context, pred_t pred, bool pred_inv,
                       LsSize2 size, AddressMode address_mode, reg_t dst,
                       u32 cbuf_slot, reg_t src, u32 cbuf_offset) {
-    const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
+    const auto conditional = handlePredCond(context.builder, pred, pred_inv);
 
     u32 count;
     switch (size) {
@@ -113,23 +114,23 @@ void EmitLoadConstant(DecoderContext& context, pred_t pred, bool pred_inv,
     std::vector<ir::Value> values;
     values.reserve(count);
     for (u32 i = 0; i < count; i++) {
-        values.push_back(context.builder.OpCopy(ir::Value::ConstMemory(
+        values.push_back(context.builder.opCopy(ir::Value::createConstMemory(
             CMem(cbuf_slot, src, cbuf_offset + i * sizeof(u32)))));
     }
 
     for (u32 i = 0; i < count; i++) {
-        context.builder.OpCopy(ir::Value::Register(dst + static_cast<u8>(i)),
-                               values[i]);
+        context.builder.opCopy(
+            ir::Value::createRegister(dst + static_cast<u8>(i)), values[i]);
     }
 
     if (conditional)
-        context.builder.OpEndIf();
+        context.builder.opEndIf();
 }
 
 // TODO: cache_op, extended
-void EmitLoadGlobal(DecoderContext& context, pred_t pred, bool pred_inv,
+void emitLoadGlobal(DecoderContext& context, pred_t pred, bool pred_inv,
                     LsSize3 size, reg_t dst, reg_t src, i32 offset) {
-    const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
+    const auto conditional = handlePredCond(context.builder, pred, pred_inv);
 
     u32 count;
     switch (size) {
@@ -163,29 +164,29 @@ void EmitLoadGlobal(DecoderContext& context, pred_t pred, bool pred_inv,
     values.reserve(count);
     for (u32 i = 0; i < count; i++) {
         // TODO: global memory
-        values.push_back(ir::Value::ConstantU(0));
+        values.push_back(ir::Value::createConstantU(0));
     }
 
     for (u32 i = 0; i < count; i++) {
-        context.builder.OpCopy(ir::Value::Register(dst + static_cast<u8>(i)),
-                               values[i]);
+        context.builder.opCopy(
+            ir::Value::createRegister(dst + static_cast<u8>(i)), values[i]);
     }
 
     if (conditional)
-        context.builder.OpEndIf();
+        context.builder.opEndIf();
 }
 
 // TODO: msi
 // TODO: what is src_c for?
-void EmitInterpolateAttribute(DecoderContext& context, pred_t pred,
+void emitInterpolateAttribute(DecoderContext& context, pred_t pred,
                               bool pred_inv, IpaOp op, bool saturate, reg_t dst,
                               reg_t src_a_r, u32 src_a_imm, bool indexed,
                               reg_t src_b, reg_t src_c) {
     (void)src_c;
 
-    const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
+    const auto conditional = handlePredCond(context.builder, pred, pred_inv);
 
-    auto res = ir::Value::AttrMemory(
+    auto res = ir::Value::createAttrMemory(
         AMem(indexed ? src_a_r : RZ, !indexed ? src_a_imm : 0, true),
         ir::ScalarType::F32);
 
@@ -194,53 +195,55 @@ void EmitInterpolateAttribute(DecoderContext& context, pred_t pred,
     if (indexed ||
         (src_a_imm >= 0x80 &&
          context.decomp_context.frag.pixel_imaps[(src_a_imm - 0x80) >> 0x4]
-                 .GetFirstUsedType() == PixelImapType::Perspective)) {
-        res = context.builder.OpMultiply(
-            res,
-            ir::Value::AttrMemory(AMem(RZ, 0x7c, true), ir::ScalarType::F32));
+                 .getFirstUsedType() == PixelImapType::Perspective)) {
+        res = context.builder.opMultiply(
+            res, ir::Value::createAttrMemory(AMem(RZ, 0x7c, true),
+                                             ir::ScalarType::F32));
     }
 
     // Op
     // TODO: what about other?
     if (op == IpaOp::Multiply) {
-        const auto src_b_v = ir::Value::Register(src_b, ir::ScalarType::F32);
-        res = context.builder.OpMultiply(res, src_b_v);
+        const auto src_b_v =
+            ir::Value::createRegister(src_b, ir::ScalarType::F32);
+        res = context.builder.opMultiply(res, src_b_v);
     }
 
-    res = SaturateIf(context.builder, res, saturate);
-    context.builder.OpCopy(ir::Value::Register(dst, ir::ScalarType::F32), res);
+    res = saturateIf(context.builder, res, saturate);
+    context.builder.opCopy(ir::Value::createRegister(dst, ir::ScalarType::F32),
+                           res);
 
     if (conditional)
-        context.builder.OpEndIf();
+        context.builder.opEndIf();
 }
 
 } // namespace
 
-void EmitLda(DecoderContext& context, InstLda inst) {
-    EmitLoadAttribute(context, inst.pred, inst.pred_inv, !inst.o, inst.size,
+void emitLda(DecoderContext& context, InstLda inst) {
+    emitLoadAttribute(context, inst.pred, inst.pred_inv, !inst.o, inst.size,
                       inst.dst, inst.src, inst.src_offset);
 }
 
-void EmitSta(DecoderContext& context, InstSta inst) {
-    EmitStoreAttribute(context, inst.pred, inst.pred_inv, inst.size, inst.dst,
+void emitSta(DecoderContext& context, InstSta inst) {
+    emitStoreAttribute(context, inst.pred, inst.pred_inv, inst.size, inst.dst,
                        inst.dst_offset, inst.src);
 }
 
-void EmitLdc(DecoderContext& context, InstLdc inst) {
+void emitLdc(DecoderContext& context, InstLdc inst) {
     // TODO: sign extend cbuf_offset?
-    EmitLoadConstant(context, inst.pred, inst.pred_inv, inst.size,
+    emitLoadConstant(context, inst.pred, inst.pred_inv, inst.size,
                      inst.address_mode, inst.dst, inst.cbuf_slot, inst.src,
                      inst.cbuf_offset);
 }
 
-void EmitLdg(DecoderContext& context, InstLdg inst) {
-    EmitLoadGlobal(context, inst.pred, inst.pred_inv, inst.size, inst.dst,
+void emitLdg(DecoderContext& context, InstLdg inst) {
+    emitLoadGlobal(context, inst.pred, inst.pred_inv, inst.size, inst.dst,
                    inst.src,
                    sign_extend<i32, 24>(static_cast<i32>(inst.imm24)));
 }
 
-void EmitIpa(DecoderContext& context, InstIpa inst) {
-    EmitInterpolateAttribute(context, inst.pred, inst.pred_inv, inst.op,
+void emitIpa(DecoderContext& context, InstIpa inst) {
+    emitInterpolateAttribute(context, inst.pred, inst.pred_inv, inst.op,
                              inst.sat, inst.dst, inst.src_a_r, inst.src_a_imm10,
                              inst.idx, inst.src_b, inst.src_c);
 }

@@ -10,18 +10,18 @@ class IAccountServiceForApplication : public IAccountService {
         : IAccountService(AccountServiceType::Application) {}
 
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    STUB_REQUEST_COMMAND(InitializeApplicationInfoV0);
-    result_t GetBaasAccountManagerForApplication(RequestContext* ctx,
+    STUB_REQUEST_COMMAND(initializeApplicationInfoV0);
+    result_t getBaasAccountManagerForApplication(RequestContext* ctx,
                                                  uuid_t user_id);
-    STUB_REQUEST_COMMAND(StoreSaveDataThumbnail);
-    STUB_REQUEST_COMMAND(InitializeApplicationInfo);
-    STUB_REQUEST_COMMAND(IsUserAccountSwitchLocked);
-    STUB_REQUEST_COMMAND(InitializeApplicationInfoV2);
+    STUB_REQUEST_COMMAND(storeSaveDataThumbnail);
+    STUB_REQUEST_COMMAND(initializeApplicationInfo);
+    STUB_REQUEST_COMMAND(isUserAccountSwitchLocked);
+    STUB_REQUEST_COMMAND(initializeApplicationInfoV2);
 };
 
 } // namespace hydra::horizon::services::account

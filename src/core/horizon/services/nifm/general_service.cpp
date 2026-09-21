@@ -49,22 +49,22 @@ struct SfNetworkProfileData {
 
 } // namespace
 
-DEFINE_SERVICE_COMMAND_TABLE(IGeneralService, 4, CreateRequest, 5,
-                             GetCurrentNetworkProfile, 12, GetCurrentIpAddress,
-                             15, GetCurrentIpConfigInfo, 18,
-                             GetInternetConnectionStatus)
+DEFINE_SERVICE_COMMAND_TABLE(IGeneralService, 4, createRequest, 5,
+                             getCurrentNetworkProfile, 12, getCurrentIpAddress,
+                             15, getCurrentIpConfigInfo, 18,
+                             getInternetConnectionStatus)
 
-result_t IGeneralService::CreateRequest(RequestContext* ctx,
+result_t IGeneralService::createRequest(RequestContext* ctx,
                                         i32 requirement_preset) {
     // TODO: what is requirement preset?
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "requirement preset: {}",
                                requirement_preset);
 
-    AddService(*ctx, new IRequest());
+    addService(*ctx, new IRequest());
     return RESULT_SUCCESS;
 }
 
-result_t IGeneralService::GetCurrentNetworkProfile(
+result_t IGeneralService::getCurrentNetworkProfile(
     OutBuffer<BufferAttr::HipcPointer> out_buffer) {
     LOG_NOT_IMPLEMENTED(Services, "GetCurrentNetworkProfile");
 
@@ -104,7 +104,7 @@ result_t IGeneralService::GetCurrentNetworkProfile(
     return RESULT_SUCCESS;
 }
 
-result_t IGeneralService::GetCurrentIpAddress(IpV4Address* out_ip) {
+result_t IGeneralService::getCurrentIpAddress(IpV4Address* out_ip) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK
@@ -112,7 +112,7 @@ result_t IGeneralService::GetCurrentIpAddress(IpV4Address* out_ip) {
     return RESULT_SUCCESS;
 }
 
-result_t IGeneralService::GetCurrentIpConfigInfo(
+result_t IGeneralService::getCurrentIpConfigInfo(
     IpAddressSetting* out_ip_address_setting, DnsSetting* out_dns_setting) {
     LOG_FUNC_STUBBED(Services);
 
@@ -131,7 +131,7 @@ result_t IGeneralService::GetCurrentIpConfigInfo(
     return RESULT_SUCCESS;
 }
 
-result_t IGeneralService::GetInternetConnectionStatus(
+result_t IGeneralService::getInternetConnectionStatus(
     InternetConnectionType* out_type, u32* out_wifi_strength,
     InternetConnectionStatus* out_status) {
     LOG_FUNC_STUBBED(Services);

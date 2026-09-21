@@ -194,7 +194,7 @@ enum class ViewportSwizzle : u32 {
 };
 
 // TODO: handle this differently
-inline renderer::ShaderType to_renderer_shader_type(ShaderStage stage) {
+inline renderer::ShaderType toRendererShaderType(ShaderStage stage) {
     switch (stage) {
     case ShaderStage::VertexB:
         return renderer::ShaderType::Vertex;
@@ -347,7 +347,7 @@ struct Regs3D {
         u32 count : 4;
         u32 maps : 24;
 
-        u32 GetMap(u32 index) const { return (maps >> (index * 3)) & 0x7; }
+        u32 getMap(u32 index) const { return (maps >> (index * 3)) & 0x7; }
     } color_target_control;
 
     u32 padding_0x488[0x2];
@@ -550,15 +550,15 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
   public:
     explicit ThreeD(Gpu& gpu_);
 
-    void Method(u32 method, u32 arg) override;
+    void method(u32 method, u32 arg) override;
 
-    void FlushMacro() override;
+    void flushMacro() override;
 
     // Getters
-    const Regs3D& GetRegs() const { return regs; }
+    const Regs3D& getRegs() const { return regs; }
 
   protected:
-    void Macro(u32 method, u32 arg) override;
+    void macro(u32 method, u32 arg) override;
 
   private:
     Gpu& gpu;
@@ -578,13 +578,13 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
     // Methods
     DEFINE_INLINE_ENGINE_METHODS;
 
-    void LoadMmeInstructionRamPointer(const u32 index, const u32 ptr);
-    void LoadMmeInstructionRam(const u32 index, const u32 data);
-    void LoadMmeStartAddressRamPointer(const u32 index, const u32 ptr);
-    void LoadMmeStartAddressRam(const u32 index, const u32 data);
+    void loadMmeInstructionRamPointer(const u32 index, const u32 ptr);
+    void loadMmeInstructionRam(const u32 index, const u32 data);
+    void loadMmeStartAddressRamPointer(const u32 index, const u32 ptr);
+    void loadMmeStartAddressRam(const u32 index, const u32 data);
 
-    void DrawVertexArray(const u32 index, u32 count);
-    void DrawVertexElements(const u32 index, u32 count);
+    void drawVertexArray(const u32 index, u32 count);
+    void drawVertexElements(const u32 index, u32 count);
 
     struct ClearBufferData {
         bool depth : 1;
@@ -594,35 +594,35 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
         u32 layer_id : 11;
     };
 
-    void ClearBuffer(const u32 index, const ClearBufferData data);
+    void clearBuffer(const u32 index, const ClearBufferData data);
 
     // HACK
-    void SetReportSemaphore(const u32 index, const u32 data);
+    void setReportSemaphore(const u32 index, const u32 data);
 
-    void FirmwareCall4(const u32 index, const u32 data);
+    void firmwareCall4(const u32 index, const u32 data);
 
-    void LoadConstBuffer(const u32 index, const u32 data);
-    void BindGroup(const u32 index, const u32 data);
+    void loadConstBuffer(const u32 index, const u32 data);
+    void bindGroup(const u32 index, const u32 data);
 
     // Helpers
     renderer::ITextureView*
-    GetColorTargetTexture(u32 render_target_index) const;
-    renderer::ITextureView* GetDepthStencilTargetTexture() const;
-    renderer::RenderPassBase* GetRenderPass() const;
-    renderer::Viewport GetViewport(u32 index);
-    renderer::Scissor GetScissor(u32 index);
-    renderer::ShaderBase* GetShaderUnchecked(ShaderStage stage) const;
-    renderer::ShaderBase* GetShader(ShaderStage stage);
-    renderer::PipelineBase* GetPipeline();
-    renderer::BufferView GetVertexBuffer(u32 vertex_array_index) const;
-    renderer::ITextureView* GetTexture(const TextureImageControl& tic) const;
-    renderer::SamplerBase* GetSampler(const TextureSamplerControl& tsc) const;
+    getColorTargetTexture(u32 render_target_index) const;
+    renderer::ITextureView* getDepthStencilTargetTexture() const;
+    renderer::RenderPassBase* getRenderPass() const;
+    renderer::Viewport getViewport(u32 index);
+    renderer::Scissor getScissor(u32 index);
+    renderer::ShaderBase* getShaderUnchecked(ShaderStage stage) const;
+    renderer::ShaderBase* getShader(ShaderStage stage);
+    renderer::PipelineBase* getPipeline();
+    renderer::BufferView getVertexBuffer(u32 vertex_array_index) const;
+    renderer::ITextureView* getTexture(const TextureImageControl& tic) const;
+    renderer::SamplerBase* getSampler(const TextureSamplerControl& tsc) const;
 
-    void ConfigureShaderStage(const ShaderStage stage,
+    void configureShaderStage(const ShaderStage stage,
                               const TextureImageControl* tex_header_pool,
                               const TextureSamplerControl* tex_sampler_pool);
 
-    bool DrawInternal();
+    bool drawInternal();
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::engines

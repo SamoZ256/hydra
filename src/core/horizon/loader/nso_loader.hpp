@@ -16,13 +16,13 @@ class NsoLoader : public ILoader {
                        const std::string_view name_ = "main",
                        const bool is_entry_point_ = true);
 
-    void SetMainThreadParams(u8 priority, u8 core_number, u32 stack_size) {
+    void setMainThreadParams(u8 priority, u8 core_number, u32 stack_size) {
         main_thread_priority = priority;
         main_thread_core_number = core_number;
         main_thread_stack_size = stack_size;
     }
 
-    void LoadProcess(System& system, kernel::Process* process) override;
+    void loadProcess(System& system, kernel::Process* process) override;
 
   private:
     filesystem::IFile* file;

@@ -42,6 +42,9 @@ Checks: >
   -cppcoreguidelines-pro-type-union-access,
   -cppcoreguidelines-prefer-member-initializer,
   -cppcoreguidelines-avoid-c-arrays,
+  -cppcoreguidelines-pro-type-const-cast,
+  -cppcoreguidelines-special-member-functions,
+  -cppcoreguidelines-avoid-non-const-global-variables,
   -modernize-use-nodiscard,
   -modernize-avoid-c-arrays,
   -readability-qualified-auto,
@@ -53,3 +56,49 @@ Checks: >
   -clang-analyzer-optin.performance.Padding
 WarningsAsErrors: ''
 HeaderFilterRegex: '.*'
+CheckOptions:
+  readability-identifier-naming.FunctionCase: camelBack
+  readability-identifier-naming.MethodCase: camelBack
+  readability-identifier-naming.IgnoreMainLikeFunctions: true
+  # from_toml/into_toml are toml11 customization points, looked up by name
+  # emit*_32I must keep its shape to match the Inst##op token paste
+  readability-identifier-naming.FunctionIgnoredRegexp: 'from_toml|into_toml|emit[A-Za-z0-9]+_[A-Za-z0-9]+|(alignas|alignof|and|and_eq|asm|auto|bitand|bitor|bool|break|case|catch|char|char8_t|char16_t|char32_t|class|compl|concept|const|consteval|constexpr|constinit|const_cast|continue|co_await|co_return|co_yield|decltype|default|delete|do|double|dynamic_cast|else|enum|explicit|export|extern|false|float|for|friend|goto|if|inline|int|long|mutable|namespace|new|noexcept|not|not_eq|nullptr|operator|or|or_eq|private|protected|public|register|reinterpret_cast|requires|return|short|signed|sizeof|static|static_assert|static_cast|struct|switch|template|this|thread_local|throw|true|try|typedef|typeid|typename|union|unsigned|using|virtual|void|volatile|wchar_t|while|xor|xor_eq)_'
+  readability-identifier-naming.MethodIgnoredRegexp: 'from_toml|into_toml|(alignas|alignof|and|and_eq|asm|auto|bitand|bitor|bool|break|case|catch|char|char8_t|char16_t|char32_t|class|compl|concept|const|consteval|constexpr|constinit|const_cast|continue|co_await|co_return|co_yield|decltype|default|delete|do|double|dynamic_cast|else|enum|explicit|export|extern|false|float|for|friend|goto|if|inline|int|long|mutable|namespace|new|noexcept|not|not_eq|nullptr|operator|or|or_eq|private|protected|public|register|reinterpret_cast|requires|return|short|signed|sizeof|static|static_assert|static_cast|struct|switch|template|this|thread_local|throw|true|try|typedef|typeid|typename|union|unsigned|using|virtual|void|volatile|wchar_t|while|xor|xor_eq)_'
+
+  readability-identifier-naming.ClassCase: CamelCase
+  readability-identifier-naming.ClassIgnoredRegexp: '[a-z][a-z0-9_]*_t|hydra_[a-z0-9_]+'
+  readability-identifier-naming.StructCase: CamelCase
+  readability-identifier-naming.StructIgnoredRegexp: '[a-z][a-z0-9_]*_t|hydra_[a-z0-9_]+|[a-z][a-z0-9_]*_traits|[A-Z][A-Za-z0-9]*_[A-Za-z0-9]*'
+  readability-identifier-naming.UnionCase: CamelCase
+  readability-identifier-naming.UnionIgnoredRegexp: '[a-z][a-z0-9_]*_t|hydra_[a-z0-9_]+|[A-Z][A-Za-z0-9]*_[A-Za-z0-9]+'
+  readability-identifier-naming.EnumCase: CamelCase
+  readability-identifier-naming.NamespaceCase: lower_case
+  readability-identifier-naming.TypeAliasCase: CamelCase
+  readability-identifier-naming.TypeAliasIgnoredRegexp: '[a-z][a-z0-9_]*_t|hydra_[a-z0-9_]+|traits'
+  readability-identifier-naming.TypedefCase: CamelCase
+  readability-identifier-naming.TypedefIgnoredRegexp: '[a-z][a-z0-9_]*_t|hydra_[a-z0-9_]+'
+  readability-identifier-naming.TypeTemplateParameterCase: CamelCase
+  readability-identifier-naming.TypeTemplateParameterIgnoredRegexp: '[A-Za-z][A-Za-z0-9]*_'
+  readability-identifier-naming.ValueTemplateParameterCase: lower_case
+  readability-identifier-naming.ValueTemplateParameterIgnoredRegexp: '_?[a-z][a-z0-9_]*_?|Is'
+
+  # Members, parameters and locals are snake_case (+ optional underscores)
+  readability-identifier-naming.PrivateMemberCase: lower_case
+  readability-identifier-naming.ProtectedMemberCase: lower_case
+  readability-identifier-naming.PublicMemberCase: lower_case
+  readability-identifier-naming.PublicMemberIgnoredRegexp: '_?[a-z][a-zA-Z0-9_]*_?'
+  readability-identifier-naming.ParameterCase: lower_case
+  readability-identifier-naming.ParameterIgnoredRegexp: '_?[a-z][a-z0-9_]*_?|(r|b|src|value)[A-D]'
+  readability-identifier-naming.LocalVariableCase: lower_case
+  readability-identifier-naming.LocalVariableIgnoredRegexp: '_?[a-z][a-z0-9_]*_?|(r|b|src|value)[A-D]|[A-Z][A-Z0-9_]*'
+  readability-identifier-naming.StaticVariableCase: lower_case
+  readability-identifier-naming.GlobalVariableCase: lower_case
+
+  readability-identifier-naming.GlobalConstantCase: UPPER_CASE
+  readability-identifier-naming.ClassConstantCase: UPPER_CASE
+  readability-identifier-naming.ClassConstantIgnoredRegexp: '[a-z][a-z0-9_]*'
+  readability-identifier-naming.StaticConstantCase: UPPER_CASE
+  readability-identifier-naming.StaticConstantIgnoredRegexp: '[a-z][a-z0-9_]*'
+  readability-identifier-naming.GlobalConstantIgnoredRegexp: '[a-z][a-z0-9_]*'
+
+  readability-identifier-naming.MacroDefinitionCase: UPPER_CASE

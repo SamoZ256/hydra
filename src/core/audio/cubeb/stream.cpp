@@ -8,7 +8,7 @@ namespace hydra::audio::cubeb {
 
 namespace {
 
-cubeb_sample_format to_cubeb_format(const PcmFormat format) {
+cubeb_sample_format toCubebFormat(const PcmFormat format) {
     // TODO: more
     switch (format) {
     case PcmFormat::Int16:
@@ -21,7 +21,7 @@ cubeb_sample_format to_cubeb_format(const PcmFormat format) {
     }
 }
 
-cubeb_channel_layout to_cubeb_layout(u16 channel_count) {
+cubeb_channel_layout toCubebLayout(u16 channel_count) {
     // TODO: correct?
     return (channel_count >= 2 ? CUBEB_LAYOUT_STEREO : CUBEB_LAYOUT_MONO);
 }
@@ -39,17 +39,17 @@ Stream::Stream(Core& core_, PcmFormat format, u32 sample_rate,
         LOG_NOT_IMPLEMENTED(Cubeb, "Channel count {}", channel_count);
 
     cubeb_stream_params params;
-    params.format = to_cubeb_format(format);
+    params.format = toCubebFormat(format);
     params.rate = sample_rate;
     params.channels = channel_count;
-    params.layout = to_cubeb_layout(channel_count);
+    params.layout = toCubebLayout(channel_count);
     params.prefs = CUBEB_STREAM_PREF_NONE;
 
     // TODO: device
     // TODO: buffer size
     const auto res = cubeb_stream_init(
         core.context, &stream, "Hydra stream", nullptr, nullptr, nullptr,
-        &params, 512, &Stream::DataCallback, &Stream::StateCallback, this);
+        &params, 512, &Stream::dataCallback, &Stream::stateCallback, this);
     // TODO: format result
     ASSERT(res == CUBEB_OK, Cubeb, "Failed to initialize cubeb stream: {}",
            res);
@@ -57,19 +57,19 @@ Stream::Stream(Core& core_, PcmFormat format, u32 sample_rate,
 
 Stream::~Stream() { cubeb_stream_destroy(stream); }
 
-void Stream::Start() { cubeb_stream_start(stream); }
+void Stream::start() { cubeb_stream_start(stream); }
 
-void Stream::Stop() {
+void Stream::stop() {
     // TODO: wait to finish?
     cubeb_stream_stop(stream);
 }
 
-void Stream::EnqueueBuffer(buffer_id_t id, std::span<const u8> buffer) {
+void Stream::enqueueBuffer(buffer_id_t id, std::span<const u8> buffer) {
     std::unique_lock lock(buffer_mutex);
     buffer_queue.emplace(id, buffer);
 }
 
-long Stream::DataCallback(cubeb_stream* stream, void* user_data,
+long Stream::dataCallback(cubeb_stream* stream, void* user_data,
                           const void* input_buffer, void* output_buffer,
                           long num_frames) {
     (void)stream;
@@ -106,7 +106,7 @@ long Stream::DataCallback(cubeb_stream* stream, void* user_data,
     return num_frames;
 }
 
-void Stream::StateCallback(cubeb_stream* stream, void* user_data,
+void Stream::stateCallback(cubeb_stream* stream, void* user_data,
                            cubeb_state state) {
     (void)stream;
 

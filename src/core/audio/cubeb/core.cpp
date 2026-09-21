@@ -11,7 +11,7 @@ Core::Core() {
 }
 
 IStream*
-Core::CreateStream(PcmFormat format, u32 sample_rate, u16 channel_count,
+Core::createStream(PcmFormat format, u32 sample_rate, u16 channel_count,
                    buffer_finished_callback_fn_t buffer_finished_callback) {
     return new Stream(*this, format, sample_rate, channel_count,
                       buffer_finished_callback);

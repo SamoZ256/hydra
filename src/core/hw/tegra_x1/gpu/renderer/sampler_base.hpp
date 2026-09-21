@@ -11,7 +11,7 @@ class SamplerBase {
     virtual ~SamplerBase() = default;
 
     // Getters
-    const SamplerDescriptor& GetDescriptor() const { return descriptor; }
+    const SamplerDescriptor& getDescriptor() const { return descriptor; }
 
   protected:
     const SamplerDescriptor descriptor;

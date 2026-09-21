@@ -9,17 +9,17 @@ class IAccountServiceForSystemService : public IAccountService {
         : IAccountService(AccountServiceType::SystemService) {}
 
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
     // TODO: correct?
-    result_t GetUserRegistrationNotifier(RequestContext* ctx);
+    result_t getUserRegistrationNotifier(RequestContext* ctx);
     // TODO: correct?
-    result_t GetUserStateChangeNotifier(RequestContext* ctx);
+    result_t getUserStateChangeNotifier(RequestContext* ctx);
     // TODO: correct?
-    result_t GetBaasAccountManagerForSystemService(RequestContext* ctx);
+    result_t getBaasAccountManagerForSystemService(RequestContext* ctx);
 };
 
 } // namespace hydra::horizon::services::account

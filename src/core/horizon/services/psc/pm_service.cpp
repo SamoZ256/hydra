@@ -4,10 +4,10 @@
 
 namespace hydra::horizon::services::psc {
 
-DEFINE_SERVICE_COMMAND_TABLE(IPmService, 0, GetPmModule)
+DEFINE_SERVICE_COMMAND_TABLE(IPmService, 0, getPmModule)
 
-result_t IPmService::GetPmModule(RequestContext* ctx) {
-    AddService(*ctx, new IPmModule());
+result_t IPmService::getPmModule(RequestContext* ctx) {
+    addService(*ctx, new IPmModule());
     return RESULT_SUCCESS;
 }
 

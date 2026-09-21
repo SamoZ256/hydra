@@ -6,92 +6,92 @@
 #include "core/system.hpp"
 
 #define APPLET_RESOURCE(aruid)                                                 \
-    system->GetOS().GetHidResourceManager().GetResource(aruid)
+    system->getOs().getHidResourceManager().getResource(aruid)
 
 namespace hydra::horizon::services::hid {
 
 DEFINE_SERVICE_COMMAND_TABLE(
-    IHidServer, 0, CreateAppletResource, 1, ActivateDebugPad, 11,
-    ActivateTouchScreen, 21, ActivateMouse, 31, ActivateKeyboard, 66,
-    StartSixAxisSensor, 67, StopSixAxisSensor, 69, EnableSixAxisSensorFusion,
-    79, SetGyroscopeZeroDriftMode, 91, ActivateGesture, 100,
-    SetSupportedNpadStyleSet, 101, GetSupportedNpadStyleSet, 102,
-    SetSupportedNpadIdType, 103, ActivateNpad, 106,
-    AcquireNpadStyleSetUpdateEventHandle, 107, DisconnectNpad, 108,
-    GetPlayerLedPattern, 109, ActivateNpadWithRevision, 120, SetNpadJoyHoldType,
-    121, GetNpadJoyHoldType, 122, SetNpadJoyAssignmentModeSingleByDefault, 124,
-    SetNpadJoyAssignmentModeDual, 128, SetNpadHandheldActivationMode, 130,
-    SwapNpadAssignment, 200, GetVibrationDeviceInfo, 201, SendVibrationValue,
-    203, CreateActiveVibrationDeviceList, 205, IsVibrationPermitted, 206,
-    SendVibrationValues, 303, ActivateSevenSixAxisSensor, 1000,
-    SetNpadCommunicationMode, 1004, SetTouchScreenOutputRanges)
+    IHidServer, 0, createAppletResource, 1, activateDebugPad, 11,
+    activateTouchScreen, 21, activateMouse, 31, activateKeyboard, 66,
+    startSixAxisSensor, 67, stopSixAxisSensor, 69, enableSixAxisSensorFusion,
+    79, setGyroscopeZeroDriftMode, 91, activateGesture, 100,
+    setSupportedNpadStyleSet, 101, getSupportedNpadStyleSet, 102,
+    setSupportedNpadIdType, 103, activateNpad, 106,
+    acquireNpadStyleSetUpdateEventHandle, 107, disconnectNpad, 108,
+    getPlayerLedPattern, 109, activateNpadWithRevision, 120, setNpadJoyHoldType,
+    121, getNpadJoyHoldType, 122, setNpadJoyAssignmentModeSingleByDefault, 124,
+    setNpadJoyAssignmentModeDual, 128, setNpadHandheldActivationMode, 130,
+    swapNpadAssignment, 200, getVibrationDeviceInfo, 201, sendVibrationValue,
+    203, createActiveVibrationDeviceList, 205, isVibrationPermitted, 206,
+    sendVibrationValues, 303, activateSevenSixAxisSensor, 1000,
+    setNpadCommunicationMode, 1004, setTouchScreenOutputRanges)
 
-result_t IHidServer::CreateAppletResource(RequestContext* ctx,
+result_t IHidServer::createAppletResource(RequestContext* ctx,
                                           kernel::AppletResourceUserId aruid) {
-    AddService(*ctx, new IAppletResource(ctx->system, aruid));
+    addService(*ctx, new IAppletResource(ctx->system, aruid));
     return RESULT_SUCCESS;
 }
 
 result_t
-IHidServer::SetSupportedNpadStyleSet(System* system,
+IHidServer::setSupportedNpadStyleSet(System* system,
                                      Aligned<NpadStyleSet, 8> style_set,
                                      kernel::AppletResourceUserId aruid) {
-    APPLET_RESOURCE(aruid).SetSupportedStyleSet(style_set);
+    APPLET_RESOURCE(aruid).setSupportedStyleSet(style_set);
     return RESULT_SUCCESS;
 }
 
 result_t
-IHidServer::GetSupportedNpadStyleSet(System* system,
+IHidServer::getSupportedNpadStyleSet(System* system,
                                      kernel::AppletResourceUserId aruid,
                                      NpadStyleSet* out_style_set) {
-    *out_style_set = APPLET_RESOURCE(aruid).GetSupportedStyleSet();
+    *out_style_set = APPLET_RESOURCE(aruid).getSupportedStyleSet();
     return RESULT_SUCCESS;
 }
 
-result_t IHidServer::SetSupportedNpadIdType(
+result_t IHidServer::setSupportedNpadIdType(
     System* system, kernel::AppletResourceUserId aruid,
     InBuffer<BufferAttr::HipcPointer> in_types_buffer) {
     while (in_types_buffer.stream->getSeek() <
            in_types_buffer.stream->getSize()) {
         const auto index =
-            internal::ToNpadIndex(in_types_buffer.stream->read<NpadIdType>());
-        APPLET_RESOURCE(aruid).SetNpadSupported(index, true);
+            internal::toNpadIndex(in_types_buffer.stream->read<NpadIdType>());
+        APPLET_RESOURCE(aruid).setNpadSupported(index, true);
     }
     return RESULT_SUCCESS;
 }
 
-result_t IHidServer::ActivateNpad(System* system,
+result_t IHidServer::activateNpad(System* system,
                                   kernel::AppletResourceUserId aruid) {
-    APPLET_RESOURCE(aruid).ActivateNpads(NpadRevision::Revision0);
+    APPLET_RESOURCE(aruid).activateNpads(NpadRevision::Revision0);
     return RESULT_SUCCESS;
 }
 
-result_t IHidServer::AcquireNpadStyleSetUpdateEventHandle(
+result_t IHidServer::acquireNpadStyleSetUpdateEventHandle(
     System* system, kernel::Process* process, Aligned<NpadIdType, 8> type,
     kernel::AppletResourceUserId aruid, u64 event_ptr,
     OutHandle<HandleAttr::Copy> out_handle) {
     (void)event_ptr;
     LOG_DEBUG(Services, "event ptr: {:#x}", event_ptr);
 
-    auto event = APPLET_RESOURCE(aruid).GetNpadStyleSetUpdateEvent(
-        internal::ToNpadIndex(type));
+    auto event = APPLET_RESOURCE(aruid).getNpadStyleSetUpdateEvent(
+        internal::toNpadIndex(type));
 
     // TODO: params
-    out_handle = process->AddHandle(event);
+    out_handle = process->addHandle(event);
 
     // HACK: games expect this to be signalled
-    event->Signal();
+    event->signal();
 
     return RESULT_SUCCESS;
 }
 
-result_t IHidServer::DisconnectNpad(System* system, Aligned<NpadIdType, 8> type,
+result_t IHidServer::disconnectNpad(System* system, Aligned<NpadIdType, 8> type,
                                     kernel::AppletResourceUserId aruid) {
-    APPLET_RESOURCE(aruid).DisconnectNpad(internal::ToNpadIndex(type));
+    APPLET_RESOURCE(aruid).disconnectNpad(internal::toNpadIndex(type));
     return RESULT_SUCCESS;
 }
 
-result_t IHidServer::GetPlayerLedPattern(NpadIdType npad_id_type,
+result_t IHidServer::getPlayerLedPattern(NpadIdType npad_id_type,
                                          u64* out_pattern) {
     switch (npad_id_type) {
     case NpadIdType::No1:
@@ -134,30 +134,30 @@ result_t IHidServer::GetPlayerLedPattern(NpadIdType npad_id_type,
 }
 
 result_t
-IHidServer::ActivateNpadWithRevision(System* system,
+IHidServer::activateNpadWithRevision(System* system,
                                      Aligned<NpadRevision, 8> revision,
                                      kernel::AppletResourceUserId aruid) {
     LOG_DEBUG(Services, "Revision: {}", revision);
-    APPLET_RESOURCE(aruid).ActivateNpads(revision);
+    APPLET_RESOURCE(aruid).activateNpads(revision);
     return RESULT_SUCCESS;
 }
 
-result_t IHidServer::SetNpadJoyHoldType(System* system,
+result_t IHidServer::setNpadJoyHoldType(System* system,
                                         kernel::AppletResourceUserId aruid,
                                         NpadJoyHoldType type) {
-    APPLET_RESOURCE(aruid).SetJoyHoldType(type);
+    APPLET_RESOURCE(aruid).setJoyHoldType(type);
     return RESULT_SUCCESS;
 }
 
-result_t IHidServer::GetNpadJoyHoldType(System* system,
+result_t IHidServer::getNpadJoyHoldType(System* system,
                                         kernel::AppletResourceUserId aruid,
                                         Aligned<NpadJoyHoldType, 8>* out_type) {
     out_type->ZeroOutPadding();
-    *out_type = APPLET_RESOURCE(aruid).GetJoyHoldType();
+    *out_type = APPLET_RESOURCE(aruid).getJoyHoldType();
     return RESULT_SUCCESS;
 }
 
-result_t IHidServer::GetVibrationDeviceInfo(VibrationDeviceHandle handle,
+result_t IHidServer::getVibrationDeviceInfo(VibrationDeviceHandle handle,
                                             VibrationDeviceInfo* out_info) {
     (void)handle;
 
@@ -172,13 +172,13 @@ result_t IHidServer::GetVibrationDeviceInfo(VibrationDeviceHandle handle,
     return RESULT_SUCCESS;
 }
 
-result_t IHidServer::CreateActiveVibrationDeviceList(RequestContext* ctx) {
-    AddService(*ctx, new IActiveVibrationDeviceList());
+result_t IHidServer::createActiveVibrationDeviceList(RequestContext* ctx) {
+    addService(*ctx, new IActiveVibrationDeviceList());
 
     return RESULT_SUCCESS;
 }
 
-result_t IHidServer::IsVibrationPermitted(bool* out_permitted) {
+result_t IHidServer::isVibrationPermitted(bool* out_permitted) {
     // TODO: make this configurable
     *out_permitted = true;
     return RESULT_SUCCESS;

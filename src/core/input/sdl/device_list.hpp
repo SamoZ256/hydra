@@ -10,17 +10,17 @@ class DeviceList : public IDeviceList {
     DeviceList();
     ~DeviceList() override;
 
-    void PumpEvents() override;
+    void pumpEvents() override;
 
-    void EventWatcher(SDL_Event* e);
+    void eventWatcher(SDL_Event* e);
 
   private:
     bool has_frontend; // Indicates whether the an SDL frontend is used
     u32 keyboard_count;
 
     // Helpers
-    void ConnectGenericKeyboard();
-    void ConnectController(SDL_JoystickID id);
+    void connectGenericKeyboard();
+    void connectController(SDL_JoystickID id);
 };
 
 } // namespace hydra::input::sdl

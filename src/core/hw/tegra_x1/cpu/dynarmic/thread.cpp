@@ -61,7 +61,7 @@ Thread::Thread(WallClock& wall_clock, IMmu* mmu,
     // config.optimizations = Dyn::no_optimizations;
 
     // Page table
-    config.page_table = reinterpret_cast<void**>(MMU->GetPageTablePtr());
+    config.page_table = reinterpret_cast<void**>(MMU->getPageTablePtr());
     config.page_table_address_space_bits = 39;
     config.page_table_pointer_mask_bits = 0;
     config.silently_mirror_page_table = false;
@@ -74,62 +74,62 @@ Thread::Thread(WallClock& wall_clock, IMmu* mmu,
 
 Thread::~Thread() { delete jit; }
 
-void Thread::Run() {
+void Thread::run() {
     while (true) {
-        DeserializeState();
+        deserializeState();
         jit->Run();
         if (callbacks.stop_requested())
             break;
     }
 }
 
-u8 Thread::MemoryRead8(u64 addr) { return MMU->Read<u8>(addr); }
+u8 Thread::MemoryRead8(u64 addr) { return MMU->read<u8>(addr); }
 
-u16 Thread::MemoryRead16(u64 addr) { return MMU->Read<u16>(addr); }
+u16 Thread::MemoryRead16(u64 addr) { return MMU->read<u16>(addr); }
 
-u32 Thread::MemoryRead32(u64 addr) { return MMU->Read<u32>(addr); }
+u32 Thread::MemoryRead32(u64 addr) { return MMU->read<u32>(addr); }
 
-u64 Thread::MemoryRead64(u64 addr) { return MMU->Read<u64>(addr); }
+u64 Thread::MemoryRead64(u64 addr) { return MMU->read<u64>(addr); }
 
 Dynarmic::A64::Vector Thread::MemoryRead128(u64 addr) {
-    return MMU->Read<Dynarmic::A64::Vector>(addr);
+    return MMU->read<Dynarmic::A64::Vector>(addr);
 }
 
 std::optional<u32> Thread::MemoryReadCode(u64 addr) {
-    return MMU->Read<u32>(addr);
+    return MMU->read<u32>(addr);
 }
 
-void Thread::MemoryWrite8(u64 addr, u8 value) { MMU->Write(addr, value); }
+void Thread::MemoryWrite8(u64 addr, u8 value) { MMU->write(addr, value); }
 
-void Thread::MemoryWrite16(u64 addr, u16 value) { MMU->Write(addr, value); }
+void Thread::MemoryWrite16(u64 addr, u16 value) { MMU->write(addr, value); }
 
-void Thread::MemoryWrite32(u64 addr, u32 value) { MMU->Write(addr, value); }
+void Thread::MemoryWrite32(u64 addr, u32 value) { MMU->write(addr, value); }
 
-void Thread::MemoryWrite64(u64 addr, u64 value) { MMU->Write(addr, value); }
+void Thread::MemoryWrite64(u64 addr, u64 value) { MMU->write(addr, value); }
 
 void Thread::MemoryWrite128(u64 addr, Dynarmic::A64::Vector value) {
-    MMU->Write(addr, value);
+    MMU->write(addr, value);
 }
 
 bool Thread::MemoryWriteExclusive8(u64 addr, u8 value, u8 /*unused*/) {
-    MMU->WriteExclusive(addr, value);
+    MMU->writeExclusive(addr, value);
     return true;
 }
 
 bool Thread::MemoryWriteExclusive16(u64 addr, u16 value, u16 /*unused*/) {
-    MMU->WriteExclusive(addr, value);
+    MMU->writeExclusive(addr, value);
     return true;
 }
 
 bool Thread::MemoryWriteExclusive32(u64 addr, u32 value, u32 /*unused*/) {
-    MMU->WriteExclusive(addr, value);
+    MMU->writeExclusive(addr, value);
     return true;
 }
 
 // TODO: expected
 bool Thread::MemoryWriteExclusive64(u64 addr, u64 value, u64 expected) {
     (void)expected;
-    MMU->WriteExclusive(addr, value);
+    MMU->writeExclusive(addr, value);
     return true;
 }
 
@@ -137,19 +137,19 @@ bool Thread::MemoryWriteExclusive64(u64 addr, u64 value, u64 expected) {
 bool Thread::MemoryWriteExclusive128(u64 addr, Dynarmic::A64::Vector value,
                                      Dynarmic::A64::Vector expected) {
     (void)expected;
-    MMU->WriteExclusive(addr, std::bit_cast<u128>(value));
+    MMU->writeExclusive(addr, std::bit_cast<u128>(value));
     return true;
 }
 
 void Thread::CallSVC(u32 svc) {
-    SerializeState();
+    serializeState();
     callbacks.svc_handler(this, svc);
     jit->HaltExecution();
 }
 
 void Thread::ExceptionRaised([[maybe_unused]] u64 pc,
                              Dynarmic::A64::Exception exception) {
-    SerializeState();
+    serializeState();
 
     switch (exception) {
     case Dynarmic::A64::Exception::Breakpoint:
@@ -167,9 +167,9 @@ void Thread::ExceptionRaised([[maybe_unused]] u64 pc,
     jit->HaltExecution();
 }
 
-u64 Thread::GetCNTPCT() { return wall_clock.GetCntpct(); }
+u64 Thread::GetCNTPCT() { return wall_clock.getCntpct(); }
 
-void Thread::SerializeState() {
+void Thread::serializeState() {
     for (u32 i = 0; i < 29; i++)
         state.r[i] = jit->GetRegister(i);
     state.fp = jit->GetRegister(29);
@@ -183,7 +183,7 @@ void Thread::SerializeState() {
     state.fpsr = jit->GetFpsr();
 }
 
-void Thread::DeserializeState() {
+void Thread::deserializeState() {
     for (u32 i = 0; i < 29; i++)
         jit->SetRegister(i, state.r[i]);
     jit->SetRegister(29, state.fp);

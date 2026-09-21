@@ -41,20 +41,20 @@ class IThread {
           tls_mem{tls_mem_} {}
     virtual ~IThread() noexcept = default;
 
-    virtual void Run() = 0;
+    virtual void run() = 0;
 
     virtual void
-    NotifyMemoryChanged([[maybe_unused]] ztd::Range<vaddr_t> mem_range) {}
+    notifyMemoryChanged([[maybe_unused]] ztd::Range<vaddr_t> mem_range) {}
 
     // Debug
-    void GetStackTrace(const stack_frame_callback_fn_t& callback);
+    void getStackTrace(const stack_frame_callback_fn_t& callback);
 
-    virtual void InsertBreakpoint(vaddr_t addr) = 0;
-    virtual void RemoveBreakpoint(vaddr_t addr) = 0;
-    virtual void SingleStep() = 0;
+    virtual void insertBreakpoint(vaddr_t addr) = 0;
+    virtual void removeBreakpoint(vaddr_t addr) = 0;
+    virtual void singleStep() = 0;
 
     // Getters
-    IMemory* GetTlsMemory() const { return tls_mem; }
+    IMemory* getTlsMemory() const { return tls_mem; }
 
   protected:
     WallClock& wall_clock;
@@ -65,7 +65,7 @@ class IThread {
     ThreadState state{};
 
   public:
-    REF_GETTER(state, GetState);
+    REF_GETTER(state, getState);
 };
 
 } // namespace hydra::hw::tegra_x1::cpu

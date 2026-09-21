@@ -27,28 +27,28 @@ Shader::~Shader() = default;
 Renderer::Renderer() = default;
 Renderer::~Renderer() = default;
 
-void Renderer::SetSurface([[maybe_unused]] void* surface) {}
+void Renderer::setSurface([[maybe_unused]] void* surface) {}
 
-ISurfaceCompositor* Renderer::AcquireNextSurface() {
+ISurfaceCompositor* Renderer::acquireNextSurface() {
     return new SurfaceCompositor();
 }
 
-BufferBase* Renderer::CreateBuffer(u64 size) { return new Buffer(size); }
+BufferBase* Renderer::createBuffer(u64 size) { return new Buffer(size); }
 
-BufferBase* Renderer::AllocateTemporaryBuffer(const u64 size) {
+BufferBase* Renderer::allocateTemporaryBuffer(const u64 size) {
     return new Buffer(size);
 }
 
-void Renderer::FreeTemporaryBuffer(BufferBase* buffer) {
+void Renderer::freeTemporaryBuffer(BufferBase* buffer) {
     auto buffer_impl = static_cast<Buffer*>(buffer);
     delete buffer_impl;
 }
 
-ITexture* Renderer::CreateTexture(const TextureDescriptor& descriptor) {
+ITexture* Renderer::createTexture(const TextureDescriptor& descriptor) {
     return new Texture(descriptor);
 }
 
-void Renderer::BlitTexture(
+void Renderer::blitTexture(
     [[maybe_unused]] ICommandBuffer* command_buffer,
     [[maybe_unused]] ITextureView* src, [[maybe_unused]] float3 src_origin,
     [[maybe_unused]] uint3 src_size, [[maybe_unused]] u32 src_level,
@@ -57,79 +57,79 @@ void Renderer::BlitTexture(
     [[maybe_unused]] u32 dst_level, [[maybe_unused]] u32 dst_layer,
     [[maybe_unused]] u32 level_count, [[maybe_unused]] u32 layer_count) {}
 
-SamplerBase* Renderer::CreateSampler(const SamplerDescriptor& descriptor) {
+SamplerBase* Renderer::createSampler(const SamplerDescriptor& descriptor) {
     return new Sampler(descriptor);
 }
 
-ICommandBuffer* Renderer::CreateCommandBuffer() { return new CommandBuffer(); }
+ICommandBuffer* Renderer::createCommandBuffer() { return new CommandBuffer(); }
 
 RenderPassBase*
-Renderer::CreateRenderPass(const RenderPassDescriptor& descriptor) {
+Renderer::createRenderPass(const RenderPassDescriptor& descriptor) {
     return new RenderPass(descriptor);
 }
 
-void Renderer::BindRenderPass(
+void Renderer::bindRenderPass(
     [[maybe_unused]] const RenderPassBase* render_pass) {}
 
-void Renderer::ClearColor([[maybe_unused]] ICommandBuffer* command_buffer,
+void Renderer::clearColor([[maybe_unused]] ICommandBuffer* command_buffer,
                           [[maybe_unused]] u32 render_target_id,
                           [[maybe_unused]] u32 layer, [[maybe_unused]] u8 mask,
                           [[maybe_unused]] const uint4 color) {}
 
-void Renderer::ClearDepth([[maybe_unused]] ICommandBuffer* command_buffer,
+void Renderer::clearDepth([[maybe_unused]] ICommandBuffer* command_buffer,
                           [[maybe_unused]] u32 layer,
                           [[maybe_unused]] const float value) {}
 
-void Renderer::ClearStencil([[maybe_unused]] ICommandBuffer* command_buffer,
+void Renderer::clearStencil([[maybe_unused]] ICommandBuffer* command_buffer,
                             [[maybe_unused]] u32 layer,
                             [[maybe_unused]] const u32 value) {}
 
-ShaderBase* Renderer::CreateShader(const ShaderDescriptor& descriptor) {
+ShaderBase* Renderer::createShader(const ShaderDescriptor& descriptor) {
     return new Shader(descriptor);
 }
 
-PipelineBase* Renderer::CreatePipeline(const PipelineDescriptor& descriptor) {
+PipelineBase* Renderer::createPipeline(const PipelineDescriptor& descriptor) {
     return new Pipeline(descriptor);
 }
 
-void Renderer::BindPipeline([[maybe_unused]] const PipelineBase* pipeline) {}
+void Renderer::bindPipeline([[maybe_unused]] const PipelineBase* pipeline) {}
 
-void Renderer::SetDepthTestEnabled([[maybe_unused]] bool enabled) {}
-void Renderer::SetDepthWriteEnabled([[maybe_unused]] bool enabled) {}
-void Renderer::SetDepthCompareOp([[maybe_unused]] engines::CompareOp op) {}
+void Renderer::setDepthTestEnabled([[maybe_unused]] bool enabled) {}
+void Renderer::setDepthWriteEnabled([[maybe_unused]] bool enabled) {}
+void Renderer::setDepthCompareOp([[maybe_unused]] engines::CompareOp op) {}
 
 // Viewport and scissor
-void Renderer::SetViewport([[maybe_unused]] u32 index,
+void Renderer::setViewport([[maybe_unused]] u32 index,
                            [[maybe_unused]] const Viewport& viewport) {}
-void Renderer::SetScissor([[maybe_unused]] u32 index,
+void Renderer::setScissor([[maybe_unused]] u32 index,
                           [[maybe_unused]] const Scissor& scissor) {}
 
 // Resource binding
-void Renderer::BindVertexBuffer([[maybe_unused]] const BufferView& buffer,
+void Renderer::bindVertexBuffer([[maybe_unused]] const BufferView& buffer,
                                 [[maybe_unused]] u32 index) {}
-void Renderer::BindIndexBuffer([[maybe_unused]] const BufferView& index_buffer,
+void Renderer::bindIndexBuffer([[maybe_unused]] const BufferView& index_buffer,
                                [[maybe_unused]] engines::IndexType index_type) {
 }
-void Renderer::BindUniformBuffer([[maybe_unused]] const BufferView& buffer,
+void Renderer::bindUniformBuffer([[maybe_unused]] const BufferView& buffer,
                                  [[maybe_unused]] ShaderType shader_type,
                                  [[maybe_unused]] u32 index) {}
-void Renderer::BindTexture([[maybe_unused]] ITextureView* texture,
+void Renderer::bindTexture([[maybe_unused]] ITextureView* texture,
                            [[maybe_unused]] SamplerBase* sampler,
                            [[maybe_unused]] ShaderType shader_type,
                            [[maybe_unused]] u32 index) {}
 
 // Resource unbinding
-void Renderer::UnbindUniformBuffers([[maybe_unused]] ShaderType shader_type) {}
-void Renderer::UnbindTextures([[maybe_unused]] ShaderType shader_type) {}
+void Renderer::unbindUniformBuffers([[maybe_unused]] ShaderType shader_type) {}
+void Renderer::unbindTextures([[maybe_unused]] ShaderType shader_type) {}
 
 // Draw
-void Renderer::Draw(
+void Renderer::draw(
     [[maybe_unused]] ICommandBuffer* command_buffer,
     [[maybe_unused]] const engines::PrimitiveType primitive_type,
     [[maybe_unused]] const u32 start, [[maybe_unused]] const u32 count,
     [[maybe_unused]] const u32 base_instance,
     [[maybe_unused]] const u32 instance_count) {}
-void Renderer::DrawIndexed(
+void Renderer::drawIndexed(
     [[maybe_unused]] ICommandBuffer* command_buffer,
     [[maybe_unused]] const engines::PrimitiveType primitive_type,
     [[maybe_unused]] const u32 start, [[maybe_unused]] const u32 count,
@@ -137,7 +137,7 @@ void Renderer::DrawIndexed(
     [[maybe_unused]] const u32 base_instance,
     [[maybe_unused]] const u32 instance_count) {}
 
-void Renderer::BeginCapture() {}
-void Renderer::EndCapture() {}
+void Renderer::beginCapture() {}
+void Renderer::endCapture() {}
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::null

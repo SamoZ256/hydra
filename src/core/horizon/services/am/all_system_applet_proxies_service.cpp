@@ -8,45 +8,45 @@
 namespace hydra::horizon::services::am {
 
 DEFINE_SERVICE_COMMAND_TABLE(IAllSystemAppletProxiesService, 100,
-                             OpenSystemAppletProxy, 200,
-                             OpenLibraryAppletProxyOld, 201,
-                             OpenLibraryAppletProxy, 300,
-                             OpenOverlayAppletProxy, 350,
-                             OpenSystemApplicationProxy)
+                             openSystemAppletProxy, 200,
+                             openLibraryAppletProxyOld, 201,
+                             openLibraryAppletProxy, 300,
+                             openOverlayAppletProxy, 350,
+                             openSystemApplicationProxy)
 
 result_t
-IAllSystemAppletProxiesService::OpenSystemAppletProxy(RequestContext* ctx) {
-    AddService(*ctx, new ISystemAppletProxy());
+IAllSystemAppletProxiesService::openSystemAppletProxy(RequestContext* ctx) {
+    addService(*ctx, new ISystemAppletProxy());
     return RESULT_SUCCESS;
 }
 
 result_t
-IAllSystemAppletProxiesService::OpenLibraryAppletProxyOld(RequestContext* ctx) {
-    return OpenLibraryAppletProxyImpl(ctx);
+IAllSystemAppletProxiesService::openLibraryAppletProxyOld(RequestContext* ctx) {
+    return openLibraryAppletProxyImpl(ctx);
 }
 
-result_t IAllSystemAppletProxiesService::OpenLibraryAppletProxy(
+result_t IAllSystemAppletProxiesService::openLibraryAppletProxy(
     RequestContext* ctx, [[maybe_unused]] u64 _reserved_x0,
     InHandle<HandleAttr::Copy> crnt_process_handle) {
     (void)crnt_process_handle;
-    return OpenLibraryAppletProxyImpl(ctx);
+    return openLibraryAppletProxyImpl(ctx);
 }
 
-result_t IAllSystemAppletProxiesService::OpenLibraryAppletProxyImpl(
+result_t IAllSystemAppletProxiesService::openLibraryAppletProxyImpl(
     RequestContext* ctx) {
-    AddService(*ctx, new ILibraryAppletProxy());
+    addService(*ctx, new ILibraryAppletProxy());
     return RESULT_SUCCESS;
 }
 
 result_t
-IAllSystemAppletProxiesService::OpenOverlayAppletProxy(RequestContext* ctx) {
-    AddService(*ctx, new IOverlayAppletProxy());
+IAllSystemAppletProxiesService::openOverlayAppletProxy(RequestContext* ctx) {
+    addService(*ctx, new IOverlayAppletProxy());
     return RESULT_SUCCESS;
 }
 
-result_t IAllSystemAppletProxiesService::OpenSystemApplicationProxy(
+result_t IAllSystemAppletProxiesService::openSystemApplicationProxy(
     RequestContext* ctx) {
-    AddService(*ctx, new IApplicationProxy());
+    addService(*ctx, new IApplicationProxy());
     return RESULT_SUCCESS;
 }
 

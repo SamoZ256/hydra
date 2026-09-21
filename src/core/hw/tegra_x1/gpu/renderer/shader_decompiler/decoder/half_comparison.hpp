@@ -30,7 +30,7 @@ union InstHsetp2R {
     BitField64<bool, 49, 1> h_and;
 };
 
-void EmitHsetp2R(DecoderContext& context, InstHsetp2R inst);
+void emitHsetp2R(DecoderContext& context, InstHsetp2R inst);
 
 union InstHsetp2C {
     InstHsetp2Base base;
@@ -43,7 +43,7 @@ union InstHsetp2C {
     BitField64<bool, 56, 1> neg_b;
 };
 
-void EmitHsetp2C(DecoderContext& context, InstHsetp2C inst);
+void emitHsetp2C(DecoderContext& context, InstHsetp2C inst);
 
 union InstHsetp2I {
     InstHsetp2Base base;
@@ -54,11 +54,11 @@ union InstHsetp2I {
     BitField64<bool, 53, 1> h_and;
     BitField64<u32, 56, 1> h1_imm10_9;
 
-    u32 GetH1Imm10() const {
+    u32 getH1Imm10() const {
         return h1_imm10_0.Get() | (h1_imm10_9.Get() << 9);
     }
 };
 
-void EmitHsetp2I(DecoderContext& context, InstHsetp2I inst);
+void emitHsetp2I(DecoderContext& context, InstHsetp2I inst);
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

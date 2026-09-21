@@ -15,15 +15,15 @@ Buffer::Buffer(MTL::Buffer* buffer_)
 
 Buffer::~Buffer() { buffer->release(); }
 
-void Buffer::CopyFrom(ICommandBuffer* command_buffer, ITextureView* src,
+void Buffer::copyFrom(ICommandBuffer* command_buffer, ITextureView* src,
                       const uint3 src_origin, const uint3 src_size,
-                      const ztd::Range<u32> src_levels, const ztd::Range<u32> src_layers,
-                      u64 dst_offset) {
+                      const ztd::Range<u32> src_levels,
+                      const ztd::Range<u32> src_layers, u64 dst_offset) {
     const auto command_buffer_impl =
         static_cast<CommandBuffer*>(command_buffer);
     auto src_impl = static_cast<TextureView*>(src);
 
-    auto blit_encoder = command_buffer_impl->GetBlitCommandEncoder();
+    auto blit_encoder = command_buffer_impl->getBlitCommandEncoder();
     // TODO: bytes per image
     // TODO: calculate the stride for the Metal pixel format
     for (u32 layer = src_layers.getBegin(); layer < src_layers.getEnd();
@@ -31,31 +31,31 @@ void Buffer::CopyFrom(ICommandBuffer* command_buffer, ITextureView* src,
         for (u32 level = src_levels.getBegin(); level < src_levels.getEnd();
              level++) {
             blit_encoder->copyFromTexture(
-                src_impl->GetTexture(), layer, level,
+                src_impl->getTexture(), layer, level,
                 MTL::Origin::Make(src_origin.x(), src_origin.y(),
                                   src_origin.z()),
                 MTL::Size::Make(src_size.x(), src_size.y(), src_size.z()),
                 buffer, dst_offset,
-                GetTextureFormatStride(src_impl->GetDescriptor().format,
+                getTextureFormatStride(src_impl->getDescriptor().format,
                                        src_size.x()),
                 0);
         }
     }
 }
 
-void Buffer::CopyFromImpl(const uptr data, u64 dst_offset, u64 size_) {
+void Buffer::copyFromImpl(const uptr data, u64 dst_offset, u64 size_) {
     memcpy(reinterpret_cast<u8*>(buffer->contents()) + dst_offset,
            reinterpret_cast<void*>(data), size_);
 }
 
-void Buffer::CopyFromImpl(ICommandBuffer* command_buffer, BufferBase* src,
+void Buffer::copyFromImpl(ICommandBuffer* command_buffer, BufferBase* src,
                           u64 dst_offset, u64 src_offset, u64 size_) {
     const auto command_buffer_impl =
         static_cast<CommandBuffer*>(command_buffer);
     auto src_impl = static_cast<Buffer*>(src);
 
-    auto blit_encoder = command_buffer_impl->GetBlitCommandEncoder();
-    blit_encoder->copyFromBuffer(src_impl->GetBuffer(), src_offset, buffer,
+    auto blit_encoder = command_buffer_impl->getBlitCommandEncoder();
+    blit_encoder->copyFromBuffer(src_impl->getBuffer(), src_offset, buffer,
                                  dst_offset, size_);
 }
 

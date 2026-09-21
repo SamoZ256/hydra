@@ -1,16 +1,16 @@
 import SwiftUI
 
 struct SystemSettingsView: View {
-    @State private var deviceNickname = hydraConfigGetDeviceNickname()
-    @State private var systemLanguage = HydraSystemLanguage(rawValue: hydraConfigGetSystemLanguage().pointee)
-    @State private var systemLocation = hydraConfigGetSystemLocation()
+    @State private var deviceNickname = configGetDeviceNickname()
+    @State private var systemLanguage = HydraSystemLanguage(rawValue: configGetSystemLanguage().pointee)
+    @State private var systemLocation = configGetSystemLocation()
     #if os(macOS)
-        @State private var firmwarePath = hydraConfigGetFirmwarePath()
-        @State private var sdCardPath = hydraConfigGetSdCardPath()
-        @State private var savePath = hydraConfigGetSavePath()
-        @State private var sysmodulesPath = hydraConfigGetSysmodulesPath()
+        @State private var firmwarePath = configGetFirmwarePath()
+        @State private var sdCardPath = configGetSdCardPath()
+        @State private var savePath = configGetSavePath()
+        @State private var sysmodulesPath = configGetSysmodulesPath()
     #else
-        @State private var handheldMode = hydraConfigGetHandheldMode().pointee
+        @State private var handheldMode = configGetHandheldMode().pointee
     #endif
 
     @State private var systemLocations: [String] = []
@@ -22,7 +22,7 @@ struct SystemSettingsView: View {
             Form {
                 TextField("Device nickname", text: $deviceNickname)
                     .onChange(of: deviceNickname) { _, newValue in
-                        hydraConfigSetDeviceNickname(newValue)
+                        configSetDeviceNickname(newValue)
                     }
 
                 Picker("System language", selection: self.$systemLanguage.rawValue) {
@@ -46,7 +46,7 @@ struct SystemSettingsView: View {
                     Text("Thai").tag(HYDRA_SYSTEM_LANGUAGE_THAI.rawValue)
                 }
                 .onChange(of: self.systemLanguage.rawValue) { _, newValue in
-                    hydraConfigGetSystemLanguage().pointee = newValue
+                    configGetSystemLanguage().pointee = newValue
                     // TODO: reload titles and icons
                 }
 
@@ -60,7 +60,7 @@ struct SystemSettingsView: View {
                     }
                 }
                 .onChange(of: self.systemLocation) { _, newValue in
-                    hydraConfigSetSystemLocation(newValue)
+                    configSetSystemLocation(newValue)
                 }
                 .onAppear {
                     let filesystem = HydraFilesystem()
@@ -76,26 +76,26 @@ struct SystemSettingsView: View {
                         // TODO: use file importers
                         TextField("Firmware Path", text: $firmwarePath)
                             .onChange(of: firmwarePath) { _, newValue in
-                                hydraConfigSetFirmwarePath(newValue)
+                                configSetFirmwarePath(newValue)
                             }
                         TextField("SD Card Path", text: $sdCardPath)
                             .onChange(of: sdCardPath) { _, newValue in
-                                hydraConfigSetSdCardPath(newValue)
+                                configSetSdCardPath(newValue)
                             }
                         TextField("Save Path", text: $savePath)
                             .onChange(of: savePath) { _, newValue in
-                                hydraConfigSetSavePath(newValue)
+                                configSetSavePath(newValue)
                             }
                         TextField("Sysmodules Path", text: $sysmodulesPath)
                             .onChange(of: sysmodulesPath) { _, newValue in
-                                hydraConfigSetSysmodulesPath(newValue)
+                                configSetSysmodulesPath(newValue)
                             }
                     }
                 #else
                     Section {
                         Toggle("Handheld mode", isOn: self.$handheldMode)
                             .onChange(of: self.handheldMode) { _, newValue in
-                                hydraConfigGetHandheldMode().pointee = newValue
+                                configGetHandheldMode().pointee = newValue
                             }
                     }
                 #endif

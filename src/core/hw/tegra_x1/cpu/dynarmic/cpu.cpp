@@ -12,15 +12,15 @@ Cpu::Cpu() {
                 .supports_synchronous_single_step = true};
 }
 
-IMmu* Cpu::CreateMmu(System& system) { return new Mmu(system); }
+IMmu* Cpu::createMmu(System& system) { return new Mmu(system); }
 
-IThread* Cpu::CreateThread(WallClock& wall_clock, IMmu* mmu,
+IThread* Cpu::createThread(WallClock& wall_clock, IMmu* mmu,
                            const ThreadCallbacks& callbacks, IMemory* tls_mem,
                            vaddr_t tls_mem_base) {
     return new Thread(wall_clock, mmu, callbacks, tls_mem, tls_mem_base);
 }
 
-IMemory* Cpu::AllocateMemory(u64 size) {
+IMemory* Cpu::allocateMemory(u64 size) {
     size = align(size, GUEST_PAGE_SIZE);
     auto memory = new Memory(size);
 

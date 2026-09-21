@@ -7,15 +7,15 @@ namespace hydra::horizon::services::am {
 
 class ILibraryAppletCreator : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t CreateLibraryApplet(RequestContext* ctx, AppletId id,
+    result_t createLibraryApplet(RequestContext* ctx, AppletId id,
                                  LibraryAppletMode mode);
-    result_t CreateStorage(RequestContext* ctx, i64 size);
-    result_t CreateTransferMemoryStorage(kernel::Process* process,
+    result_t createStorage(RequestContext* ctx, i64 size);
+    result_t createTransferMemoryStorage(kernel::Process* process,
                                          RequestContext* ctx,
                                          InHandle<HandleAttr::Copy> tmem_handle,
                                          bool writable, i64 size);

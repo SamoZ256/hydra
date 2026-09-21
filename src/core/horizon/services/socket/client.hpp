@@ -6,22 +6,22 @@ namespace hydra::horizon::services::socket {
 
 class IClient : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t RegisterClient(u64* out_unknown);
-    STUB_REQUEST_COMMAND(StartMonitoring);
-    STUB_REQUEST_COMMAND(Socket);
-    STUB_REQUEST_COMMAND(Poll);
-    STUB_REQUEST_COMMAND(Bind);
-    STUB_REQUEST_COMMAND(Connect);
-    STUB_REQUEST_COMMAND(Listen);
-    STUB_REQUEST_COMMAND(Fcntl);
-    STUB_REQUEST_COMMAND(SetSockOpt);
-    STUB_REQUEST_COMMAND(Shutdown);
-    STUB_REQUEST_COMMAND(Close);
+    result_t registerClient(u64* out_unknown);
+    STUB_REQUEST_COMMAND(startMonitoring);
+    STUB_REQUEST_COMMAND(socket);
+    STUB_REQUEST_COMMAND(poll);
+    STUB_REQUEST_COMMAND(bind);
+    STUB_REQUEST_COMMAND(connect);
+    STUB_REQUEST_COMMAND(listen);
+    STUB_REQUEST_COMMAND(fcntl);
+    STUB_REQUEST_COMMAND(setSockOpt);
+    STUB_REQUEST_COMMAND(shutdown);
+    STUB_REQUEST_COMMAND(close);
 };
 
 } // namespace hydra::horizon::services::socket

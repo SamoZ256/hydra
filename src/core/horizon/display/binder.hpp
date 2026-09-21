@@ -117,18 +117,18 @@ struct Binder {
     Binder() : event{new kernel::Event(true, "Display event")} {}
 
     // Buffers
-    void AddBuffer(i32 slot, const GraphicBuffer& buff);
-    i32 GetAvailableSlot();
-    void QueueBuffer(System& system, i32 slot, const BqBufferInput& input);
-    i32 ConsumeBuffer(BqBufferInput& out_input);
-    void UnqueueAllBuffers();
+    void addBuffer(i32 slot, const GraphicBuffer& buff);
+    i32 getAvailableSlot();
+    void queueBuffer(System& system, i32 slot, const BqBufferInput& input);
+    i32 consumeBuffer(BqBufferInput& out_input);
+    void unqueueAllBuffers();
 
-    const GraphicBuffer& GetBuffer(i32 slot) {
+    const GraphicBuffer& getBuffer(i32 slot) {
         std::scoped_lock lock(queue_mutex);
         return buffers[slot].buffer;
     }
 
-    AccumulatedTime GetAccumulatedDT() {
+    AccumulatedTime getAccumulatedDt() {
         const auto tmp = accumulated_dt;
         accumulated_dt = {};
         return tmp;
@@ -148,7 +148,7 @@ struct Binder {
     AccumulatedTime accumulated_dt;
 
   public:
-    GETTER(event, GetEvent);
+    GETTER(event, getEvent);
 };
 
 } // namespace hydra::horizon::display

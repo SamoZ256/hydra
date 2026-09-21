@@ -35,7 +35,7 @@ union InstFadd32I {
     BitField64<bool, 57, 1> abs_b;
 };
 
-void EmitFadd32I(DecoderContext& context, InstFadd32I inst);
+void emitFadd32I(DecoderContext& context, InstFadd32I inst);
 
 enum class MultiplyScale : u64 {
     None = 0,
@@ -73,7 +73,7 @@ union InstFmul32I {
     BitField64<bool, 55, 1> sat;
 };
 
-void EmitFmul32I(DecoderContext& context, InstFmul32I inst);
+void emitFmul32I(DecoderContext& context, InstFmul32I inst);
 
 union InstFfmaBase {
     BitField64<reg_t, 0, 8> dst;
@@ -94,7 +94,7 @@ union InstFfmaR {
     BitField64<reg_t, 39, 8> src_c;
 };
 
-void EmitFfmaR(DecoderContext& context, InstFfmaR inst);
+void emitFfmaR(DecoderContext& context, InstFfmaR inst);
 
 union InstFfmaRC {
     InstFfmaBase base;
@@ -103,7 +103,7 @@ union InstFfmaRC {
     BitField64<reg_t, 39, 8> src_b;
 };
 
-void EmitFfmaRC(DecoderContext& context, InstFfmaRC inst);
+void emitFfmaRC(DecoderContext& context, InstFfmaRC inst);
 
 union InstFfmaC {
     InstFfmaBase base;
@@ -112,7 +112,7 @@ union InstFfmaC {
     BitField64<reg_t, 39, 8> src_c;
 };
 
-void EmitFfmaC(DecoderContext& context, InstFfmaC inst);
+void emitFfmaC(DecoderContext& context, InstFfmaC inst);
 
 union InstFfmaI {
     InstFfmaBase base;
@@ -121,7 +121,7 @@ union InstFfmaI {
     BitField64<reg_t, 39, 8> src_c;
 };
 
-void EmitFfmaI(DecoderContext& context, InstFfmaI inst);
+void emitFfmaI(DecoderContext& context, InstFfmaI inst);
 
 union InstFfma32I {
     BitField64<reg_t, 0, 8> dst;
@@ -136,6 +136,6 @@ union InstFfma32I {
     BitField64<bool, 57, 1> neg_c;
 };
 
-void EmitFfma32I(DecoderContext& context, InstFfma32I inst);
+void emitFfma32I(DecoderContext& context, InstFfma32I inst);
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

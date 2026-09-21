@@ -20,11 +20,11 @@ class GdbServer {
     GdbServer(System& system_, Debugger& debugger_);
     ~GdbServer();
 
-    void RegisterThread(Thread& thread);
+    void registerThread(Thread& thread);
 
-    void NotifySupervisorPaused(horizon::kernel::GuestThread* thread,
+    void notifySupervisorPaused(horizon::kernel::GuestThread* thread,
                                 Signal signal);
-    void BreakpointHit(horizon::kernel::GuestThread* thread);
+    void breakpointHit(horizon::kernel::GuestThread* thread);
 
   private:
     System& system;
@@ -45,40 +45,41 @@ class GdbServer {
     std::atomic<bool> breakpoint_hit{false};
     horizon::kernel::GuestThread* breakpoint_thread{nullptr};
 
-    void CloseClientSocket();
+    void closeClientSocket();
 
-    void ServerLoop();
-    void Poll();
+    void serverLoop();
+    void poll();
 
-    void SendPacket(std::string_view data) const;
-    void SendStatus(char status) const;
+    void sendPacket(std::string_view data) const;
+    void sendStatus(char status) const;
 
-    void ProcessPackets();
-    void HandleCommand(std::string_view command);
+    void processPackets();
+    void handleCommand(std::string_view command);
 
     // Commands
-    void HandleVCont(std::string_view command);
-    void HandleQuery(std::string_view command);
-    void HandleSetActiveThread(std::string_view command);
-    void HandleThreadStatus();
-    void HandleRegRead(std::string_view command);
-    void HandleMemRead(std::string_view command);
-    void HandleInsertBreakpoint(std::string_view command);
-    void HandleRemoveBreakpoint(std::string_view command);
+    void handleVCont(std::string_view command);
+    void handleQuery(std::string_view command);
+    void handleSetActiveThread(std::string_view command);
+    void handleThreadStatus();
+    void handleRegRead(std::string_view command);
+    void handleMemRead(std::string_view command);
+    void handleInsertBreakpoint(std::string_view command);
+    void handleRemoveBreakpoint(std::string_view command);
 
-    void HandleRcmd(std::string_view cmd);
-    void HandleGetExecutables();
+    void handleRcmd(std::string_view cmd);
+    void handleGetExecutables();
 
     // Helpers
-    static void SetNonBlocking(i32 socket);
-    std::string ReadReg(u32 id);
-    static std::string GetThreadStatus(horizon::kernel::GuestThread* thread,
-                                Signal signal);
-    static std::string PageFromBuffer(std::string_view buffer, std::string_view page);
+    static void setNonBlocking(i32 socket);
+    std::string readReg(u32 id);
+    static std::string getThreadStatus(horizon::kernel::GuestThread* thread,
+                                       Signal signal);
+    static std::string pageFromBuffer(std::string_view buffer,
+                                      std::string_view page);
 
-    void NotifySupervisorPausedImpl(horizon::kernel::GuestThread* thread,
+    void notifySupervisorPausedImpl(horizon::kernel::GuestThread* thread,
                                     Signal signal);
-    void NotifyMemoryChanged(ztd::Range<vaddr_t> mem_range);
+    void notifyMemoryChanged(ztd::Range<vaddr_t> mem_range);
 };
 
 } // namespace hydra::debugger

@@ -11,18 +11,18 @@ class StorageQueue {
     StorageQueue() noexcept = default;
     ~StorageQueue() noexcept {
         for (auto data : queue)
-            data->Release();
+            data->release();
     }
 
     ZTD_MAKE_NON_COPYABLE(StorageQueue);
     ZTD_MAKE_DEFAULT_MOVABLE(StorageQueue);
 
-    void PushData(IStorage* data) {
-        data->Retain();
+    void pushData(IStorage* data) {
+        data->retain();
         queue.push_back(data);
     }
 
-    IStorage* PopData() {
+    IStorage* popData() {
         ASSERT(pop_index < queue.size(), Services, "No data");
         const auto data = queue[pop_index++];
 
@@ -50,35 +50,35 @@ class LibraryAppletController {
     // Data
 
     // In
-    void PushInData(IStorage* data) { in_data.PushData(data); }
-    IStorage* PopInData() { return in_data.PopData(); }
+    void pushInData(IStorage* data) { in_data.pushData(data); }
+    IStorage* popInData() { return in_data.popData(); }
 
     // Out
-    void PushOutData(IStorage* data) { out_data.PushData(data); }
-    IStorage* PopOutData() { return out_data.PopData(); }
+    void pushOutData(IStorage* data) { out_data.pushData(data); }
+    IStorage* popOutData() { return out_data.popData(); }
 
     // Interactive in
-    void PushInteractiveInData(IStorage* data) {
-        interactive_in_data.PushData(data);
-        interactive_in_data_event->Signal();
+    void pushInteractiveInData(IStorage* data) {
+        interactive_in_data.pushData(data);
+        interactive_in_data_event->signal();
     }
-    IStorage* PopInteractiveInData() { return interactive_in_data.PopData(); }
+    IStorage* popInteractiveInData() { return interactive_in_data.popData(); }
 
     // Interactive out
-    void PushInteractiveOutData(IStorage* data) {
-        interactive_out_data.PushData(data);
-        interactive_out_data_event->Signal();
+    void pushInteractiveOutData(IStorage* data) {
+        interactive_out_data.pushData(data);
+        interactive_out_data_event->signal();
     }
-    IStorage* PopInteractiveOutData() { return interactive_out_data.PopData(); }
+    IStorage* popInteractiveOutData() { return interactive_out_data.popData(); }
 
     // Events
-    kernel::Event& GetStateChangedEvent() { return *state_changed_event; }
+    kernel::Event& getStateChangedEvent() { return *state_changed_event; }
 
-    kernel::Event& GetInteractiveInDataEvent() {
+    kernel::Event& getInteractiveInDataEvent() {
         return *interactive_in_data_event;
     }
 
-    kernel::Event& GetInteractiveOutDataEvent() {
+    kernel::Event& getInteractiveOutDataEvent() {
         return *interactive_out_data_event;
     }
 

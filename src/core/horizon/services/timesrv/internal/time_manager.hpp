@@ -27,39 +27,39 @@ class TimeManager {
     // Helpers
 
     // Update
-    void UpdateSteadyClockContext();
-    void UpdateSystemClockContext();
+    void updateSteadyClockContext();
+    void updateSystemClockContext();
 
     // Write
-    void WriteSteadyClockContext(const SteadyClockContext& context);
-    void WriteLocalSystemClockContext(const SystemClockContext& context);
-    void WriteNetworkSystemClockContext(const SystemClockContext& context);
-    void WriteSystemClockContext(const SystemClockContext& context);
-    void WriteAutomaticCorrectionEnabled(bool enabled);
-    void WriteContinuousAdjustmentTimePoint(
+    void writeSteadyClockContext(const SteadyClockContext& context);
+    void writeLocalSystemClockContext(const SystemClockContext& context);
+    void writeNetworkSystemClockContext(const SystemClockContext& context);
+    void writeSystemClockContext(const SystemClockContext& context);
+    void writeAutomaticCorrectionEnabled(bool enabled);
+    void writeContinuousAdjustmentTimePoint(
         const ContinuousAdjustmentTimePoint& time_point);
 
     // From Ryujinx
     template <typename T>
-    void WriteObjectToSharedMemory(u32 offset, u32 padding, T value) {
+    void writeObjectToSharedMemory(u32 offset, u32 padding, T value) {
         u32 new_index =
-            *reinterpret_cast<u32*>(shared_memory->GetPtr() + offset) + 1;
+            *reinterpret_cast<u32*>(shared_memory->getPtr() + offset) + 1;
 
         u32 object_offset = offset + 4 + padding +
                             static_cast<u32>((new_index & 0x1) * sizeof(T));
 
-        *reinterpret_cast<T*>(shared_memory->GetPtr() + object_offset) = value;
+        *reinterpret_cast<T*>(shared_memory->getPtr() + object_offset) = value;
 
         // TODO: memory barrier?
 
-        *reinterpret_cast<u32*>(shared_memory->GetPtr() + offset) = new_index;
+        *reinterpret_cast<u32*>(shared_memory->getPtr() + offset) = new_index;
     }
 
   public:
-    REF_GETTER(steady_clock, GetSteadyClock);
-    REF_GETTER(system_clock, GetSystemClock);
-    REF_GETTER(time_zone_manager, GetTimeZoneManager);
-    GETTER(shared_memory, GetSharedMemory);
+    REF_GETTER(steady_clock, getSteadyClock);
+    REF_GETTER(system_clock, getSystemClock);
+    REF_GETTER(time_zone_manager, getTimeZoneManager);
+    GETTER(shared_memory, getSharedMemory);
 };
 
 } // namespace hydra::horizon::services::timesrv::internal

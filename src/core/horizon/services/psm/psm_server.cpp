@@ -6,44 +6,44 @@
 
 namespace hydra::horizon::services::psm {
 
-DEFINE_SERVICE_COMMAND_TABLE(IPsmServer, 0, GetBatteryChargePercentage, 1,
-                             GetChargerType, 7, OpenSession, 13,
-                             GetRawBatteryChargePercentage, 14,
-                             IsEnoughPowerSupplied, 15, GetBatteryAgePercentage,
-                             17, GetBatteryChargeInfoFields)
+DEFINE_SERVICE_COMMAND_TABLE(IPsmServer, 0, getBatteryChargePercentage, 1,
+                             getChargerType, 7, openSession, 13,
+                             getRawBatteryChargePercentage, 14,
+                             isEnoughPowerSupplied, 15, getBatteryAgePercentage,
+                             17, getBatteryChargeInfoFields)
 
-result_t IPsmServer::GetBatteryChargePercentage(u32* out_percentage) {
+result_t IPsmServer::getBatteryChargePercentage(u32* out_percentage) {
     *out_percentage = 100;
     return RESULT_SUCCESS;
 }
 
-result_t IPsmServer::GetChargerType(ChargerType* out_type) {
+result_t IPsmServer::getChargerType(ChargerType* out_type) {
     *out_type = ChargerType::EnoughPower;
     return RESULT_SUCCESS;
 }
 
-result_t IPsmServer::OpenSession(RequestContext* ctx) {
-    AddService(*ctx, new IPsmSession());
+result_t IPsmServer::openSession(RequestContext* ctx) {
+    addService(*ctx, new IPsmSession());
     return RESULT_SUCCESS;
 }
 
-result_t IPsmServer::GetRawBatteryChargePercentage(f64* out_percentage) {
+result_t IPsmServer::getRawBatteryChargePercentage(f64* out_percentage) {
     *out_percentage = 100.0;
     return RESULT_SUCCESS;
 }
 
-result_t IPsmServer::IsEnoughPowerSupplied(bool* out_is_enough) {
+result_t IPsmServer::isEnoughPowerSupplied(bool* out_is_enough) {
     *out_is_enough = true;
     return RESULT_SUCCESS;
 }
 
-result_t IPsmServer::GetBatteryAgePercentage(f64* out_percentage) {
+result_t IPsmServer::getBatteryAgePercentage(f64* out_percentage) {
     *out_percentage = 0.0;
     return RESULT_SUCCESS;
 }
 
 result_t
-IPsmServer::GetBatteryChargeInfoFields(BatteryChargeInfoFields* out_fields) {
+IPsmServer::getBatteryChargeInfoFields(BatteryChargeInfoFields* out_fields) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK

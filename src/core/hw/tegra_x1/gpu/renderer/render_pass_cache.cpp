@@ -6,11 +6,11 @@
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
 RenderPassBase*
-RenderPassCache::Create(const RenderPassDescriptor& descriptor) {
-    return renderer.CreateRenderPass(descriptor);
+RenderPassCache::create(const RenderPassDescriptor& descriptor) {
+    return renderer.createRenderPass(descriptor);
 }
 
-u32 RenderPassCache::Hash(const RenderPassDescriptor& descriptor) {
+u32 RenderPassCache::hash(const RenderPassDescriptor& descriptor) {
     ztd::hash::XxHash32 hash;
 
     // TODO: improve this
@@ -22,7 +22,7 @@ u32 RenderPassCache::Hash(const RenderPassDescriptor& descriptor) {
     return hash.toHashCode();
 }
 
-void RenderPassCache::DestroyElement(RenderPassBase* render_pass) {
+void RenderPassCache::destroyElement(RenderPassBase* render_pass) {
     delete render_pass;
 }
 

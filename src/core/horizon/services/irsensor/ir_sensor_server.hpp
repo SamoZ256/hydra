@@ -26,22 +26,22 @@ struct PackedFunctionLevel {
 
 class IIrSensorServer : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    STUB_REQUEST_COMMAND(DeactivateIrsensor);
+    STUB_REQUEST_COMMAND(deactivateIrsensor);
     // TODO: PID descriptor
     result_t
-    GetIrsensorSharedMemoryHandle(System* system, kernel::Process* process,
+    getIrsensorSharedMemoryHandle(System* system, kernel::Process* process,
                                   u64 aruid,
                                   OutHandle<HandleAttr::Copy> out_handle);
-    result_t GetNpadIrCameraHandle(hid::NpadIdType npad_id,
+    result_t getNpadIrCameraHandle(hid::NpadIdType npad_id,
                                    IrCameraHandle* out_handle);
     // TODO: PID descriptor
     result_t
-    ActivateIrsensorWithFunctionLevel(PackedFunctionLevel function_level,
+    activateIrsensorWithFunctionLevel(PackedFunctionLevel function_level,
                                       u64 aruid); // 4.0.0+
 };
 

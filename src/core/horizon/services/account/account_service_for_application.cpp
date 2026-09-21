@@ -5,16 +5,16 @@
 namespace hydra::horizon::services::account {
 
 DEFINE_SERVICE_COMMAND_TABLE(
-    IAccountServiceForApplication, 0, GetUserCount, 1, GetUserExistence, 2,
-    ListAllUsers, 3, ListOpenUsers, 4, GetLastOpenedUser, 5, GetProfile, 50,
-    IsUserRegistrationRequestPermitted, 100, InitializeApplicationInfoV0, 101,
-    GetBaasAccountManagerForApplication, 110, StoreSaveDataThumbnail, 140,
-    InitializeApplicationInfo, 150, IsUserAccountSwitchLocked, 160,
-    InitializeApplicationInfoV2)
+    IAccountServiceForApplication, 0, getUserCount, 1, getUserExistence, 2,
+    listAllUsers, 3, listOpenUsers, 4, getLastOpenedUser, 5, getProfile, 50,
+    isUserRegistrationRequestPermitted, 100, initializeApplicationInfoV0, 101,
+    getBaasAccountManagerForApplication, 110, storeSaveDataThumbnail, 140,
+    initializeApplicationInfo, 150, isUserAccountSwitchLocked, 160,
+    initializeApplicationInfoV2)
 
-result_t IAccountServiceForApplication::GetBaasAccountManagerForApplication(
+result_t IAccountServiceForApplication::getBaasAccountManagerForApplication(
     RequestContext* ctx, uuid_t user_id) {
-    AddService(*ctx, new baas::IManagerForApplication(user_id));
+    addService(*ctx, new baas::IManagerForApplication(user_id));
     return RESULT_SUCCESS;
 }
 

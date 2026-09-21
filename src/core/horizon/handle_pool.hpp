@@ -15,24 +15,24 @@ class HandlePool {
     ZTD_MAKE_DEFAULT_MOVABLE(HandlePool);
 
     template <typename... Args>
-    auto Insert(Args... args) noexcept
+    auto insert(Args... args) noexcept
         -> std::expected<Handle, ztd::mem::IAllocator::Error> {
         return pool.insert(std::forward<Args>(args)...)
             .transform(
                 [](usize index) -> Handle { return Handle::FromIndex(index); });
     }
 
-    [[nodiscard]] auto Free(Handle handle) noexcept -> bool {
+    [[nodiscard]] auto free(Handle handle) noexcept -> bool {
         ZTD_ASSIGN_OR_RETURN_VALUE(const auto index, handle.ToIndex(), false);
         return pool.free(index);
     }
 
-    [[nodiscard]] auto IsValid(Handle handle) const noexcept -> bool {
+    [[nodiscard]] auto isValid(Handle handle) const noexcept -> bool {
         ZTD_ASSIGN_OR_RETURN_VALUE(const auto index, handle.ToIndex(), false);
         return pool.isValid(index);
     }
 
-    auto Get(Handle handle) noexcept -> std::optional<T>
+    auto get(Handle handle) noexcept -> std::optional<T>
         requires std::is_pointer_v<T>
     {
         ZTD_ASSIGN_OR_RETURN_VALUE(const auto index, handle.ToIndex(),
@@ -40,7 +40,7 @@ class HandlePool {
         return pool.get(index);
     }
 
-    auto Get(Handle handle) const noexcept -> std::optional<const T>
+    auto get(Handle handle) const noexcept -> std::optional<const T>
         requires std::is_pointer_v<T>
     {
         ZTD_ASSIGN_OR_RETURN_VALUE(const auto index, handle.ToIndex(),
@@ -48,7 +48,7 @@ class HandlePool {
         return pool.get(index);
     }
 
-    auto Get(Handle handle) noexcept -> std::optional<T*>
+    auto get(Handle handle) noexcept -> std::optional<T*>
         requires(!std::is_pointer_v<T>)
     {
         ZTD_ASSIGN_OR_RETURN_VALUE(const auto index, handle.ToIndex(),
@@ -56,7 +56,7 @@ class HandlePool {
         return pool.get(index);
     }
 
-    auto Get(Handle handle) const noexcept -> std::optional<const T*>
+    auto get(Handle handle) const noexcept -> std::optional<const T*>
         requires(!std::is_pointer_v<T>)
     {
         ZTD_ASSIGN_OR_RETURN_VALUE(const auto index, handle.ToIndex(),

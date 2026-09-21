@@ -13,38 +13,38 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
-__attribute__((unused)) static inline void StackAutoRelease(void* object) {
+__attribute__((unused)) static inline void stackAutoRelease(void* object) {
     (*reinterpret_cast<NS::Object**>(object))->release();
 }
 
 #define NS_STACK_SCOPED                                                        \
-    __attribute__((cleanup(StackAutoRelease))) __attribute__((unused))
+    __attribute__((cleanup(stackAutoRelease))) __attribute__((unused))
 
 #define TMP_AUTORELEASE_POOL_BEGIN()                                           \
     NS::AutoreleasePool* tmp_pool_ = NS::AutoreleasePool::alloc()->init()
 #define TMP_AUTORELEASE_POOL_END() tmp_pool_->release()
 
 // Cast from const char* to NS::String*
-inline NS::String* ToNSString(const char* str) {
+inline NS::String* toNsString(const char* str) {
     return NS::String::string(str, NS::ASCIIStringEncoding);
 }
 
 // Cast from std::string to NS::String*
-inline NS::String* ToNSString(const std::string& str) {
-    return ToNSString(str.c_str());
+inline NS::String* toNsString(const std::string& str) {
+    return toNsString(str.c_str());
 }
 
 // Cast from const char* to NS::URL*
-inline NS::URL* ToNSURL(const char* str) {
-    return NS::URL::fileURLWithPath(ToNSString(str));
+inline NS::URL* toNsurl(const char* str) {
+    return NS::URL::fileURLWithPath(toNsString(str));
 }
 
 // Cast from std::string to NS::URL*
-inline NS::URL* ToNSURL(const std::string& str) { return ToNSURL(str.c_str()); }
+inline NS::URL* toNsurl(const std::string& str) { return toNsurl(str.c_str()); }
 
-inline NS::String* GetLabel(const std::string_view label,
+inline NS::String* getLabel(const std::string_view label,
                             const void* identifier) {
-    return ToNSString(
+    return toNsString(
         fmt::format("{} ({})", label,
                     std::to_string(reinterpret_cast<uintptr_t>(identifier))));
 }
@@ -53,14 +53,14 @@ constexpr usize BUFFER_COUNT = 31;
 constexpr usize TEXTURE_COUNT = 31;
 constexpr usize SAMPLER_COUNT = 16;
 
-inline u32 GetVertexBufferIndex(u32 index) { return BUFFER_COUNT - index - 1; }
+inline u32 getVertexBufferIndex(u32 index) { return BUFFER_COUNT - index - 1; }
 
-inline MTL::Library* CreateLibraryFromSource(MTL::Device* device,
+inline MTL::Library* createLibraryFromSource(MTL::Device* device,
                                              const std::string_view source) {
     NS::Error* error;
     // TODO: don't construct a new string?
     MTL::Library* library =
-        device->newLibrary(ToNSString(std::string(source)), nullptr, &error);
+        device->newLibrary(toNsString(std::string(source)), nullptr, &error);
     if (error != nullptr) {
         LOG_ERROR(Gpu, "Failed to create library: {}",
                   error->localizedDescription()->utf8String());
@@ -73,12 +73,12 @@ inline MTL::Library* CreateLibraryFromSource(MTL::Device* device,
     return library;
 }
 
-inline MTL::Function* CreateFunctionFromSource(MTL::Device* device,
+inline MTL::Function* createFunctionFromSource(MTL::Device* device,
                                                const std::string_view source,
                                                const std::string_view name) {
-    auto library = CreateLibraryFromSource(device, source);
+    auto library = createLibraryFromSource(device, source);
     // TODO: don't construct a new string?
-    auto function = library->newFunction(ToNSString(std::string(name)));
+    auto function = library->newFunction(toNsString(std::string(name)));
     library->release();
 
     return function;

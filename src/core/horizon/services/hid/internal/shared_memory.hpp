@@ -7,38 +7,38 @@ namespace hydra::horizon::services::hid::internal {
 template <typename T, usize max_entries = 17>
 struct RingLifo {
   public:
-    void Clear() {
+    void clear() {
         atomic_store(&index, 0ull);
         atomic_store(&count, 0ull);
     }
 
-    std::optional<T*> GetCurrentStorage() {
-        return GetCurrentAtomicStorage().transform(
+    std::optional<T*> getCurrentStorage() {
+        return getCurrentAtomicStorage().transform(
             [](AtomicStorage* atomic_storage) {
                 return &atomic_storage->data;
             });
     }
 
-    void Write(const T& data) {
-        const auto next_index = (ReadIndex() + 1) % max_entries;
-        storages[next_index].Write(data);
+    void write(const T& data) {
+        const auto next_index = (readIndex() + 1) % max_entries;
+        storages[next_index].write(data);
         atomic_store(&index, next_index);
 
         // TODO: why?
         // TODO: should be max_entries - 1
-        if (ReadCount() < 1) {
+        if (readCount() < 1) {
             atomic_fetch_add(&count, 1ull);
         }
     }
 
-    void WriteNext(const T& data) {
+    void writeNext(const T& data) {
         // HACK: const cast
         const_cast<T&>(data).sampling_number =
-            GetCurrentStorage()
+            getCurrentStorage()
                 .transform(
                     [](T* storage) { return storage->sampling_number + 1; })
                 .value_or(0);
-        Write(data);
+        write(data);
     }
 
   private:
@@ -51,9 +51,9 @@ struct RingLifo {
         u64 sampling_number;
         T data;
 
-        u64 ReadSamplingNumber() const { return atomic_load(&sampling_number); }
+        u64 readSamplingNumber() const { return atomic_load(&sampling_number); }
 
-        void Write(const T& data_) {
+        void write(const T& data_) {
             atomic_store(&sampling_number, data_.sampling_number);
             // TODO: thread barrier?
             data = data_;
@@ -63,16 +63,16 @@ struct RingLifo {
     std::array<AtomicStorage, max_entries> storages;
 
     // Helpers
-    u64 ReadIndex() { return atomic_load(&index); }
-    u64 ReadCount() { return atomic_load(&count); }
+    u64 readIndex() { return atomic_load(&index); }
+    u64 readCount() { return atomic_load(&count); }
 
-    std::optional<AtomicStorage*> GetCurrentAtomicStorage() {
+    std::optional<AtomicStorage*> getCurrentAtomicStorage() {
         const auto count_ =
-            std::min(ReadCount(), 1ull); // TODO: why limit to 1?
+            std::min(readCount(), 1ull); // TODO: why limit to 1?
         if (count_ == 0)
             return std::nullopt;
 
-        auto index_ = ReadIndex();
+        auto index_ = readIndex();
         const auto storage_index =
             (index_ + 1 - count_) % max_entries; // TODO: correct?
         auto& storage = storages[storage_index];

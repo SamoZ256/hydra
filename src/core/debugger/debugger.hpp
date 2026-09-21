@@ -18,7 +18,7 @@ class IFile;
 #define DEBUGGER_ASSERT(condition, c, f, ...)                                  \
     if (!(condition)) {                                                        \
         /* TODO: log class? */                                                 \
-        GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(                      \
+        GET_CURRENT_PROCESS_DEBUGGER().breakOnThisThread(                      \
             f ZTD_PASS_VA_ARGS(__VA_ARGS__));                                  \
     }
 
@@ -51,7 +51,7 @@ struct StackFrame {
     StackFrameType type;
     u64 addr;
 
-    ResolvedStackFrame Resolve() const;
+    ResolvedStackFrame resolve() const;
 };
 
 struct StackTrace {
@@ -76,14 +76,14 @@ class Thread {
     explicit Thread(const std::string_view name_);
 
     // API
-    void Lock() { msg_mutex.lock(); }
-    void Unlock() { msg_mutex.unlock(); }
+    void lock() { msg_mutex.lock(); }
+    void unlock() { msg_mutex.unlock(); }
 
-    const std::string& GetName() const { return name; }
-    ThreadStatus GetStatus() const { return status; }
-    const std::string& GetBreakReason() const { return break_reason; }
-    usize GetMessageCount() const { return msg_count; }
-    const Message& GetMessage(const u32 index) const {
+    const std::string& getName() const { return name; }
+    ThreadStatus getStatus() const { return status; }
+    const std::string& getBreakReason() const { return break_reason; }
+    usize getMessageCount() const { return msg_count; }
+    const Message& getMessage(const u32 index) const {
         return messages[(msg_tail + index) % messages.size()];
     }
 
@@ -99,10 +99,10 @@ class Thread {
     u32 msg_tail{0};
     usize msg_count{0};
 
-    void Log(const Message& msg);
+    void log(const Message& msg);
 
   public:
-    SETTER(guest_thread, SetGuestThread);
+    SETTER(guest_thread, setGuestThread);
 };
 
 struct Symbol {
@@ -112,9 +112,9 @@ struct Symbol {
 
 class SymbolTable {
   public:
-    void RegisterSymbol(const Symbol& symbol) { symbols.push_back(symbol); }
+    void registerSymbol(const Symbol& symbol) { symbols.push_back(symbol); }
 
-    std::string FindSymbol(vaddr_t addr) {
+    std::string findSymbol(vaddr_t addr) {
         for (const auto& symbol : symbols) {
             if (symbol.guest_mem_range.contains(addr))
                 return symbol.name;
@@ -127,7 +127,7 @@ class SymbolTable {
     std::vector<Symbol> symbols;
 
   public:
-    CONST_REF_GETTER(symbols, GetSymbols);
+    CONST_REF_GETTER(symbols, getSymbols);
 };
 
 class Debugger {
@@ -139,37 +139,37 @@ class Debugger {
         : name{name_}, process{process_} {}
     ~Debugger() noexcept = default;
 
-    void RegisterExecutable(const std::string_view exe_name,
+    void registerExecutable(const std::string_view exe_name,
                             horizon::filesystem::IFile* executable) {
         executables.emplace(exe_name, executable);
     }
 
-    void RegisterThisThread(const std::string_view thread_name);
-    void UnregisterThisThread();
-    void RegisterGuestThreadForThisThread(
+    void registerThisThread(const std::string_view thread_name);
+    void unregisterThisThread();
+    void registerGuestThreadForThisThread(
         horizon::kernel::GuestThread* guest_thread);
-    void UnregisterGuestThreadForThisThread();
+    void unregisterGuestThreadForThisThread();
 
     template <typename... T>
-    void BreakOnThisThread(fmt::format_string<T...> f, T&&... args) {
-        BreakOnThisThreadImpl(fmt::format(f, std::forward<T>(args)...));
+    void breakOnThisThread(fmt::format_string<T...> f, T&&... args) {
+        breakOnThisThreadImpl(fmt::format(f, std::forward<T>(args)...));
     }
 
-    SymbolTable& GetModuleTable() { return module_table; }
-    SymbolTable& GetFunctionTable() { return function_table; }
+    SymbolTable& getModuleTable() { return module_table; }
+    SymbolTable& getFunctionTable() { return function_table; }
 
     // GDB
-    void ActivateGdbServer(System& system);
-    void NotifySupervisorPaused(horizon::kernel::GuestThread* thread,
+    void activateGdbServer(System& system);
+    void notifySupervisorPaused(horizon::kernel::GuestThread* thread,
                                 Signal signal);
-    void BreakpointHit(horizon::kernel::GuestThread* thread);
+    void breakpointHit(horizon::kernel::GuestThread* thread);
 
     // API
-    void Lock() { mutex.lock(); }
-    void Unlock() { mutex.unlock(); }
+    void lock() { mutex.lock(); }
+    void unlock() { mutex.unlock(); }
 
-    usize GetThreadCount() const { return threads.size(); }
-    Thread& GetThread(const u32 index) {
+    usize getThreadCount() const { return threads.size(); }
+    Thread& getThread(const u32 index) {
         // TODO: not the best way to index into a map
         auto it = threads.begin();
         std::advance(it, index);
@@ -189,14 +189,14 @@ class Debugger {
 
     std::optional<GdbServer> gdb_server;
 
-    void LogOnThisThread(const LogMessage& msg);
-    void BreakOnThisThreadImpl(const std::string_view reason);
+    void logOnThisThread(const LogMessage& msg);
+    void breakOnThisThreadImpl(const std::string_view reason);
 
     // Helpers
-    StackTrace GetStackTrace(Thread& thread);
+    StackTrace getStackTrace(Thread& thread);
 
   public:
-    CONST_REF_GETTER(name, GetName);
+    CONST_REF_GETTER(name, getName);
 };
 
 } // namespace hydra::debugger

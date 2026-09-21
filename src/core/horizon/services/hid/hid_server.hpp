@@ -21,63 +21,63 @@ struct VibrationDeviceInfo {
 
 class IHidServer : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t CreateAppletResource(RequestContext* ctx,
+    result_t createAppletResource(RequestContext* ctx,
                                   kernel::AppletResourceUserId aruid);
-    STUB_REQUEST_COMMAND(ActivateDebugPad);
-    STUB_REQUEST_COMMAND(ActivateTouchScreen);
-    STUB_REQUEST_COMMAND(ActivateMouse);
-    STUB_REQUEST_COMMAND(ActivateKeyboard);
-    STUB_REQUEST_COMMAND(StartSixAxisSensor);
-    STUB_REQUEST_COMMAND(StopSixAxisSensor);
-    STUB_REQUEST_COMMAND(EnableSixAxisSensorFusion);
-    STUB_REQUEST_COMMAND(SetGyroscopeZeroDriftMode);
-    STUB_REQUEST_COMMAND(ActivateGesture);
-    result_t SetSupportedNpadStyleSet(System* system,
+    STUB_REQUEST_COMMAND(activateDebugPad);
+    STUB_REQUEST_COMMAND(activateTouchScreen);
+    STUB_REQUEST_COMMAND(activateMouse);
+    STUB_REQUEST_COMMAND(activateKeyboard);
+    STUB_REQUEST_COMMAND(startSixAxisSensor);
+    STUB_REQUEST_COMMAND(stopSixAxisSensor);
+    STUB_REQUEST_COMMAND(enableSixAxisSensorFusion);
+    STUB_REQUEST_COMMAND(setGyroscopeZeroDriftMode);
+    STUB_REQUEST_COMMAND(activateGesture);
+    result_t setSupportedNpadStyleSet(System* system,
                                       Aligned<NpadStyleSet, 8> style_set,
                                       kernel::AppletResourceUserId aruid);
-    result_t GetSupportedNpadStyleSet(System* system,
+    result_t getSupportedNpadStyleSet(System* system,
                                       kernel::AppletResourceUserId aruid,
                                       NpadStyleSet* out_style_set);
     result_t
-    SetSupportedNpadIdType(System* system, kernel::AppletResourceUserId aruid,
+    setSupportedNpadIdType(System* system, kernel::AppletResourceUserId aruid,
                            InBuffer<BufferAttr::HipcPointer> in_types_buffer);
-    result_t ActivateNpad(System* system, kernel::AppletResourceUserId aruid);
-    result_t AcquireNpadStyleSetUpdateEventHandle(
+    result_t activateNpad(System* system, kernel::AppletResourceUserId aruid);
+    result_t acquireNpadStyleSetUpdateEventHandle(
         System* system, kernel::Process* process, Aligned<NpadIdType, 8> type,
         kernel::AppletResourceUserId aruid, u64 event_ptr,
         OutHandle<HandleAttr::Copy> out_handle);
-    result_t DisconnectNpad(System* system, Aligned<NpadIdType, 8> type,
+    result_t disconnectNpad(System* system, Aligned<NpadIdType, 8> type,
                             kernel::AppletResourceUserId aruid);
-    result_t GetPlayerLedPattern(NpadIdType npad_id_type, u64* out_pattern);
-    result_t ActivateNpadWithRevision(System* system,
+    result_t getPlayerLedPattern(NpadIdType npad_id_type, u64* out_pattern);
+    result_t activateNpadWithRevision(System* system,
                                       Aligned<NpadRevision, 8> revision,
                                       kernel::AppletResourceUserId aruid);
     // TODO: PID descriptor
-    result_t SetNpadJoyHoldType(System* system,
+    result_t setNpadJoyHoldType(System* system,
                                 kernel::AppletResourceUserId aruid,
                                 NpadJoyHoldType type);
     // TODO: PID descriptor
-    result_t GetNpadJoyHoldType(System* system,
+    result_t getNpadJoyHoldType(System* system,
                                 kernel::AppletResourceUserId aruid,
                                 Aligned<NpadJoyHoldType, 8>* out_type);
-    STUB_REQUEST_COMMAND(SetNpadJoyAssignmentModeSingleByDefault);
-    STUB_REQUEST_COMMAND(SetNpadJoyAssignmentModeDual);
-    STUB_REQUEST_COMMAND(SetNpadHandheldActivationMode);
-    STUB_REQUEST_COMMAND(SwapNpadAssignment);
-    result_t GetVibrationDeviceInfo(VibrationDeviceHandle handle,
+    STUB_REQUEST_COMMAND(setNpadJoyAssignmentModeSingleByDefault);
+    STUB_REQUEST_COMMAND(setNpadJoyAssignmentModeDual);
+    STUB_REQUEST_COMMAND(setNpadHandheldActivationMode);
+    STUB_REQUEST_COMMAND(swapNpadAssignment);
+    result_t getVibrationDeviceInfo(VibrationDeviceHandle handle,
                                     VibrationDeviceInfo* out_info);
-    STUB_REQUEST_COMMAND(SendVibrationValue);
-    result_t CreateActiveVibrationDeviceList(RequestContext* ctx);
-    result_t IsVibrationPermitted(bool* out_permitted);
-    STUB_REQUEST_COMMAND(SendVibrationValues);
-    STUB_REQUEST_COMMAND(ActivateSevenSixAxisSensor); // 5.0.0+
-    STUB_REQUEST_COMMAND(SetNpadCommunicationMode);
-    STUB_REQUEST_COMMAND(SetTouchScreenOutputRanges); // 20.0.0+
+    STUB_REQUEST_COMMAND(sendVibrationValue);
+    result_t createActiveVibrationDeviceList(RequestContext* ctx);
+    result_t isVibrationPermitted(bool* out_permitted);
+    STUB_REQUEST_COMMAND(sendVibrationValues);
+    STUB_REQUEST_COMMAND(activateSevenSixAxisSensor); // 5.0.0+
+    STUB_REQUEST_COMMAND(setNpadCommunicationMode);
+    STUB_REQUEST_COMMAND(setTouchScreenOutputRanges); // 20.0.0+
 };
 
 } // namespace hydra::horizon::services::hid

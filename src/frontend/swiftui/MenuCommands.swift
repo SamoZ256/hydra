@@ -33,11 +33,11 @@ struct MenuCommands: Commands {
             Divider()
 
             Button("Open Hydra folder") {
-                NSWorkspace.shared.open(URL(fileURLWithPath: hydraConfigGetAppDataPath()))
+                NSWorkspace.shared.open(URL(fileURLWithPath: configGetAppDataPath()))
             }
 
             Button("Open Logs folder") {
-                NSWorkspace.shared.open(URL(fileURLWithPath: hydraConfigGetLogsPath()))
+                NSWorkspace.shared.open(URL(fileURLWithPath: configGetLogsPath()))
             }
         }
 
@@ -74,7 +74,7 @@ struct MenuCommands: Commands {
     }
 
     func loadFirmware() {
-        let firmwarePath = hydraConfigGetFirmwarePath()
+        let firmwarePath = configGetFirmwarePath()
         if firmwarePath == "" {
             return
         }

@@ -5,28 +5,28 @@
 
 namespace hydra::horizon::services::account {
 
-DEFINE_SERVICE_COMMAND_TABLE(IAccountServiceForSystemService, 0, GetUserCount,
-                             1, GetUserExistence, 2, ListAllUsers, 3,
-                             ListOpenUsers, 4, GetLastOpenedUser, 5, GetProfile,
-                             100, GetUserRegistrationNotifier, 101,
-                             GetUserStateChangeNotifier, 102,
-                             GetBaasAccountManagerForSystemService)
+DEFINE_SERVICE_COMMAND_TABLE(IAccountServiceForSystemService, 0, getUserCount,
+                             1, getUserExistence, 2, listAllUsers, 3,
+                             listOpenUsers, 4, getLastOpenedUser, 5, getProfile,
+                             100, getUserRegistrationNotifier, 101,
+                             getUserStateChangeNotifier, 102,
+                             getBaasAccountManagerForSystemService)
 
-result_t IAccountServiceForSystemService::GetUserRegistrationNotifier(
+result_t IAccountServiceForSystemService::getUserRegistrationNotifier(
     RequestContext* ctx) {
-    AddService(*ctx, new INotifier());
+    addService(*ctx, new INotifier());
     return RESULT_SUCCESS;
 }
 
-result_t IAccountServiceForSystemService::GetUserStateChangeNotifier(
+result_t IAccountServiceForSystemService::getUserStateChangeNotifier(
     RequestContext* ctx) {
-    AddService(*ctx, new INotifier());
+    addService(*ctx, new INotifier());
     return RESULT_SUCCESS;
 }
 
-result_t IAccountServiceForSystemService::GetBaasAccountManagerForSystemService(
+result_t IAccountServiceForSystemService::getBaasAccountManagerForSystemService(
     RequestContext* ctx) {
-    AddService(*ctx, new baas::IManagerForSystemService());
+    addService(*ctx, new baas::IManagerForSystemService());
     return RESULT_SUCCESS;
 }
 

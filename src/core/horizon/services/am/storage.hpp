@@ -14,17 +14,17 @@ class IStorage : public IService {
         std::memcpy(data.data(), &data_, sizeof(T));
     }
 
-    std::span<u8> GetData() { return data; }
+    std::span<u8> getData() { return data; }
 
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     std::vector<u8> data;
 
     // Commands
-    result_t Open(RequestContext* ctx);
+    result_t open(RequestContext* ctx);
 };
 
 } // namespace hydra::horizon::services::am

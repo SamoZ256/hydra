@@ -6,7 +6,7 @@ namespace hydra::horizon::services::hid::internal {
 
 namespace {
 
-i32 NormalizedFloatToInt(f32 value) {
+i32 normalizedFloatToInt(f32 value) {
     if (value < 0.0f)
         return std::max(
             static_cast<i16>(-value * std::numeric_limits<i16>::min()),
@@ -18,7 +18,7 @@ i32 NormalizedFloatToInt(f32 value) {
 }
 
 // TODO: deadzone
-int2 AnalogStickToInt(float2 value) {
+int2 analogStickToInt(float2 value) {
     const auto length2 = value.x() * value.x() + value.y() * value.y();
 
     // Normalize if length is greater than 1
@@ -29,7 +29,7 @@ int2 AnalogStickToInt(float2 value) {
     }
 
     return int2(
-        {NormalizedFloatToInt(value.x()), NormalizedFloatToInt(value.y())});
+        {normalizedFloatToInt(value.x()), normalizedFloatToInt(value.y())});
 }
 
 } // namespace
@@ -41,13 +41,13 @@ Npad::Npad(NpadInternalState& state_)
 
 Npad::~Npad() { delete style_set_update_event; }
 
-void Npad::Setup(NpadStyleSet style_set) {
+void Npad::setup(NpadStyleSet style_set) {
     if (style_set == state.style_set)
         return;
 
     // Event
     // TODO: correct?
-    style_set_update_event->Signal();
+    style_set_update_event->signal();
 
     // Update style set
     state.style_set = style_set;
@@ -132,13 +132,13 @@ void Npad::Setup(NpadStyleSet style_set) {
     }
 }
 
-void Npad::Update(const input::NpadState& new_state) {
+void Npad::update(const input::NpadState& new_state) {
     if (state.style_set == NpadStyleSet::None)
         return;
 
     // State
-    const auto analog_l = AnalogStickToInt(new_state.analog_l);
-    const auto analog_r = AnalogStickToInt(new_state.analog_r);
+    const auto analog_l = analogStickToInt(new_state.analog_l);
+    const auto analog_r = analogStickToInt(new_state.analog_r);
     NpadCommonState new_state_entry{
         .buttons = new_state.buttons,
         .analog_stick_l =
@@ -176,7 +176,7 @@ void Npad::Update(const input::NpadState& new_state) {
         unreachable();
     }
 
-    GetLifo().WriteNext(new_state_entry);
+    getLifo().writeNext(new_state_entry);
 }
 
 } // namespace hydra::horizon::services::hid::internal

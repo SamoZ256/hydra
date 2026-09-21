@@ -22,14 +22,14 @@ class INfp : public IService {
     kernel::Event* availability_change_event;
 
     // Commands
-    result_t Initialize(u64 aruid, u64 zero,
+    result_t initialize(u64 aruid, u64 zero,
                         InBuffer<BufferAttr::MapAlias> in_version_buffer);
     // TODO: is the buffer attr correct?
-    result_t ListDevices(i32* out_count,
+    result_t listDevices(i32* out_count,
                          OutBuffer<BufferAttr::HipcPointer> out_buffer);
-    result_t GetState(u32* out_state);
+    result_t getState(u32* out_state);
     result_t
-    AttachAvailabilityChangeEvent(kernel::Process* process,
+    attachAvailabilityChangeEvent(kernel::Process* process,
                                   OutHandle<HandleAttr::Copy> out_handle);
 };
 

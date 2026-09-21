@@ -6,13 +6,13 @@
 namespace hydra::horizon::services::nvdrv::ioctl {
 
 DEFINE_IOCTL_TABLE(NvHostCtrl,
-                   DEFINE_IOCTL_TABLE_ENTRY(NvHostCtrl, 0x00, 0x1b, GetConfig,
-                                            0x1d, SyncptWaitEvent, 0x1e,
-                                            SyncptWaitEventEx, 0x1f,
-                                            SyncptAllocEvent, 0x20,
-                                            SyncptFreeEvent))
+                   DEFINE_IOCTL_TABLE_ENTRY(NvHostCtrl, 0x00, 0x1b, getConfig,
+                                            0x1d, syncptWaitEvent, 0x1e,
+                                            syncptWaitEventEx, 0x1f,
+                                            syncptAllocEvent, 0x20,
+                                            syncptFreeEvent))
 
-NvResult NvHostCtrl::QueryEvent(u32 event_id_u32, kernel::Event*& out_event) {
+NvResult NvHostCtrl::queryEvent(u32 event_id_u32, kernel::Event*& out_event) {
     u32 slot;
     u32 syncpoint_id;
     if (extract_bits(event_id_u32, 28, 1) != 0u) { // New format
@@ -36,7 +36,7 @@ NvResult NvHostCtrl::QueryEvent(u32 event_id_u32, kernel::Event*& out_event) {
     return NvResult::Success;
 }
 
-NvResult NvHostCtrl::GetConfig(std::array<char, 0x41> name,
+NvResult NvHostCtrl::getConfig(std::array<char, 0x41> name,
                                std::array<char, 0x41> key,
                                std::array<u8, 0x101>* out_value) {
     const auto key_str =
@@ -67,7 +67,7 @@ NvResult NvHostCtrl::GetConfig(std::array<char, 0x41> name,
     return NvResult::Success;
 }
 
-NvResult NvHostCtrl::SyncptWaitEvent(u32 id, u32 tresh, i32 timeout,
+NvResult NvHostCtrl::syncptWaitEvent(u32 id, u32 tresh, i32 timeout,
                                      u32* out_value) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "ID: {}, treshold: {}, timeout: {}",
                                id, tresh, timeout);
@@ -77,7 +77,7 @@ NvResult NvHostCtrl::SyncptWaitEvent(u32 id, u32 tresh, i32 timeout,
     return NvResult::Success;
 }
 
-NvResult NvHostCtrl::SyncptWaitEventEx(u32 id, u32 tresh, i32 timeout,
+NvResult NvHostCtrl::syncptWaitEventEx(u32 id, u32 tresh, i32 timeout,
                                        InOutSingle<u32> out_value) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "ID: {}, treshold: {}, timeout: {}",
                                id, tresh, timeout);
@@ -87,22 +87,22 @@ NvResult NvHostCtrl::SyncptWaitEventEx(u32 id, u32 tresh, i32 timeout,
     return NvResult::Success;
 }
 
-NvResult NvHostCtrl::SyncptAllocEvent(u32 slot) {
+NvResult NvHostCtrl::syncptAllocEvent(u32 slot) {
     auto& event = events[slot];
 
     // Check if event is already allocated
     // TODO: correct?
     if (event.event != nullptr)
-        event.event->Release();
+        event.event->release();
 
     event.event = new kernel::Event(false, fmt::format("NvHostEvent {}", slot));
 
     return NvResult::Success;
 }
 
-NvResult NvHostCtrl::SyncptFreeEvent(u32 slot) {
+NvResult NvHostCtrl::syncptFreeEvent(u32 slot) {
     auto& event = events[slot];
-    event.event->Release();
+    event.event->release();
     event.event = nullptr;
 
     return NvResult::Success;

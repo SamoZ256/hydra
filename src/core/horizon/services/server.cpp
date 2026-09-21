@@ -5,7 +5,7 @@
 
 namespace hydra::horizon::services {
 
-void Server::Start() {
+void Server::start() {
     // Process
     // TODO: process
 
@@ -13,27 +13,27 @@ void Server::Start() {
     thread.emplace(
         nullptr, 0x20,
         [this](const kernel::should_stop_fn_t& should_stop) {
-            MainLoop(should_stop);
+            mainLoop(should_stop);
         },
         "Service server thread");
-    thread->Start();
+    thread->start();
 }
 
-void Server::Stop() { thread = std::nullopt; }
+void Server::stop() { thread = std::nullopt; }
 
-void Server::RegisterPort(kernel::hipc::ServerPort* port,
+void Server::registerPort(kernel::hipc::ServerPort* port,
                           create_service_fn_t service_creator) {
     ports.push_back(port);
     port_service_creators.insert({port, std::move(service_creator)});
 }
 
-void Server::RegisterSession(kernel::hipc::ServerSession* session,
+void Server::registerSession(kernel::hipc::ServerSession* session,
                              IService* service) {
     sessions.push_back(session);
     session_services.insert({session, service});
 }
 
-void Server::MainLoop(const kernel::should_stop_fn_t& should_stop) {
+void Server::mainLoop(const kernel::should_stop_fn_t& should_stop) {
     kernel::hipc::ServerSession* reply_target_session = nullptr;
     while (true) {
         // Wait for incoming requests
@@ -44,7 +44,7 @@ void Server::MainLoop(const kernel::should_stop_fn_t& should_stop) {
         sync_objs.insert(sync_objs.end(), sessions.begin(), sessions.end());
 
         u32 signalled_index;
-        const auto res = system.GetOS().GetKernel().ReplyAndReceive(
+        const auto res = system.getOs().getKernel().replyAndReceive(
             &thread.value(), sync_objs, reply_target_session,
             kernel::INFINITE_TIMEOUT, signalled_index);
         switch (res) {
@@ -52,8 +52,8 @@ void Server::MainLoop(const kernel::should_stop_fn_t& should_stop) {
             if (signalled_index < ports.size()) {
                 // Incomming connection
                 auto port = ports[signalled_index];
-                auto session = port->AcceptSession();
-                RegisterSession(session, port_service_creators.at(port)());
+                auto session = port->acceptSession();
+                registerSession(session, port_service_creators.at(port)());
 
                 // Reset the reply target
                 reply_target_session = nullptr;
@@ -64,9 +64,9 @@ void Server::MainLoop(const kernel::should_stop_fn_t& should_stop) {
                 auto session = sessions[session_index];
                 auto service = session_services.at(session);
 
-                service->HandleRequest(system,
-                                       session->GetActiveRequestClientProcess(),
-                                       thread->GetTlsPtr());
+                service->handleRequest(system,
+                                       session->getActiveRequestClientProcess(),
+                                       thread->getTlsPtr());
 
                 // Set the reply target
                 reply_target_session = session;
@@ -83,23 +83,23 @@ void Server::MainLoop(const kernel::should_stop_fn_t& should_stop) {
             auto service = session_services.at(session);
 
             // Service
-            service->Release();
+            service->release();
             session_services.erase(session);
 
             // Session
 
             // Handle all requests
-            while (session->HasRequests()) {
-                session->Receive(&thread.value());
-                service->HandleRequest(system,
-                                       session->GetActiveRequestClientProcess(),
-                                       thread->GetTlsPtr());
-                session->Reply(thread->GetTlsPtr());
+            while (session->hasRequests()) {
+                session->receive(&thread.value());
+                service->handleRequest(system,
+                                       session->getActiveRequestClientProcess(),
+                                       thread->getTlsPtr());
+                session->reply(thread->getTlsPtr());
             }
 
             // Release
-            session->Clear(); // TODO: is this necessary?
-            session->Release();
+            session->clear(); // TODO: is this necessary?
+            session->release();
             sessions.erase(sessions.begin() + session_index);
 
             // Reset the reply target

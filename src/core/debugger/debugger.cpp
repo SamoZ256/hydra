@@ -16,14 +16,14 @@
 
 namespace hydra::debugger {
 
-ResolvedStackFrame StackFrame::Resolve() const {
+ResolvedStackFrame StackFrame::resolve() const {
     switch (type) {
     case StackFrameType::Host:
         // TODO
         return {.module = "libhydra.dylib", .function = "", .addr = addr};
     case StackFrameType::Guest: {
-        const auto& module = debugger->GetModuleTable().FindSymbol(addr);
-        const auto& function = debugger->GetFunctionTable().FindSymbol(addr);
+        const auto& module = debugger->getModuleTable().findSymbol(addr);
+        const auto& function = debugger->getFunctionTable().findSymbol(addr);
         return {.module = module, .function = function, .addr = addr};
     }
     }
@@ -34,7 +34,7 @@ Thread::Thread(const std::string_view name_) : name{name_} {
     messages.resize(256);
 }
 
-void Thread::Log(const Message& msg) {
+void Thread::log(const Message& msg) {
     std::unique_lock lock(msg_mutex);
     messages[(msg_tail + msg_count) % messages.size()] = msg;
     if (msg_count < messages.size())
@@ -43,55 +43,55 @@ void Thread::Log(const Message& msg) {
         msg_tail = (msg_tail + 1) % messages.size();
 }
 
-void Debugger::RegisterThisThread(const std::string_view thread_name) {
+void Debugger::registerThisThread(const std::string_view thread_name) {
     std::unique_lock lock(mutex);
     ASSERT(threads.try_emplace(std::this_thread::get_id(), thread_name).second,
            Debugger, "Failed to register thread");
 }
 
-void Debugger::UnregisterThisThread() {
+void Debugger::unregisterThisThread() {
     GET_THIS_THREAD();
     threads.erase(it);
 }
 
-void Debugger::RegisterGuestThreadForThisThread(
+void Debugger::registerGuestThreadForThisThread(
     horizon::kernel::GuestThread* guest_thread) {
     GET_THIS_THREAD();
     thread.guest_thread = guest_thread;
 
     if (gdb_server.has_value())
-        gdb_server->RegisterThread(thread);
+        gdb_server->registerThread(thread);
 }
 
-void Debugger::UnregisterGuestThreadForThisThread() {
+void Debugger::unregisterGuestThreadForThisThread() {
     GET_THIS_THREAD();
     thread.guest_thread = nullptr;
 }
 
-void Debugger::ActivateGdbServer(System& system) {
+void Debugger::activateGdbServer(System& system) {
     gdb_server.emplace(system, *this);
 }
 
-void Debugger::NotifySupervisorPaused(horizon::kernel::GuestThread* thread,
+void Debugger::notifySupervisorPaused(horizon::kernel::GuestThread* thread,
                                       Signal signal) {
     if (gdb_server.has_value())
-        gdb_server->NotifySupervisorPaused(thread, signal);
+        gdb_server->notifySupervisorPaused(thread, signal);
 }
 
-void Debugger::BreakpointHit(horizon::kernel::GuestThread* thread) {
+void Debugger::breakpointHit(horizon::kernel::GuestThread* thread) {
     if (gdb_server.has_value())
-        gdb_server->BreakpointHit(thread);
+        gdb_server->breakpointHit(thread);
 }
 
-void Debugger::LogOnThisThread(const LogMessage& msg) {
+void Debugger::logOnThisThread(const LogMessage& msg) {
     GET_THIS_THREAD();
     lock.unlock();
-    auto stack_trace = GetStackTrace(thread);
+    auto stack_trace = getStackTrace(thread);
     lock.lock();
-    thread.Log({.log = msg, .stack_trace = stack_trace});
+    thread.log({.log = msg, .stack_trace = stack_trace});
 }
 
-void Debugger::BreakOnThisThreadImpl(const std::string_view reason) {
+void Debugger::breakOnThisThreadImpl(const std::string_view reason) {
     LOG_ERROR(Debugger, "BREAK ({})", reason);
 
     horizon::kernel::GuestThread* guest_thread;
@@ -102,13 +102,13 @@ void Debugger::BreakOnThisThreadImpl(const std::string_view reason) {
         guest_thread = thread.guest_thread;
     }
 
-    process->SupervisorPause();
-    NotifySupervisorPaused(
+    process->supervisorPause();
+    notifySupervisorPaused(
         guest_thread,
         Signal::SigHup); // TODO: make the signal configurable
 }
 
-StackTrace Debugger::GetStackTrace(Thread& thread) {
+StackTrace Debugger::getStackTrace(Thread& thread) {
     StackTrace stack_trace;
 
     // Host
@@ -116,7 +116,7 @@ StackTrace Debugger::GetStackTrace(Thread& thread) {
 
     // Guest
     if (auto guest_thread = thread.guest_thread) {
-        guest_thread->GetThread()->GetStackTrace([&](vaddr_t addr) {
+        guest_thread->getThread()->getStackTrace([&](vaddr_t addr) {
             stack_trace.frames.emplace_back(this, StackFrameType::Guest, addr);
         });
     }

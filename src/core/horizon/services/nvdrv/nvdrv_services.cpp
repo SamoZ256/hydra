@@ -17,50 +17,50 @@
 
 namespace hydra::horizon::services::nvdrv {
 
-DEFINE_SERVICE_COMMAND_TABLE(INvDrvServices, 0, Open, 1, Ioctl, 2, Close, 3,
-                             Initialize, 4, QueryEvent, 8, SetAruid, 11, Ioctl2,
-                             12, Ioctl3, 13,
-                             SetGraphicsFirmwareMemoryMarginEnabled)
+DEFINE_SERVICE_COMMAND_TABLE(INvDrvServices, 0, open, 1, ioctl, 2, close, 3,
+                             initialize, 4, queryEvent, 8, setAruid, 11, ioctl2,
+                             12, ioctl3, 13,
+                             setGraphicsFirmwareMemoryMarginEnabled)
 
-result_t INvDrvServices::Open(InBuffer<BufferAttr::MapAlias> path_buffer,
+result_t INvDrvServices::open(InBuffer<BufferAttr::MapAlias> path_buffer,
                               u32* out_fd_id, u32* out_error) {
     auto path = path_buffer.stream->readNullTerminatedString();
     Handle fd_handle;
     if (path == "/dev/nvhost-ctrl") {
         fd_handle =
-            fd_pool.Insert(std::make_unique<ioctl::NvHostCtrl>()).value();
+            fd_pool.insert(std::make_unique<ioctl::NvHostCtrl>()).value();
     } else if (path == "/dev/nvmap") {
-        fd_handle = fd_pool.Insert(std::make_unique<ioctl::NvMap>()).value();
+        fd_handle = fd_pool.insert(std::make_unique<ioctl::NvMap>()).value();
     } else if (path == "/dev/nvhost-as-gpu") {
         fd_handle =
-            fd_pool.Insert(std::make_unique<ioctl::NvHostAsGpu>()).value();
+            fd_pool.insert(std::make_unique<ioctl::NvHostAsGpu>()).value();
     } else if (path == "/dev/nvhost-ctrl-gpu") {
         fd_handle =
-            fd_pool.Insert(std::make_unique<ioctl::NvHostCtrlGpu>()).value();
+            fd_pool.insert(std::make_unique<ioctl::NvHostCtrlGpu>()).value();
     } else if (path == "/dev/nvhost-gpu") {
         fd_handle =
-            fd_pool.Insert(std::make_unique<ioctl::NvHostGpu>()).value();
+            fd_pool.insert(std::make_unique<ioctl::NvHostGpu>()).value();
     } else if (path == "/dev/nvhost-nvdec") {
         fd_handle =
-            fd_pool.Insert(std::make_unique<ioctl::NvHostNvDec>()).value();
+            fd_pool.insert(std::make_unique<ioctl::NvHostNvDec>()).value();
     } else if (path == "/dev/nvsched-ctrl") {
         fd_handle =
-            fd_pool.Insert(std::make_unique<ioctl::NvSchedCtrl>()).value();
+            fd_pool.insert(std::make_unique<ioctl::NvSchedCtrl>()).value();
     } else if (path == "/dev/nvdisp-ctrl") {
         fd_handle =
-            fd_pool.Insert(std::make_unique<ioctl::NvDispCtrl>()).value();
+            fd_pool.insert(std::make_unique<ioctl::NvDispCtrl>()).value();
     } else if (path == "/dev/nvdisp-disp0") {
         fd_handle =
-            fd_pool.Insert(std::make_unique<ioctl::NvDispDisp>(0)).value();
+            fd_pool.insert(std::make_unique<ioctl::NvDispDisp>(0)).value();
     } else if (path == "/dev/nvdisp-disp1") {
         fd_handle =
-            fd_pool.Insert(std::make_unique<ioctl::NvDispDisp>(1)).value();
+            fd_pool.insert(std::make_unique<ioctl::NvDispDisp>(1)).value();
     } else if (path == "/dev/nvhost-vic") {
         fd_handle =
-            fd_pool.Insert(std::make_unique<ioctl::NvHostVic>()).value();
+            fd_pool.insert(std::make_unique<ioctl::NvHostVic>()).value();
     } else if (path == "/dev/nvhost-nvjpg") {
         fd_handle =
-            fd_pool.Insert(std::make_unique<ioctl::NvHostNvJpg>()).value();
+            fd_pool.insert(std::make_unique<ioctl::NvHostNvJpg>()).value();
     } else {
         LOG_WARN(Services, "Unknown path \"{}\"", path);
         *out_error = MAKE_RESULT(Svc, 0); // TODO
@@ -72,18 +72,18 @@ result_t INvDrvServices::Open(InBuffer<BufferAttr::MapAlias> path_buffer,
     return RESULT_SUCCESS;
 }
 
-result_t INvDrvServices::Ioctl(System* system, kernel::Process* process,
+result_t INvDrvServices::ioctl(System* system, kernel::Process* process,
                                Handle fd_handle, u32 code,
                                InBuffer<BufferAttr::AutoSelect> in_buffer,
                                NvResult* out_result,
                                OutBuffer<BufferAttr::AutoSelect> out_buffer) {
-    return IoctlImpl(&ioctl::FdBase::Ioctl, *system, process, fd_handle, code,
+    return ioctlImpl(&ioctl::FdBase::ioctl, *system, process, fd_handle, code,
                      in_buffer.stream, std::nullopt, out_buffer.stream,
                      std::nullopt, out_result);
 }
 
-result_t INvDrvServices::Close(u32 fd_handle, u32* out_err) {
-    if (!fd_pool.Free(fd_handle)) {
+result_t INvDrvServices::close(u32 fd_handle, u32* out_err) {
+    if (!fd_pool.free(fd_handle)) {
         // TODO: what to do?
         return MAKE_RESULT(Svc, 4);
     }
@@ -92,7 +92,7 @@ result_t INvDrvServices::Close(u32 fd_handle, u32* out_err) {
     return RESULT_SUCCESS;
 }
 
-result_t INvDrvServices::Initialize(u32 transfer_mem_size,
+result_t INvDrvServices::initialize(u32 transfer_mem_size,
                                     NvResult* out_result) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "transfer_mem_size: {:x}",
                                transfer_mem_size);
@@ -103,20 +103,20 @@ result_t INvDrvServices::Initialize(u32 transfer_mem_size,
     return RESULT_SUCCESS;
 }
 
-result_t INvDrvServices::QueryEvent(kernel::Process* process, Handle fd_handle,
+result_t INvDrvServices::queryEvent(kernel::Process* process, Handle fd_handle,
                                     u32 event_id, NvResult* out_result,
                                     OutHandle<HandleAttr::Copy> out_handle) {
-    ZTD_ASSIGN_OR_RETURN_VALUE(auto fd, fd_pool.Get(fd_handle),
+    ZTD_ASSIGN_OR_RETURN_VALUE(auto fd, fd_pool.get(fd_handle),
                                MAKE_RESULT(Svc, 4)); // TODO: result
 
     // Dispatch
     kernel::Event* event = nullptr;
-    NvResult result = fd->get()->QueryEvent(event_id, event);
+    NvResult result = fd->get()->queryEvent(event_id, event);
 
     // Write result
     *out_result = result;
     if (result == NvResult::Success) {
-        out_handle = process->AddHandle(event);
+        out_handle = process->addHandle(event);
         return RESULT_SUCCESS;
     } else {
         return MAKE_RESULT(
@@ -125,29 +125,29 @@ result_t INvDrvServices::QueryEvent(kernel::Process* process, Handle fd_handle,
     }
 }
 
-result_t INvDrvServices::Ioctl2(System* system, kernel::Process* process,
+result_t INvDrvServices::ioctl2(System* system, kernel::Process* process,
                                 Handle fd_handle, u32 code,
                                 InBuffer<BufferAttr::AutoSelect> in_buffer1,
                                 InBuffer<BufferAttr::AutoSelect> in_buffer2,
                                 NvResult* out_result,
                                 OutBuffer<BufferAttr::AutoSelect> out_buffer) {
-    return IoctlImpl(&ioctl::FdBase::Ioctl2, *system, process, fd_handle, code,
+    return ioctlImpl(&ioctl::FdBase::ioctl2, *system, process, fd_handle, code,
                      in_buffer1.stream, in_buffer2.stream, out_buffer.stream,
                      std::nullopt, out_result);
 }
 
-result_t INvDrvServices::Ioctl3(System* system, kernel::Process* process,
+result_t INvDrvServices::ioctl3(System* system, kernel::Process* process,
                                 Handle fd_handle, u32 code,
                                 InBuffer<BufferAttr::AutoSelect> in_buffer,
                                 NvResult* out_result,
                                 OutBuffer<BufferAttr::AutoSelect> out_buffer1,
                                 OutBuffer<BufferAttr::AutoSelect> out_buffer2) {
-    return IoctlImpl(&ioctl::FdBase::Ioctl3, *system, process, fd_handle, code,
+    return ioctlImpl(&ioctl::FdBase::ioctl3, *system, process, fd_handle, code,
                      in_buffer.stream, std::nullopt, out_buffer1.stream,
                      out_buffer2.stream, out_result);
 }
 
-result_t INvDrvServices::IoctlImpl(
+result_t INvDrvServices::ioctlImpl(
     NvResult (ioctl::FdBase::*func)(ioctl::IoctlContext& context, u32 type,
                                     u32 nr),
     System& system, kernel::Process* process, Handle fd_handle, u32 code,
@@ -156,7 +156,7 @@ result_t INvDrvServices::IoctlImpl(
     std::optional<ztd::io::MemoryStream> out_stream,
     std::optional<ztd::io::MemoryStream> out_buffer_stream,
     NvResult* out_result) {
-    ZTD_ASSIGN_OR_RETURN_VALUE(auto fd, fd_pool.Get(fd_handle),
+    ZTD_ASSIGN_OR_RETURN_VALUE(auto fd, fd_pool.get(fd_handle),
                                MAKE_RESULT(Svc, 4)); // TODO: result
 
     // Dispatch

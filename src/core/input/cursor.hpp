@@ -6,7 +6,7 @@ namespace hydra::input {
 
 class ICursor : public IDevice {
   public:
-    bool ActsAsTouchScreen() const override { return true; }
+    bool actsAsTouchScreen() const override { return true; }
 };
 
 } // namespace hydra::input

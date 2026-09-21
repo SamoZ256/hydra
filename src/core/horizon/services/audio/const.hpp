@@ -32,7 +32,7 @@ enum class AudioFeature {
     Splitter,
 };
 
-inline bool IsAudioRendererFeatureSupported(const AudioFeature feature,
+inline bool isAudioRendererFeatureSupported(const AudioFeature feature,
                                             u32 revision) {
     const auto version = revision - make_magic4('R', 'E', 'V', '0');
     // NOLINTNEXTLINE(readability-trivial-switch)

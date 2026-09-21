@@ -2,11 +2,11 @@
 
 namespace hydra::horizon::services::pdm {
 
-DEFINE_SERVICE_COMMAND_TABLE(IQueryService, 8, QueryPlayEvent, 11,
-                             QueryAccountPlayEvent)
+DEFINE_SERVICE_COMMAND_TABLE(IQueryService, 8, queryPlayEvent, 11,
+                             queryAccountPlayEvent)
 
 result_t
-IQueryService::QueryPlayEvent(i32 entry_index, i32* out_total_entries,
+IQueryService::queryPlayEvent(i32 entry_index, i32* out_total_entries,
                               OutBuffer<BufferAttr::MapAlias> out_buffer) {
     (void)out_buffer;
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "entry index: {}", entry_index);
@@ -16,7 +16,7 @@ IQueryService::QueryPlayEvent(i32 entry_index, i32* out_total_entries,
     return RESULT_SUCCESS;
 }
 
-result_t IQueryService::QueryAccountPlayEvent(
+result_t IQueryService::queryAccountPlayEvent(
     i32 entry_index, uuid_t user_id, i32* out_total_entries,
     OutBuffer<BufferAttr::MapAlias> out_buffer) {
     (void)out_buffer;

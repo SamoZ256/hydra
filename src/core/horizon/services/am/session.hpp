@@ -12,7 +12,7 @@ enum class PerformanceMode : i32 {
 
 class ISession : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
@@ -20,8 +20,8 @@ class ISession : public IService {
         0x20004, 0x92220007}; // TODO: what should this be?
 
     // Commands
-    result_t SetPerformanceConfiguration(PerformanceMode mode, u32 config);
-    result_t GetPerformanceConfiguration(PerformanceMode mode, u32* out_config);
+    result_t setPerformanceConfiguration(PerformanceMode mode, u32 config);
+    result_t getPerformanceConfiguration(PerformanceMode mode, u32* out_config);
 };
 
 } // namespace hydra::horizon::services::am

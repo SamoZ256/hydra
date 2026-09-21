@@ -7,7 +7,7 @@ class Native {
     Native();
     ~Native();
 
-    bool ShowInputTextDialog(const std::string& header_text,
+    bool showInputTextDialog(const std::string& header_text,
                              const std::string& sub_text,
                              const std::string& guide_text,
                              std::string& out_text);

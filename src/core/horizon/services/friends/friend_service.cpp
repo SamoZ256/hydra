@@ -2,6 +2,6 @@
 
 namespace hydra::horizon::services::friends {
 
-DEFINE_SERVICE_COMMAND_TABLE(IFriendService, 10610, UpdateUserPresence)
+DEFINE_SERVICE_COMMAND_TABLE(IFriendService, 10610, updateUserPresence)
 
 } // namespace hydra::horizon::services::friends

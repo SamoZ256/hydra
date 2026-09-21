@@ -19,11 +19,11 @@ class SharedMemory : public AutoObject {
                  std::string_view debug_name = "SharedMemory");
     ~SharedMemory() override;
 
-    void MapToRange(hw::tegra_x1::cpu::IMmu* mmu, const ztd::Range<uptr> range_,
+    void mapToRange(hw::tegra_x1::cpu::IMmu* mmu, const ztd::Range<uptr> range_,
                     MemoryPermission perm);
 
     // Getters
-    uptr GetPtr() const;
+    uptr getPtr() const;
 
   private:
     hw::tegra_x1::cpu::IMemory* memory;

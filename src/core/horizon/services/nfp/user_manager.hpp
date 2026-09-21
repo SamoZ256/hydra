@@ -6,12 +6,12 @@ namespace hydra::horizon::services::nfp {
 
 class IUserManager : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t CreateUserInterface(RequestContext* ctx);
+    result_t createUserInterface(RequestContext* ctx);
 };
 
 } // namespace hydra::horizon::services::nfp

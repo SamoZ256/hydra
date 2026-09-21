@@ -20,7 +20,7 @@ struct GeneralSettingsView: View {
                         items: $globalState.gamePaths
                     )
                     .onChange(of: globalState.gamePaths) { _, newValue in
-                        let gamePathsOption = hydraConfigGetGamePaths()
+                        let gamePathsOption = configGetGamePaths()
                         gamePathsOption.resize(to: newValue.count)
                         for i in 0..<newValue.count {
                             gamePathsOption.set(at: i, value: newValue[i])
@@ -35,7 +35,7 @@ struct GeneralSettingsView: View {
                         allowedContentTypes: [.folder, self.hatchType], items: self.$patchPaths
                     )
                     .onChange(of: self.patchPaths) { _, newValue in
-                        let patchPathsOption = hydraConfigGetPatchPaths()
+                        let patchPathsOption = configGetPatchPaths()
                         patchPathsOption.resize(to: newValue.count)
                         for i in 0..<newValue.count {
                             patchPathsOption.set(at: i, value: newValue[i])
@@ -44,7 +44,7 @@ struct GeneralSettingsView: View {
                 }
             }
             .onAppear {
-                let patchPathsOption = hydraConfigGetPatchPaths()
+                let patchPathsOption = configGetPatchPaths()
                 self.patchPaths = []
                 for i in 0..<patchPathsOption.count {
                     self.patchPaths.append(patchPathsOption.get(at: i))

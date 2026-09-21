@@ -8,7 +8,7 @@
 namespace hydra::horizon::filesystem::romfs {
 
 RomFS::RomFS(IFile* file) {
-    auto stream = file->Open(FileOpenFlags::Read);
+    auto stream = file->open(FileOpenFlags::Read);
 
     // Header
     const auto header = stream->read<Header>();
@@ -19,42 +19,42 @@ RomFS::RomFS(IFile* file) {
     Parser parser(stream, new FileView(file, header.data_offset),
                   header.file_meta, header.directory_meta);
     auto root_container = new Directory();
-    parser.LoadDirectory(root_container, 0);
+    parser.loadDirectory(root_container, 0);
 
     delete stream;
 
     // Get root
     IEntry* root;
-    auto res = root_container->GetEntry(EMPTY_PLACEHOLDER_NAME, root);
+    auto res = root_container->getEntry(EMPTY_PLACEHOLDER_NAME, root);
     ASSERT(res == FsResult::Success, Filesystem,
            "Failed to get root romFS directory: {}", res);
 
-    ASSERT(root->IsDirectory(), Filesystem, "Root entry is not a directory");
+    ASSERT(root->isDirectory(), Filesystem, "Root entry is not a directory");
     auto root_dir = static_cast<Directory*>(root);
 
-    for (const auto& [name, entry] : root_dir->GetEntries()) {
-        res = AddEntry(name, entry);
+    for (const auto& [name, entry] : root_dir->getEntries()) {
+        res = addEntry(name, entry);
         ASSERT_DEBUG(res == FsResult::Success, Filesystem,
                      "Failed to add entry");
     }
 }
 
 RomFS::RomFS(const Directory& dir) {
-    for (const auto& [name, entry] : dir.GetEntries()) {
-        const auto res = AddEntry(name, entry);
+    for (const auto& [name, entry] : dir.getEntries()) {
+        const auto res = addEntry(name, entry);
         ASSERT_DEBUG(res == FsResult::Success, Filesystem,
                      "Failed to add entry");
     }
 }
 
-SparseFile* RomFS::Build() {
+SparseFile* RomFS::build() {
     Builder builder(this);
-    auto chunks = builder.Build();
+    auto chunks = builder.build();
 
     // Build the sparse file
     u64 size = 0;
     for (const auto& chunk : chunks)
-        size = std::max(size, chunk.offset + chunk.file->GetSize());
+        size = std::max(size, chunk.offset + chunk.file->getSize());
     auto file = new SparseFile(chunks, size);
 
     return file;

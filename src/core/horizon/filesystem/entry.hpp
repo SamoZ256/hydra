@@ -10,15 +10,15 @@ class IEntry {
   public:
     virtual ~IEntry() = default;
 
-    virtual bool IsFile() const { return false; }
-    virtual bool IsDirectory() const { return false; }
+    virtual bool isFile() const { return false; }
+    virtual bool isDirectory() const { return false; }
 
-    virtual void Save(std::string_view host_path) const = 0;
+    virtual void save(std::string_view host_path) const = 0;
 
-    virtual FsResult Delete(bool recursive = false) = 0;
+    virtual FsResult deleteEntry(bool recursive = false) = 0;
 
-    Directory* GetParent() const { return parent; }
-    void SetParent(Directory* parent_) { parent = parent_; }
+    Directory* getParent() const { return parent; }
+    void setParent(Directory* parent_) { parent = parent_; }
 
   protected:
     Directory* parent;

@@ -105,23 +105,23 @@ Thread::Thread(WallClock& wall_clock, Cpu& cpu_, IMmu* mmu,
     HV_ASSERT_SUCCESS(hv_vcpu_create(&vcpu, &exit, nullptr));
 
     // TODO: find out what this does
-    SetReg(HV_REG_CPSR, 0x3c0);
+    setReg(HV_REG_CPSR, 0x3c0);
 
-    SetSysReg(HV_SYS_REG_MAIR_EL1, 0xfful);
-    SetSysReg(HV_SYS_REG_TCR_EL1, 0x12B5193519ul);
-    SetSysReg(HV_SYS_REG_SCTLR_EL1, 0x34D5D925ul);
+    setSysReg(HV_SYS_REG_MAIR_EL1, 0xfful);
+    setSysReg(HV_SYS_REG_TCR_EL1, 0x12B5193519ul);
+    setSysReg(HV_SYS_REG_SCTLR_EL1, 0x34D5D925ul);
 
     // Enable FP and SIMD instructions
-    SetSysReg(HV_SYS_REG_CPACR_EL1, 0b11 << 20);
+    setSysReg(HV_SYS_REG_CPACR_EL1, 0b11 << 20);
 
     // Trampoline
-    SetSysReg(HV_SYS_REG_VBAR_EL1, KERNEL_REGION_BASE);
+    setSysReg(HV_SYS_REG_VBAR_EL1, KERNEL_REGION_BASE);
 
-    SetSysReg(HV_SYS_REG_TTBR0_EL1, MMU.GetUserPageTable().GetBase());
-    SetSysReg(HV_SYS_REG_TTBR1_EL1, cpu.GetKernelPageTable().GetBase());
+    setSysReg(HV_SYS_REG_TTBR0_EL1, MMU.getUserPageTable().getBase());
+    setSysReg(HV_SYS_REG_TTBR1_EL1, cpu.getKernelPageTable().getBase());
 
     // Setup TLS pointer
-    SetSysReg(HV_SYS_REG_TPIDRRO_EL0, tls_mem_base);
+    setSysReg(HV_SYS_REG_TPIDRRO_EL0, tls_mem_base);
 
     // Trap debug access
     HV_ASSERT_SUCCESS(hv_vcpu_set_trap_debug_exceptions(vcpu, true));
@@ -134,7 +134,7 @@ Thread::Thread(WallClock& wall_clock, Cpu& cpu_, IMmu* mmu,
     interrupt_time_delta_ticks =
         ((INTERRUPT_TIME * info.denom) + (info.numer - 1)) / info.numer;
 
-    SetupVTimer();
+    setupVTimer();
 
     // HACK: set LR to loader return address
     // SetReg(HV_REG_LR, 0xffff0000);
@@ -142,16 +142,16 @@ Thread::Thread(WallClock& wall_clock, Cpu& cpu_, IMmu* mmu,
 
 Thread::~Thread() { hv_vcpu_destroy(vcpu); }
 
-void Thread::Run() {
+void Thread::run() {
     // Main run loop
     while (true) {
-        ProcessMessages();
+        processMessages();
 
         // Run
-        DeserializeState();
+        deserializeState();
         HV_ASSERT_SUCCESS(hv_vcpu_run(vcpu));
-        exception = (GetReg(HV_REG_PC) >= cpu.GetKernelPageTable().GetBase());
-        SerializeState();
+        exception = (getReg(HV_REG_PC) >= cpu.getKernelPageTable().getBase());
+        serializeState();
 
         // Handle exit
         if (exit->reason == HV_EXIT_REASON_EXCEPTION) {
@@ -162,16 +162,16 @@ void Thread::Run() {
             switch (hv_ec) {
             case ExceptionClass::HvcAarch64: {
                 const auto esr =
-                    static_cast<u32>(GetSysReg(HV_SYS_REG_ESR_EL1));
+                    static_cast<u32>(getSysReg(HV_SYS_REG_ESR_EL1));
                 const auto ec = static_cast<ExceptionClass>((esr >> 26) & 0x3f);
-                const u64 far = GetSysReg(HV_SYS_REG_FAR_EL1);
+                const u64 far = getSysReg(HV_SYS_REG_FAR_EL1);
 
                 switch (ec) {
                 case ExceptionClass::SvcAarch64:
                     callbacks.svc_handler(this, esr & 0xffff);
                     break;
                 case ExceptionClass::TrappedMsrMrsSystem: {
-                    InstructionTrap(esr);
+                    instructionTrap(esr);
 
                     state.pc += 4;
                     break;
@@ -179,7 +179,7 @@ void Thread::Run() {
                 case ExceptionClass::DataAbortLowerEl: {
                     // TODO: use the correct size
                     if (far < ADDRESS_SPACE_SIZE &&
-                        MMU.TrackWrite(ztd::Range<vaddr_t>::fromSize(far, 8)))
+                        MMU.trackWrite(ztd::Range<vaddr_t>::fromSize(far, 8)))
                         break;
 
                     bool far_valid = (esr & 0x00000400) == 0;
@@ -194,7 +194,7 @@ void Thread::Run() {
                         // Just move on to the next instruction
                         state.pc += 4;
                     } else {
-                        GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(
+                        GET_CURRENT_PROCESS_DEBUGGER().breakOnThisThread(
                             "Data abort (PC: 0x{:08x}, address: 0x{:08x})",
                             state.pc, far);
                     }
@@ -207,19 +207,19 @@ void Thread::Run() {
                         "0x{:08x}, FAR: "
                         "0x{:08x}, VA: 0x{:08x}, PA: 0x{:08x}, instruction: "
                         "0x{:08x})",
-                        ec, esr, state.pc, GetSysReg(HV_SYS_REG_FAR_EL1),
+                        ec, esr, state.pc, getSysReg(HV_SYS_REG_FAR_EL1),
                         exit->exception.virtual_address,
                         exit->exception.physical_address,
-                        MMU.Read<u32>(state.pc));
+                        MMU.read<u32>(state.pc));
 
-                    GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(
+                    GET_CURRENT_PROCESS_DEBUGGER().breakOnThisThread(
                         "unknown HVC code");
                     break;
                 }
 
                 // Set the PC to trampoline
                 // TODO: most of the time we can skip msr, find out when
-                SetReg(HV_REG_PC,
+                setReg(HV_REG_PC,
                        KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET);
                 break;
             }
@@ -227,7 +227,7 @@ void Thread::Run() {
                 LOG_FATAL(Hypervisor, "SMC");
                 break;
             case ExceptionClass::BrkAarch64:
-                GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(
+                GET_CURRENT_PROCESS_DEBUGGER().breakOnThisThread(
                     "BRK instruction");
                 return;
             case ExceptionClass::DataAbortLowerEl: {
@@ -247,35 +247,35 @@ void Thread::Run() {
                 }
 
                 // Disable SW step
-                u64 mdscr_el1 = GetSysReg(HV_SYS_REG_MDSCR_EL1);
+                u64 mdscr_el1 = getSysReg(HV_SYS_REG_MDSCR_EL1);
                 mdscr_el1 &= ~MDSCR_EL1_SS;
-                SetSysReg(HV_SYS_REG_MDSCR_EL1, mdscr_el1);
+                setSysReg(HV_SYS_REG_MDSCR_EL1, mdscr_el1);
 
                 // Callback
                 callbacks.supervisor_pause();
                 break;
             }
             default:
-                GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(
+                GET_CURRENT_PROCESS_DEBUGGER().breakOnThisThread(
                     "Unexpected VM exception 0x{:08x} (EC: {}, ESR: "
                     "0x{:08x}, PC: 0x{:08x}, "
                     "VA: "
                     "0x{:08x}, PA: 0x{:08x}, "
                     "instruction: "
                     "0x{:08x})",
-                    syndrome, hv_ec, GetSysReg(HV_SYS_REG_ESR_EL1), state.pc,
+                    syndrome, hv_ec, getSysReg(HV_SYS_REG_ESR_EL1), state.pc,
                     exit->exception.virtual_address,
-                    exit->exception.physical_address, MMU.Read<u32>(state.pc));
+                    exit->exception.physical_address, MMU.read<u32>(state.pc));
                 break;
             }
         } else if (exit->reason == HV_EXIT_REASON_VTIMER_ACTIVATED) {
-            UpdateVTimer();
+            updateVTimer();
         } else {
             // TODO: don't cast to u32
             LOG_ERROR(Hypervisor, "Unexpected VM exit reason {}",
                       static_cast<u32>(exit->reason));
 
-            GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(
+            GET_CURRENT_PROCESS_DEBUGGER().breakOnThisThread(
                 "unexpected VM exit reason");
             break;
         }
@@ -285,52 +285,52 @@ void Thread::Run() {
     }
 }
 
-void Thread::SetupVTimer() {
-    SetSysReg(HV_SYS_REG_CNTV_CTL_EL0, 1);
-    SetSysReg(HV_SYS_REG_CNTV_CVAL_EL0,
+void Thread::setupVTimer() {
+    setSysReg(HV_SYS_REG_CNTV_CTL_EL0, 1);
+    setSysReg(HV_SYS_REG_CNTV_CVAL_EL0,
               mach_absolute_time() + interrupt_time_delta_ticks);
 }
 
-void Thread::UpdateVTimer() {
-    SetupVTimer();
+void Thread::updateVTimer() {
+    setupVTimer();
     hv_vcpu_set_vtimer_mask(vcpu, false);
 }
 
-void Thread::SerializeState() {
+void Thread::serializeState() {
     for (u8 i = 0; i < 29; i++)
-        state.r[i] = GetReg(hv_reg_t(HV_REG_X0 + i));
-    state.fp = GetReg(HV_REG_FP);
-    state.lr = GetReg(HV_REG_LR);
-    state.sp = GetSysReg(HV_SYS_REG_SP_EL0);
+        state.r[i] = getReg(hv_reg_t(HV_REG_X0 + i));
+    state.fp = getReg(HV_REG_FP);
+    state.lr = getReg(HV_REG_LR);
+    state.sp = getSysReg(HV_SYS_REG_SP_EL0);
     if (exception)
-        state.pc = GetSysReg(HV_SYS_REG_ELR_EL1);
+        state.pc = getSysReg(HV_SYS_REG_ELR_EL1);
     else
-        state.pc = GetReg(HV_REG_PC);
-    state.pstate = static_cast<u32>(GetReg(HV_REG_CPSR));
+        state.pc = getReg(HV_REG_PC);
+    state.pstate = static_cast<u32>(getReg(HV_REG_CPSR));
     for (u8 i = 0; i < 32; i++)
-        state.v[i] = GetSimdFpReg(i);
-    state.fpcr = static_cast<u32>(GetReg(HV_REG_FPCR));
-    state.fpsr = static_cast<u32>(GetReg(HV_REG_FPSR));
+        state.v[i] = getSimdFpReg(i);
+    state.fpcr = static_cast<u32>(getReg(HV_REG_FPCR));
+    state.fpsr = static_cast<u32>(getReg(HV_REG_FPSR));
 }
 
-void Thread::DeserializeState() {
+void Thread::deserializeState() {
     for (u8 i = 0; i < 29; i++)
-        SetReg(hv_reg_t(HV_REG_X0 + i), state.r[i]);
-    SetReg(HV_REG_FP, state.fp);
-    SetReg(HV_REG_LR, state.lr);
-    SetSysReg(HV_SYS_REG_SP_EL0, state.sp);
+        setReg(hv_reg_t(HV_REG_X0 + i), state.r[i]);
+    setReg(HV_REG_FP, state.fp);
+    setReg(HV_REG_LR, state.lr);
+    setSysReg(HV_SYS_REG_SP_EL0, state.sp);
     if (exception)
-        SetSysReg(HV_SYS_REG_ELR_EL1, state.pc);
+        setSysReg(HV_SYS_REG_ELR_EL1, state.pc);
     else
-        SetReg(HV_REG_PC, state.pc);
-    SetReg(HV_REG_CPSR, state.pstate);
+        setReg(HV_REG_PC, state.pc);
+    setReg(HV_REG_CPSR, state.pstate);
     for (u8 i = 0; i < 32; i++)
-        SetSimdFpReg(i, state.v[i]);
-    SetReg(HV_REG_FPCR, state.fpcr);
-    SetReg(HV_REG_FPSR, state.fpsr);
+        setSimdFpReg(i, state.v[i]);
+    setReg(HV_REG_FPCR, state.fpcr);
+    setReg(HV_REG_FPSR, state.fpsr);
 }
 
-void Thread::InstructionTrap(u32 esr) {
+void Thread::instructionTrap(u32 esr) {
     bool read = (esr & 1) != 0;
     uint rt = (esr >> 5) & 0x1f;
 
@@ -341,7 +341,7 @@ void Thread::InstructionTrap(u32 esr) {
             state.r[rt] = GUEST_CNTFRQ;
             break;
         case 0b11'001'011'1110'00000'0000: // CNTPCT_EL0
-            state.r[rt] = wall_clock.GetCntpct();
+            state.r[rt] = wall_clock.getCntpct();
             break;
         default:
             LOG_FATAL(Hypervisor,
@@ -354,7 +354,7 @@ void Thread::InstructionTrap(u32 esr) {
     }
 }
 
-void Thread::ProcessMessages() {
+void Thread::processMessages() {
     std::scoped_lock lock(msg_mutex);
     while (!msg_queue.empty()) {
         auto message = msg_queue.front();
@@ -365,9 +365,9 @@ void Thread::ProcessMessages() {
 
             // Enable breakpoints
             // TODO: only do once?
-            u64 mdscr_el1 = GetSysReg(HV_SYS_REG_MDSCR_EL1);
+            u64 mdscr_el1 = getSysReg(HV_SYS_REG_MDSCR_EL1);
             mdscr_el1 |= MDSCR_EL1_MDE;
-            SetSysReg(HV_SYS_REG_MDSCR_EL1, mdscr_el1);
+            setSysReg(HV_SYS_REG_MDSCR_EL1, mdscr_el1);
 
             // Find a breakpoint slot
             bool found = false;
@@ -376,11 +376,11 @@ void Thread::ProcessMessages() {
                     breakpoints[slot] = addr;
 
                     // DBGBVR
-                    SetSysReg(hv_sys_reg_t(HV_SYS_REG_DBGBVR0_EL1 + slot * 8),
+                    setSysReg(hv_sys_reg_t(HV_SYS_REG_DBGBVR0_EL1 + slot * 8),
                               addr);
 
                     // DBGBCR
-                    SetSysReg(hv_sys_reg_t(HV_SYS_REG_DBGBCR0_EL1 + slot * 8),
+                    setSysReg(hv_sys_reg_t(HV_SYS_REG_DBGBCR0_EL1 + slot * 8),
                               DBGBCR_E | (0x3 << 1) | DBGBCR_BAS | (0x0 << 20));
 
                     found = true;
@@ -401,9 +401,9 @@ void Thread::ProcessMessages() {
 
             // Disable breakpoints
             // TODO: disable when no breakpoints are active?
-            u64 mdscr_el1 = GetSysReg(HV_SYS_REG_MDSCR_EL1);
+            u64 mdscr_el1 = getSysReg(HV_SYS_REG_MDSCR_EL1);
             mdscr_el1 &= ~MDSCR_EL1_MDE;
-            SetSysReg(HV_SYS_REG_MDSCR_EL1, mdscr_el1);
+            setSysReg(HV_SYS_REG_MDSCR_EL1, mdscr_el1);
 
             // Find the breakpoint slot
             bool found = false;
@@ -412,11 +412,11 @@ void Thread::ProcessMessages() {
                     breakpoints[slot] = 0x0;
 
                     // DBGBVR
-                    SetSysReg(hv_sys_reg_t(HV_SYS_REG_DBGBVR0_EL1 + slot * 8),
+                    setSysReg(hv_sys_reg_t(HV_SYS_REG_DBGBVR0_EL1 + slot * 8),
                               0x0);
 
                     // DBGBCR
-                    SetSysReg(hv_sys_reg_t(HV_SYS_REG_DBGBCR0_EL1 + slot * 8),
+                    setSysReg(hv_sys_reg_t(HV_SYS_REG_DBGBCR0_EL1 + slot * 8),
                               0x0);
 
                     found = true;
@@ -434,9 +434,9 @@ void Thread::ProcessMessages() {
         }
         case ThreadMessageType::SingleStep: {
             // Enable SW step
-            u64 mdscr_el1 = GetSysReg(HV_SYS_REG_MDSCR_EL1);
+            u64 mdscr_el1 = getSysReg(HV_SYS_REG_MDSCR_EL1);
             mdscr_el1 |= MDSCR_EL1_SS;
-            SetSysReg(HV_SYS_REG_MDSCR_EL1, mdscr_el1);
+            setSysReg(HV_SYS_REG_MDSCR_EL1, mdscr_el1);
 
             // Set PSTATE.SS
             state.pstate |= PSTATE_SS;

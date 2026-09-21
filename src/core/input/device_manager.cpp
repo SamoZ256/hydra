@@ -10,7 +10,7 @@ namespace hydra::input {
 
 namespace {
 
-IDeviceList* CreateDeviceList() {
+IDeviceList* createDeviceList() {
     const auto input_backend = CONFIG_INSTANCE.GetInputBackend();
     switch (input_backend) {
     case InputBackend::Sdl:
@@ -32,7 +32,7 @@ IDeviceList* CreateDeviceList() {
 
 } // namespace
 
-DeviceManager::DeviceManager() : device_list{CreateDeviceList()} {
+DeviceManager::DeviceManager() : device_list{createDeviceList()} {
     // Profiles
     for (u32 i = 0; i < horizon::services::hid::NPAD_COUNT; i++) {
         const auto& name = CONFIG_INSTANCE.GetInputProfiles()[i];
@@ -45,7 +45,7 @@ DeviceManager::DeviceManager() : device_list{CreateDeviceList()} {
 }
 
 NpadState
-DeviceManager::PollNpad(horizon::services::hid::internal::NpadIndex index) {
+DeviceManager::pollNpad(horizon::services::hid::internal::NpadIndex index) {
     NpadState state{};
 
     const auto& profile_opt = profiles[static_cast<usize>(index)];
@@ -53,22 +53,22 @@ DeviceManager::PollNpad(horizon::services::hid::internal::NpadIndex index) {
         return state;
 
     const auto& profile = *profile_opt;
-    for (const auto& device_name : profile.GetDeviceNames()) {
-        std::scoped_lock lock(device_list->GetMutex());
+    for (const auto& device_name : profile.getDeviceNames()) {
+        std::scoped_lock lock(device_list->getMutex());
 
-        auto device = device_list->GetDevice(device_name);
+        auto device = device_list->getDevice(device_name);
         if (device == nullptr)
             continue;
 
         // Buttons
-        for (const auto& mapping : profile.GetButtonMappings()) {
-            if (device->IsPressed(mapping.code))
+        for (const auto& mapping : profile.getButtonMappings()) {
+            if (device->isPressed(mapping.code))
                 state.buttons |= mapping.npad_buttons;
         }
 
         // Analog sticks
-        for (const auto& mapping : profile.GetAnalogMappings()) {
-            const auto value = device->GetAxisValue(mapping.code);
+        for (const auto& mapping : profile.getAnalogMappings()) {
+            const auto value = device->getAxisValue(mapping.code);
             // TODO: there are also dedicated buttons for this
             if (mapping.axis.is_left) {
                 switch (mapping.axis.direction) {
@@ -107,30 +107,30 @@ DeviceManager::PollNpad(horizon::services::hid::internal::NpadIndex index) {
     return state;
 }
 
-std::map<u32, TouchState> DeviceManager::PollTouch() {
-    std::scoped_lock lock(device_list->GetMutex());
+std::map<u32, TouchState> DeviceManager::pollTouch() {
+    std::scoped_lock lock(device_list->getMutex());
 
     std::map<u32, TouchState> state;
 
     // TODO: get name from the config
     const std::string device_name = "cursor";
 
-    auto device = device_list->GetDevice(device_name);
+    auto device = device_list->getDevice(device_name);
     if (device == nullptr)
         return state;
 
     // Process touches
     {
         u64 touch_id;
-        while ((touch_id = device->GetNextBeganTouchID()) != invalid<u64>()) {
-            active_touches.insert({touch_id, BeginTouch()});
+        while ((touch_id = device->getNextBeganTouchId()) != invalid<u64>()) {
+            active_touches.insert({touch_id, beginTouch()});
         }
 
-        while ((touch_id = device->GetNextEndedTouchID()) != invalid<u64>()) {
+        while ((touch_id = device->getNextEndedTouchId()) != invalid<u64>()) {
             auto it = active_touches.find(touch_id);
             ASSERT(it != active_touches.end(), Input,
                    "Touch 0x{:016x} not active", touch_id);
-            EndTouch(it->second);
+            endTouch(it->second);
             active_touches.erase(it);
         }
     }
@@ -141,7 +141,7 @@ std::map<u32, TouchState> DeviceManager::PollTouch() {
 
         i32 x;
         i32 y;
-        device->GetTouchPosition(touch_id, x, y);
+        device->getTouchPosition(touch_id, x, y);
         // TODO: also clamp to guest screen size
         x = std::max(x, 0);
         y = std::max(y, 0);
@@ -155,7 +155,7 @@ std::map<u32, TouchState> DeviceManager::PollTouch() {
     return state;
 }
 
-u32 DeviceManager::BeginTouch() {
+u32 DeviceManager::beginTouch() {
     for (u32 i = 0; i < MAX_FINGER_COUNT; i++) {
         if ((available_finger_mask & (1 << i)) != 0) {
             available_finger_mask &= ~(1 << i);
@@ -167,7 +167,7 @@ u32 DeviceManager::BeginTouch() {
     return invalid<u32>();
 }
 
-void DeviceManager::EndTouch(u32 finger_id) {
+void DeviceManager::endTouch(u32 finger_id) {
     ASSERT(finger_id < MAX_FINGER_COUNT, Horizon, "Invalid finger ID {}",
            finger_id);
     ASSERT_DEBUG(touch_count != 0, Horizon, "No touches active");

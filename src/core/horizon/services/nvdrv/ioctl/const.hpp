@@ -5,7 +5,7 @@
 #define IOCTL_CASE(fd, ioctl_suffix, nr, func)                                 \
     case nr: {                                                                 \
         LOG_DEBUG(Services, #func #ioctl_suffix);                              \
-        return invoke_ioctl(context, *this, &fd::func##ioctl_suffix);          \
+        return invokeIoctl(context, *this, &fd::func##ioctl_suffix);           \
     }
 
 #define DEFINE_IOCTL_TABLE_ENTRY_IMPL(fd, ioctl_suffix, type, ...)             \
@@ -26,7 +26,7 @@
     DEFINE_IOCTL_TABLE_ENTRY_IMPL(fd, 3, type, __VA_ARGS__)
 
 #define DEFINE_IOCTL_TABLE_IMPL(fd, ioctl_suffix, ...)                         \
-    NvResult fd::Ioctl##ioctl_suffix([[maybe_unused]] IoctlContext& context,   \
+    NvResult fd::ioctl##ioctl_suffix([[maybe_unused]] IoctlContext& context,   \
                                      u32 type, u32 nr) {                       \
         switch (type) {                                                        \
             __VA_ARGS__                                                        \
@@ -73,7 +73,7 @@ struct InOut {
         return *this;
     }
 
-    In Get() const { return in; }
+    In get() const { return in; }
 };
 
 template <typename T>
@@ -87,7 +87,7 @@ struct InOutSingle {
         return *this;
     }
 
-    T Get() const { return *data; }
+    T get() const { return *data; }
 };
 
 enum class ArgumentType {
@@ -150,7 +150,7 @@ struct arg_traits<const T*> {
 };
 
 template <typename CommandArguments, u32 arg_index = 0>
-void read_arg(IoctlContext& context, CommandArguments& args) {
+void readArg(IoctlContext& context, CommandArguments& args) {
     if constexpr (arg_index >= std::tuple_size_v<CommandArguments>) {
         return;
     } else {
@@ -163,19 +163,19 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
             arg = &context;
 
             // Next
-            read_arg<CommandArguments, arg_index + 1>(context, args);
+            readArg<CommandArguments, arg_index + 1>(context, args);
             return;
         } else if constexpr (traits::type == ArgumentType::System) {
             arg = &context.system;
 
             // Next
-            read_arg<CommandArguments, arg_index + 1>(context, args);
+            readArg<CommandArguments, arg_index + 1>(context, args);
             return;
         } else if constexpr (traits::type == ArgumentType::Process) {
             arg = context.process;
 
             // Next
-            read_arg<CommandArguments, arg_index + 1>(context, args);
+            readArg<CommandArguments, arg_index + 1>(context, args);
             return;
         } else if constexpr (traits::type == ArgumentType::In) {
             ASSERT_DEBUG(context.in_stream, Services, "No input stream");
@@ -184,7 +184,7 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
                 context.out_stream->seekBy(sizeof(Arg));
 
             // Next
-            read_arg<CommandArguments, arg_index + 1>(context, args);
+            readArg<CommandArguments, arg_index + 1>(context, args);
             return;
         } else if constexpr (traits::type == ArgumentType::Out) {
             ASSERT_DEBUG(context.out_stream, Services, "No output stream");
@@ -194,7 +194,7 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
                 context.in_stream->seekBy(sizeof(typename traits::BaseType));
 
             // Next
-            read_arg<CommandArguments, arg_index + 1>(context, args);
+            readArg<CommandArguments, arg_index + 1>(context, args);
             return;
         } else if constexpr (traits::type == ArgumentType::InOut) {
             ASSERT_DEBUG(context.in_stream, Services, "No input stream");
@@ -204,7 +204,7 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
                 context.out_stream->writeReturningPtr<typename traits::Out>();
 
             // Next
-            read_arg<CommandArguments, arg_index + 1>(context, args);
+            readArg<CommandArguments, arg_index + 1>(context, args);
             return;
         } else if constexpr (traits::type == ArgumentType::InOutSingle) {
             ASSERT_DEBUG(context.in_stream, Services, "No input stream");
@@ -214,7 +214,7 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
             *arg.data = context.in_stream->read<typename traits::BaseType>();
 
             // Next
-            read_arg<CommandArguments, arg_index + 1>(context, args);
+            readArg<CommandArguments, arg_index + 1>(context, args);
             return;
         } else /*if constexpr (traits::type == ArgumentType::InArray)*/ {
             ASSERT_DEBUG(context.in_stream, Services, "No input stream");
@@ -230,13 +230,13 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
 }
 
 template <typename Class, typename Func, usize... Is>
-NvResult invoke_command_with_args(IoctlContext& context, Class& instance,
-                                  Func func,
-                                  std::index_sequence<Is...> /*unused*/) {
+NvResult invokeCommandWithArgs(IoctlContext& context, Class& instance,
+                               Func func,
+                               std::index_sequence<Is...> /*unused*/) {
     using traits = function_traits<decltype(func)>;
 
     auto args = std::tuple<typename traits::template arg<Is>::type...>();
-    read_arg(context, args);
+    readArg(context, args);
 
     auto callable = [&]<typename... CallArgs>(CallArgs&... args) {
         return (instance.*func)(args...);
@@ -246,12 +246,12 @@ NvResult invoke_command_with_args(IoctlContext& context, Class& instance,
 }
 
 template <typename Class, typename Func>
-NvResult invoke_ioctl(IoctlContext& context, Class& instance, Func func) {
+NvResult invokeIoctl(IoctlContext& context, Class& instance, Func func) {
     using traits = function_traits<decltype(func)>;
 
     constexpr auto indices = std::make_index_sequence<traits::arg_count>{};
 
-    return invoke_command_with_args(context, instance, func, indices);
+    return invokeCommandWithArgs(context, instance, func, indices);
 }
 
 } // namespace hydra::horizon::services::nvdrv::ioctl
@@ -269,7 +269,7 @@ struct fmt::formatter<hydra::horizon::services::nvdrv::ioctl::InOut<In, Out>>
     auto
     format(const hydra::horizon::services::nvdrv::ioctl::InOut<In, Out>& value,
            FormatContext& ctx) const {
-        return value_formatter.format(value.Get(), ctx);
+        return value_formatter.format(value.get(), ctx);
     }
 };
 
@@ -286,6 +286,6 @@ struct fmt::formatter<hydra::horizon::services::nvdrv::ioctl::InOutSingle<T>>
     auto
     format(const hydra::horizon::services::nvdrv::ioctl::InOutSingle<T>& value,
            FormatContext& ctx) const {
-        return value_formatter.format(value.Get(), ctx);
+        return value_formatter.format(value.get(), ctx);
     }
 };

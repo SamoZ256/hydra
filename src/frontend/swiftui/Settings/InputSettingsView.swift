@@ -7,7 +7,7 @@ import SwiftUI
 #endif
 
 struct InputSettingsView: View {
-    @State private var inputBackend = HydraInputBackend(rawValue: hydraConfigGetInputBackend().pointee)
+    @State private var inputBackend = HydraInputBackend(rawValue: configGetInputBackend().pointee)
 
     var body: some View {
         Spacer()
@@ -23,7 +23,7 @@ struct InputSettingsView: View {
                             .selectionDisabled(!sdlEnabled)
                     }
                     .onChange(of: self.inputBackend.rawValue) { _, newValue in
-                        hydraConfigGetInputBackend().pointee = newValue
+                        configGetInputBackend().pointee = newValue
                     }
                 }
 

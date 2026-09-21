@@ -12,13 +12,13 @@ class PipelineCache
   public:
     explicit PipelineCache(IRenderer& renderer_) : renderer{renderer_} {}
 
-    void Destroy() {}
+    void destroy() {}
 
-    PipelineBase* Create(const PipelineDescriptor& descriptor);
-    void Update([[maybe_unused]] PipelineBase* pipeline) {}
-    static u32 Hash(const PipelineDescriptor& descriptor);
+    PipelineBase* create(const PipelineDescriptor& descriptor);
+    void update([[maybe_unused]] PipelineBase* pipeline) {}
+    static u32 hash(const PipelineDescriptor& descriptor);
 
-    static void DestroyElement(PipelineBase* pipeline);
+    static void destroyElement(PipelineBase* pipeline);
 
   private:
     IRenderer& renderer;

@@ -63,18 +63,18 @@ Cpu::Cpu()
     // simplicity reasons
 
     // Kernel memory
-    kernel_page_table.Map(
-        0x0, ztd::Range<uptr>::fromSize(kernel_mem.GetPtr(), KERNEL_MEM_SIZE),
+    kernel_page_table.map(
+        0x0, ztd::Range<uptr>::fromSize(kernel_mem.getPtr(), KERNEL_MEM_SIZE),
         {.type = horizon::kernel::MemoryType::Kernel,
          .attr = horizon::kernel::MemoryAttribute::None,
          .perm = horizon::kernel::MemoryPermission::Execute},
         ApFlags::UserNoneKernelReadExecute);
 
     for (u64 offset = 0; offset < 0x780; offset += 0x80) {
-        memcpy(reinterpret_cast<void*>(kernel_mem.GetPtr() + offset),
+        memcpy(reinterpret_cast<void*>(kernel_mem.getPtr() + offset),
                exception_handler, sizeof(exception_handler));
     }
-    memcpy(reinterpret_cast<void*>(kernel_mem.GetPtr() +
+    memcpy(reinterpret_cast<void*>(kernel_mem.getPtr() +
                                    EXCEPTION_TRAMPOLINE_OFFSET),
            exception_trampoline, sizeof(exception_trampoline));
 
@@ -97,14 +97,14 @@ Cpu::Cpu()
                 .supports_synchronous_single_step = false};
 }
 
-IMmu* Cpu::CreateMmu(System& system) { return new Mmu(system); }
+IMmu* Cpu::createMmu(System& system) { return new Mmu(system); }
 
-IThread* Cpu::CreateThread(WallClock& wall_clock, IMmu* mmu,
+IThread* Cpu::createThread(WallClock& wall_clock, IMmu* mmu,
                            const ThreadCallbacks& callbacks, IMemory* tls_mem,
                            vaddr_t tls_mem_base) {
     return new Thread(wall_clock, *this, mmu, callbacks, tls_mem, tls_mem_base);
 }
 
-IMemory* Cpu::AllocateMemory(u64 size) { return new Memory(size); }
+IMemory* Cpu::allocateMemory(u64 size) { return new Memory(size); }
 
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor

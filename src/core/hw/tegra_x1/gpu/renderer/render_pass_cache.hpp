@@ -12,13 +12,13 @@ class RenderPassCache
   public:
     explicit RenderPassCache(IRenderer& renderer_) : renderer{renderer_} {}
 
-    void Destroy() {}
+    void destroy() {}
 
-    RenderPassBase* Create(const RenderPassDescriptor& descriptor);
-    void Update([[maybe_unused]] RenderPassBase* render_pass) {}
-    static u32 Hash(const RenderPassDescriptor& descriptor);
+    RenderPassBase* create(const RenderPassDescriptor& descriptor);
+    void update([[maybe_unused]] RenderPassBase* render_pass) {}
+    static u32 hash(const RenderPassDescriptor& descriptor);
 
-    static void DestroyElement(RenderPassBase* render_pass);
+    static void destroyElement(RenderPassBase* render_pass);
 
   private:
     IRenderer& renderer;

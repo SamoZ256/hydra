@@ -34,12 +34,12 @@ class DiskFile : public IFile {
     explicit DiskFile(const std::string_view path_, bool is_mutable_ = false);
     ~DiskFile() override;
 
-    void Resize(u64 new_size) override;
-    void Flush() override;
+    void resize(u64 new_size) override;
+    void flush() override;
 
-    ztd::io::IStream* Open(FileOpenFlags flags) override;
+    ztd::io::IStream* open(FileOpenFlags flags) override;
 
-    u64 GetSize() const override;
+    u64 getSize() const override;
 
   private:
     std::string path;
@@ -47,7 +47,7 @@ class DiskFile : public IFile {
 
     // u64 size;
 
-    void DeleteImpl() override;
+    void deleteImpl() override;
 };
 
 } // namespace hydra::horizon::filesystem

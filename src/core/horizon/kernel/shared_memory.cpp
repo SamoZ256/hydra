@@ -6,21 +6,22 @@ namespace hydra::horizon::kernel {
 
 SharedMemory::SharedMemory(hw::tegra_x1::cpu::ICpu& cpu, u64 size,
                            std::string_view debug_name)
-    : AutoObject(TYPE_ID, debug_name), memory{cpu.AllocateMemory(size)} {
+    : AutoObject(TYPE_ID, debug_name), memory{cpu.allocateMemory(size)} {
     // Clear memory
-    memset(reinterpret_cast<void*>(GetPtr()), 0, size);
+    memset(reinterpret_cast<void*>(getPtr()), 0, size);
 }
 
 SharedMemory::~SharedMemory() { delete memory; }
 
-void SharedMemory::MapToRange(hw::tegra_x1::cpu::IMmu* mmu,
-                              const ztd::Range<uptr> range, MemoryPermission perm) {
-    mmu->Map(range.getBegin(), memory,
+void SharedMemory::mapToRange(hw::tegra_x1::cpu::IMmu* mmu,
+                              const ztd::Range<uptr> range,
+                              MemoryPermission perm) {
+    mmu->map(range.getBegin(), memory,
              {.type = MemoryType::Shared,
               .attr = MemoryAttribute::None,
               .perm = perm});
 }
 
-uptr SharedMemory::GetPtr() const { return memory->GetPtr(); }
+uptr SharedMemory::getPtr() const { return memory->getPtr(); }
 
 } // namespace hydra::horizon::kernel

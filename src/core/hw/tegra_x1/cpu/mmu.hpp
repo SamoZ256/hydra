@@ -24,41 +24,42 @@ class IMmu {
     explicit IMmu(System& system_) : system{system_} {}
     virtual ~IMmu() = default;
 
-    virtual void Map(vaddr_t dst_va, ztd::Range<uptr> range,
+    virtual void map(vaddr_t dst_va, ztd::Range<uptr> range,
                      const horizon::kernel::MemoryState state) = 0;
-    void Map(vaddr_t dst_va, IMemory* memory,
+    void map(vaddr_t dst_va, IMemory* memory,
              const horizon::kernel::MemoryState state) {
-        Map(dst_va, ztd::Range<uptr>::fromSize(memory->GetPtr(), memory->GetSize()),
+        map(dst_va,
+            ztd::Range<uptr>::fromSize(memory->getPtr(), memory->getSize()),
             state);
     }
-    virtual void Map(vaddr_t dst_va, ztd::Range<vaddr_t> range) = 0;
-    virtual void Unmap(ztd::Range<vaddr_t> range) = 0;
-    virtual void Protect(ztd::Range<vaddr_t> range,
+    virtual void map(vaddr_t dst_va, ztd::Range<vaddr_t> range) = 0;
+    virtual void unmap(ztd::Range<vaddr_t> range) = 0;
+    virtual void protect(ztd::Range<vaddr_t> range,
                          horizon::kernel::MemoryPermission perm) = 0;
 
-    virtual uptr UnmapAddr(vaddr_t va) const = 0;
-    virtual MemoryRegion QueryRegion(vaddr_t va) const = 0;
-    virtual void SetMemoryAttribute(ztd::Range<vaddr_t> range,
+    virtual uptr unmapAddr(vaddr_t va) const = 0;
+    virtual MemoryRegion queryRegion(vaddr_t va) const = 0;
+    virtual void setMemoryAttribute(ztd::Range<vaddr_t> range,
                                     horizon::kernel::MemoryAttribute mask,
                                     horizon::kernel::MemoryAttribute value) = 0;
 
-    horizon::kernel::MemoryInfo QueryMemory(vaddr_t va) const;
-    vaddr_t FindFreeMemory(ztd::Range<vaddr_t> region, u64 size) const;
+    horizon::kernel::MemoryInfo queryMemory(vaddr_t va) const;
+    vaddr_t findFreeMemory(ztd::Range<vaddr_t> region, u64 size) const;
 
     // Write tracking
-    void EnableWriteTracking(ztd::Range<vaddr_t> range) {
-        SetWriteTrackingEnabled(range, true);
+    void enableWriteTracking(ztd::Range<vaddr_t> range) {
+        setWriteTrackingEnabled(range, true);
     }
-    void DisableWriteTracking(ztd::Range<vaddr_t> range) {
-        SetWriteTrackingEnabled(range, false);
+    void disableWriteTracking(ztd::Range<vaddr_t> range) {
+        setWriteTrackingEnabled(range, false);
     }
-    bool TrackWrite(ztd::Range<vaddr_t> range);
-    void FlushTrackedPages();
+    bool trackWrite(ztd::Range<vaddr_t> range);
+    void flushTrackedPages();
 
     // Read
     template <typename T>
-    bool TryRead(vaddr_t va, T& out_value) const {
-        const auto ptr = UnmapAddr(va);
+    bool tryRead(vaddr_t va, T& out_value) const {
+        const auto ptr = unmapAddr(va);
         if (ptr == 0x0) [[unlikely]]
             return false;
 
@@ -67,17 +68,17 @@ class IMmu {
     }
 
     template <typename T>
-    T Read(vaddr_t va) const {
+    T read(vaddr_t va) const {
         T value;
-        ASSERT_DEBUG(TryRead(va, value), Cpu, "Failed to unmap va 0x{:08x}",
+        ASSERT_DEBUG(tryRead(va, value), Cpu, "Failed to unmap va 0x{:08x}",
                      va);
         return value;
     }
 
     // Write
     template <typename T>
-    bool TryWrite(vaddr_t va, T value) const {
-        const auto ptr = UnmapAddr(va);
+    bool tryWrite(vaddr_t va, T value) const {
+        const auto ptr = unmapAddr(va);
         if (ptr == 0x0) [[unlikely]]
             return false;
 
@@ -86,23 +87,24 @@ class IMmu {
     }
 
     template <typename T>
-    void Write(vaddr_t va, T value) const {
-        ASSERT_DEBUG(TryWrite(va, value), Cpu, "Failed to unmap va 0x{:08x}",
+    void write(vaddr_t va, T value) const {
+        ASSERT_DEBUG(tryWrite(va, value), Cpu, "Failed to unmap va 0x{:08x}",
                      va);
     }
 
     template <typename T>
-    void WriteExclusive(vaddr_t va, T value) const {
-        auto ptr = UnmapAddr(va);
+    void writeExclusive(vaddr_t va, T value) const {
+        auto ptr = unmapAddr(va);
         ASSERT_DEBUG(ptr != 0x0, Cpu, "Failed to unmap va 0x{:08x}", va);
         atomic_store(reinterpret_cast<T*>(ptr), value);
     }
 
   protected:
     // Write tracking
-    virtual void SetWriteTrackingEnabled(ztd::Range<vaddr_t> range, bool enable) = 0;
-    virtual bool TrySuspendWriteTracking(ztd::Range<vaddr_t> range) = 0;
-    virtual void ResumeWriteTracking(ztd::Range<vaddr_t> range) = 0;
+    virtual void setWriteTrackingEnabled(ztd::Range<vaddr_t> range,
+                                         bool enable) = 0;
+    virtual bool trySuspendWriteTracking(ztd::Range<vaddr_t> range) = 0;
+    virtual void resumeWriteTracking(ztd::Range<vaddr_t> range) = 0;
 
   private:
     System& system;

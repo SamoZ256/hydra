@@ -6,7 +6,7 @@ namespace hydra::horizon::services::account::internal {
 
 constexpr uuid_t INVALID_USER_ID = 0x0;
 
-inline u64 GetTimestamp() {
+inline u64 getTimestamp() {
     return static_cast<u64>(
         std::chrono::duration_cast<std::chrono::seconds>(
             std::chrono::system_clock::now().time_since_epoch())
@@ -25,44 +25,44 @@ class User {
          std::string_view avatar_path_)
         : avatar_bg_color{avatar_bg_color_}, avatar_path{avatar_path_} {
         // TODO: don't use the setters?
-        SetNickname(nickname);
+        setNickname(nickname);
     }
 
-    bool EditedSince(u64 timestamp) const {
+    bool editedSince(u64 timestamp) const {
         return base.last_edit_timestamp > timestamp;
     }
 
-    u64 GetLastEditTimestamp() const { return base.last_edit_timestamp; }
+    u64 getLastEditTimestamp() const { return base.last_edit_timestamp; }
 
     // Nickname
-    std::string_view GetNickname() const { return base.nickname; }
+    std::string_view getNickname() const { return base.nickname; }
 
     enum class SetNicknameError {
         SizeTooLarge,
     };
 
-    void SetNickname(const std::string_view nickname) {
+    void setNickname(const std::string_view nickname) {
         ASSERT(nickname.size() < NICKNAME_SIZE, Services,
                "Nickname size ({}) too big", nickname.size());
         std::memcpy(base.nickname, nickname.data(), nickname.size());
         base.nickname[nickname.size()] = '\0';
-        NotifyEdit();
+        notifyEdit();
     }
 
     // Avatar background color
-    uchar3 GetAvatarBgColor() const { return avatar_bg_color; }
+    uchar3 getAvatarBgColor() const { return avatar_bg_color; }
 
-    void SetAvatarBgColor(uchar3 avatar_bg_color_) {
+    void setAvatarBgColor(uchar3 avatar_bg_color_) {
         avatar_bg_color = avatar_bg_color_;
-        NotifyEdit();
+        notifyEdit();
     }
 
     // Avatar path
-    std::string_view GetAvatarPath() const { return avatar_path; }
+    std::string_view getAvatarPath() const { return avatar_path; }
 
-    void SetAvatarPath(std::string_view avatar_path_) {
+    void setAvatarPath(std::string_view avatar_path_) {
         avatar_path = avatar_path_;
-        NotifyEdit();
+        notifyEdit();
     }
 
   private:
@@ -72,11 +72,11 @@ class User {
     std::string avatar_path;
 
     // Helpers
-    void NotifyEdit() { base.last_edit_timestamp = GetTimestamp(); }
+    void notifyEdit() { base.last_edit_timestamp = getTimestamp(); }
 
   public:
-    CONST_REF_GETTER(base, GetBase);
-    CONST_REF_GETTER(data, GetData);
+    CONST_REF_GETTER(base, getBase);
+    CONST_REF_GETTER(data, getData);
 };
 
 } // namespace hydra::horizon::services::account::internal

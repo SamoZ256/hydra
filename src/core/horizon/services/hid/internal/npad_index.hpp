@@ -17,7 +17,7 @@ enum class NpadIndex {
     Other,
 };
 
-inline NpadIndex ToNpadIndex(NpadIdType type) {
+inline NpadIndex toNpadIndex(NpadIdType type) {
     switch (type) {
     case NpadIdType::No1:
         return NpadIndex::No1;
@@ -44,7 +44,7 @@ inline NpadIndex ToNpadIndex(NpadIdType type) {
     }
 }
 
-inline NpadIdType ToNpadIdType(NpadIndex index) {
+inline NpadIdType toNpadIdType(NpadIndex index) {
     switch (index) {
     case NpadIndex::No1:
         return NpadIdType::No1;

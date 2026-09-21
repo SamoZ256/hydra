@@ -7,21 +7,21 @@ namespace hydra::horizon::services::timesrv {
 
 class IStaticService : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t GetStandardUserSystemClock(RequestContext* ctx);
-    result_t GetStandardNetworkSystemClock(RequestContext* ctx);
-    result_t GetStandardSteadyClock(RequestContext* ctx);
-    result_t GetTimeZoneService(RequestContext* ctx);
-    result_t GetStandardLocalSystemClock(RequestContext* ctx);
-    result_t GetEphemeralNetworkSystemClock(RequestContext* ctx);
+    result_t getStandardUserSystemClock(RequestContext* ctx);
+    result_t getStandardNetworkSystemClock(RequestContext* ctx);
+    result_t getStandardSteadyClock(RequestContext* ctx);
+    result_t getTimeZoneService(RequestContext* ctx);
+    result_t getStandardLocalSystemClock(RequestContext* ctx);
+    result_t getEphemeralNetworkSystemClock(RequestContext* ctx);
     result_t
-    GetSharedMemoryNativeHandle(System* system, kernel::Process* process,
+    getSharedMemoryNativeHandle(System* system, kernel::Process* process,
                                 OutHandle<HandleAttr::Copy> out_handle);
-    STUB_REQUEST_COMMAND(CalculateMonotonicSystemClockBaseTimePoint);
+    STUB_REQUEST_COMMAND(calculateMonotonicSystemClockBaseTimePoint);
 };
 
 } // namespace hydra::horizon::services::timesrv

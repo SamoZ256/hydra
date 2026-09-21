@@ -22,62 +22,62 @@ struct DisplayInfo {
 } // namespace
 
 DEFINE_SERVICE_COMMAND_TABLE(
-    IApplicationDisplayService, 100, GetRelayService, 101,
-    GetSystemDisplayService, 102, GetManagerDisplayService, 103,
-    GetIndirectDisplayTransactionService, 1000, ListDisplays, 1010, OpenDisplay,
-    1020, CloseDisplay, 1102, GetDisplayResolution, 2020, OpenLayer, 2021,
-    CloseLayer, 2030, CreateStrayLayer, 2031, DestroyStrayLayer, 2101,
-    SetLayerScalingMode, 2102, ConvertScalingMode, 5202, GetDisplayVsyncEvent)
+    IApplicationDisplayService, 100, getRelayService, 101,
+    getSystemDisplayService, 102, getManagerDisplayService, 103,
+    getIndirectDisplayTransactionService, 1000, listDisplays, 1010, openDisplay,
+    1020, closeDisplay, 1102, getDisplayResolution, 2020, openLayer, 2021,
+    closeLayer, 2030, createStrayLayer, 2031, destroyStrayLayer, 2101,
+    setLayerScalingMode, 2102, convertScalingMode, 5202, getDisplayVsyncEvent)
 
-result_t IApplicationDisplayService::GetRelayService(RequestContext* ctx,
+result_t IApplicationDisplayService::getRelayService(RequestContext* ctx,
                                                      System* system) {
     LOG_WARN(Services, "GetRelayService is not implemented properly");
 
     // TODO: this should wrap dispdrv in a custom class
 
     const auto name = "dispdrv"_u64;
-    auto client_port = system->GetOS().GetServiceManager().GetPort(name);
+    auto client_port = system->getOs().getServiceManager().getPort(name);
     if (client_port == nullptr) {
         LOG_WARN(Services, "Unknown service name \"{}\"", U64AsString(name));
         return MAKE_RESULT(Svc, kernel::Error::NotFound); // TODO: module
     }
 
     // TODO: should this work with domains?
-    ASSERT_DEBUG(!IsDomain(), Services,
+    ASSERT_DEBUG(!isDomain(), Services,
                  "GetRelayService cannot be a domain service");
-    auto client_session = client_port->Connect();
-    const auto handle = ctx->process->AddHandle(client_session);
+    auto client_session = client_port->connect();
+    const auto handle = ctx->process->addHandle(client_session);
     ctx->streams.out_move_handles_stream.write(handle);
 
     return RESULT_SUCCESS;
 }
 
 result_t
-IApplicationDisplayService::GetSystemDisplayService(RequestContext* ctx) {
-    AddService(*ctx, new ISystemDisplayService());
+IApplicationDisplayService::getSystemDisplayService(RequestContext* ctx) {
+    addService(*ctx, new ISystemDisplayService());
     return RESULT_SUCCESS;
 }
 
 result_t
-IApplicationDisplayService::GetManagerDisplayService(RequestContext* ctx) {
-    AddService(*ctx, new IManagerDisplayService());
+IApplicationDisplayService::getManagerDisplayService(RequestContext* ctx) {
+    addService(*ctx, new IManagerDisplayService());
     return RESULT_SUCCESS;
 }
 
-result_t IApplicationDisplayService::GetIndirectDisplayTransactionService(
+result_t IApplicationDisplayService::getIndirectDisplayTransactionService(
     RequestContext* ctx, System* system) {
     LOG_WARN(
         Services,
         "GetIndirectDisplayTransactionService is not implemented properly");
 
     // HACK
-    return GetRelayService(ctx, system);
+    return getRelayService(ctx, system);
 }
 
-result_t IApplicationDisplayService::ListDisplays(
+result_t IApplicationDisplayService::listDisplays(
     System* system, u64* out_count,
     OutBuffer<BufferAttr::MapAlias> out_display_infos_buffer) {
-    const auto res = system->GetOS().GetDisplayResolution();
+    const auto res = system->getOs().getDisplayResolution();
     out_display_infos_buffer.stream->write<DisplayInfo>({
         .name = "Default",
         .has_layer_limit = true,
@@ -89,44 +89,44 @@ result_t IApplicationDisplayService::ListDisplays(
     return RESULT_SUCCESS;
 }
 
-result_t IApplicationDisplayService::OpenDisplay(System* system,
+result_t IApplicationDisplayService::openDisplay(System* system,
                                                  DisplayName display_name,
                                                  u64* out_display_id) {
     const auto display_handle =
-        system->GetOS().GetDisplayDriver().GetDisplayIDFromName(
+        system->getOs().getDisplayDriver().getDisplayIdFromName(
             display_name.name);
     auto& display =
-        system->GetOS().GetDisplayDriver().GetDisplay(display_handle);
-    display.Open();
+        system->getOs().getDisplayDriver().getDisplay(display_handle);
+    display.open();
 
     *out_display_id = display_handle.GetRaw();
     return RESULT_SUCCESS;
 }
 
-result_t IApplicationDisplayService::CloseDisplay(System* system,
+result_t IApplicationDisplayService::closeDisplay(System* system,
                                                   u64 display_id) {
-    auto& display = system->GetOS().GetDisplayDriver().GetDisplay(
+    auto& display = system->getOs().getDisplayDriver().getDisplay(
         static_cast<u32>(display_id));
-    display.Close();
+    display.close();
     return RESULT_SUCCESS;
 }
 
-result_t IApplicationDisplayService::GetDisplayResolution(System* system,
+result_t IApplicationDisplayService::getDisplayResolution(System* system,
                                                           u64 display_id,
                                                           i64* out_width,
                                                           i64* out_height) {
-    auto& display = system->GetOS().GetDisplayDriver().GetDisplay(
+    auto& display = system->getOs().getDisplayDriver().getDisplay(
         static_cast<u32>(display_id));
     (void)display;
 
     // TODO: use the display
-    const auto res = system->GetOS().GetDisplayResolution();
+    const auto res = system->getOs().getDisplayResolution();
     *out_width = res.x();
     *out_height = res.y();
     return RESULT_SUCCESS;
 }
 
-result_t IApplicationDisplayService::OpenLayer(
+result_t IApplicationDisplayService::openLayer(
     System* system, DisplayName display_name, u64 layer_id, u64 aruid,
     u64* out_native_window_size,
     OutBuffer<BufferAttr::MapAlias> parcel_buffer) {
@@ -138,53 +138,53 @@ result_t IApplicationDisplayService::OpenLayer(
     // system->GetOS().GetDisplayDriver().GetDisplayByName(display_name.name);
 
     auto& layer =
-        system->GetOS().GetDisplayDriver().GetLayer(static_cast<u32>(layer_id));
-    layer.Open();
+        system->getOs().getDisplayDriver().getLayer(static_cast<u32>(layer_id));
+    layer.open();
 
     // Parcel
     hosbinder::ParcelWriter parcel_writer(parcel_buffer.stream.value());
-    parcel_writer.WriteObject(layer.GetBinderHandle().GetRaw(), "dispdrv"_u64);
-    parcel_writer.Finish();
+    parcel_writer.writeObject(layer.getBinderHandle().GetRaw(), "dispdrv"_u64);
+    parcel_writer.finish();
 
-    *out_native_window_size = parcel_writer.GetWrittenSize();
+    *out_native_window_size = parcel_writer.getWrittenSize();
 
     return RESULT_SUCCESS;
 }
 
-result_t IApplicationDisplayService::CloseLayer(System* system, u64 layer_id) {
-    system->GetOS().GetDisplayDriver().DestroyLayer(static_cast<u32>(layer_id));
+result_t IApplicationDisplayService::closeLayer(System* system, u64 layer_id) {
+    system->getOs().getDisplayDriver().destroyLayer(static_cast<u32>(layer_id));
     return RESULT_SUCCESS;
 }
 
-result_t IApplicationDisplayService::CreateStrayLayer(
+result_t IApplicationDisplayService::createStrayLayer(
     System* system, kernel::Process* process, Aligned<u32, 8> flags,
     u64 display_id, u64* out_layer_id, u64* out_native_window_size,
     OutBuffer<BufferAttr::MapAlias> out_parcel_buffer) {
-    return CreateStrayLayerImpl(*system, process, flags, display_id,
+    return createStrayLayerImpl(*system, process, flags, display_id,
                                 out_layer_id, out_native_window_size,
                                 out_parcel_buffer.stream);
 }
 
-result_t IApplicationDisplayService::DestroyStrayLayer(System* system,
+result_t IApplicationDisplayService::destroyStrayLayer(System* system,
                                                        u64 layer_id) {
     // TODO: how is this different from CloseLayer?
     LOG_FUNC_NOT_IMPLEMENTED(Services);
-    CloseLayer(system, layer_id);
+    closeLayer(system, layer_id);
     return RESULT_SUCCESS;
 }
 
-result_t IApplicationDisplayService::ConvertScalingMode() {
+result_t IApplicationDisplayService::convertScalingMode() {
     LOG_FUNC_NOT_IMPLEMENTED(Services);
     return RESULT_SUCCESS;
 }
 
-result_t IApplicationDisplayService::GetDisplayVsyncEvent(
+result_t IApplicationDisplayService::getDisplayVsyncEvent(
     System* system, kernel::Process* process, u64 display_id,
     OutHandle<HandleAttr::Move> out_handle) {
-    auto& display = system->GetOS().GetDisplayDriver().GetDisplay(
+    auto& display = system->getOs().getDisplayDriver().getDisplay(
         static_cast<u32>(display_id));
 
-    out_handle = process->AddHandle(display.GetVSyncEvent());
+    out_handle = process->addHandle(display.getVSyncEvent());
     return RESULT_SUCCESS;
 }
 

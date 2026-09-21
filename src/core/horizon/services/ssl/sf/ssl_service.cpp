@@ -4,21 +4,21 @@
 
 namespace hydra::horizon::services::ssl::sf {
 
-DEFINE_SERVICE_COMMAND_TABLE(ISslService, 0, CreateContext, 5,
-                             SetInterfaceVersion)
+DEFINE_SERVICE_COMMAND_TABLE(ISslService, 0, createContext, 5,
+                             setInterfaceVersion)
 
-result_t ISslService::CreateContext(RequestContext* ctx,
+result_t ISslService::createContext(RequestContext* ctx,
                                     Aligned<SslVersion, 8> version,
                                     u64 pid_placeholder) {
     (void)pid_placeholder;
 
     LOG_DEBUG(Services, "Version: {}", version);
 
-    AddService(*ctx, new ISslContext(version));
+    addService(*ctx, new ISslContext(version));
     return RESULT_SUCCESS;
 }
 
-result_t ISslService::SetInterfaceVersion(SystemVersion version) {
+result_t ISslService::setInterfaceVersion(SystemVersion version) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "version: {}", version);
 
     return RESULT_SUCCESS;

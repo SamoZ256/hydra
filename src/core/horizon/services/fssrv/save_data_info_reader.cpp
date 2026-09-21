@@ -20,9 +20,9 @@ struct SaveDataInfo {
 
 } // namespace
 
-DEFINE_SERVICE_COMMAND_TABLE(ISaveDataInfoReader, 0, ReadSaveDataInfo)
+DEFINE_SERVICE_COMMAND_TABLE(ISaveDataInfoReader, 0, readSaveDataInfo)
 
-result_t ISaveDataInfoReader::ReadSaveDataInfo(
+result_t ISaveDataInfoReader::readSaveDataInfo(
     i64* out_entry_count,
     OutBuffer<BufferAttr::MapAlias> out_entry_buffer) const {
     // TODO: don't hardcode the entries

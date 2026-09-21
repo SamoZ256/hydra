@@ -104,7 +104,7 @@ struct SpecialHeader {
 };
 
 // From https://github.com/switchbrew/libnx
-inline Request calc_request_layout(Metadata meta, void* base) {
+inline Request calcRequestLayout(Metadata meta, void* base) {
     // Copy handles
     Handle* copy_handles = nullptr;
     if (meta.num_copy_handles != 0) {
@@ -172,7 +172,7 @@ inline Request calc_request_layout(Metadata meta, void* base) {
     };
 }
 
-inline ParsedRequest parse_request(void* base) {
+inline ParsedRequest parseRequest(void* base) {
     // Parse message header
     Header hdr = {};
     memcpy(&hdr, base, sizeof(hdr));
@@ -216,12 +216,12 @@ inline ParsedRequest parse_request(void* base) {
 
     return {
         .meta = meta,
-        .data = calc_request_layout(meta, base),
+        .data = calcRequestLayout(meta, base),
         .pid = pid,
     };
 }
 
-inline Request make_request(void* base, Metadata meta) {
+inline Request makeRequest(void* base, Metadata meta) {
     // Write message header
     bool has_special_header = (meta.send_pid != 0u) ||
                               (meta.num_copy_handles != 0u) ||
@@ -260,7 +260,7 @@ inline Request make_request(void* base, Metadata meta) {
     }
 
     // Calculate layout
-    return calc_request_layout(meta, base);
+    return calcRequestLayout(meta, base);
 }
 
 u8* get_buffer_ptr(const hw::tegra_x1::cpu::IMmu* mmu,
@@ -269,8 +269,8 @@ u8* get_buffer_ptr(const hw::tegra_x1::cpu::IMmu* mmu,
 u8* get_static_ptr(const hw::tegra_x1::cpu::IMmu* mmu,
                    const StaticDescriptor& descriptor, u64& size);
 
-u8* get_list_entry_ptr(const hw::tegra_x1::cpu::IMmu* mmu,
-                       const RecvListEntry& descriptor, u64& size);
+u8* getListEntryPtr(const hw::tegra_x1::cpu::IMmu* mmu,
+                    const RecvListEntry& descriptor, u64& size);
 
 #define CREATE_STREAMS(buffer_or_static, type)                                 \
     type##_##buffer_or_static##s_streams.reserve(                              \
@@ -326,7 +326,7 @@ struct Streams {
         recv_list_streams.reserve(hipc_in.meta.num_recv_statics);
         for (u32 i = 0; i < hipc_in.meta.num_recv_statics; i++) {
             u64 size;
-            u8* ptr = get_list_entry_ptr(mmu, hipc_in.data.recv_list[i], size);
+            u8* ptr = getListEntryPtr(mmu, hipc_in.data.recv_list[i], size);
             // TODO: should we continue or push std::nullopt in case of nullptr?
             recv_list_streams.push_back(
                 ptr != nullptr ? std::make_optional<ztd::io::MemoryStream>(

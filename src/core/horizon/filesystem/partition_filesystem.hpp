@@ -38,8 +38,8 @@ class PartitionFilesystem final : public Directory {
     // HACK: need to use a method instead of a constructor, since we have a
     // template parameter
     template <bool is_hfs>
-    PartitionFilesystem* Initialize(IFile* file) {
-        auto stream = file->Open(FileOpenFlags::Read);
+    PartitionFilesystem* initialize(IFile* file) {
+        auto stream = file->open(FileOpenFlags::Read);
 
         // Header
         const auto header = stream->read<PfsHeader>();

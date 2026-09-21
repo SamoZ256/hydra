@@ -12,12 +12,12 @@ namespace hydra::horizon::kernel {
 
 Process::Process(System& system_, std::string_view debug_name)
     : SynchronizationObject(TYPE_ID, false, debug_name), system{system_},
-      mmu{system.GetCpu().CreateMmu(system)}, gmmu(mmu.get()),
-      applet_state(system.GetOS().GetKernel()) {
+      mmu{system.getCpu().createMmu(system)}, gmmu(mmu.get()),
+      applet_state(system.getOs().getKernel()) {
     // TODO: use title ID and name as debugger name?
-    DEBUGGER_MANAGER_INSTANCE.AttachDebugger(
+    DEBUGGER_MANAGER_INSTANCE.attachDebugger(
         this,
-        /*fmt::format("{:016x}", title_id)*/ GetDebugName());
+        /*fmt::format("{:016x}", title_id)*/ getDebugName());
 
     // Random entropy
     std::random_device rd;
@@ -27,33 +27,33 @@ Process::Process(System& system_, std::string_view debug_name)
 }
 
 Process::~Process() {
-    CleanUp();
-    DEBUGGER_MANAGER_INSTANCE.DetachDebugger(this);
+    cleanUp();
+    DEBUGGER_MANAGER_INSTANCE.detachDebugger(this);
 }
 
-uptr Process::CreateMemory(ztd::Range<vaddr_t> region, u64 size,
+uptr Process::createMemory(ztd::Range<vaddr_t> region, u64 size,
                            MemoryType type, MemoryPermission perm,
                            vaddr_t& out_base) {
-    out_base = mmu->FindFreeMemory(region, size);
+    out_base = mmu->findFreeMemory(region, size);
     ASSERT(out_base != 0x0, Kernel, "Failed to find free memory");
 
-    auto mem = system.GetCpu().AllocateMemory(size);
-    mmu->Map(out_base, mem,
+    auto mem = system.getCpu().allocateMemory(size);
+    mmu->map(out_base, mem,
              {.type = type, .attr = MemoryAttribute::None, .perm = perm});
     executable_mems.emplace_back(mem);
 
-    return mem->GetPtr();
+    return mem->getPtr();
 }
 
-uptr Process::CreateExecutableMemory(const std::string_view module_name,
+uptr Process::createExecutableMemory(const std::string_view module_name,
                                      CodeSet code_set, vaddr_t& out_base) {
     // TODO: use MemoryType::Static?
-    auto ptr = CreateMemory(EXECUTABLE_REGION, code_set.size,
+    auto ptr = createMemory(EXECUTABLE_REGION, code_set.size,
                             static_cast<MemoryType>(3), MemoryPermission::Read,
                             out_base);
 
     // Protect
-    mmu->Protect(
+    mmu->protect(
         ztd::Range<vaddr_t>::fromSize(
             out_base + code_set.code.getBegin(),
             align(code_set.code.getSize(), hw::tegra_x1::cpu::GUEST_PAGE_SIZE)),
@@ -63,14 +63,14 @@ uptr Process::CreateExecutableMemory(const std::string_view module_name,
     //                              align(code_set.ro_data.GetSize(),
     //                                    hw::tegra_x1::cpu::GUEST_PAGE_SIZE)),
     //     MemoryPermission::Read);
-    mmu->Protect(
+    mmu->protect(
         ztd::Range<vaddr_t>::fromSize(
             out_base + code_set.data.getBegin(),
             align(code_set.data.getSize(), hw::tegra_x1::cpu::GUEST_PAGE_SIZE)),
         MemoryPermission::ReadWrite);
 
     // Debug
-    DEBUGGER_MANAGER_INSTANCE.GetDebugger(this).GetModuleTable().RegisterSymbol(
+    DEBUGGER_MANAGER_INSTANCE.getDebugger(this).getModuleTable().registerSymbol(
         {.name = std::string(module_name),
          .guest_mem_range =
              ztd::Range<vaddr_t>(out_base, out_base + code_set.size)});
@@ -78,10 +78,10 @@ uptr Process::CreateExecutableMemory(const std::string_view module_name,
     return ptr;
 }
 
-hw::tegra_x1::cpu::IMemory* Process::CreateTlsMemory(vaddr_t& base) {
-    auto mem = system.GetCpu().AllocateMemory(TLS_SIZE);
+hw::tegra_x1::cpu::IMemory* Process::createTlsMemory(vaddr_t& base) {
+    auto mem = system.getCpu().allocateMemory(TLS_SIZE);
     base = tls_mem_base;
-    mmu->Map(base, mem,
+    mmu->map(base, mem,
              {.type = MemoryType::ThreadLocal,
               .attr = MemoryAttribute::None,
               .perm = MemoryPermission::ReadWrite});
@@ -90,89 +90,89 @@ hw::tegra_x1::cpu::IMemory* Process::CreateTlsMemory(vaddr_t& base) {
     return mem;
 }
 
-void Process::CreateStackMemory(u64 stack_size) {
+void Process::createStackMemory(u64 stack_size) {
     // main_thread = new GuestThread(this, STACK_REGION.begin + stack_size -
     // 0x10, priority); auto handle = AddHandle(main_thread);
 
-    main_thread_stack_mem.reset(system.GetCpu().AllocateMemory(stack_size));
-    mmu->Map(STACK_REGION.getBegin(), main_thread_stack_mem.get(),
+    main_thread_stack_mem.reset(system.getCpu().allocateMemory(stack_size));
+    mmu->map(STACK_REGION.getBegin(), main_thread_stack_mem.get(),
              {.type = MemoryType::Stack,
               .attr = MemoryAttribute::None,
               .perm = MemoryPermission::ReadWrite});
 }
 
-void Process::ResizeHeap(u64 size) {
+void Process::resizeHeap(u64 size) {
     if (heap_mem == nullptr) {
-        heap_mem.reset(system.GetCpu().AllocateMemory(size));
+        heap_mem.reset(system.getCpu().allocateMemory(size));
     } else {
-        mmu->Unmap(ztd::Range<vaddr_t>::fromSize(HEAP_REGION.getBegin(),
-                                                 heap_mem->GetSize()));
-        heap_mem->Resize(size);
+        mmu->unmap(ztd::Range<vaddr_t>::fromSize(HEAP_REGION.getBegin(),
+                                                 heap_mem->getSize()));
+        heap_mem->resize(size);
     }
 
-    mmu->Map(HEAP_REGION.getBegin(), heap_mem.get(),
+    mmu->map(HEAP_REGION.getBegin(), heap_mem.get(),
              {.type = MemoryType::Normal_1_0_0,
               .attr = MemoryAttribute::None,
               .perm = MemoryPermission::ReadWrite});
 }
 
-void Process::Start() {
+void Process::start() {
     // Main thread
-    main_thread->Start();
+    main_thread->start();
 
     // Signal
-    SignalStateChange(ProcessState::Started);
+    signalStateChange(ProcessState::Started);
 }
 
-void Process::Stop() {
+void Process::stop() {
     std::scoped_lock lock(thread_mutex);
     for (auto thread : threads)
-        thread->Stop();
+        thread->stop();
 
     // Signal
-    SignalStateChange(ProcessState::Exiting);
+    signalStateChange(ProcessState::Exiting);
 }
 
-void Process::SupervisorPause() {
+void Process::supervisorPause() {
     std::scoped_lock lock(thread_mutex);
     for (auto thread : threads)
-        thread->SupervisorPause();
+        thread->supervisorPause();
 
     // Signal
-    SignalStateChange(ProcessState::DebugSuspended);
+    signalStateChange(ProcessState::DebugSuspended);
 }
 
-void Process::SupervisorResume() {
+void Process::supervisorResume() {
     std::scoped_lock lock(thread_mutex);
     for (auto thread : threads)
-        thread->SupervisorResume();
+        thread->supervisorResume();
 
     // Signal
-    SignalStateChange(ProcessState::Started);
+    signalStateChange(ProcessState::Started);
 }
 
-void Process::CleanUp() {
+void Process::cleanUp() {
     executable_mems.clear();
     main_thread_stack_mem = nullptr;
     heap_mem = nullptr;
 
     // Main thread
     if (main_thread != nullptr) {
-        main_thread->Release();
+        main_thread->release();
         main_thread = nullptr;
     }
 
     for (const auto& obj : handle_pool) {
-        obj->Release();
+        obj->release();
     }
 
     // Signal
-    SignalStateChange(ProcessState::Exited);
+    signalStateChange(ProcessState::Exited);
 }
 
-void Process::SignalStateChange(ProcessState new_state) {
+void Process::signalStateChange(ProcessState new_state) {
     state = new_state;
-    Signal();
+    signal();
 }
 
 } // namespace hydra::horizon::kernel

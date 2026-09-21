@@ -8,14 +8,17 @@ class Block {
   public:
     explicit Block(const label_t label_) : label{label_} {}
 
-    void AddInstruction(Opcode opcode,
+    void addInstruction(Opcode opcode,
                         const std::optional<Value> dst = std::nullopt,
                         const std::vector<Value>& operands = {}) {
         instructions.emplace_back(opcode, dst, operands);
     }
 
-    Value CreateLocal(Type type) {
-        return Value::Local(local_t{.label=label, .id=static_cast<u32>(instructions.size())}, type);
+    Value createLocal(Type type) {
+        return Value::createLocal(
+            local_t{.label = label,
+                    .id = static_cast<u32>(instructions.size())},
+            type);
     }
 
   private:
@@ -23,8 +26,8 @@ class Block {
     std::vector<Instruction> instructions;
 
   public:
-    GETTER(label, GetLabel);
-    CONST_REF_GETTER(instructions, GetInstructions);
+    GETTER(label, getLabel);
+    CONST_REF_GETTER(instructions, getInstructions);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir
@@ -38,8 +41,8 @@ struct fmt::formatter<
     format(const hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::Block&
                block,
            FormatContext& ctx) const {
-        std::string str = fmt::format("{}:\n", block.GetLabel());
-        for (const auto& inst : block.GetInstructions())
+        std::string str = fmt::format("{}:\n", block.getLabel());
+        for (const auto& inst : block.getInstructions())
             str += fmt::format("{}\n", inst);
         return formatter<string_view>::format(str, ctx);
     }

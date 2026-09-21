@@ -14,19 +14,19 @@ class ResourceManager {
     explicit ResourceManager(System& system_)
         : system{system_}, resource_pool(system) {}
 
-    void SetupNpads();
-    void Update();
+    void setupNpads();
+    void update();
 
-    AppletResource& CreateResource(kernel::AppletResourceUserId aruid) {
-        return resource_pool.CreateResource(aruid);
+    AppletResource& createResource(kernel::AppletResourceUserId aruid) {
+        return resource_pool.createResource(aruid);
     }
 
-    void DestroyResource(kernel::AppletResourceUserId aruid) {
-        resource_pool.DestroyResource(aruid);
+    void destroyResource(kernel::AppletResourceUserId aruid) {
+        resource_pool.destroyResource(aruid);
     }
 
-    AppletResource& GetResource(kernel::AppletResourceUserId aruid) {
-        return resource_pool.GetResource(aruid);
+    AppletResource& getResource(kernel::AppletResourceUserId aruid) {
+        return resource_pool.getResource(aruid);
     }
 
   private:

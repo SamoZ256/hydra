@@ -10,10 +10,10 @@
 namespace hydra::horizon::services::am {
 
 DEFINE_SERVICE_COMMAND_TABLE(ILibraryAppletAccessor, 0,
-                             GetAppletStateChangedEvent, 10, Start, 30,
-                             GetResult, 100, PushInData, 101, PopOutData, 103,
-                             PushInteractiveInData, 104, PopInteractiveOutData,
-                             106, GetPopInteractiveOutDataEvent)
+                             getAppletStateChangedEvent, 10, start, 30,
+                             getResult, 100, pushInData, 101, popOutData, 103,
+                             pushInteractiveInData, 104, popInteractiveOutData,
+                             106, getPopInteractiveOutDataEvent)
 
 ILibraryAppletAccessor::ILibraryAppletAccessor(const AppletId id,
                                                const LibraryAppletMode mode)
@@ -40,44 +40,44 @@ ILibraryAppletAccessor::ILibraryAppletAccessor(const AppletId id,
 
 ILibraryAppletAccessor::~ILibraryAppletAccessor() { delete applet; }
 
-result_t ILibraryAppletAccessor::GetAppletStateChangedEvent(
+result_t ILibraryAppletAccessor::getAppletStateChangedEvent(
     kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = process->AddHandle(&controller.GetStateChangedEvent());
+    out_handle = process->addHandle(&controller.getStateChangedEvent());
     return RESULT_SUCCESS;
 }
 
-result_t ILibraryAppletAccessor::Start(System* system) {
-    applet->Start(*system);
+result_t ILibraryAppletAccessor::start(System* system) {
+    applet->start(*system);
     return RESULT_SUCCESS;
 }
 
-result_t ILibraryAppletAccessor::GetResult() { return applet->GetResult(); }
+result_t ILibraryAppletAccessor::getResult() { return applet->getResult(); }
 
-result_t ILibraryAppletAccessor::PushInData(IService* storage_) {
+result_t ILibraryAppletAccessor::pushInData(IService* storage_) {
     auto storage = static_cast<IStorage*>(storage_);
-    controller.PushInData(storage);
+    controller.pushInData(storage);
     return RESULT_SUCCESS;
 }
 
-result_t ILibraryAppletAccessor::PopOutData(RequestContext* ctx) {
-    AddService(*ctx, controller.PopOutData()->Retain());
+result_t ILibraryAppletAccessor::popOutData(RequestContext* ctx) {
+    addService(*ctx, controller.popOutData()->retain());
     return RESULT_SUCCESS;
 }
 
-result_t ILibraryAppletAccessor::PushInteractiveInData(IService* storage_) {
+result_t ILibraryAppletAccessor::pushInteractiveInData(IService* storage_) {
     auto storage = static_cast<IStorage*>(storage_);
-    controller.PushInteractiveInData(storage);
+    controller.pushInteractiveInData(storage);
     return RESULT_SUCCESS;
 }
 
-result_t ILibraryAppletAccessor::PopInteractiveOutData(RequestContext* ctx) {
-    AddService(*ctx, controller.PopInteractiveOutData()->Retain());
+result_t ILibraryAppletAccessor::popInteractiveOutData(RequestContext* ctx) {
+    addService(*ctx, controller.popInteractiveOutData()->retain());
     return RESULT_SUCCESS;
 }
 
-result_t ILibraryAppletAccessor::GetPopInteractiveOutDataEvent(
+result_t ILibraryAppletAccessor::getPopInteractiveOutDataEvent(
     kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = process->AddHandle(&controller.GetInteractiveOutDataEvent());
+    out_handle = process->addHandle(&controller.getInteractiveOutDataEvent());
     return RESULT_SUCCESS;
 }
 

@@ -10,15 +10,15 @@ class Display {
     Display() : vsync_event{new kernel::Event(false, "V-Sync event")} {}
 
     // TODO
-    void Open() {}
-    void Close() {}
+    void open() {}
+    void close() {}
 
   private:
     kernel::Event* vsync_event;
     // TODO: name and resolution
 
   public:
-    GETTER(vsync_event, GetVSyncEvent);
+    GETTER(vsync_event, getVSyncEvent);
 };
 
 } // namespace hydra::horizon::display

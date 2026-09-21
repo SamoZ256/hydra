@@ -10,30 +10,31 @@ BufferCache::~BufferCache() {
         delete entry.second.buffer;
 }
 
-BufferView BufferCache::Get(ICommandBuffer* command_buffer, ztd::Range<uptr> range) {
-    auto& entry = Find(range);
+BufferView BufferCache::get(ICommandBuffer* command_buffer,
+                            ztd::Range<uptr> range) {
+    auto& entry = find(range);
     if (entry.buffer != nullptr) {
         // Check for memory invalidation
         if (entry.invalidation_range.has_value() &&
             entry.invalidation_range->intersects(range)) {
             const auto invalidation_range = entry.invalidation_range.value();
-            UpdateRange(command_buffer, entry, invalidation_range);
+            updateRange(command_buffer, entry, invalidation_range);
             entry.invalidation_range = std::nullopt;
         } else if (CONFIG_INSTANCE.GetCpuBackend() == CpuBackend::Dynarmic) {
             // HACK: force update all buffers on dynarmic
-            UpdateRange(command_buffer, entry, entry.range);
+            updateRange(command_buffer, entry, entry.range);
         }
     } else {
         // Create new buffer
-        entry.buffer = renderer.CreateBuffer(entry.range.getSize());
-        UpdateRange(command_buffer, entry, entry.range);
+        entry.buffer = renderer.createBuffer(entry.range.getSize());
+        updateRange(command_buffer, entry, entry.range);
     }
 
     return BufferView{entry.buffer, range.getBegin() - entry.range.getBegin(),
                       range.getSize()};
 }
 
-void BufferCache::InvalidateMemory(ztd::Range<uptr> range) {
+void BufferCache::invalidateMemory(ztd::Range<uptr> range) {
     auto it = entries.upper_bound(range.getBegin());
     if (it != entries.begin())
         it--;
@@ -56,26 +57,26 @@ void BufferCache::InvalidateMemory(ztd::Range<uptr> range) {
     }
 }
 
-void BufferCache::UpdateRange(ICommandBuffer* command_buffer,
+void BufferCache::updateRange(ICommandBuffer* command_buffer,
                               BufferEntry& entry, ztd::Range<uptr> range) {
     if (entry.inline_copy) {
         // Do an inline update if possible
-        entry.buffer->CopyFrom(range.getBegin(),
+        entry.buffer->copyFrom(range.getBegin(),
                                range.getBegin() - entry.range.getBegin(),
                                range.getSize());
         entry.inline_copy = false;
     } else {
         // Copy from a temporary buffer
-        auto tmp_buffer = renderer.AllocateTemporaryBuffer(range.getSize());
-        tmp_buffer->CopyFrom(range.getBegin());
-        entry.buffer->CopyFrom(command_buffer, tmp_buffer,
+        auto tmp_buffer = renderer.allocateTemporaryBuffer(range.getSize());
+        tmp_buffer->copyFrom(range.getBegin());
+        entry.buffer->copyFrom(command_buffer, tmp_buffer,
                                range.getBegin() - entry.range.getBegin(), 0,
                                range.getSize());
-        renderer.FreeTemporaryBuffer(tmp_buffer);
+        renderer.freeTemporaryBuffer(tmp_buffer);
     }
 }
 
-BufferEntry& BufferCache::Find(ztd::Range<uptr> range) {
+BufferEntry& BufferCache::find(ztd::Range<uptr> range) {
     // Check for containing interval
     auto it = entries.upper_bound(range.getBegin());
     if (it != entries.begin()) {

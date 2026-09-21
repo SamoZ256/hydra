@@ -97,20 +97,20 @@ class SparseFile : public IFile {
         */
     }
 
-    ztd::io::IStream* Open(FileOpenFlags flags) override {
+    ztd::io::IStream* open(FileOpenFlags flags) override {
         std::vector<ztd::io::SparseStream::Entry> streams;
         streams.reserve(entries.size());
         for (const auto& entry : entries) {
             streams.push_back(
                 {.range = ztd::Range(entry.offset,
-                                     entry.offset + entry.file->GetSize()),
-                 .stream = entry.file->Open(flags)});
+                                     entry.offset + entry.file->getSize()),
+                 .stream = entry.file->open(flags)});
         }
 
         return new OwnedSparseStream(std::move(streams), size);
     }
 
-    u64 GetSize() const override { return size; }
+    u64 getSize() const override { return size; }
 
   private:
     std::vector<SparseFileEntry> entries;

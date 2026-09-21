@@ -43,6 +43,6 @@ union InstMufu {
     BitField64<bool, 50, 1> sat;
 };
 
-void EmitMufu(DecoderContext& context, InstMufu inst);
+void emitMufu(DecoderContext& context, InstMufu inst);
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

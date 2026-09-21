@@ -101,53 +101,53 @@ struct SaveDataFileSystemExtraData {
 
 class IFileSystemProxy : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t OpenFileSystem(RequestContext* ctx, FileSystemProxyType type,
+    result_t openFileSystem(RequestContext* ctx, FileSystemProxyType type,
                             InBuffer<BufferAttr::HipcPointer> path_buffer);
-    STUB_REQUEST_COMMAND(SetCurrentProcess);
+    STUB_REQUEST_COMMAND(setCurrentProcess);
     result_t
-    OpenFileSystemWithIdObsolete(RequestContext* ctx, FileSystemProxyType type,
+    openFileSystemWithIdObsolete(RequestContext* ctx, FileSystemProxyType type,
                                  u64 program_id,
                                  InBuffer<BufferAttr::HipcPointer> path_buffer);
     result_t
-    OpenBisFileSystem(BisPartitionId partition_id,
+    openBisFileSystem(BisPartitionId partition_id,
                       InBuffer<BufferAttr::HipcPointer> unknown_buffer);
-    result_t OpenSdCardFileSystem(RequestContext* ctx);
-    result_t CreateSaveDataFileSystem(System* system, kernel::Process* process,
+    result_t openSdCardFileSystem(RequestContext* ctx);
+    result_t createSaveDataFileSystem(System* system, kernel::Process* process,
                                       SaveDataAttribute attr,
                                       SaveDataCreationInfo creation_info,
                                       SaveDataMetaInfo meta_info);
-    result_t ReadSaveDataFileSystemExtraDataBySaveDataSpaceId(
+    result_t readSaveDataFileSystemExtraDataBySaveDataSpaceId(
         Aligned<SaveDataSpaceId, 8> space_id, u64 save_id,
         OutBuffer<BufferAttr::MapAlias> out_buffer);
-    result_t OpenSaveDataFileSystem(RequestContext* ctx, System* system,
+    result_t openSaveDataFileSystem(RequestContext* ctx, System* system,
                                     kernel::Process* process,
                                     Aligned<SaveDataSpaceId, 8> space_id,
                                     SaveDataAttribute attr);
-    result_t OpenReadOnlySaveDataFileSystem(
+    result_t openReadOnlySaveDataFileSystem(
         RequestContext* ctx, System* system, kernel::Process* process,
         Aligned<SaveDataSpaceId, 8> space_id, SaveDataAttribute attr);
-    result_t OpenSaveDataInfoReaderBySaveDataSpaceId(RequestContext* ctx,
+    result_t openSaveDataInfoReaderBySaveDataSpaceId(RequestContext* ctx,
                                                      SaveDataSpaceId space_id);
-    result_t OpenDataStorageByCurrentProcess(RequestContext* ctx,
+    result_t openDataStorageByCurrentProcess(RequestContext* ctx,
                                              System* system,
                                              kernel::Process* process);
-    result_t OpenDataStorageByProgramId(RequestContext* ctx, System* system,
+    result_t openDataStorageByProgramId(RequestContext* ctx, System* system,
                                         u64 program_id);
-    result_t OpenDataStorageByDataId(RequestContext* ctx, System* system,
+    result_t openDataStorageByDataId(RequestContext* ctx, System* system,
                                      Aligned<ncm::StorageID, 8> storage_id,
                                      u64 data_id);
-    result_t OpenPatchDataStorageByCurrentProcess(RequestContext* ctx,
+    result_t openPatchDataStorageByCurrentProcess(RequestContext* ctx,
                                                   System* system);
-    result_t DisableAutoSaveDataCreation();
-    result_t GetGlobalAccessLogMode(u32* out_log_mode);
+    result_t disableAutoSaveDataCreation();
+    result_t getGlobalAccessLogMode(u32* out_log_mode);
 
     // Impl
-    result_t OpenSaveDataFileSystemImpl(RequestContext* ctx, System* system,
+    result_t openSaveDataFileSystemImpl(RequestContext* ctx, System* system,
                                         kernel::Process* process,
                                         SaveDataSpaceId space_id,
                                         SaveDataAttribute attr, bool read_only);

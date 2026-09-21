@@ -14,7 +14,7 @@ class Shader final : public ShaderBase {
     MTL::Function* function{nullptr};
 
   public:
-    GETTER(function, GetFunction);
+    GETTER(function, getFunction);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal

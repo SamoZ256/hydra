@@ -12,17 +12,17 @@ class GlobalState: ObservableObject {
     @Published var isStopping = false
     @Published var isHandheldMode: Bool {
         didSet {
-            hydraConfigGetHandheldMode().pointee = isHandheldMode
-            hydraConfigSerialize()
+            configGetHandheldMode().pointee = isHandheldMode
+            configSerialize()
             guard let system = system else { return }
             system.notifyOperationModeChanged()
         }
     }
 
     init() {
-        isHandheldMode = hydraConfigGetHandheldMode().pointee
+        isHandheldMode = configGetHandheldMode().pointee
 
-        let gamePathsOption = hydraConfigGetGamePaths()
+        let gamePathsOption = configGetGamePaths()
         for i in 0..<gamePathsOption.count {
             let gamePath = gamePathsOption.get(at: i)
             gamePaths.append(gamePath)

@@ -12,12 +12,12 @@ struct AppletProcessLaunchReason {
 
 class IProcessWindingController : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t GetLaunchReason(AppletProcessLaunchReason* out_reason);
+    result_t getLaunchReason(AppletProcessLaunchReason* out_reason);
 };
 
 } // namespace hydra::horizon::services::am

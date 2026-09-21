@@ -11,12 +11,12 @@ enum class Location {
 
 class IMeasurementServer : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t GetTemperature(Location location, i32* out_temperature_celsius);
+    result_t getTemperature(Location location, i32* out_temperature_celsius);
 };
 
 } // namespace hydra::horizon::services::ts

@@ -11,10 +11,10 @@ class Stream final : public IStream {
         : IStream(format, sample_rate, channel_count,
                   std::move(buffer_finished_callback)) {}
 
-    void Start() override { state = StreamState::Started; }
-    void Stop() override { state = StreamState::Stopped; }
+    void start() override { state = StreamState::Started; }
+    void stop() override { state = StreamState::Stopped; }
 
-    void EnqueueBuffer(buffer_id_t id,
+    void enqueueBuffer(buffer_id_t id,
                        [[maybe_unused]] std::span<const u8> buffer) override {
         buffer_finished_callback(id);
     }

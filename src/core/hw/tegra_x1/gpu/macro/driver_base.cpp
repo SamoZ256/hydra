@@ -4,8 +4,8 @@
 
 namespace hydra::hw::tegra_x1::gpu::macro {
 
-void DriverBase::Execute() {
-    ExecuteImpl(start_address_ram[index], param1);
+void DriverBase::execute() {
+    executeImpl(start_address_ram[index], param1);
 
     // TODO: what should happen when there are still parameters in the queue?
     if (!param_queue.empty()) {
@@ -15,23 +15,23 @@ void DriverBase::Execute() {
     }
 }
 
-void DriverBase::LoadInstructionRamPointer(u32 ptr) {
+void DriverBase::loadInstructionRamPointer(u32 ptr) {
     instruction_ram_ptr = ptr;
 }
 
-void DriverBase::LoadInstructionRam(u32 data) {
+void DriverBase::loadInstructionRam(u32 data) {
     instruction_ram[instruction_ram_ptr++] = data;
 }
 
-void DriverBase::LoadStartAddressRamPointer(u32 ptr) {
+void DriverBase::loadStartAddressRamPointer(u32 ptr) {
     start_address_ram_ptr = ptr;
 }
 
-void DriverBase::LoadStartAddressRam(u32 data) {
+void DriverBase::loadStartAddressRam(u32 data) {
     start_address_ram[start_address_ram_ptr++] = data;
 }
 
-bool DriverBase::ParseInstruction(u32 pc) {
+bool DriverBase::parseInstruction(u32 pc) {
     u32 instruction = instruction_ram[pc];
     // LOG_DEBUG(Macro, "PC: 0x{:08x}, instruction: 0x{:08x}", pc, instruction);
 
@@ -56,13 +56,13 @@ bool DriverBase::ParseInstruction(u32 pc) {
         auto alu_op = static_cast<AluOperation>(GET_DATA_U32(17, 4));
         u8 rA = GET_REG(11);
         u8 rB = GET_REG(14);
-        value = InstAlu(alu_op, rA, rB);
+        value = instAlu(alu_op, rA, rB);
         break;
     }
     case Operation::AddImmediate: {
         u8 rA = GET_REG(11);
         i32 imm = GET_IMM_I32();
-        value = InstAddImmediate(rA, imm);
+        value = instAddImmediate(rA, imm);
         break;
     }
     case Operation::ExtractInsert: {
@@ -71,7 +71,7 @@ bool DriverBase::ParseInstruction(u32 pc) {
         u8 bB = GET_B(17);
         u8 rB = GET_REG(14);
         u8 size = GET_SIZE(22);
-        value = InstExtractInsert(bA, rA, bB, rB, size);
+        value = instExtractInsert(bA, rA, bB, rB, size);
         break;
     }
     case Operation::ExtractShiftLeftImmediate: {
@@ -79,7 +79,7 @@ bool DriverBase::ParseInstruction(u32 pc) {
         u8 rA = GET_REG(11);
         u8 rB = GET_REG(14);
         u8 size = GET_SIZE(22);
-        value = InstExtractShiftLeftImmediate(bA, rA, rB, size);
+        value = instExtractShiftLeftImmediate(bA, rA, rB, size);
         break;
     }
     case Operation::ExtractShiftLeftRegister: {
@@ -87,20 +87,20 @@ bool DriverBase::ParseInstruction(u32 pc) {
         u8 bB = GET_B(17);
         u8 rB = GET_REG(14);
         u8 size = GET_SIZE(22);
-        value = InstExtractShiftLeftRegister(rA, bB, rB, size);
+        value = instExtractShiftLeftRegister(rA, bB, rB, size);
         break;
     }
     case Operation::Read: {
         u8 rA = GET_REG(11);
         u32 imm = GET_IMM_U32();
-        value = InstRead(rA, imm);
+        value = instRead(rA, imm);
         break;
     }
     case Operation::Branch: {
         auto cond = static_cast<BranchCondition>(GET_DATA_U32(4, 2));
         u8 rA = GET_REG(11);
         i32 imm = GET_IMM_I32();
-        InstBranch(cond, rA, imm, branched);
+        instBranch(cond, rA, imm, branched);
         break;
     }
     }
@@ -109,7 +109,7 @@ bool DriverBase::ParseInstruction(u32 pc) {
     if (op != Operation::Branch) {
         const auto result_op = static_cast<ResultOperation>(GET_DATA_U32(4, 3));
         u8 rD = GET_REG(8);
-        InstResult(result_op, rD, value);
+        instResult(result_op, rD, value);
     }
 
     // Check if exit
@@ -120,15 +120,15 @@ bool DriverBase::ParseInstruction(u32 pc) {
     return pc == exit_after;
 }
 
-u32 DriverBase::Get3DReg(u32 reg_3d) { return engine_3d.GetReg(reg_3d); }
+u32 DriverBase::get3DReg(u32 reg_3d) { return engine_3d.getReg(reg_3d); }
 
-void DriverBase::SetMethod(u32 value) {
+void DriverBase::setMethod(u32 value) {
     method = value & 0xfff;
     increment = (value >> 12) & 0x3f;
 }
 
-void DriverBase::Send(u32 arg) {
-    engine_3d.Method(method, arg);
+void DriverBase::send(u32 arg) {
+    engine_3d.method(method, arg);
     method += increment;
 }
 

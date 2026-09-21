@@ -5,7 +5,7 @@ namespace hydra::horizon::loader {
 NspLoader::NspLoader(filesystem::PartitionFilesystem pfs_)
     : pfs(std::move(pfs_)) {
     filesystem::IFile* main_file;
-    const auto res = pfs.GetFile("main", main_file);
+    const auto res = pfs.getFile("main", main_file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Loader, "Failed to get main file");
         return;

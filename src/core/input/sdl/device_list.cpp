@@ -8,9 +8,9 @@ namespace hydra::input::sdl {
 
 namespace {
 
-bool EWWrapper(void* userdata, SDL_Event* e) {
+bool ewWrapper(void* userdata, SDL_Event* e) {
     auto o = static_cast<DeviceList*>(userdata);
-    o->EventWatcher(e);
+    o->eventWatcher(e);
     return false;
 }
 
@@ -30,7 +30,7 @@ DeviceList::DeviceList() {
     if (keyboards != nullptr) {
         keyboard_count = static_cast<u32>(kb_count);
         if (keyboard_count > 0)
-            ConnectGenericKeyboard();
+            connectGenericKeyboard();
 
         SDL_free(keyboards);
     } else {
@@ -42,47 +42,47 @@ DeviceList::DeviceList() {
     SDL_JoystickID* gamepads = SDL_GetGamepads(&gp_count);
     if (gamepads != nullptr) {
         for (int i = 0; i < gp_count; i++)
-            ConnectController(gamepads[i]);
+            connectController(gamepads[i]);
 
         SDL_free(gamepads);
     }
 
     // Register event watcher
-    SDL_AddEventWatch(EWWrapper, this);
+    SDL_AddEventWatch(ewWrapper, this);
 }
 
 DeviceList::~DeviceList() {
-    SDL_RemoveEventWatch(EWWrapper, this);
+    SDL_RemoveEventWatch(ewWrapper, this);
     SDL_QuitSubSystem(SDL_INIT_GAMEPAD);
 }
 
-void DeviceList::PumpEvents() {
+void DeviceList::pumpEvents() {
     // If there is no frontend event loop, events must be pumped manually
     if (!has_frontend)
         SDL_PumpEvents();
 }
 
-void DeviceList::EventWatcher(SDL_Event* e) {
+void DeviceList::eventWatcher(SDL_Event* e) {
     switch (e->type) {
     case SDL_EVENT_KEYBOARD_ADDED: {
         if (keyboard_count++ == 0)
-            ConnectGenericKeyboard();
+            connectGenericKeyboard();
         keyboard_count++;
         break;
     }
     case SDL_EVENT_KEYBOARD_REMOVED: {
         if (--keyboard_count == 0)
-            RemoveDevice("Generic Keyboard");
+            removeDevice("Generic Keyboard");
         break;
     }
     case SDL_EVENT_GAMEPAD_ADDED: {
-        ConnectController(e->gdevice.which);
+        connectController(e->gdevice.which);
         break;
     }
     case SDL_EVENT_GAMEPAD_REMOVED: {
         SDL_Gamepad* gp = SDL_GetGamepadFromID(e->gdevice.which);
         std::string name = SDL_GetGamepadName(gp);
-        RemoveDevice(name);
+        removeDevice(name);
         break;
     }
     default:
@@ -90,15 +90,15 @@ void DeviceList::EventWatcher(SDL_Event* e) {
     }
 }
 
-void DeviceList::ConnectGenericKeyboard() {
-    AddDevice("Generic Keyboard", new Keyboard());
+void DeviceList::connectGenericKeyboard() {
+    addDevice("Generic Keyboard", new Keyboard());
 }
 
-void DeviceList::ConnectController(SDL_JoystickID id) {
+void DeviceList::connectController(SDL_JoystickID id) {
     SDL_Gamepad* gp = SDL_OpenGamepad(id);
     if (gp != nullptr) {
         std::string name = SDL_GetGamepadName(gp);
-        AddDevice(name, new Controller(gp));
+        addDevice(name, new Controller(gp));
     } else {
         LOG_ERROR(Input, "Failed to get controller: {}", SDL_GetError());
     }

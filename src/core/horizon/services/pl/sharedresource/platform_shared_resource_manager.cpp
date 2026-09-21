@@ -2,11 +2,11 @@
 
 namespace hydra::horizon::services::pl::sharedresource {
 
-DEFINE_SERVICE_COMMAND_TABLE(IPlatformSharedResourceManager, 0, RequestLoad, 1,
-                             GetLoadState, 2, GetSize, 3,
-                             GetSharedMemoryAddressOffset, 4,
-                             GetSharedMemoryNativeHandle, 5,
-                             GetSharedFontInOrderOfPriority, 6,
-                             GetSharedFontInOrderOfPriorityForSystem)
+DEFINE_SERVICE_COMMAND_TABLE(IPlatformSharedResourceManager, 0, requestLoad, 1,
+                             getLoadState, 2, getSize, 3,
+                             getSharedMemoryAddressOffset, 4,
+                             getSharedMemoryNativeHandle, 5,
+                             getSharedFontInOrderOfPriority, 6,
+                             getSharedFontInOrderOfPriorityForSystem)
 
 } // namespace hydra::horizon::services::pl::sharedresource

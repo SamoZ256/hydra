@@ -5,12 +5,12 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
-SamplerBase* SamplerCache::Create(const SamplerDescriptor& descriptor) {
-    auto sampler = renderer.CreateSampler(descriptor);
+SamplerBase* SamplerCache::create(const SamplerDescriptor& descriptor) {
+    auto sampler = renderer.createSampler(descriptor);
     return sampler;
 }
 
-u32 SamplerCache::Hash(const SamplerDescriptor& descriptor) {
+u32 SamplerCache::hash(const SamplerDescriptor& descriptor) {
     ztd::hash::XxHash32 hash;
     hash.add(descriptor.min_filter);
     hash.add(descriptor.mag_filter);
@@ -24,6 +24,6 @@ u32 SamplerCache::Hash(const SamplerDescriptor& descriptor) {
     return hash.toHashCode();
 }
 
-void SamplerCache::DestroyElement(SamplerBase* sampler) { delete sampler; }
+void SamplerCache::destroyElement(SamplerBase* sampler) { delete sampler; }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

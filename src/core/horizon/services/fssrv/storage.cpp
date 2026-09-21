@@ -4,15 +4,15 @@
 
 namespace hydra::horizon::services::fssrv {
 
-DEFINE_SERVICE_COMMAND_TABLE(IStorage, 0, Read, 1, Write, 2, Flush, 3, SetSize,
-                             4, GetSize)
+DEFINE_SERVICE_COMMAND_TABLE(IStorage, 0, read, 1, write, 2, flush, 3, setSize,
+                             4, getSize)
 
 IStorage::IStorage(filesystem::IFile* file_, filesystem::FileOpenFlags flags)
-    : file{file_}, stream(file->Open(flags)) {}
+    : file{file_}, stream(file->open(flags)) {}
 
 IStorage::~IStorage() { delete stream; }
 
-result_t IStorage::Read(u64 offset, u64 size,
+result_t IStorage::read(u64 offset, u64 size,
                         OutBuffer<BufferAttr::MapAlias> out_buffer) {
     LOG_DEBUG(Services, "Offset: 0x{:08x}, size: 0x{:08x}", offset, size);
 
@@ -33,7 +33,7 @@ result_t IStorage::Read(u64 offset, u64 size,
     return RESULT_SUCCESS;
 }
 
-result_t IStorage::Write(u64 offset, u64 size,
+result_t IStorage::write(u64 offset, u64 size,
                          InBuffer<BufferAttr::MapAlias> in_buffer) {
     LOG_DEBUG(Services, "Offset: 0x{:08x}, size: 0x{:08x}", offset, size);
 
@@ -43,13 +43,13 @@ result_t IStorage::Write(u64 offset, u64 size,
     return RESULT_SUCCESS;
 }
 
-result_t IStorage::SetSize(u64 size) {
-    file->Resize(size);
+result_t IStorage::setSize(u64 size) {
+    file->resize(size);
     return RESULT_SUCCESS;
 }
 
-result_t IStorage::GetSize(u64* out_size) {
-    *out_size = file->GetSize();
+result_t IStorage::getSize(u64* out_size) {
+    *out_size = file->getSize();
     return RESULT_SUCCESS;
 }
 

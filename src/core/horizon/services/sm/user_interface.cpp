@@ -8,33 +8,33 @@
 
 namespace hydra::horizon::services::sm {
 
-DEFINE_SERVICE_COMMAND_TABLE(IUserInterface, 0, RegisterClient, 1,
-                             GetServiceHandle, 2, RegisterService, 65100,
-                             AtmosphereHasService, 65101, AtmosphereWaitService)
+DEFINE_SERVICE_COMMAND_TABLE(IUserInterface, 0, registerClient, 1,
+                             getServiceHandle, 2, registerService, 65100,
+                             atmosphereHasService, 65101, atmosphereWaitService)
 
 result_t
-IUserInterface::GetServiceHandle(System* system, kernel::Process* process,
+IUserInterface::getServiceHandle(System* system, kernel::Process* process,
                                  u64 name,
                                  OutHandle<HandleAttr::Move> out_handle) {
     LOG_DEBUG(Services, "Service name: \"{}\"", U64AsString(name));
 
-    auto client_port = system->GetOS().GetServiceManager().GetPort(name);
+    auto client_port = system->getOs().getServiceManager().getPort(name);
     if (client_port == nullptr) {
         LOG_WARN(Services, "Unknown service name \"{}\"", U64AsString(name));
         return MAKE_RESULT(Svc, kernel::Error::NotFound); // TODO: module
     }
 
     // TODO: can it be domain?
-    ASSERT_DEBUG(!IsDomain(), Services,
+    ASSERT_DEBUG(!isDomain(), Services,
                  "sm::IUserInterface cannot be a domain service");
-    auto client_session = client_port->Connect();
-    out_handle = process->AddHandleNoRetain(client_session);
+    auto client_session = client_port->connect();
+    out_handle = process->addHandleNoRetain(client_session);
 
     return RESULT_SUCCESS;
 }
 
 result_t
-IUserInterface::RegisterService(System* system, kernel::Process* process,
+IUserInterface::registerService(System* system, kernel::Process* process,
                                 u64 name, bool is_light, i32 max_sessions,
                                 OutHandle<HandleAttr::Move> out_port_handle) {
     (void)is_light;
@@ -54,24 +54,24 @@ IUserInterface::RegisterService(System* system, kernel::Process* process,
                            fmt::format("\"{}\" port", debug_name));
 
     // Register server side
-    out_port_handle = process->AddHandle(server_port);
+    out_port_handle = process->addHandle(server_port);
 
     // Register client side
-    system->GetOS().GetServiceManager().RegisterPort(name, client_port);
+    system->getOs().getServiceManager().registerPort(name, client_port);
 
     return RESULT_SUCCESS;
 }
 
-result_t IUserInterface::AtmosphereHasService(System* system, u64 name,
+result_t IUserInterface::atmosphereHasService(System* system, u64 name,
                                               bool* out_has_service) {
     LOG_DEBUG(Services, "Service name: \"{}\"", U64AsString(name));
 
-    auto client_port = system->GetOS().GetServiceManager().GetPort(name);
+    auto client_port = system->getOs().getServiceManager().getPort(name);
     *out_has_service = (client_port != nullptr);
     return RESULT_SUCCESS;
 }
 
-result_t IUserInterface::AtmosphereWaitService(u64 name) {
+result_t IUserInterface::atmosphereWaitService(u64 name) {
     // TODO: does this wait for the service to start?
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "name: {}", U64AsString(name));
     return RESULT_SUCCESS;

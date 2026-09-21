@@ -11,7 +11,7 @@ class PipelineBase {
     virtual ~PipelineBase() = default;
 
     // Getters
-    const PipelineDescriptor& GetDescriptor() const { return descriptor; }
+    const PipelineDescriptor& getDescriptor() const { return descriptor; }
 
   protected:
     const PipelineDescriptor descriptor;

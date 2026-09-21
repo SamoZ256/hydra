@@ -6,12 +6,12 @@ namespace hydra::horizon::services::am {
 
 class IOverlayAppletProxy : public IProxy {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t GetOverlayFunctions(RequestContext* ctx);
+    result_t getOverlayFunctions(RequestContext* ctx);
 };
 
 } // namespace hydra::horizon::services::am

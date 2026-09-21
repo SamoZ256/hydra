@@ -18,8 +18,8 @@ class CodeMemory : public AutoObject {
     u64 size;
 
   public:
-    GETTER(addr, GetAddress);
-    GETTER(size, GetSize);
+    GETTER(addr, getAddress);
+    GETTER(size, getSize);
 };
 
 } // namespace hydra::horizon::kernel

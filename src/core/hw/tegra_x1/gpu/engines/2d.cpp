@@ -5,18 +5,18 @@
 
 namespace hydra::hw::tegra_x1::gpu::engines {
 
-DEFINE_METHOD_TABLE(TwoD, 0x237, 1, Copy, u32)
+DEFINE_METHOD_TABLE(TwoD, 0x237, 1, copy, u32)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-void TwoD::Copy(const u32 index, const u32 pixels_from_memory_src_y0_int) {
+void TwoD::copy(const u32 index, const u32 pixels_from_memory_src_y0_int) {
     auto& pixels = regs.pixels_from_memory;
     pixels.src_y0.integer = pixels_from_memory_src_y0_int;
 
     // TODO: can these also not be textures?
-    auto src = GetTexture(regs.src, renderer::TextureUsage::Read);
-    auto dst = GetTexture(regs.dst, renderer::TextureUsage::Write);
+    auto src = getTexture(regs.src, renderer::TextureUsage::Read);
+    auto dst = getTexture(regs.dst, renderer::TextureUsage::Write);
 
     const auto dudx = static_cast<f64>(pixels.dudx);
     const auto dvdy = static_cast<f64>(pixels.dvdy);
@@ -26,7 +26,7 @@ void TwoD::Copy(const u32 index, const u32 pixels_from_memory_src_y0_int) {
     const auto src_width = static_cast<u32>(pixels.dst_width * dudx);
     const auto src_height = static_cast<u32>(pixels.dst_height * dvdy);
 
-    gpu.GetRenderer().BlitTexture(
+    gpu.getRenderer().blitTexture(
         tls_crnt_command_buffer, src,
         {static_cast<f32>(src_x0), static_cast<f32>(src_y0), 0.0f},
         {src_width, src_height, 1}, 0, regs.src.layer, dst,
@@ -37,19 +37,19 @@ void TwoD::Copy(const u32 index, const u32 pixels_from_memory_src_y0_int) {
 
 #pragma GCC diagnostic pop
 
-renderer::ITextureView* TwoD::GetTexture(const Texture2DInfo& info,
+renderer::ITextureView* TwoD::getTexture(const Texture2DInfo& info,
                                          renderer::TextureUsage usage) {
     // TODO: is depth always layer count? How are levels handled?
     const renderer::TextureDescriptor descriptor(
-        tls_crnt_gmmu->UnmapAddr(info.addr), renderer::TextureType::_2D,
-        renderer::to_texture_format(info.format),
+        tls_crnt_gmmu->unmapAddr(info.addr), renderer::TextureType::_2D,
+        renderer::toTextureFormat(info.format),
         info.layout == MemoryLayout::Pitch, info.stride, info.width,
         info.height, 1, 1, std::max(info.depth, 1u), 0x0,
         info.block_height_gobs_log2, info.block_depth_gobs_log2);
 
     // TODO: texture view (layer)
 
-    return gpu.GetRenderer().GetTextureCache().Find(tls_crnt_command_buffer,
+    return gpu.getRenderer().getTextureCache().find(tls_crnt_command_buffer,
                                                     descriptor, usage);
 }
 

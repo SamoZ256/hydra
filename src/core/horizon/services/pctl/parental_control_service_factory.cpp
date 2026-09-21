@@ -4,18 +4,18 @@
 
 namespace hydra::horizon::services::pctl {
 
-DEFINE_SERVICE_COMMAND_TABLE(IParentalControlServiceFactory, 0, CreateService,
-                             1, CreateServiceWithoutInitialize)
+DEFINE_SERVICE_COMMAND_TABLE(IParentalControlServiceFactory, 0, createService,
+                             1, createServiceWithoutInitialize)
 
-result_t IParentalControlServiceFactory::CreateService(RequestContext* ctx) {
+result_t IParentalControlServiceFactory::createService(RequestContext* ctx) {
     auto service = new IParentalControlService();
-    AddService(*ctx, service);
-    return service->Initialize();
+    addService(*ctx, service);
+    return service->initialize();
 }
 
-result_t IParentalControlServiceFactory::CreateServiceWithoutInitialize(
+result_t IParentalControlServiceFactory::createServiceWithoutInitialize(
     RequestContext* ctx) {
-    AddService(*ctx, new IParentalControlService());
+    addService(*ctx, new IParentalControlService());
     return RESULT_SUCCESS;
 }
 

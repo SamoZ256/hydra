@@ -36,7 +36,7 @@ struct Builder::FileContext {
 
 Builder::Builder(Directory* root) : root_dir(root) {}
 
-u32 Builder::CalcPathHash(u32 parent, const std::string& path, u32 start,
+u32 Builder::calcPathHash(u32 parent, const std::string& path, u32 start,
                           u32 len) {
     u32 hash = parent ^ 123456789;
     for (u32 i = 0; i < len; i++) {
@@ -46,7 +46,7 @@ u32 Builder::CalcPathHash(u32 parent, const std::string& path, u32 start,
     return hash;
 }
 
-u64 Builder::CalcHashTableSize(u64 entries) {
+u64 Builder::calcHashTableSize(u64 entries) {
     if (entries < 3)
         return 3;
 
@@ -62,18 +62,18 @@ u64 Builder::CalcHashTableSize(u64 entries) {
     return count;
 }
 
-void Builder::VisitDirectory(Directory* dir,
+void Builder::visitDirectory(Directory* dir,
                              const std::shared_ptr<DirContext>& parent) {
-    for (const auto& [name, entry] : dir->GetEntries()) {
-        if (entry->IsDirectory()) {
+    for (const auto& [name, entry] : dir->getEntries()) {
+        if (entry->isDirectory()) {
             auto ctx = std::make_shared<DirContext>();
             ctx->parent = parent;
             ctx->name_offset = parent->path_len + 1;
             ctx->path = parent->path + "/" + name;
             ctx->path_len = static_cast<u32>(ctx->path.size());
 
-            AddDirectory(ctx);
-            VisitDirectory(static_cast<Directory*>(entry), ctx);
+            addDirectory(ctx);
+            visitDirectory(static_cast<Directory*>(entry), ctx);
         } else {
             auto ctx = std::make_shared<FileContext>();
             ctx->parent = parent;
@@ -81,32 +81,32 @@ void Builder::VisitDirectory(Directory* dir,
             ctx->path = parent->path + "/" + name;
             ctx->path_len = static_cast<u32>(ctx->path.size());
             ctx->source = static_cast<IFile*>(entry);
-            ctx->size = static_cast<IFile*>(entry)->GetSize();
+            ctx->size = static_cast<IFile*>(entry)->getSize();
 
-            AddFile(ctx);
+            addFile(ctx);
         }
     }
 }
 
-void Builder::AddDirectory(std::shared_ptr<DirContext> ctx) {
+void Builder::addDirectory(std::shared_ptr<DirContext> ctx) {
     dir_table_size +=
         sizeof(DirectoryEntry) + align(ctx->path_len - ctx->name_offset, 4u);
     directories.emplace_back(std::move(ctx));
 }
 
-void Builder::AddFile(std::shared_ptr<FileContext> ctx) {
+void Builder::addFile(std::shared_ptr<FileContext> ctx) {
     file_table_size +=
         sizeof(FileEntry) + align(ctx->path_len - ctx->name_offset, 4u);
     files.emplace_back(std::move(ctx));
 }
 
-std::vector<SparseFileEntry> Builder::Build() {
+std::vector<SparseFileEntry> Builder::build() {
     auto root = std::make_shared<DirContext>();
     root->path = "";
     dir_table_size = sizeof(DirectoryEntry);
     directories.emplace_back(root);
 
-    VisitDirectory(root_dir, root);
+    visitDirectory(root_dir, root);
 
     std::ranges::sort(directories,
                       [](auto& a, auto& b) { return a->path < b->path; });
@@ -144,8 +144,8 @@ std::vector<SparseFileEntry> Builder::Build() {
     }
 
     // Hash table sizes
-    const u64 dir_hash_count = CalcHashTableSize(directories.size());
-    const u64 file_hash_count = CalcHashTableSize(files.size());
+    const u64 dir_hash_count = calcHashTableSize(directories.size());
+    const u64 file_hash_count = calcHashTableSize(files.size());
 
     dir_hash_table_size = dir_hash_count * sizeof(u32);
     file_hash_table_size = file_hash_count * sizeof(u32);
@@ -198,7 +198,7 @@ std::vector<SparseFileEntry> Builder::Build() {
         entry.size = file->size;
 
         const u32 name_len = file->path_len - file->name_offset;
-        const u32 hash = CalcPathHash(file->parent->entry_offset, file->path,
+        const u32 hash = calcPathHash(file->parent->entry_offset, file->path,
                                       file->name_offset, name_len);
 
         const u32 bucket = hash % file_hash_count;
@@ -229,7 +229,7 @@ std::vector<SparseFileEntry> Builder::Build() {
 
         const u32 name_len = dir->path_len - dir->name_offset;
         const u32 hash =
-            CalcPathHash(dir == root ? 0 : dir->parent->entry_offset, dir->path,
+            calcPathHash(dir == root ? 0 : dir->parent->entry_offset, dir->path,
                          dir->name_offset, name_len);
 
         const u32 bucket = hash % dir_hash_count;

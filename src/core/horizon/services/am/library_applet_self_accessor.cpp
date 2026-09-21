@@ -4,54 +4,54 @@
 #include "core/horizon/services/am/internal/library_applet_controller.hpp"
 #include "core/system.hpp"
 
-#define CONTROLLER system->GetOS().GetLibraryAppletSelfController()
+#define CONTROLLER system->getOs().getLibraryAppletSelfController()
 
 namespace hydra::horizon::services::am {
 
-DEFINE_SERVICE_COMMAND_TABLE(ILibraryAppletSelfAccessor, 0, PopInData, 1,
-                             PushOutData, 2, PopInteractiveInData, 3,
-                             PushInteractiveOutData, 10, ExitProcessAndReturn,
-                             11, GetLibraryAppletInfo, 14,
-                             GetCallerAppletIdentityInfo, 160,
-                             GetLibraryAppletInfoEx)
+DEFINE_SERVICE_COMMAND_TABLE(ILibraryAppletSelfAccessor, 0, popInData, 1,
+                             pushOutData, 2, popInteractiveInData, 3,
+                             pushInteractiveOutData, 10, exitProcessAndReturn,
+                             11, getLibraryAppletInfo, 14,
+                             getCallerAppletIdentityInfo, 160,
+                             getLibraryAppletInfoEx)
 
-result_t ILibraryAppletSelfAccessor::PopInData(RequestContext* ctx,
+result_t ILibraryAppletSelfAccessor::popInData(RequestContext* ctx,
                                                System* system) {
-    AddService(*ctx, CONTROLLER.PopInData()->Retain());
+    addService(*ctx, CONTROLLER.popInData()->retain());
     return RESULT_SUCCESS;
 }
 
-result_t ILibraryAppletSelfAccessor::PushOutData(System* system,
+result_t ILibraryAppletSelfAccessor::pushOutData(System* system,
                                                  IService* storage_) {
     auto storage = static_cast<IStorage*>(storage_);
-    CONTROLLER.PushOutData(storage);
+    CONTROLLER.pushOutData(storage);
     return RESULT_SUCCESS;
 }
 
-result_t ILibraryAppletSelfAccessor::PopInteractiveInData(RequestContext* ctx,
+result_t ILibraryAppletSelfAccessor::popInteractiveInData(RequestContext* ctx,
                                                           System* system) {
-    AddService(*ctx, CONTROLLER.PopInteractiveInData()->Retain());
+    addService(*ctx, CONTROLLER.popInteractiveInData()->retain());
     return RESULT_SUCCESS;
 }
 
 result_t
-ILibraryAppletSelfAccessor::PushInteractiveOutData(System* system,
+ILibraryAppletSelfAccessor::pushInteractiveOutData(System* system,
                                                    IService* storage_) {
     auto storage = static_cast<IStorage*>(storage_);
-    CONTROLLER.PushInteractiveOutData(storage);
+    CONTROLLER.pushInteractiveOutData(storage);
     return RESULT_SUCCESS;
 }
 
 result_t
-ILibraryAppletSelfAccessor::ExitProcessAndReturn(kernel::Process* process) {
+ILibraryAppletSelfAccessor::exitProcessAndReturn(kernel::Process* process) {
     // TODO: correct?
-    process->Stop();
+    process->stop();
 
     return RESULT_SUCCESS;
 }
 
 result_t
-ILibraryAppletSelfAccessor::GetLibraryAppletInfo(LibraryAppletInfo* out_info) {
+ILibraryAppletSelfAccessor::getLibraryAppletInfo(LibraryAppletInfo* out_info) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK: hardcoded for Mii Edit
@@ -62,7 +62,7 @@ ILibraryAppletSelfAccessor::GetLibraryAppletInfo(LibraryAppletInfo* out_info) {
     return RESULT_SUCCESS;
 }
 
-result_t ILibraryAppletSelfAccessor::GetCallerAppletIdentityInfo(
+result_t ILibraryAppletSelfAccessor::getCallerAppletIdentityInfo(
     AppletIdentityInfo* out_info) {
     // TODO: don't hardcode
     *out_info = {
@@ -72,7 +72,7 @@ result_t ILibraryAppletSelfAccessor::GetCallerAppletIdentityInfo(
     return RESULT_SUCCESS;
 }
 
-result_t ILibraryAppletSelfAccessor::GetLibraryAppletInfoEx(u64* out_info) {
+result_t ILibraryAppletSelfAccessor::getLibraryAppletInfoEx(u64* out_info) {
     // Always returns 0
     *out_info = 0;
     return RESULT_SUCCESS;

@@ -2,15 +2,15 @@
 
 namespace hydra::horizon::services::pctl {
 
-DEFINE_SERVICE_COMMAND_TABLE(IParentalControlService, 1, Initialize, 1001,
-                             CheckFreeCommunicationPermission)
+DEFINE_SERVICE_COMMAND_TABLE(IParentalControlService, 1, initialize, 1001,
+                             checkFreeCommunicationPermission)
 
-result_t IParentalControlService::Initialize() {
+result_t IParentalControlService::initialize() {
     LOG_FUNC_STUBBED(Services);
     return RESULT_SUCCESS;
 }
 
-result_t IParentalControlService::CheckFreeCommunicationPermission() {
+result_t IParentalControlService::checkFreeCommunicationPermission() {
     LOG_FUNC_STUBBED(Services);
     return RESULT_SUCCESS;
 }

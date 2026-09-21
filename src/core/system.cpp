@@ -47,7 +47,7 @@ namespace {
 constexpr auto STARTUP_MOVIE_FADE_IN_DURATION = 100ms;
 constexpr auto STARTUP_MOVIE_BREAK_AFTER_FADE_IN_DURATION = 200ms;
 
-hw::tegra_x1::cpu::ICpu* CreateCpu() {
+hw::tegra_x1::cpu::ICpu* createCpu() {
     switch (CONFIG_INSTANCE.GetCpuBackend()) {
     case CpuBackend::AppleHypervisor:
 #ifdef HYDRA_HYPERVISOR_ENABLED
@@ -64,7 +64,7 @@ hw::tegra_x1::cpu::ICpu* CreateCpu() {
     }
 }
 
-audio::ICore* CreateAudioCore() {
+audio::ICore* createAudioCore() {
     switch (CONFIG_INSTANCE.GetAudioBackend()) {
     case AudioBackend::Null:
         return new audio::null::Core();
@@ -84,7 +84,7 @@ audio::ICore* CreateAudioCore() {
 } // namespace
 
 System::System(horizon::ui::IHandler& ui_handler_)
-    : ui_handler{ui_handler_}, cpu{CreateCpu()}, audio_core{CreateAudioCore()},
+    : ui_handler{ui_handler_}, cpu{createCpu()}, audio_core{createAudioCore()},
       os(*this) {
     // TODO: set this elsewhere
     LOGGER_INSTANCE.SetOutput(CONFIG_INSTANCE.GetLogOutput());
@@ -95,20 +95,20 @@ System::~System() {
     LOGGER_INSTANCE.SetOutput(LogOutput::StdOut);
 }
 
-void System::LoadAndStart(horizon::loader::ILoader* loader) {
+void System::loadAndStart(horizon::loader::ILoader* loader) {
     // Process
     ASSERT(main_process == nullptr, Other, "Process already exists");
     main_process =
-        os.GetKernel().GetProcessManager().CreateProcess("Guest process");
-    loader->LoadProcess(*this, main_process);
+        os.getKernel().getProcessManager().createProcess("Guest process");
+    loader->loadProcess(*this, main_process);
 
     // Check for firmware applets
     horizon::services::am::internal::LibraryAppletController controller(
         horizon::LibraryAppletMode::AllForeground);
     // TODO: correct?
     u64 system_tick;
-    os.GetKernel().GetSystemTick(system_tick);
-    switch (loader->GetTitleID()) {
+    os.getKernel().getSystemTick(system_tick);
+    switch (loader->getTitleId()) {
     case 0x0100000000001003: { // controller
         // Common args
         horizon::applets::CommonArguments common_args{
@@ -119,7 +119,7 @@ void System::LoadAndStart(horizon::loader::ILoader* loader) {
             .play_startup_sound = false,     // HACK
             .system_tick = system_tick,
         };
-        controller.PushInData(new horizon::services::am::IStorage(common_args));
+        controller.pushInData(new horizon::services::am::IStorage(common_args));
 
         // Arg
         horizon::applets::controller::SupportArg<4> arg{
@@ -145,9 +145,9 @@ void System::LoadAndStart(horizon::loader::ILoader* loader) {
             .npad_joy_hold_type =
                 horizon::services::hid::NpadJoyHoldType::Vertical,
         };
-        controller.PushInData(new horizon::services::am::IStorage(private_arg));
+        controller.pushInData(new horizon::services::am::IStorage(private_arg));
 
-        controller.PushInData(new horizon::services::am::IStorage(arg));
+        controller.pushInData(new horizon::services::am::IStorage(arg));
 
         break;
     }
@@ -161,14 +161,14 @@ void System::LoadAndStart(horizon::loader::ILoader* loader) {
             .play_startup_sound = false,     // HACK
             .system_tick = system_tick,
         };
-        controller.PushInData(new horizon::services::am::IStorage(common_args));
+        controller.pushInData(new horizon::services::am::IStorage(common_args));
 
         // Param common
         horizon::applets::error::ParamCommon param_common{
             .type = horizon::applets::error::ErrorType::ApplicationError,
             .is_jump_enabled = false,
         };
-        controller.PushInData(
+        controller.pushInData(
             new horizon::services::am::IStorage(param_common));
 
         // Param for application error
@@ -176,12 +176,12 @@ void System::LoadAndStart(horizon::loader::ILoader* loader) {
             param_for_application_error{
                 .version = 1,
                 .error_code_number = MAKE_RESULT(Svc, 0),
-                .language_code = horizon::ToLanguageCode(
+                .language_code = horizon::toLanguageCode(
                     CONFIG_INSTANCE.GetSystemLanguage()),
                 .dialog_message = "Dialog message",
                 .fullscreen_message = "Fullscreen message",
-            };
-        controller.PushInData(
+        };
+        controller.pushInData(
             new horizon::services::am::IStorage(param_for_application_error));
 
         break;
@@ -196,14 +196,14 @@ void System::LoadAndStart(horizon::loader::ILoader* loader) {
             .play_startup_sound = false,     // HACK
             .system_tick = system_tick,
         };
-        controller.PushInData(new horizon::services::am::IStorage(common_args));
+        controller.pushInData(new horizon::services::am::IStorage(common_args));
 
         // Config
         horizon::applets::software_keyboard::KeyboardConfigCommon config{
             .mode = horizon::applets::software_keyboard::KeyboardMode::Full,
             // TODO: more
         };
-        controller.PushInData(new horizon::services::am::IStorage(config));
+        controller.pushInData(new horizon::services::am::IStorage(config));
 
         break;
     }
@@ -213,7 +213,7 @@ void System::LoadAndStart(horizon::loader::ILoader* loader) {
             ._unknown_x0 = 0x3,
             .mode = horizon::applets::mii_edit::AppletMode::ShowMiiEdit,
         };
-        controller.PushInData(new horizon::services::am::IStorage(args));
+        controller.pushInData(new horizon::services::am::IStorage(args));
 
         break;
     }
@@ -227,12 +227,12 @@ void System::LoadAndStart(horizon::loader::ILoader* loader) {
             .play_startup_sound = false,     // HACK
             .system_tick = system_tick,
         };
-        controller.PushInData(new horizon::services::am::IStorage(common_args));
+        controller.pushInData(new horizon::services::am::IStorage(common_args));
 
         // Arg
         auto arg = new horizon::applets::album::Arg{
             horizon::applets::album::Arg::ShowAllAlbumFilesForHomeMenu};
-        controller.PushInData(new horizon::services::am::IStorage(arg));
+        controller.pushInData(new horizon::services::am::IStorage(arg));
 
         break;
     }
@@ -240,7 +240,7 @@ void System::LoadAndStart(horizon::loader::ILoader* loader) {
         break;
     }
 
-    os.SetLibraryAppletSelfController(std::move(controller));
+    os.setLibraryAppletSelfController(std::move(controller));
 
     // Loading screen assets
     {
@@ -250,7 +250,7 @@ void System::LoadAndStart(horizon::loader::ILoader* loader) {
         {
             u32 width;
             u32 height;
-            if (auto data = loader->LoadNintendoLogo(width, height)) {
+            if (auto data = loader->loadNintendoLogo(width, height)) {
                 // Create texture
                 const u32 stride = width * 4;
                 const u32 size = height * stride;
@@ -259,33 +259,33 @@ void System::LoadAndStart(horizon::loader::ILoader* loader) {
                     hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
                     true, stride, width, height, 1, 1, 1, 0x0, 0x0, 0x0);
                 const auto texture =
-                    gpu.GetRenderer().CreateTexture(descriptor);
+                    gpu.getRenderer().createTexture(descriptor);
 
                 const auto view_descriptor =
                     hw::tegra_x1::gpu::renderer::TextureViewDescriptor(
                         descriptor.type, descriptor.format,
                         ztd::Range<u32>(0, 1), ztd::Range<u32>(0, 1));
-                const auto texture_view = texture->CreateView(view_descriptor);
+                const auto texture_view = texture->createView(view_descriptor);
                 nintendo_logo = {.base = texture, .view = texture_view};
 
                 // Command buffer
-                command_buffer.reset(gpu.GetRenderer().CreateCommandBuffer());
+                command_buffer.reset(gpu.getRenderer().createCommandBuffer());
 
                 // Copy data
                 auto tmp_buffer =
-                    gpu.GetRenderer().AllocateTemporaryBuffer(size);
-                std::memcpy(reinterpret_cast<void*>(tmp_buffer->GetPtr()), data,
+                    gpu.getRenderer().allocateTemporaryBuffer(size);
+                std::memcpy(reinterpret_cast<void*>(tmp_buffer->getPtr()), data,
                             size);
                 free(data);
-                texture->CopyFrom(command_buffer.get(), tmp_buffer);
-                gpu.GetRenderer().FreeTemporaryBuffer(tmp_buffer);
+                texture->copyFrom(command_buffer.get(), tmp_buffer);
+                gpu.getRenderer().freeTemporaryBuffer(tmp_buffer);
             }
         }
         {
             u32 width;
             u32 height;
             u32 frame_count;
-            if (auto data = loader->LoadStartupMovie(
+            if (auto data = loader->loadStartupMovie(
                     startup_movie_delays, width, height, frame_count)) {
                 const u32 stride = width * 4;
                 const u32 size = height * stride;
@@ -302,22 +302,22 @@ void System::LoadAndStart(horizon::loader::ILoader* loader) {
                 // Command buffer
                 if (command_buffer == nullptr)
                     command_buffer.reset(
-                        gpu.GetRenderer().CreateCommandBuffer());
+                        gpu.getRenderer().createCommandBuffer());
 
                 for (u32 i = 0; i < frame_count; i++) {
                     // Create texture
                     const auto texture =
-                        gpu.GetRenderer().CreateTexture(descriptor);
+                        gpu.getRenderer().createTexture(descriptor);
                     const auto texture_view =
-                        texture->CreateView(view_descriptor);
+                        texture->createView(view_descriptor);
 
                     // Copy data
                     auto tmp_buffer =
-                        gpu.GetRenderer().AllocateTemporaryBuffer(size);
-                    std::memcpy(reinterpret_cast<void*>(tmp_buffer->GetPtr()),
+                        gpu.getRenderer().allocateTemporaryBuffer(size);
+                    std::memcpy(reinterpret_cast<void*>(tmp_buffer->getPtr()),
                                 data + i * height * width, size);
-                    texture->CopyFrom(command_buffer.get(), tmp_buffer);
-                    gpu.GetRenderer().FreeTemporaryBuffer(tmp_buffer);
+                    texture->copyFrom(command_buffer.get(), tmp_buffer);
+                    gpu.getRenderer().freeTemporaryBuffer(tmp_buffer);
                     startup_movie.push_back(
                         {.base = texture, .view = texture_view});
                 }
@@ -330,11 +330,11 @@ void System::LoadAndStart(horizon::loader::ILoader* loader) {
     }
 
     LOG_INFO(Other, "-------- Title info --------");
-    LOG_INFO(Other, "Title ID: {:016x}", loader->GetTitleID());
+    LOG_INFO(Other, "Title ID: {:016x}", loader->getTitleId());
 
     // Patch
     const auto target_patch_filename =
-        fmt::format("{:016x}.hatch", loader->GetTitleID());
+        fmt::format("{:016x}.hatch", loader->getTitleId());
     // TODO: iterate recursively
     for (const auto& patch_path : CONFIG_INSTANCE.GetPatchPaths()) {
         if (!std::filesystem::exists(patch_path)) {
@@ -344,13 +344,13 @@ void System::LoadAndStart(horizon::loader::ILoader* loader) {
 
         if (!std::filesystem::is_directory(patch_path)) {
             // File
-            TryApplyPatch(main_process, target_patch_filename, patch_path);
+            tryApplyPatch(main_process, target_patch_filename, patch_path);
         } else {
             // Directory
             // TODO: iterate recursively
             for (const auto& dir_entry :
                  std::filesystem::directory_iterator{patch_path}) {
-                TryApplyPatch(main_process, target_patch_filename,
+                tryApplyPatch(main_process, target_patch_filename,
                               dir_entry.path().string());
             }
         }
@@ -363,17 +363,17 @@ void System::LoadAndStart(horizon::loader::ILoader* loader) {
 
     // Enter focus
     // HACK: games expect focus change to be the second message?
-    main_process->GetAppletState().SendMessage(
+    main_process->getAppletState().sendMessage(
         horizon::kernel::AppletMessage::Resume);
-    main_process->GetAppletState().SetFocusState(
+    main_process->getAppletState().setFocusState(
         horizon::kernel::AppletFocusState::InFocus);
 
     // Preselected user
     auto user_id = CONFIG_INSTANCE.GetUserId();
     if (user_id == horizon::services::account::internal::INVALID_USER_ID) {
         // If there is just a single user, use that
-        if (os.GetUserManager().GetUserCount() == 1) {
-            user_id = os.GetUserManager().GetUserIDs()[0];
+        if (os.getUserManager().getUserCount() == 1) {
+            user_id = os.getUserManager().getUserIDs()[0];
         } else {
             // TODO: launch a select user applet in case the game requires it
             LOG_FATAL(Other, "Multiple user accounts");
@@ -381,23 +381,23 @@ void System::LoadAndStart(horizon::loader::ILoader* loader) {
     }
 
     if (user_id != horizon::services::account::internal::INVALID_USER_ID) {
-        main_process->GetAppletState().PushPreselectedUser(user_id);
+        main_process->getAppletState().pushPreselectedUser(user_id);
         LOG_INFO(Other, "Preselected user with ID {:032x}", user_id);
     }
 
-    main_process->Start();
+    main_process->start();
 
     // Activate GDB server
     if (CONFIG_INSTANCE.GetGdbEnabled()) {
         if (CONFIG_INSTANCE.GetGdbWaitForClient())
-            main_process->GetMainThread()->SupervisorPause();
+            main_process->getMainThread()->supervisorPause();
 
         // HACK: spinlock until the main thread is running
-        while (!main_process->IsRunning())
+        while (!main_process->isRunning())
             std::this_thread::yield();
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        DEBUGGER_MANAGER_INSTANCE.GetDebugger(main_process)
-            .ActivateGdbServer(*this);
+        DEBUGGER_MANAGER_INSTANCE.getDebugger(main_process)
+            .activateGdbServer(*this);
     }
 
     // Loading screen
@@ -409,78 +409,78 @@ void System::LoadAndStart(horizon::loader::ILoader* loader) {
     startup_movie_fade_in_time = crnt_time + STARTUP_MOVIE_FADE_IN_DURATION;
 }
 
-void System::RequestStop() {
+void System::requestStop() {
     // We don't request the processes to stop yet, instead we send a message to
     // all of them and give them some time to react
-    for (auto it = os.GetKernel().GetProcessManager().Begin();
-         it != os.GetKernel().GetProcessManager().End(); ++it)
-        (*it)->GetAppletState().SendMessage(
+    for (auto it = os.getKernel().getProcessManager().begin();
+         it != os.getKernel().getProcessManager().end(); ++it)
+        (*it)->getAppletState().sendMessage(
             horizon::kernel::AppletMessage::Exit);
 }
 
-void System::ForceStop() {
+void System::forceStop() {
     // Request all processes to stop immediately
-    for (auto it = os.GetKernel().GetProcessManager().Begin();
-         it != os.GetKernel().GetProcessManager().End(); ++it)
-        (*it)->Stop();
+    for (auto it = os.getKernel().getProcessManager().begin();
+         it != os.getKernel().getProcessManager().end(); ++it)
+        (*it)->stop();
 
     // Wait a small amount of time for all threads to catch up
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     // Check if all processes have stopped
-    if (IsRunning()) {
+    if (isRunning()) {
         // If some processes are still running, just abort
         LOG_FATAL(Other, "Failed to stop all processes");
     }
 }
 
-void System::Pause() {
-    for (auto it = os.GetKernel().GetProcessManager().Begin();
-         it != os.GetKernel().GetProcessManager().End(); ++it)
-        (*it)->SupervisorPause();
+void System::pause() {
+    for (auto it = os.getKernel().getProcessManager().begin();
+         it != os.getKernel().getProcessManager().end(); ++it)
+        (*it)->supervisorPause();
 }
 
-void System::Resume() {
-    for (auto it = os.GetKernel().GetProcessManager().Begin();
-         it != os.GetKernel().GetProcessManager().End(); ++it)
-        (*it)->SupervisorResume();
+void System::resume() {
+    for (auto it = os.getKernel().getProcessManager().begin();
+         it != os.getKernel().getProcessManager().end(); ++it)
+        (*it)->supervisorResume();
 }
 
-void System::ProgressFrame(u32 width, u32 height,
+void System::progressFrame(u32 width, u32 height,
                            bool& out_dt_average_updated) {
     // Pump input events
-    input_device_manager.PumpEvents();
+    input_device_manager.pumpEvents();
 
     // Set the resolution for OS
-    os.SetSurfaceResolution({width, height});
+    os.setSurfaceResolution({width, height});
 
     // Input
-    os.GetHidResourceManager().Update();
+    os.getHidResourceManager().update();
 
     // Present
 
     // Acquire surface
-    auto compositor = gpu.GetRenderer().AcquireNextSurface();
+    auto compositor = gpu.getRenderer().acquireNextSurface();
     if (compositor == nullptr)
         return;
 
     // Delta time
     {
         auto layer =
-            os.GetDisplayDriver().GetFirstLayerForProcess(main_process);
+            os.getDisplayDriver().getFirstLayerForProcess(main_process);
         if (layer != nullptr)
-            accumulated_dt += layer->GetAccumulatedDT();
+            accumulated_dt += layer->getAccumulatedDt();
     }
 
     // Command buffer
-    auto command_buffer = gpu.GetRenderer().CreateCommandBuffer();
+    auto command_buffer = gpu.getRenderer().createCommandBuffer();
 
     // Acquire present textures
     bool acquired =
-        os.GetDisplayDriver().AcquirePresentTextures(command_buffer);
+        os.getDisplayDriver().acquirePresentTextures(command_buffer);
 
     // Render pass
-    os.GetDisplayDriver().Present(command_buffer, compositor, width, height);
+    os.getDisplayDriver().present(command_buffer, compositor, width, height);
 
     if (loading) {
         if (acquired) {
@@ -516,10 +516,10 @@ void System::ProgressFrame(u32 width, u32 height,
             if (nintendo_logo) {
                 const auto tex = *nintendo_logo;
                 int2 size = {
-                    static_cast<i32>(tex.base->GetDescriptor().width),
-                    static_cast<i32>(tex.base->GetDescriptor().height)};
+                    static_cast<i32>(tex.base->getDescriptor().width),
+                    static_cast<i32>(tex.base->getDescriptor().height)};
                 int2 dst_offset = {32, 32};
-                compositor->DrawTexture(
+                compositor->drawTexture(
                     command_buffer, tex.view, IntRect2D({0, 0}, size),
                     IntRect2D(dst_offset, size), true, opacity);
             }
@@ -536,11 +536,11 @@ void System::ProgressFrame(u32 width, u32 height,
 
                 auto frame = startup_movie[startup_movie_frame];
                 int2 size = {
-                    static_cast<i32>(frame.base->GetDescriptor().width),
-                    static_cast<i32>(frame.base->GetDescriptor().height)};
+                    static_cast<i32>(frame.base->getDescriptor().width),
+                    static_cast<i32>(frame.base->getDescriptor().height)};
                 int2 dst_offset = {static_cast<i32>(width) - size.x() - 32,
                                    static_cast<i32>(height) - size.y() - 32};
-                compositor->DrawTexture(
+                compositor->drawTexture(
                     command_buffer, frame.view, IntRect2D({0, 0}, size),
                     IntRect2D(dst_offset, size), true, opacity);
             }
@@ -563,20 +563,20 @@ void System::ProgressFrame(u32 width, u32 height,
         }
     }
 
-    compositor->Present(command_buffer);
+    compositor->present(command_buffer);
 
     delete command_buffer;
     delete compositor;
 
     // Signal V-Sync
-    os.GetDisplayDriver().SignalVSync();
+    os.getDisplayDriver().signalVSync();
 }
 
-bool System::IsRunning() const {
+bool System::isRunning() const {
     if (main_process == nullptr)
         return false;
 
-    switch (main_process->GetState()) {
+    switch (main_process->getState()) {
     case horizon::kernel::ProcessState::Started:
     case horizon::kernel::ProcessState::Exiting:
         return true;
@@ -585,16 +585,16 @@ bool System::IsRunning() const {
     };
 }
 
-void System::TakeScreenshot() {
-    auto layer = os.GetDisplayDriver().GetFirstLayerForProcess(main_process);
+void System::takeScreenshot() {
+    auto layer = os.getDisplayDriver().getFirstLayerForProcess(main_process);
     if (layer == nullptr)
         return;
 
-    ZTD_ASSIGN_OR_RETURN(auto texture, layer->GetPresentTexture());
+    ZTD_ASSIGN_OR_RETURN(auto texture, layer->getPresentTexture());
 
     std::thread thread([layer, texture, this] {
         // Get the image data
-        auto rect = layer->GetSrcRect();
+        auto rect = layer->getSrcRect();
 
         // Check if the image is flipped
         ASSERT(rect.size.x() > 0, Other, "Invalid width {}", rect.size.x());
@@ -606,10 +606,10 @@ void System::TakeScreenshot() {
         }
 
         // Copy to a buffer
-        auto command_buffer = gpu.GetRenderer().CreateCommandBuffer();
-        auto buffer = gpu.GetRenderer().AllocateTemporaryBuffer(
+        auto command_buffer = gpu.getRenderer().createCommandBuffer();
+        auto buffer = gpu.getRenderer().allocateTemporaryBuffer(
             static_cast<u32>(rect.size.y() * rect.size.x() * 4));
-        buffer->CopyFrom(command_buffer, texture, rect.origin, rect.size,
+        buffer->copyFrom(command_buffer, texture, rect.origin, rect.size,
                          ztd::Range<u32>(0, 1), ztd::Range<u32>(0, 1));
         delete command_buffer;
 
@@ -624,22 +624,22 @@ void System::TakeScreenshot() {
 
         stbi_flip_vertically_on_write(flip_y);
         if (!stbi_write_jpg(filename.c_str(), rect.size.x(), rect.size.y(), 4,
-                            reinterpret_cast<void*>(buffer->GetPtr()), 100))
+                            reinterpret_cast<void*>(buffer->getPtr()), 100))
             LOG_ERROR(Other, "Failed to save screenshot to {}", filename);
         stbi_flip_vertically_on_write(false);
 
         // Free the buffer
-        gpu.GetRenderer().FreeTemporaryBuffer(buffer);
+        gpu.getRenderer().freeTemporaryBuffer(buffer);
     });
     thread.detach();
 }
 
-void System::CaptureGpuFrame() {
+void System::captureGpuFrame() {
     // TODO: allow multiple frames
-    gpu.GetRenderer().CaptureFrames(1);
+    gpu.getRenderer().captureFrames(1);
 }
 
-void System::TryApplyPatch(horizon::kernel::Process* process,
+void System::tryApplyPatch(horizon::kernel::Process* process,
                            const std::string_view target_filename,
                            const std::filesystem::path& path) {
     if (to_lower(path.filename().string()) != target_filename)
@@ -657,7 +657,7 @@ void System::TryApplyPatch(horizon::kernel::Process* process,
 
     // Memory patch
     for (const auto& entry : hatch.GetMemoryPatch())
-        process->GetMmu()->Write<u32>(entry.addr, entry.value);
+        process->getMmu()->write<u32>(entry.addr, entry.value);
 
     ifs.close();
 }

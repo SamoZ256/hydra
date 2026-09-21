@@ -20,19 +20,19 @@
         Inst##inst_name##Base base;                                            \
         BitField64<reg_t, 20, 8> reg_name;                                     \
     };                                                                         \
-    void Emit##inst_name##R(DecoderContext& context, Inst##inst_name##R inst); \
+    void emit##inst_name##R(DecoderContext& context, Inst##inst_name##R inst); \
     union Inst##inst_name##C {                                                 \
         Inst##inst_name##Base base;                                            \
         BitField64<u32, 20, 14> cbuf_offset;                                   \
         BitField64<u32, 34, 5> cbuf_slot;                                      \
     };                                                                         \
-    void Emit##inst_name##C(DecoderContext& context, Inst##inst_name##C inst); \
+    void emit##inst_name##C(DecoderContext& context, Inst##inst_name##C inst); \
     union Inst##inst_name##I {                                                 \
         Inst##inst_name##Base base;                                            \
         BitField64<u32, 20, 19> imm20_0;                                       \
         BitField64<u32, 56, 1> imm20_19;                                       \
     };                                                                         \
-    void Emit##inst_name##I(DecoderContext& context, Inst##inst_name##I inst);
+    void emit##inst_name##I(DecoderContext& context, Inst##inst_name##I inst);
 
 #define DEFINE_INST_SRC1_VARIANTS(inst_name)                                   \
     DEFINE_INST_VARIANTS_IMPL(inst_name, src)
@@ -80,7 +80,7 @@ enum class HalfSwizzle {
     H1H1 = 3,
 };
 
-inline u32 GetIntImm20(u32 imm20_0, u32 imm20_19, bool extend) {
+inline u32 getIntImm20(u32 imm20_0, u32 imm20_19, bool extend) {
     const auto imm20 = imm20_0 | (imm20_19 << 19);
     if (extend)
         return sign_extend<u32, 20>(imm20);
@@ -88,59 +88,60 @@ inline u32 GetIntImm20(u32 imm20_0, u32 imm20_19, bool extend) {
         return imm20;
 }
 
-inline f32 GetFloatImm20(u32 imm20_0, u32 imm20_19) {
+inline f32 getFloatImm20(u32 imm20_0, u32 imm20_19) {
     return std::bit_cast<f32>((imm20_0 | (imm20_19 << 19)) << 12);
 }
 
-inline ir::Value GetHalf2Const(ir::Builder& builder, u32 h0, u32 h1) {
-    return builder.OpVectorConstruct(
-        ir::ScalarType::F16, {ir::Value::Constant(h0, ir::ScalarType::F16),
-                              ir::Value::Constant(h1, ir::ScalarType::F16)});
+inline ir::Value getHalf2Const(ir::Builder& builder, u32 h0, u32 h1) {
+    return builder.opVectorConstruct(
+        ir::ScalarType::F16,
+        {ir::Value::createConstant(h0, ir::ScalarType::F16),
+         ir::Value::createConstant(h1, ir::ScalarType::F16)});
 }
 
-inline ir::Value GetHalf2Const20(ir::Builder& builder, u32 h0_imm10,
+inline ir::Value getHalf2Const20(ir::Builder& builder, u32 h0_imm10,
                                  u32 h1_imm10) {
-    return GetHalf2Const(builder, h0_imm10 << 6, h1_imm10 << 6);
+    return getHalf2Const(builder, h0_imm10 << 6, h1_imm10 << 6);
 }
 
-inline ir::Value GetHalf2Const32(ir::Builder& builder, u32 imm32) {
-    return GetHalf2Const(builder, extract_bits(imm32, 0, 16),
+inline ir::Value getHalf2Const32(ir::Builder& builder, u32 imm32) {
+    return getHalf2Const(builder, extract_bits(imm32, 0, 16),
                          extract_bits(imm32, 16, 16));
 }
 
-inline ir::Value NegIf(ir::Builder& builder, const ir::Value& value, bool neg) {
-    return neg ? builder.OpNeg(value) : value;
+inline ir::Value negIf(ir::Builder& builder, const ir::Value& value, bool neg) {
+    return neg ? builder.opNeg(value) : value;
 }
 
-inline ir::Value AbsIf(ir::Builder& builder, const ir::Value& value, bool abs) {
-    return abs ? builder.OpAbs(value) : value;
+inline ir::Value absIf(ir::Builder& builder, const ir::Value& value, bool abs) {
+    return abs ? builder.opAbs(value) : value;
 }
 
-inline ir::Value AbsNegIf(ir::Builder& builder, const ir::Value& value,
+inline ir::Value absNegIf(ir::Builder& builder, const ir::Value& value,
                           bool abs, bool neg) {
-    return NegIf(builder, AbsIf(builder, value, abs), neg);
+    return negIf(builder, absIf(builder, value, abs), neg);
 }
 
-inline ir::Value NotIf(ir::Builder& builder, const ir::Value& value,
+inline ir::Value notIf(ir::Builder& builder, const ir::Value& value,
                        bool not_) {
-    return not_ ? builder.OpNot(value) : value;
+    return not_ ? builder.opNot(value) : value;
 }
 
-inline ir::Value SaturateIf(ir::Builder& builder, const ir::Value& value,
+inline ir::Value saturateIf(ir::Builder& builder, const ir::Value& value,
                             bool sat) {
-    return sat ? builder.OpClamp(value, ir::Value::ConstantF(0.0f),
-                                 ir::Value::ConstantF(1.0f))
+    return sat ? builder.opClamp(value, ir::Value::createConstantF(0.0f),
+                                 ir::Value::createConstantF(1.0f))
                : value;
 }
 
-inline ir::Value Saturate2xF16If(ir::Builder& builder, const ir::Value& value,
+inline ir::Value saturate2xF16If(ir::Builder& builder, const ir::Value& value,
                                  bool sat) {
-    return sat ? builder.OpClamp(value, GetHalf2Const(builder, 0x0, 0x0),
-                                 GetHalf2Const(builder, 0x3c00, 0x3c00))
+    return sat ? builder.opClamp(value, getHalf2Const(builder, 0x0, 0x0),
+                                 getHalf2Const(builder, 0x3c00, 0x3c00))
                : value;
 }
 
-inline bool HandlePredCond(ir::Builder& builder, pred_t pred, bool pred_inv) {
+inline bool handlePredCond(ir::Builder& builder, pred_t pred, bool pred_inv) {
     if (pred == PT) {
         if (!pred_inv) { // Always
         } else {         // Never
@@ -150,8 +151,8 @@ inline bool HandlePredCond(ir::Builder& builder, pred_t pred, bool pred_inv) {
 
         return false;
     } else { // Conditional
-        builder.OpBeginIf(
-            {NotIf(builder, ir::Value::Predicate(pred), pred_inv)});
+        builder.opBeginIf(
+            {notIf(builder, ir::Value::createPredicate(pred), pred_inv)});
         return true;
     }
 }
@@ -161,82 +162,84 @@ enum class EnsureIntegerSignednessError {
 };
 
 template <bool signed_>
-ir::Value EnsureIntegerSignedness(ir::Builder& builder,
+ir::Value ensureIntegerSignedness(ir::Builder& builder,
                                   const ir::Value& value) {
-    const auto type = value.GetType();
+    const auto type = value.getType();
     if (signed_) {
-        if (type.IsUnsignedInteger())
-            return builder.OpCast(value, type.SignedEquivalent());
+        if (type.isUnsignedInteger())
+            return builder.opCast(value, type.signedEquivalent());
     } else {
-        if (type.IsSignedInteger())
-            return builder.OpCast(value, type.UnsignedEquivalent());
+        if (type.isSignedInteger())
+            return builder.opCast(value, type.unsignedEquivalent());
     }
 
     return value;
 }
 
-inline ir::Value GetSwizzledHalf(ir::Builder& builder, HalfSwizzle swizzle,
+inline ir::Value getSwizzledHalf(ir::Builder& builder, HalfSwizzle swizzle,
                                  reg_t src) {
     if (swizzle == HalfSwizzle::F16)
-        return ir::Value::Register(src, ir::VectorType(ir::ScalarType::F16, 2));
+        return ir::Value::createRegister(
+            src, ir::VectorType(ir::ScalarType::F16, 2));
 
-    ir::Value src_v = ir::Value::Undefined();
+    ir::Value src_v = ir::Value::createUndefined();
     switch (swizzle) {
     case HalfSwizzle::F32: {
-        src_v = builder.OpCast(ir::Value::Register(src, ir::ScalarType::F32),
-                               ir::ScalarType::F16);
+        src_v =
+            builder.opCast(ir::Value::createRegister(src, ir::ScalarType::F32),
+                           ir::ScalarType::F16);
         break;
     }
     case HalfSwizzle::H0H0: {
-        src_v = ir::Value::Register(src, ir::ScalarType::F16);
+        src_v = ir::Value::createRegister(src, ir::ScalarType::F16);
         break;
     }
     case HalfSwizzle::H1H1: {
-        src_v = builder.OpBitfieldExtract(ir::Value::Register(src),
-                                          ir::Value::ConstantU(16),
-                                          ir::Value::ConstantU(16));
-        src_v = builder.OpCast(src_v, ir::ScalarType::U16);
-        src_v = builder.OpBitCast(src_v, ir::ScalarType::F16);
+        src_v = builder.opBitfieldExtract(ir::Value::createRegister(src),
+                                          ir::Value::createConstantU(16),
+                                          ir::Value::createConstantU(16));
+        src_v = builder.opCast(src_v, ir::ScalarType::U16);
+        src_v = builder.opBitCast(src_v, ir::ScalarType::F16);
         break;
     }
     default:
         unreachable();
     }
 
-    return builder.OpVectorConstruct(ir::ScalarType::F16, {src_v, src_v});
+    return builder.opVectorConstruct(ir::ScalarType::F16, {src_v, src_v});
 }
 
-inline ir::Value GetFloatCmp(DecoderContext& context, FloatCmpOp op,
+inline ir::Value getFloatCmp(DecoderContext& context, FloatCmpOp op,
                              ir::Value a, ir::Value b) {
     // TODO: handle U versions differently?
     switch (op) {
     case FloatCmpOp::F:
-        return ir::Value::ConstantB(false);
+        return ir::Value::createConstantB(false);
     case FloatCmpOp::T:
-        return ir::Value::ConstantB(true);
+        return ir::Value::createConstantB(true);
     case FloatCmpOp::Lt:
     case FloatCmpOp::Ltu:
-        return context.builder.OpCompareLess(a, b);
+        return context.builder.opCompareLess(a, b);
     case FloatCmpOp::Le:
     case FloatCmpOp::Leu:
-        return context.builder.OpCompareLessOrEqual(a, b);
+        return context.builder.opCompareLessOrEqual(a, b);
     case FloatCmpOp::Gt:
     case FloatCmpOp::Gtu:
-        return context.builder.OpCompareGreater(a, b);
+        return context.builder.opCompareGreater(a, b);
     case FloatCmpOp::Ge:
     case FloatCmpOp::Geu:
-        return context.builder.OpCompareGreaterOrEqual(a, b);
+        return context.builder.opCompareGreaterOrEqual(a, b);
     case FloatCmpOp::Eq:
     case FloatCmpOp::Equ:
-        return context.builder.OpCompareEqual(a, b);
+        return context.builder.opCompareEqual(a, b);
     case FloatCmpOp::Ne:
     case FloatCmpOp::Neu:
-        return context.builder.OpCompareNotEqual(a, b);
+        return context.builder.opCompareNotEqual(a, b);
     case FloatCmpOp::Num:
     case FloatCmpOp::Nan: {
-        const auto res = context.builder.OpBitwiseOr(a, b);
+        const auto res = context.builder.opBitwiseOr(a, b);
         if (op == FloatCmpOp::Num)
-            return context.builder.OpNot(res);
+            return context.builder.opNot(res);
         else
             return res;
     }

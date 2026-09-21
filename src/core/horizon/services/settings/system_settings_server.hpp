@@ -59,25 +59,25 @@ struct TvSettings {
 
 class ISystemSettingsServer : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t GetFirmwareVersion(OutBuffer<BufferAttr::HipcPointer> out_buffer);
-    result_t GetFirmwareVersion2(OutBuffer<BufferAttr::HipcPointer> out_buffer);
-    result_t GetColorSetId(ColorSetId* out_id);
-    result_t GetSettingsItemValueSize(
+    result_t getFirmwareVersion(OutBuffer<BufferAttr::HipcPointer> out_buffer);
+    result_t getFirmwareVersion2(OutBuffer<BufferAttr::HipcPointer> out_buffer);
+    result_t getColorSetId(ColorSetId* out_id);
+    result_t getSettingsItemValueSize(
         InBuffer<BufferAttr::HipcPointer> in_name_buffer,
         InBuffer<BufferAttr::HipcPointer> in_item_key_buffer, u64* out_size);
     result_t
-    GetSettingsItemValue(InBuffer<BufferAttr::HipcPointer> in_name_buffer,
+    getSettingsItemValue(InBuffer<BufferAttr::HipcPointer> in_name_buffer,
                          InBuffer<BufferAttr::HipcPointer> in_item_key_buffer,
                          u64* out_size,
                          OutBuffer<BufferAttr::MapAlias> out_buffer);
-    result_t GetTvSettings(TvSettings* out_settings);
-    result_t GetDebugModeFlag(bool* out_flag);
-    result_t GetDeviceNickName(OutBuffer<BufferAttr::MapAlias> out_buffer);
+    result_t getTvSettings(TvSettings* out_settings);
+    result_t getDebugModeFlag(bool* out_flag);
+    result_t getDeviceNickName(OutBuffer<BufferAttr::MapAlias> out_buffer);
 };
 
 } // namespace hydra::horizon::services::settings

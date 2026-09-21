@@ -101,7 +101,7 @@ enum class ModuleId : u32 {
 
 class IPcvService : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
@@ -110,8 +110,8 @@ class IPcvService : public IService {
                                                           hw::GPU_TICK_FREQ};
 
     // Commands
-    result_t SetClockRate(ModuleId module_id, u32 rate);
-    result_t GetClockRate(ModuleId module_id, u32* out_rate);
+    result_t setClockRate(ModuleId module_id, u32 rate);
+    result_t getClockRate(ModuleId module_id, u32* out_rate);
 };
 
 } // namespace hydra::horizon::services::pcv

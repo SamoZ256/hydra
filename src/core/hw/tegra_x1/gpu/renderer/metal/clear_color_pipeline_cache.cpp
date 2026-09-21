@@ -33,7 +33,7 @@ ClearColorPipelineCache::ClearColorPipelineCache(MTL::Device* device_)
 
     // Function
     auto vertex_clear_color =
-        CreateFunctionFromSource(device, shader_source, "vertex_clear_color");
+        createFunctionFromSource(device, shader_source, "vertex_clear_color");
 
     // Pipeline descriptor
     pipeline_descriptor = MTL::RenderPipelineDescriptor::alloc()->init();
@@ -42,9 +42,9 @@ ClearColorPipelineCache::ClearColorPipelineCache(MTL::Device* device_)
         MTL::PrimitiveTopologyClassTriangle);
 }
 
-void ClearColorPipelineCache::Destroy() { pipeline_descriptor->release(); }
+void ClearColorPipelineCache::destroy() { pipeline_descriptor->release(); }
 
-MTL::RenderPipelineState* ClearColorPipelineCache::Create(
+MTL::RenderPipelineState* ClearColorPipelineCache::create(
     const ClearColorPipelineDescriptor& descriptor) {
     // Source
     auto shader_source = fmt::format(R"(
@@ -64,7 +64,7 @@ MTL::RenderPipelineState* ClearColorPipelineCache::Create(
 
     // Function
     auto fragment_clear_color =
-        CreateFunctionFromSource(device, shader_source, "fragment_clear_color");
+        createFunctionFromSource(device, shader_source, "fragment_clear_color");
 
     // Pipeline
     pipeline_descriptor->setFragmentFunction(fragment_clear_color);
@@ -96,7 +96,7 @@ MTL::RenderPipelineState* ClearColorPipelineCache::Create(
     return pipeline;
 }
 
-u32 ClearColorPipelineCache::Hash(
+u32 ClearColorPipelineCache::hash(
     const ClearColorPipelineDescriptor& descriptor) {
     ztd::hash::XxHash32 hash;
     hash.add(descriptor.pixel_format);
@@ -105,7 +105,7 @@ u32 ClearColorPipelineCache::Hash(
     return hash.toHashCode();
 }
 
-void ClearColorPipelineCache::DestroyElement(
+void ClearColorPipelineCache::destroyElement(
     MTL::RenderPipelineState* pipeline) {
     pipeline->release();
 }

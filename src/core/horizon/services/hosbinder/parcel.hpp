@@ -27,12 +27,12 @@ class ParcelReader {
   public:
     explicit ParcelReader(ztd::io::MemoryStream stream_)
         : stream{std::move(stream_)} {
-        auto header = Read<ParcelHeader>();
+        auto header = read<ParcelHeader>();
         stream.seekTo(header.data_offset);
     }
 
     template <typename T>
-    std::span<const T> ReadSpan(usize count) {
+    std::span<const T> readSpan(usize count) {
         const auto span = stream.readSpan<T>(count);
 
         // Align
@@ -43,41 +43,41 @@ class ParcelReader {
     }
 
     template <typename T>
-    const T* ReadPtr() {
-        return ReadSpan<T>(1).data();
+    const T* readPtr() {
+        return readSpan<T>(1).data();
     }
 
     template <typename T>
-    T Read() {
-        return *ReadPtr<T>();
+    T read() {
+        return *readPtr<T>();
     }
 
     template <typename T>
-    const T* ReadFlattenedObject() {
-        auto len = Read<i32>();      // len
-        auto fd_count = Read<i32>(); // fd count
+    const T* readFlattenedObject() {
+        auto len = read<i32>();      // len
+        auto fd_count = read<i32>(); // fd count
 
         ASSERT_DEBUG(len == sizeof(T), Services,
                      "Invalid flattened object length {}", len);
         ASSERT_DEBUG(fd_count == 0, Services,
                      "Non-zero FD count ({}) not supported", fd_count);
 
-        return ReadPtr<T>();
+        return readPtr<T>();
     }
 
     template <typename T>
-    const T* ReadStrongPointer() {
-        bool is_valid = Read<bool>();
+    const T* readStrongPointer() {
+        bool is_valid = read<bool>();
         if (is_valid)
-            return ReadFlattenedObject<T>();
+            return readFlattenedObject<T>();
         else
             return nullptr;
     }
 
     // TODO: check this
-    std::string ReadString16() {
-        auto length = static_cast<usize>(Read<i32>());
-        auto data = ReadSpan<u16>(length + 1);
+    std::string readString16() {
+        auto length = static_cast<usize>(read<i32>());
+        auto data = readSpan<u16>(length + 1);
 
         std::string str(length, '\0');
         for (usize i = 0; i < length + 1; i++)
@@ -86,12 +86,12 @@ class ParcelReader {
         return str;
     }
 
-    std::string ReadInterfaceToken() {
-        const auto unknown = Read<i32>();
+    std::string readInterfaceToken() {
+        const auto unknown = read<i32>();
         ASSERT_DEBUG(unknown == 0x100, Services,
                      "Invalid interface token unknown 0x{:x}", unknown);
 
-        return ReadString16();
+        return readString16();
     }
 
   private:
@@ -110,7 +110,7 @@ class ParcelWriter {
         });
     }
 
-    void Finish() {
+    void finish() {
         header->data_size =
             static_cast<u32>(stream.getSeek() - header->data_offset);
         header->objects_size = static_cast<u32>(objects.size() * sizeof(u32));
@@ -120,19 +120,19 @@ class ParcelWriter {
     }
 
     template <typename T>
-    T* WriteReturningPtr() {
-        return WriteReturningSpan<T>(1).data();
+    T* writeReturningPtr() {
+        return writeReturningSpan<T>(1).data();
     }
 
     template <typename T>
-    T* WriteReturningPtr(const T& value) {
-        auto ptr = WriteReturningPtr<T>();
+    T* writeReturningPtr(const T& value) {
+        auto ptr = writeReturningPtr<T>();
         *ptr = value;
         return ptr;
     }
 
     template <typename T>
-    std::span<T> WriteReturningSpan(usize count) {
+    std::span<T> writeReturningSpan(usize count) {
         auto span = stream.writeReturningSpan<T>(count);
 
         // Align
@@ -143,27 +143,27 @@ class ParcelWriter {
     }
 
     template <typename T>
-    void Write(const T& value) {
-        WriteReturningPtr(value);
+    void write(const T& value) {
+        writeReturningPtr(value);
     }
 
     template <typename T>
-    void WriteFlattenedObject(const T& object) {
-        Write<i32>(sizeof(T)); // len
-        Write<i32>(0);         // FD count
-        Write(object);
+    void writeFlattenedObject(const T& object) {
+        write<i32>(sizeof(T)); // len
+        write<i32>(0);         // FD count
+        write(object);
     }
 
     template <typename T>
-    void WriteStrongPointer(const T* ptr) {
-        Write(ptr != nullptr);
+    void writeStrongPointer(const T* ptr) {
+        write(ptr != nullptr);
         if (ptr)
-            WriteFlattenedObject(*ptr);
+            writeFlattenedObject(*ptr);
     }
 
     // TODO: take the object instead of binder ID
-    void WriteObject(u32 binder_id, u64 service_name) {
-        Write<ParcelFlattenedBinder>({
+    void writeObject(u32 binder_id, u64 service_name) {
+        write<ParcelFlattenedBinder>({
             .type = 0x2,
             .flags = 0x0,
             .binder_id = binder_id,
@@ -177,22 +177,22 @@ class ParcelWriter {
     }
 
     // TODO: check this
-    void WriteString16(const std::string_view str) {
+    void writeString16(const std::string_view str) {
         ASSERT_DEBUG(!str.empty(), Services, "Invalid string size");
-        Write(static_cast<i32>(str.size()));
-        auto span = WriteReturningSpan<u16>(str.size() + 1);
+        write(static_cast<i32>(str.size()));
+        auto span = writeReturningSpan<u16>(str.size() + 1);
 
         for (u32 i = 0; i < str.size(); i++)
             span[i] = static_cast<u16>(str[i]);
         span[str.size()] = u'\0';
     }
 
-    void WriteInterfaceToken(const std::string_view token) {
-        Write<i32>(0x100);
-        WriteString16(token);
+    void writeInterfaceToken(const std::string_view token) {
+        write<i32>(0x100);
+        writeString16(token);
     }
 
-    usize GetWrittenSize() const {
+    usize getWrittenSize() const {
         return sizeof(ParcelHeader) + header->data_size + header->objects_size;
     }
 

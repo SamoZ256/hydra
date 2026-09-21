@@ -11,14 +11,14 @@ class Driver {
     explicit Driver(System& system_);
 
     // Displays
-    Display& GetDisplay(Handle handle) {
+    Display& getDisplay(Handle handle) {
         std::scoped_lock lock(display_mutex);
-        ZTD_ASSIGN_OR(auto display, display_pool.Get(handle),
+        ZTD_ASSIGN_OR(auto display, display_pool.get(handle),
                       LOG_FATAL(Horizon, "Failed to get display {}", handle));
         return *display;
     }
 
-    Handle GetDisplayIDFromName(const std::string& name) {
+    Handle getDisplayIdFromName(const std::string& name) {
         (void)this;
         LOG_NOT_IMPLEMENTED(Horizon, "GetDisplayIDFromName (name: {})", name);
 
@@ -26,58 +26,58 @@ class Driver {
         return 1;
     }
 
-    Display& GetDisplayByName(const std::string& name) {
-        return GetDisplay(GetDisplayIDFromName(name));
+    Display& getDisplayByName(const std::string& name) {
+        return getDisplay(getDisplayIdFromName(name));
     }
 
     // Layers
-    Handle CreateLayer(kernel::Process* process, Handle binder_handle) {
+    Handle createLayer(kernel::Process* process, Handle binder_handle) {
         std::scoped_lock lock(layer_mutex);
-        return layer_pool.Insert(std::ref(system), process, binder_handle)
+        return layer_pool.insert(std::ref(system), process, binder_handle)
             .value();
     }
 
-    void DestroyLayer(Handle handle) {
+    void destroyLayer(Handle handle) {
         std::scoped_lock lock(layer_mutex);
-        ASSERT_DEBUG(layer_pool.Free(handle), Horizon, "Invalid layer {}",
+        ASSERT_DEBUG(layer_pool.free(handle), Horizon, "Invalid layer {}",
                      handle);
     }
 
-    Layer& GetLayer(Handle handle) {
+    Layer& getLayer(Handle handle) {
         std::scoped_lock lock(layer_mutex);
-        ZTD_ASSIGN_OR(auto layer, layer_pool.Get(handle),
+        ZTD_ASSIGN_OR(auto layer, layer_pool.get(handle),
                       LOG_FATAL(Horizon, "Failed to get layer {}", handle));
         return *layer;
     }
 
     // Binders
-    Handle CreateBinder() {
+    Handle createBinder() {
         std::scoped_lock lock(binder_mutex);
-        return binder_pool.Insert().value();
+        return binder_pool.insert().value();
     }
 
-    void DestroyBinder(Handle handle) {
+    void destroyBinder(Handle handle) {
         std::scoped_lock lock(binder_mutex);
-        ASSERT_DEBUG(binder_pool.Free(handle), Horizon, "Invalid binder {}",
+        ASSERT_DEBUG(binder_pool.free(handle), Horizon, "Invalid binder {}",
                      handle);
     }
 
-    Binder& GetBinder(Handle handle) {
+    Binder& getBinder(Handle handle) {
         std::scoped_lock lock(binder_mutex);
-        ZTD_ASSIGN_OR(auto binder, binder_pool.Get(handle),
+        ZTD_ASSIGN_OR(auto binder, binder_pool.get(handle),
                       LOG_FATAL(Horizon, "Failed to get binder {}", handle));
         return *binder;
     }
 
     // Presenting
-    bool AcquirePresentTextures(
+    bool acquirePresentTextures(
         hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer);
-    void Present(hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer,
+    void present(hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer,
                  hw::tegra_x1::gpu::renderer::ISurfaceCompositor* compositor,
                  u32 width, u32 height);
-    void SignalVSync();
+    void signalVSync();
 
-    Layer* GetFirstLayerForProcess(kernel::Process* process);
+    Layer* getFirstLayerForProcess(kernel::Process* process);
 
   private:
     System& system;

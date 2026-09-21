@@ -4,14 +4,14 @@
 
 namespace hydra::horizon::display {
 
-void Binder::AddBuffer(i32 slot, const GraphicBuffer& buff) {
+void Binder::addBuffer(i32 slot, const GraphicBuffer& buff) {
     std::scoped_lock lock(queue_mutex);
     buffers[slot].initialized = true;
     buffers[slot].buffer = buff;
     buffer_count++;
 }
 
-i32 Binder::GetAvailableSlot() {
+i32 Binder::getAvailableSlot() {
     // Wait for a slot to become available
     std::unique_lock<std::mutex> lock(queue_mutex);
     queue_cv.wait(lock, [&] { return queued_buffers.size() != buffer_count; });
@@ -33,7 +33,7 @@ i32 Binder::GetAvailableSlot() {
 
     // If we reach here, it means that there won't be a slot available the
     // next time, so clear the event
-    event->Clear();
+    event->clear();
 
     // TODO: remove this?
     if (slot == -1)
@@ -42,7 +42,7 @@ i32 Binder::GetAvailableSlot() {
     return slot;
 }
 
-void Binder::QueueBuffer(System& system, i32 slot, const BqBufferInput& input) {
+void Binder::queueBuffer(System& system, i32 slot, const BqBufferInput& input) {
     {
         std::scoped_lock lock(queue_mutex);
         queued_buffers.emplace(slot, input);
@@ -58,10 +58,10 @@ void Binder::QueueBuffer(System& system, i32 slot, const BqBufferInput& input) {
 
     // Debug
     // TODO: only do this for the main process
-    system.GetGpu().GetRenderer().NotifyDebugFrameBoundary();
+    system.getGpu().getRenderer().notifyDebugFrameBoundary();
 }
 
-i32 Binder::ConsumeBuffer(BqBufferInput& out_input) {
+i32 Binder::consumeBuffer(BqBufferInput& out_input) {
     i32 slot;
     {
         // Wait for a buffer to become available
@@ -85,12 +85,12 @@ i32 Binder::ConsumeBuffer(BqBufferInput& out_input) {
     queue_cv.notify_all();
 
     // Signal event
-    event->Signal();
+    event->signal();
 
     return slot;
 }
 
-void Binder::UnqueueAllBuffers() {
+void Binder::unqueueAllBuffers() {
     {
         // Wait for a buffer to become available
         std::scoped_lock lock(queue_mutex);
@@ -106,7 +106,7 @@ void Binder::UnqueueAllBuffers() {
     queue_cv.notify_all();
 
     // Signal event
-    event->Signal();
+    event->signal();
 }
 
 } // namespace hydra::horizon::display

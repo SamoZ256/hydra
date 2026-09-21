@@ -7,17 +7,17 @@ import SwiftUI
 #endif
 
 struct DebugSettingsView: View {
-    @State private var logOutput = HydraLogOutput(rawValue: hydraConfigGetLogOutput().pointee)
-    @State private var logFsAccess = hydraConfigGetLogFsAccess().pointee
-    @State private var debugLogging = hydraConfigGetDebugLogging().pointee
+    @State private var logOutput = HydraLogOutput(rawValue: configGetLogOutput().pointee)
+    @State private var logFsAccess = configGetLogFsAccess().pointee
+    @State private var debugLogging = configGetDebugLogging().pointee
 
     // TODO: process args
 
-    @State private var recoverFromSegfault = hydraConfigGetRecoverFromSegfault().pointee
+    @State private var recoverFromSegfault = configGetRecoverFromSegfault().pointee
 
-    @State private var gdbEnabled = hydraConfigGetGdbEnabled().pointee
-    @State private var gdbPort = hydraConfigGetGdbPort().pointee
-    @State private var gdbWaitForClient = hydraConfigGetGdbWaitForClient().pointee
+    @State private var gdbEnabled = configGetGdbEnabled().pointee
+    @State private var gdbPort = configGetGdbPort().pointee
+    @State private var gdbWaitForClient = configGetGdbWaitForClient().pointee
 
     var body: some View {
         Spacer()
@@ -34,18 +34,18 @@ struct DebugSettingsView: View {
                             .tag(HYDRA_LOG_OUTPUT_FILE.rawValue)
                     }
                     .onChange(of: self.logOutput.rawValue) { _, newValue in
-                        hydraConfigGetLogOutput().pointee = newValue
+                        configGetLogOutput().pointee = newValue
                     }
 
                     Toggle("Log filesystem access", isOn: self.$logFsAccess)
                         .onChange(of: self.logFsAccess) { _, newValue in
-                            hydraConfigGetLogFsAccess().pointee = newValue
+                            configGetLogFsAccess().pointee = newValue
                         }
 
                     Toggle("Debug logging", isOn: self.$debugLogging)
                         .disabled(!debugLoggingEnabled)
                         .onChange(of: self.debugLogging) { _, newValue in
-                            hydraConfigGetDebugLogging().pointee = newValue
+                            configGetDebugLogging().pointee = newValue
                         }
                 }
 
@@ -54,23 +54,23 @@ struct DebugSettingsView: View {
                 Section("Error handling") {
                     Toggle("Recover from segfault", isOn: self.$recoverFromSegfault)
                         .onChange(of: self.recoverFromSegfault) { _, newValue in
-                            hydraConfigGetRecoverFromSegfault().pointee = newValue
+                            configGetRecoverFromSegfault().pointee = newValue
                         }
                 }
 
                 Section("GDB") {
                     Toggle("Enabled", isOn: self.$gdbEnabled)
                         .onChange(of: self.gdbEnabled) { _, newValue in
-                            hydraConfigGetGdbEnabled().pointee = newValue
+                            configGetGdbEnabled().pointee = newValue
                         }
                     if (self.gdbEnabled) {
                         TextField("Port", value: self.$gdbPort, formatter: NumberFormatter())
                             .onChange(of: self.gdbPort) { _, newValue in
-                                hydraConfigGetGdbPort().pointee = newValue
+                                configGetGdbPort().pointee = newValue
                             }
                         Toggle("Wait for client", isOn: self.$gdbWaitForClient)
                             .onChange(of: self.gdbWaitForClient) { _, newValue in
-                                hydraConfigGetGdbWaitForClient().pointee = newValue
+                                configGetGdbWaitForClient().pointee = newValue
                             }
                     }
                 }

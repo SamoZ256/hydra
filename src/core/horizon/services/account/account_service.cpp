@@ -5,28 +5,28 @@
 
 namespace hydra::horizon::services::account {
 
-result_t IAccountService::GetUserCount(System* system, i32* out_count) {
+result_t IAccountService::getUserCount(System* system, i32* out_count) {
     *out_count =
-        static_cast<i32>(system->GetOS().GetUserManager().GetUserCount());
+        static_cast<i32>(system->getOs().getUserManager().getUserCount());
     return RESULT_SUCCESS;
 }
 
-result_t IAccountService::GetUserExistence(System* system, uuid_t user_id,
+result_t IAccountService::getUserExistence(System* system, uuid_t user_id,
                                            bool* out_exists) {
     LOG_DEBUG(Services, "User ID: 0x{:08x}", user_id);
 
-    *out_exists = system->GetOS().GetUserManager().UserExists(user_id);
+    *out_exists = system->getOs().getUserManager().userExists(user_id);
     return RESULT_SUCCESS;
 }
 
 result_t
-IAccountService::ListAllUsers(System* system,
+IAccountService::listAllUsers(System* system,
                               OutBuffer<BufferAttr::HipcPointer> out_buffer) {
     // Clear buffer
     std::memset(out_buffer.stream->getPtr(), 0, out_buffer.stream->getSize());
 
     // Write user IDs
-    for (const auto user_id : system->GetOS().GetUserManager().GetUserIDs()) {
+    for (const auto user_id : system->getOs().getUserManager().getUserIDs()) {
         // Check if we cen fit the entry in the buffer
         if (out_buffer.stream->getSeek() + sizeof(uuid_t) >
             out_buffer.stream->getSize())
@@ -41,7 +41,7 @@ IAccountService::ListAllUsers(System* system,
 // TODO: how is this different from ListAllUsers? Or a better question: what is
 // the difference between an opened user and a closed user?
 result_t
-IAccountService::ListOpenUsers(System* system,
+IAccountService::listOpenUsers(System* system,
                                OutBuffer<BufferAttr::HipcPointer> out_buffer) {
     LOG_FUNC_STUBBED(Services);
 
@@ -49,7 +49,7 @@ IAccountService::ListOpenUsers(System* system,
     std::memset(out_buffer.stream->getPtr(), 0, out_buffer.stream->getSize());
 
     // Write user IDs
-    for (const auto user_id : system->GetOS().GetUserManager().GetUserIDs()) {
+    for (const auto user_id : system->getOs().getUserManager().getUserIDs()) {
         // Check if we cen fit the entry in the buffer
         if (out_buffer.stream->getSeek() + sizeof(uuid_t) >
             out_buffer.stream->getSize())
@@ -63,22 +63,22 @@ IAccountService::ListOpenUsers(System* system,
     return RESULT_SUCCESS;
 }
 
-result_t IAccountService::GetLastOpenedUser(System* system,
+result_t IAccountService::getLastOpenedUser(System* system,
                                             uuid_t* out_user_id) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK: return the first user
-    *out_user_id = system->GetOS().GetUserManager().GetUserIDs()[0];
+    *out_user_id = system->getOs().getUserManager().getUserIDs()[0];
     return RESULT_SUCCESS;
 }
 
-result_t IAccountService::GetProfile(RequestContext* ctx, uuid_t user_id) {
-    AddService(*ctx, new IProfile(user_id));
+result_t IAccountService::getProfile(RequestContext* ctx, uuid_t user_id) {
+    addService(*ctx, new IProfile(user_id));
     return RESULT_SUCCESS;
 }
 
 result_t
-IAccountService::IsUserRegistrationRequestPermitted(bool* out_permitted) {
+IAccountService::isUserRegistrationRequestPermitted(bool* out_permitted) {
     *out_permitted = (type != AccountServiceType::Application);
     return RESULT_SUCCESS;
 }

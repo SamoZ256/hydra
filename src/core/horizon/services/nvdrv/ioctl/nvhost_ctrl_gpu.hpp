@@ -64,48 +64,48 @@ class NvHostCtrlGpu : public FdBase {
           unknown_event{
               new kernel::Event(false, "NvHostCtrlGpu unknown event")} {}
 
-    NvResult Ioctl([[maybe_unused]] IoctlContext& context, u32 type,
+    NvResult ioctl([[maybe_unused]] IoctlContext& context, u32 type,
                    u32 nr) override;
-    NvResult Ioctl3([[maybe_unused]] IoctlContext& context, u32 type,
+    NvResult ioctl3([[maybe_unused]] IoctlContext& context, u32 type,
                     u32 nr) override;
-    NvResult QueryEvent(u32 event_id_u32, kernel::Event*& out_event) override;
+    NvResult queryEvent(u32 event_id_u32, kernel::Event*& out_event) override;
 
   private:
     kernel::Event* error_event;
     kernel::Event* unknown_event;
 
     // Ioctls
-    NvResult ZCullGetCtxSize(u32* out_size);
-    NvResult ZCullGetInfo(ZCullInfo* out_info);
-    NvResult ZbcSetTable(std::array<u32, 4> color_ds,
+    NvResult zCullGetCtxSize(u32* out_size);
+    NvResult zCullGetInfo(ZCullInfo* out_info);
+    NvResult zbcSetTable(std::array<u32, 4> color_ds,
                          std::array<u32, 4> color_l2, u32 depth, u32 format,
                          u32 table);
     // TODO: is buffer_addr in Gpu virtual address space?
-    NvResult GetCharacteristics(InOutSingle<u64> inout_buffer_size,
+    NvResult getCharacteristics(InOutSingle<u64> inout_buffer_size,
                                 gpu_vaddr_t buffer_addr,
                                 GpuCharacteristics* out_characteristics);
-    NvResult GetTpcMasks(u32 mask_buffer_size,
+    NvResult getTpcMasks(u32 mask_buffer_size,
                          [[maybe_unused]] std::array<u32, 3> reserved,
                          u64* out_mask_buffer);
-    NvResult ZbcGetActiveSlotMask(u32* out_slot, u32* out_mask);
-    NvResult PmuGetGpuLoad(u32* out_load);
-    NvResult GetGpuTime(System* system, u64* out_timestamp,
+    NvResult zbcGetActiveSlotMask(u32* out_slot, u32* out_mask);
+    NvResult pmuGetGpuLoad(u32* out_load);
+    NvResult getGpuTime(System* system, u64* out_timestamp,
                         [[maybe_unused]] u64* _out_reserved);
 
-    NvResult GetCharacteristics3(IoctlContext* ctx,
+    NvResult getCharacteristics3(IoctlContext* ctx,
                                  InOutSingle<u64> inout_buffer_size,
                                  gpu_vaddr_t buffer_addr) {
         GpuCharacteristics out_characteristics;
-        const auto res = GetCharacteristics(inout_buffer_size, buffer_addr,
+        const auto res = getCharacteristics(inout_buffer_size, buffer_addr,
                                             &out_characteristics);
         ctx->out_buffer_stream->write(out_characteristics);
         return res;
     }
-    NvResult GetTpcMasks3(IoctlContext* ctx, u32 mask_buffer_size,
+    NvResult getTpcMasks3(IoctlContext* ctx, u32 mask_buffer_size,
                           [[maybe_unused]] std::array<u32, 3> reserved) {
         u64 out_mask_buffer;
         const auto res =
-            GetTpcMasks(mask_buffer_size, reserved, &out_mask_buffer);
+            getTpcMasks(mask_buffer_size, reserved, &out_mask_buffer);
         ctx->out_buffer_stream->write(out_mask_buffer);
         return res;
     }

@@ -8,49 +8,49 @@
 
 namespace hydra::horizon::services::timesrv {
 
-DEFINE_SERVICE_COMMAND_TABLE(IStaticService, 0, GetStandardUserSystemClock, 1,
-                             GetStandardNetworkSystemClock, 2,
-                             GetStandardSteadyClock, 3, GetTimeZoneService, 4,
-                             GetStandardLocalSystemClock, 5,
-                             GetEphemeralNetworkSystemClock, 20,
-                             GetSharedMemoryNativeHandle, 300,
-                             CalculateMonotonicSystemClockBaseTimePoint)
+DEFINE_SERVICE_COMMAND_TABLE(IStaticService, 0, getStandardUserSystemClock, 1,
+                             getStandardNetworkSystemClock, 2,
+                             getStandardSteadyClock, 3, getTimeZoneService, 4,
+                             getStandardLocalSystemClock, 5,
+                             getEphemeralNetworkSystemClock, 20,
+                             getSharedMemoryNativeHandle, 300,
+                             calculateMonotonicSystemClockBaseTimePoint)
 
-result_t IStaticService::GetStandardUserSystemClock(RequestContext* ctx) {
-    AddService(*ctx, new ISystemClock(SystemClockType::StandardUser));
+result_t IStaticService::getStandardUserSystemClock(RequestContext* ctx) {
+    addService(*ctx, new ISystemClock(SystemClockType::StandardUser));
     return RESULT_SUCCESS;
 }
 
-result_t IStaticService::GetStandardNetworkSystemClock(RequestContext* ctx) {
-    AddService(*ctx, new ISystemClock(SystemClockType::StandardNetwork));
+result_t IStaticService::getStandardNetworkSystemClock(RequestContext* ctx) {
+    addService(*ctx, new ISystemClock(SystemClockType::StandardNetwork));
     return RESULT_SUCCESS;
 }
 
-result_t IStaticService::GetStandardSteadyClock(RequestContext* ctx) {
-    AddService(*ctx, new ISteadyClock());
+result_t IStaticService::getStandardSteadyClock(RequestContext* ctx) {
+    addService(*ctx, new ISteadyClock());
     return RESULT_SUCCESS;
 }
 
-result_t IStaticService::GetTimeZoneService(RequestContext* ctx) {
-    AddService(*ctx, new ITimeZoneService());
+result_t IStaticService::getTimeZoneService(RequestContext* ctx) {
+    addService(*ctx, new ITimeZoneService());
     return RESULT_SUCCESS;
 }
 
-result_t IStaticService::GetStandardLocalSystemClock(RequestContext* ctx) {
-    AddService(*ctx, new ISystemClock(SystemClockType::StandardLocal));
+result_t IStaticService::getStandardLocalSystemClock(RequestContext* ctx) {
+    addService(*ctx, new ISystemClock(SystemClockType::StandardLocal));
     return RESULT_SUCCESS;
 }
 
-result_t IStaticService::GetEphemeralNetworkSystemClock(RequestContext* ctx) {
-    AddService(*ctx, new ISystemClock(SystemClockType::EphemeralNetwork));
+result_t IStaticService::getEphemeralNetworkSystemClock(RequestContext* ctx) {
+    addService(*ctx, new ISystemClock(SystemClockType::EphemeralNetwork));
     return RESULT_SUCCESS;
 }
 
-result_t IStaticService::GetSharedMemoryNativeHandle(
+result_t IStaticService::getSharedMemoryNativeHandle(
     System* system, kernel::Process* process,
     OutHandle<HandleAttr::Copy> out_handle) {
     out_handle =
-        process->AddHandle(system->GetOS().GetTimeManager().GetSharedMemory());
+        process->addHandle(system->getOs().getTimeManager().getSharedMemory());
     return RESULT_SUCCESS;
 }
 

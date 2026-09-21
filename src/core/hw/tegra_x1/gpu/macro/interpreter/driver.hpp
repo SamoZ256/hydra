@@ -9,17 +9,17 @@ class Driver : public DriverBase {
     explicit Driver(engines::ThreeD& engine_3d) : DriverBase(engine_3d) {}
 
   protected:
-    void ExecuteImpl(u32 pc_, u32 param1) override;
+    void executeImpl(u32 pc_, u32 param1) override;
 
-    u32 InstAlu(AluOperation op, u8 rA, u8 rB) override;
-    u32 InstAddImmediate(u8 rA, i32 imm) override;
-    u32 InstExtractInsert(u8 bA, u8 rA, u8 bB, u8 rB, u8 size) override;
-    u32 InstExtractShiftLeftImmediate(u8 bA, u8 rA, u8 rB, u8 size) override;
-    u32 InstExtractShiftLeftRegister(u8 rA, u8 bB, u8 rB, u8 size) override;
-    u32 InstRead(u8 rA, u32 imm) override;
-    void InstBranch(BranchCondition cond, u8 rA, i32 imm,
+    u32 instAlu(AluOperation op, u8 rA, u8 rB) override;
+    u32 instAddImmediate(u8 rA, i32 imm) override;
+    u32 instExtractInsert(u8 bA, u8 rA, u8 bB, u8 rB, u8 size) override;
+    u32 instExtractShiftLeftImmediate(u8 bA, u8 rA, u8 rB, u8 size) override;
+    u32 instExtractShiftLeftRegister(u8 rA, u8 bB, u8 rB, u8 size) override;
+    u32 instRead(u8 rA, u32 imm) override;
+    void instBranch(BranchCondition cond, u8 rA, i32 imm,
                     bool& branched) override;
-    void InstResult(ResultOperation op, u8 rD, u32 value) override;
+    void instResult(ResultOperation op, u8 rD, u32 value) override;
 
   private:
     u32 pc;
@@ -31,17 +31,17 @@ class Driver : public DriverBase {
     u32 branch_addr;
 
     // Helpers
-    u32& GetRegRaw(u8 reg) {
+    u32& getRegRaw(u8 reg) {
         ASSERT_DEBUG(reg < REG_COUNT, Macro, "Invalid register {}", reg);
         return regs[reg];
     }
 
-    u32 GetRegU32(u8 reg) {
+    u32 getRegU32(u8 reg) {
         ASSERT_DEBUG(reg < REG_COUNT, Macro, "Invalid register {}", reg);
-        return GetRegRaw(reg);
+        return getRegRaw(reg);
     }
 
-    void SetRegU32(u8 reg, u32 value) {
+    void setRegU32(u8 reg, u32 value) {
         ASSERT_DEBUG(reg < REG_COUNT, Macro, "Invalid register {}", reg);
 
         if (reg == 0)
@@ -50,12 +50,12 @@ class Driver : public DriverBase {
         regs[reg] = value;
     }
 
-    i32 GetRegI32(u8 reg) {
+    i32 getRegI32(u8 reg) {
         ASSERT_DEBUG(reg < REG_COUNT, Macro, "Invalid register {}", reg);
-        return std::bit_cast<i32>(GetRegRaw(reg));
+        return std::bit_cast<i32>(getRegRaw(reg));
     }
 
-    void SetRegI32(u8 reg, i32 value) {
+    void setRegI32(u8 reg, i32 value) {
         ASSERT_DEBUG(reg < REG_COUNT, Macro, "Invalid register {}", reg);
 
         if (reg == 0)

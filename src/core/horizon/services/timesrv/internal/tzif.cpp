@@ -23,7 +23,7 @@ struct TzifHeader {
 };
 
 template <typename T>
-T Decode(T value) {
+T decode(T value) {
     if constexpr (std::endian::native == std::endian::little) {
         return std::byteswap(value);
     } else {
@@ -31,9 +31,9 @@ T Decode(T value) {
     }
 }
 
-bool DifferByRepeat(i64 t1, i64 t0) { return (t1 - t0) == SECONDS_PER_REPEAT; }
+bool differByRepeat(i64 t1, i64 t0) { return (t1 - t0) == SECONDS_PER_REPEAT; }
 
-bool TimeTypeEquals(const TimeZoneRule& rule, u8 a_index, u8 b_index) {
+bool timeTypeEquals(const TimeZoneRule& rule, u8 a_index, u8 b_index) {
     if (a_index < 0 || a_index >= rule.type_count || b_index < 0 ||
         b_index >= rule.type_count) {
         return false;
@@ -53,19 +53,19 @@ bool TimeTypeEquals(const TimeZoneRule& rule, u8 a_index, u8 b_index) {
 } // namespace
 
 // From Ryujinx
-void ParseTimeZoneBinary(ztd::io::IStream* stream, TimeZoneRule& out_rule) {
+void parseTimeZoneBinary(ztd::io::IStream* stream, TimeZoneRule& out_rule) {
     const auto header = stream->read<TzifHeader>();
     ASSERT(header.magic == make_magic4('T', 'Z', 'i', 'f'), Services,
            "Invalid TZif magic {:#x}", header.magic);
 
     u32 data_size = static_cast<u32>(stream->getRemainingSize());
 
-    u32 ttis_gmt_count = Decode(header.ttis_gmt_count);
-    u32 ttis_std_count = Decode(header.ttis_std_count);
-    u32 leap_count = Decode(header.leap_count);
-    u32 time_count = Decode(header.time_count);
-    u32 type_count = Decode(header.type_count);
-    u32 char_count = Decode(header.char_count);
+    u32 ttis_gmt_count = decode(header.ttis_gmt_count);
+    u32 ttis_std_count = decode(header.ttis_std_count);
+    u32 leap_count = decode(header.leap_count);
+    u32 time_count = decode(header.time_count);
+    u32 type_count = decode(header.type_count);
+    u32 char_count = decode(header.char_count);
 
     ASSERT(leap_count < TimeZoneRule::MAX_LEAP_COUNT &&
                type_count < TimeZoneRule::MAX_TYPE_COUNT &&
@@ -86,7 +86,7 @@ void ParseTimeZoneBinary(ztd::io::IStream* stream, TimeZoneRule& out_rule) {
     time_count = 0;
 
     for (u32 i = 0; i < out_rule.time_count; i++) {
-        const auto at = Decode(stream->read<i64>());
+        const auto at = decode(stream->read<i64>());
         out_rule.type_indices[i] = 1;
 
         if (time_count != 0 && at <= out_rule.ats[time_count - 1]) {
@@ -115,7 +115,7 @@ void ParseTimeZoneBinary(ztd::io::IStream* stream, TimeZoneRule& out_rule) {
 
     for (u32 i = 0; i < out_rule.type_count; i++) {
         TimeTypeInfo& type_info = out_rule.type_infos[i];
-        type_info.gmt_offset = Decode(stream->read<i32>());
+        type_info.gmt_offset = decode(stream->read<i32>());
 
         const auto is_day_saving_time = stream->read<u8>();
         ASSERT(is_day_saving_time < 2, Services,
@@ -180,19 +180,19 @@ void ParseTimeZoneBinary(ztd::io::IStream* stream, TimeZoneRule& out_rule) {
 
     if (out_rule.time_count > 1) {
         for (u32 i = 1; i < out_rule.time_count; i++) {
-            if (TimeTypeEquals(out_rule, out_rule.type_indices[i],
+            if (timeTypeEquals(out_rule, out_rule.type_indices[i],
                                out_rule.type_indices[0]) &&
-                DifferByRepeat(out_rule.ats[i], out_rule.ats[0])) {
+                differByRepeat(out_rule.ats[i], out_rule.ats[0])) {
                 out_rule.go_back = true;
                 break;
             }
         }
 
         for (i32 i = static_cast<i32>(out_rule.time_count - 2); i >= 0; i--) {
-            if (TimeTypeEquals(out_rule,
+            if (timeTypeEquals(out_rule,
                                out_rule.type_indices[out_rule.time_count - 1],
                                out_rule.type_indices[i]) &&
-                DifferByRepeat(out_rule.ats[out_rule.time_count - 1],
+                differByRepeat(out_rule.ats[out_rule.time_count - 1],
                                out_rule.ats[i])) {
                 out_rule.go_ahead = true;
                 break;

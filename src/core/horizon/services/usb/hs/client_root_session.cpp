@@ -5,9 +5,9 @@
 
 namespace hydra::horizon::services::usb::hs {
 
-DEFINE_SERVICE_COMMAND_TABLE(IClientRootSession, 0, BindClientProcess, 4,
-                             CreateInterfaceAvailableEvent, 6,
-                             GetInterfaceStateChangeEvent)
+DEFINE_SERVICE_COMMAND_TABLE(IClientRootSession, 0, bindClientProcess, 4,
+                             createInterfaceAvailableEvent, 6,
+                             getInterfaceStateChangeEvent)
 
 IClientRootSession::IClientRootSession()
     : interface_available_event{new kernel::Event(
@@ -15,26 +15,26 @@ IClientRootSession::IClientRootSession()
       interface_state_change_event{
           new kernel::Event(false, "usb:hs interface state change event")} {}
 
-result_t IClientRootSession::BindClientProcess() {
+result_t IClientRootSession::bindClientProcess() {
     LOG_FUNC_STUBBED(Services);
     return RESULT_SUCCESS;
 }
 
-result_t IClientRootSession::CreateInterfaceAvailableEvent(
+result_t IClientRootSession::createInterfaceAvailableEvent(
     kernel::Process* process, Aligned<u8, 2> index, DeviceFilter device_filter,
     OutHandle<HandleAttr::Copy> out_handle) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "index: {}, device filter: {}", index,
                                device_filter);
 
-    out_handle = process->AddHandle(interface_available_event);
+    out_handle = process->addHandle(interface_available_event);
     return RESULT_SUCCESS;
 }
 
-result_t IClientRootSession::GetInterfaceStateChangeEvent(
+result_t IClientRootSession::getInterfaceStateChangeEvent(
     kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
     LOG_FUNC_STUBBED(Services);
 
-    out_handle = process->AddHandle(interface_state_change_event);
+    out_handle = process->addHandle(interface_state_change_event);
     return RESULT_SUCCESS;
 }
 

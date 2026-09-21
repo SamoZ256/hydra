@@ -100,7 +100,7 @@ struct SvAccess {
         : sv{sv_}, component_index{component_index_} {}
 };
 
-SvAccess get_sv_access_from_addr(u64 addr);
+SvAccess getSvAccessFromAddr(u64 addr);
 
 enum class TextureType {
     _1D,
@@ -113,7 +113,7 @@ enum class TextureType {
     CubeArray,
 };
 
-inline bool IsTextureArray(TextureType type) {
+inline bool isTextureArray(TextureType type) {
     return type == TextureType::_1DArray || type == TextureType::_2DArray ||
            type == TextureType::_3DArray || type == TextureType::CubeArray;
 }
@@ -139,7 +139,7 @@ struct PixelImap {
     PixelImapType z;
     PixelImapType w;
 
-    PixelImapType GetFirstUsedType() const {
+    PixelImapType getFirstUsedType() const {
         if (x != PixelImapType::Unused)
             return x;
         if (y != PixelImapType::Unused)

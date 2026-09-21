@@ -25,13 +25,13 @@ class ShaderCache
   public:
     explicit ShaderCache(IRenderer& renderer_) : renderer{renderer_} {}
 
-    void Destroy() {}
+    void destroy() {}
 
-    ShaderBase* Create(const GuestShaderDescriptor& descriptor);
-    void Update([[maybe_unused]] ShaderBase* shader) {}
-    static u32 Hash(const GuestShaderDescriptor& descriptor);
+    ShaderBase* create(const GuestShaderDescriptor& descriptor);
+    void update([[maybe_unused]] ShaderBase* shader) {}
+    static u32 hash(const GuestShaderDescriptor& descriptor);
 
-    static void DestroyElement(ShaderBase* shader);
+    static void destroyElement(ShaderBase* shader);
 
   private:
     IRenderer& renderer;

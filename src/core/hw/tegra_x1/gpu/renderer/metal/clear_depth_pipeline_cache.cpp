@@ -38,7 +38,7 @@ ClearDepthPipelineCache::ClearDepthPipelineCache(MTL::Device* device_)
 
     // Function
     auto vertex_clear_depth =
-        CreateFunctionFromSource(device, shader_source, "vertex_clear_depth");
+        createFunctionFromSource(device, shader_source, "vertex_clear_depth");
 
     // Pipeline descriptor
     pipeline_descriptor = MTL::RenderPipelineDescriptor::alloc()->init();
@@ -47,10 +47,10 @@ ClearDepthPipelineCache::ClearDepthPipelineCache(MTL::Device* device_)
         MTL::PrimitiveTopologyClassTriangle);
 }
 
-void ClearDepthPipelineCache::Destroy() { pipeline_descriptor->release(); }
+void ClearDepthPipelineCache::destroy() { pipeline_descriptor->release(); }
 
 MTL::RenderPipelineState*
-ClearDepthPipelineCache::Create(MTL::PixelFormat pixel_format) {
+ClearDepthPipelineCache::create(MTL::PixelFormat pixel_format) {
     // Pipeline
     pipeline_descriptor->setDepthAttachmentPixelFormat(pixel_format);
 
@@ -65,11 +65,11 @@ ClearDepthPipelineCache::Create(MTL::PixelFormat pixel_format) {
     return pipeline;
 }
 
-u32 ClearDepthPipelineCache::Hash(MTL::PixelFormat pixel_format) {
+u32 ClearDepthPipelineCache::hash(MTL::PixelFormat pixel_format) {
     return static_cast<u32>(pixel_format);
 }
 
-void ClearDepthPipelineCache::DestroyElement(
+void ClearDepthPipelineCache::destroyElement(
     MTL::RenderPipelineState* pipeline) {
     pipeline->release();
 }

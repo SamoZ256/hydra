@@ -6,14 +6,14 @@ namespace hydra::horizon::services::account::baas {
 
 class IManagerForSystemService : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    STUB_REQUEST_COMMAND(CheckAvailability);
+    STUB_REQUEST_COMMAND(checkAvailability);
     // TODO: correct?
-    result_t GetAccountId(uuid_t* out_id);
+    result_t getAccountId(uuid_t* out_id);
 };
 
 } // namespace hydra::horizon::services::account::baas

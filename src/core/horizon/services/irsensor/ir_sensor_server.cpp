@@ -6,21 +6,21 @@
 
 namespace hydra::horizon::services::irsensor {
 
-DEFINE_SERVICE_COMMAND_TABLE(IIrSensorServer, 303, DeactivateIrsensor, 304,
-                             GetIrsensorSharedMemoryHandle, 311,
-                             GetNpadIrCameraHandle, 319,
-                             ActivateIrsensorWithFunctionLevel)
+DEFINE_SERVICE_COMMAND_TABLE(IIrSensorServer, 303, deactivateIrsensor, 304,
+                             getIrsensorSharedMemoryHandle, 311,
+                             getNpadIrCameraHandle, 319,
+                             activateIrsensorWithFunctionLevel)
 
-result_t IIrSensorServer::GetIrsensorSharedMemoryHandle(
+result_t IIrSensorServer::getIrsensorSharedMemoryHandle(
     System* system, kernel::Process* process, u64 aruid,
     OutHandle<HandleAttr::Copy> out_handle) {
     (void)aruid;
-    out_handle = process->AddHandle(
-        system->GetOS().GetIrSensorManager().GetSharedMemory());
+    out_handle = process->addHandle(
+        system->getOs().getIrSensorManager().getSharedMemory());
     return RESULT_SUCCESS;
 }
 
-result_t IIrSensorServer::GetNpadIrCameraHandle(hid::NpadIdType npad_id,
+result_t IIrSensorServer::getNpadIrCameraHandle(hid::NpadIdType npad_id,
                                                 IrCameraHandle* out_handle) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "npad ID: {}", npad_id);
 
@@ -32,7 +32,7 @@ result_t IIrSensorServer::GetNpadIrCameraHandle(hid::NpadIdType npad_id,
     return RESULT_SUCCESS;
 }
 
-result_t IIrSensorServer::ActivateIrsensorWithFunctionLevel(
+result_t IIrSensorServer::activateIrsensorWithFunctionLevel(
     PackedFunctionLevel function_level, u64 aruid) {
     (void)aruid;
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "function level: {}", function_level);

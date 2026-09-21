@@ -6,28 +6,28 @@ namespace hydra::horizon::filesystem {
 
 class IFile : public IEntry {
   public:
-    bool IsFile() const override { return true; }
+    bool isFile() const override { return true; }
 
-    FsResult Delete(bool recursive = false) override {
+    FsResult deleteEntry(bool recursive = false) override {
         ASSERT(!recursive, Filesystem, "Cannot recursively delete file");
-        DeleteImpl();
+        deleteImpl();
         return FsResult::Success;
     }
 
-    virtual void Resize(u64 new_size) {
+    virtual void resize(u64 new_size) {
         LOG_FATAL(Filesystem, "File cannot be resized (size: 0x{:x})",
                   new_size);
     }
-    virtual void Flush() {}
+    virtual void flush() {}
 
-    virtual ztd::io::IStream* Open(FileOpenFlags flags) = 0;
+    virtual ztd::io::IStream* open(FileOpenFlags flags) = 0;
 
-    virtual u64 GetSize() const = 0;
+    virtual u64 getSize() const = 0;
 
-    void Save(std::string_view host_path) const override;
+    void save(std::string_view host_path) const override;
 
   protected:
-    virtual void DeleteImpl() {
+    virtual void deleteImpl() {
         LOG_FATAL(Filesystem, "File cannot be deleted");
     }
 };

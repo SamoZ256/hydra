@@ -82,14 +82,14 @@ struct Instruction {
                 const std::vector<Value>& operands_)
         : opcode{opcode_}, dst{dst_}, operands{operands_} {}
 
-    bool HasDst() const { return dst.has_value(); }
-    const Value& GetDst() const { return dst.value(); }
+    bool hasDst() const { return dst.has_value(); }
+    const Value& getDst() const { return dst.value(); }
 
-    usize GetOperandCount() const { return operands.size(); }
-    const Value& GetOperand(usize index) const {
-        ASSERT_DEBUG(index < GetOperandCount(), ShaderDecompiler,
+    usize getOperandCount() const { return operands.size(); }
+    const Value& getOperand(usize index) const {
+        ASSERT_DEBUG(index < getOperandCount(), ShaderDecompiler,
                      "Invalid operand index ({} > {})", index,
-                     GetOperandCount());
+                     getOperandCount());
         return operands[index];
     }
 
@@ -99,8 +99,8 @@ struct Instruction {
     std::vector<Value> operands;
 
   public:
-    GETTER(opcode, GetOpcode);
-    CONST_REF_GETTER(operands, GetOperands);
+    GETTER(opcode, getOpcode);
+    CONST_REF_GETTER(operands, getOperands);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir
@@ -131,10 +131,10 @@ struct fmt::formatter<
                     Instruction& inst,
                 FormatContext& ctx) const {
         std::string str = fmt::format("{:{}}", "", 1 * 2); // TODO: indent
-        if (inst.HasDst())
-            str += fmt::format("{} = ", inst.GetDst());
-        str += fmt::format("{}", inst.GetOpcode());
-        for (const auto& operand : inst.GetOperands())
+        if (inst.hasDst())
+            str += fmt::format("{} = ", inst.getDst());
+        str += fmt::format("{}", inst.getOpcode());
+        for (const auto& operand : inst.getOperands())
             str += fmt::format(" {}", operand);
 
         return formatter<string_view>::format(str, ctx);

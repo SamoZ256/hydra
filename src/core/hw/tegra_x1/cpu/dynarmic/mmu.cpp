@@ -6,7 +6,7 @@
 
 namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
-void Mmu::Map(vaddr_t dst_va, ztd::Range<uptr> range,
+void Mmu::map(vaddr_t dst_va, ztd::Range<uptr> range,
               const horizon::kernel::MemoryState state) {
     ASSERT_ALIGNMENT(range.getSize(), GUEST_PAGE_SIZE, Dynarmic, "size");
 
@@ -20,7 +20,7 @@ void Mmu::Map(vaddr_t dst_va, ztd::Range<uptr> range,
     }
 }
 
-void Mmu::Map(vaddr_t dst_va, ztd::Range<vaddr_t> range) {
+void Mmu::map(vaddr_t dst_va, ztd::Range<vaddr_t> range) {
     ASSERT_ALIGNMENT(range.getBegin(), GUEST_PAGE_SIZE, Dynarmic, "begin");
     ASSERT_ALIGNMENT(range.getEnd(), GUEST_PAGE_SIZE, Dynarmic, "end");
 
@@ -32,7 +32,7 @@ void Mmu::Map(vaddr_t dst_va, ztd::Range<vaddr_t> range) {
     }
 }
 
-void Mmu::Unmap(ztd::Range<vaddr_t> range) {
+void Mmu::unmap(ztd::Range<vaddr_t> range) {
     ASSERT_ALIGNMENT(range.getBegin(), GUEST_PAGE_SIZE, Dynarmic, "begin");
     ASSERT_ALIGNMENT(range.getEnd(), GUEST_PAGE_SIZE, Dynarmic, "end");
 
@@ -44,7 +44,7 @@ void Mmu::Unmap(ztd::Range<vaddr_t> range) {
 }
 
 // TODO: actually protect the memory
-void Mmu::Protect(ztd::Range<vaddr_t> range,
+void Mmu::protect(ztd::Range<vaddr_t> range,
                   horizon::kernel::MemoryPermission perm) {
     ASSERT_ALIGNMENT(range.getBegin(), GUEST_PAGE_SIZE, Dynarmic, "begin");
     ASSERT_ALIGNMENT(range.getEnd(), GUEST_PAGE_SIZE, Dynarmic, "end");
@@ -55,7 +55,7 @@ void Mmu::Protect(ztd::Range<vaddr_t> range,
     }
 }
 
-uptr Mmu::UnmapAddr(vaddr_t va) const {
+uptr Mmu::unmapAddr(vaddr_t va) const {
     auto page = va / GUEST_PAGE_SIZE;
     auto page_offset = va % GUEST_PAGE_SIZE;
 
@@ -67,7 +67,7 @@ uptr Mmu::UnmapAddr(vaddr_t va) const {
     return pages[page] + page_offset;
 }
 
-MemoryRegion Mmu::QueryRegion(vaddr_t va) const {
+MemoryRegion Mmu::queryRegion(vaddr_t va) const {
     const auto page = va / GUEST_PAGE_SIZE;
     if (page >= PAGE_COUNT)
         return {.va = page * GUEST_PAGE_SIZE,
@@ -81,7 +81,7 @@ MemoryRegion Mmu::QueryRegion(vaddr_t va) const {
     };
 }
 
-void Mmu::SetMemoryAttribute(ztd::Range<vaddr_t> range,
+void Mmu::setMemoryAttribute(ztd::Range<vaddr_t> range,
                              horizon::kernel::MemoryAttribute mask,
                              horizon::kernel::MemoryAttribute value) {
     ASSERT_ALIGNMENT(range.getBegin(), GUEST_PAGE_SIZE, Dynarmic, "begin");

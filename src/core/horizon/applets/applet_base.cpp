@@ -5,10 +5,10 @@
 
 namespace hydra::horizon::applets {
 
-void AppletBase::Start(System& system) {
+void AppletBase::start(System& system) {
     // TODO: not every applet uses common args (for instance
     // LibraryAppletMiiEdit)
-    const auto common_args = PopInData<CommonArguments>();
+    const auto common_args = popInData<CommonArguments>();
     ASSERT(common_args.version == 1, Applets, "Unsupported version {}",
            common_args.version); // TODO: support version 0
     ASSERT(common_args.size == sizeof(CommonArguments), Applets,
@@ -17,10 +17,10 @@ void AppletBase::Start(System& system) {
     // TODO: create process
 
     thread.emplace([&] {
-        GET_CURRENT_PROCESS_DEBUGGER().RegisterThisThread("Applet");
-        result = Run(system);
-        controller.GetStateChangedEvent().Signal();
-        GET_CURRENT_PROCESS_DEBUGGER().UnregisterThisThread();
+        GET_CURRENT_PROCESS_DEBUGGER().registerThisThread("Applet");
+        result = run(system);
+        controller.getStateChangedEvent().signal();
+        GET_CURRENT_PROCESS_DEBUGGER().unregisterThisThread();
     });
 }
 

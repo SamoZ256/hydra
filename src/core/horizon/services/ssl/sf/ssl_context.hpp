@@ -20,7 +20,7 @@ class ISslContext : public IService {
     explicit ISslContext(const SslVersion version_) : version{version_} {}
 
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
@@ -28,10 +28,10 @@ class ISslContext : public IService {
     [[maybe_unused]] SslVersion version;
 
     // Commands
-    result_t ImportServerPki(CertificateFormat cert_format,
+    result_t importServerPki(CertificateFormat cert_format,
                              InBuffer<BufferAttr::MapAlias> in_buffer,
                              u64* out_id);
-    result_t RegisterInternalPki(InternalPki pki, u64* out_id);
+    result_t registerInternalPki(InternalPki pki, u64* out_id);
 };
 
 } // namespace hydra::horizon::services::ssl::sf

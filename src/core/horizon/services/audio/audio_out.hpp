@@ -24,7 +24,7 @@ class IAudioOut : public IService {
               u16 channel_count);
 
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
@@ -35,27 +35,27 @@ class IAudioOut : public IService {
     std::vector<vaddr_t> released_buffers;
 
     // Commands
-    result_t GetAudioOutState(AudioOutState* out_state);
-    result_t Start();
-    result_t Stop();
-    result_t AppendAudioOutBuffer(kernel::Process* process,
+    result_t getAudioOutState(AudioOutState* out_state);
+    result_t start();
+    result_t stop();
+    result_t appendAudioOutBuffer(kernel::Process* process,
                                   u64 buffer_client_ptr,
                                   InBuffer<BufferAttr::MapAlias> buffer_buffer);
-    result_t RegisterBufferEvent(kernel::Process* process,
+    result_t registerBufferEvent(kernel::Process* process,
                                  OutHandle<HandleAttr::Copy> out_handle);
-    result_t GetReleasedAudioOutBuffers(
+    result_t getReleasedAudioOutBuffers(
         u32* out_count, OutBuffer<BufferAttr::MapAlias> out_buffers_buffer);
     result_t
-    AppendAudioOutBufferAuto(kernel::Process* process, u64 buffer_client_ptr,
+    appendAudioOutBufferAuto(kernel::Process* process, u64 buffer_client_ptr,
                              InBuffer<BufferAttr::AutoSelect> buffer_buffer);
-    result_t GetReleasedAudioOutBuffersAuto(
+    result_t getReleasedAudioOutBuffersAuto(
         u32* out_count, OutBuffer<BufferAttr::AutoSelect> out_buffers_buffer);
 
     // Impl
-    result_t AppendAudioOutBufferImpl(
+    result_t appendAudioOutBufferImpl(
         kernel::Process* process, u64 buffer_client_ptr,
         std::optional<ztd::io::MemoryStream> in_buffer_stream);
-    result_t GetReleasedAudioOutBuffersImpl(
+    result_t getReleasedAudioOutBuffersImpl(
         u32* out_count,
         std::optional<ztd::io::MemoryStream> out_buffers_stream);
 };

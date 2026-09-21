@@ -11,7 +11,7 @@ class ShaderBase {
     virtual ~ShaderBase() = default;
 
     // Getters
-    const ShaderDescriptor& GetDescriptor() const { return descriptor; }
+    const ShaderDescriptor& getDescriptor() const { return descriptor; }
 
   private:
     const ShaderDescriptor descriptor;

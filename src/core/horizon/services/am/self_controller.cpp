@@ -6,15 +6,15 @@
 namespace hydra::horizon::services::am {
 
 DEFINE_SERVICE_COMMAND_TABLE(
-    ISelfController, 0, Exit, 1, LockExit, 2, UnlockExit, 9,
-    GetLibraryAppletLaunchableEvent, 10, SetScreenShotPermission, 11,
-    SetOperationModeChangedNotification, 12,
-    SetPerformanceModeChangedNotification, 13, SetFocusHandlingMode, 14,
-    SetRestartMessageEnabled, 16, SetOutOfFocusSuspendingEnabled, 19,
-    SetAlbumImageOrientation, 40, CreateManagedDisplayLayer, 41,
-    IsSystemBufferSharingEnabled, 44, CreateManagedDisplaySeparableLayer, 50,
-    SetHandlesRequestToDisplay, 62, SetIdleTimeDetectionExtension, 80,
-    SetWirelessPriorityMode, 91, GetAccumulatedSuspendedTickChangedEvent)
+    ISelfController, 0, exit, 1, lockExit, 2, unlockExit, 9,
+    getLibraryAppletLaunchableEvent, 10, setScreenShotPermission, 11,
+    setOperationModeChangedNotification, 12,
+    setPerformanceModeChangedNotification, 13, setFocusHandlingMode, 14,
+    setRestartMessageEnabled, 16, setOutOfFocusSuspendingEnabled, 19,
+    setAlbumImageOrientation, 40, createManagedDisplayLayer, 41,
+    isSystemBufferSharingEnabled, 44, createManagedDisplaySeparableLayer, 50,
+    setHandlesRequestToDisplay, 62, setIdleTimeDetectionExtension, 80,
+    setWirelessPriorityMode, 91, getAccumulatedSuspendedTickChangedEvent)
 
 ISelfController::ISelfController()
     : library_applet_launchable_event{
@@ -22,72 +22,72 @@ ISelfController::ISelfController()
       accumulated_suspended_tick_changed_event{new kernel::Event(
           false, "Accumulated suspended tick changed event")} {}
 
-result_t ISelfController::Exit(kernel::Process* process) {
+result_t ISelfController::exit(kernel::Process* process) {
     // TODO: correct?
-    process->Stop();
+    process->stop();
     return RESULT_SUCCESS;
 }
 
-result_t ISelfController::LockExit(kernel::Process* process) {
-    process->GetAppletState().LockExit();
+result_t ISelfController::lockExit(kernel::Process* process) {
+    process->getAppletState().lockExit();
     return RESULT_SUCCESS;
 }
 
-result_t ISelfController::UnlockExit(kernel::Process* process) {
-    process->GetAppletState().UnlockExit();
+result_t ISelfController::unlockExit(kernel::Process* process) {
+    process->getAppletState().unlockExit();
     return RESULT_SUCCESS;
 }
 
-result_t ISelfController::GetLibraryAppletLaunchableEvent(
+result_t ISelfController::getLibraryAppletLaunchableEvent(
     kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = process->AddHandle(library_applet_launchable_event);
+    out_handle = process->addHandle(library_applet_launchable_event);
     return RESULT_SUCCESS;
 }
 
-result_t ISelfController::CreateManagedDisplayLayer(System* system,
+result_t ISelfController::createManagedDisplayLayer(System* system,
                                                     kernel::Process* process,
                                                     u64* out_layer_id) {
     const auto binder_handle =
-        system->GetOS().GetDisplayDriver().CreateBinder();
-    *out_layer_id = system->GetOS()
-                        .GetDisplayDriver()
-                        .CreateLayer(process, binder_handle)
+        system->getOs().getDisplayDriver().createBinder();
+    *out_layer_id = system->getOs()
+                        .getDisplayDriver()
+                        .createLayer(process, binder_handle)
                         .GetRaw();
     return RESULT_SUCCESS;
 }
 
-result_t ISelfController::IsSystemBufferSharingEnabled() {
+result_t ISelfController::isSystemBufferSharingEnabled() {
     // TODO: implement
     LOG_FUNC_STUBBED(Services);
     return MAKE_RESULT(Am, 998); // Not implemented
 }
 
-result_t ISelfController::CreateManagedDisplaySeparableLayer(
+result_t ISelfController::createManagedDisplaySeparableLayer(
     System* system, kernel::Process* process, u64* out_display_layer_id,
     u64* out_recording_layer_id) {
     const auto binder_handle =
-        system->GetOS().GetDisplayDriver().CreateBinder();
-    *out_display_layer_id = system->GetOS()
-                                .GetDisplayDriver()
-                                .CreateLayer(process, binder_handle)
+        system->getOs().getDisplayDriver().createBinder();
+    *out_display_layer_id = system->getOs()
+                                .getDisplayDriver()
+                                .createLayer(process, binder_handle)
                                 .GetRaw();
     // TODO: what is a recording layer?
-    *out_recording_layer_id = system->GetOS()
-                                  .GetDisplayDriver()
-                                  .CreateLayer(process, binder_handle)
+    *out_recording_layer_id = system->getOs()
+                                  .getDisplayDriver()
+                                  .createLayer(process, binder_handle)
                                   .GetRaw();
     return RESULT_SUCCESS;
 }
 
 result_t
-ISelfController::SetIdleTimeDetectionExtension(IdleTimeDetectionExtension ext) {
+ISelfController::setIdleTimeDetectionExtension(IdleTimeDetectionExtension ext) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "extension: {}", ext);
     return RESULT_SUCCESS;
 }
 
-result_t ISelfController::GetAccumulatedSuspendedTickChangedEvent(
+result_t ISelfController::getAccumulatedSuspendedTickChangedEvent(
     kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = process->AddHandle(accumulated_suspended_tick_changed_event);
+    out_handle = process->addHandle(accumulated_suspended_tick_changed_event);
     return RESULT_SUCCESS;
 }
 

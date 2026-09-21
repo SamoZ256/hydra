@@ -56,9 +56,9 @@ class HomebrewThread : public kernel::GuestThread {
           system{system_}, path{path_} {}
 
   protected:
-    void Run() override {
+    void run() override {
         // Process handle
-        const auto self_process_handle = process->AddHandleNoRetain(process);
+        const auto self_process_handle = process->addHandleNoRetain(process);
 
         // State
         static constexpr char NOTICE_TEXT[] =
@@ -84,7 +84,7 @@ class HomebrewThread : public kernel::GuestThread {
         // TODO: memory type
         // TODO: region
         vaddr_t state_base;
-        auto state_ptr = process->CreateMemory(
+        auto state_ptr = process->createMemory(
             kernel::EXECUTABLE_REGION, ARGV_SIZE * 2 + NEXT_LOAD_PATH_SIZE,
             static_cast<kernel::MemoryType>(4),
             kernel::MemoryPermission::ReadWriteExecute, state_base);
@@ -124,22 +124,22 @@ class HomebrewThread : public kernel::GuestThread {
 
             // File
             filesystem::IFile* file;
-            const auto res = system.GetOS().GetFilesystem().GetFile(path, file);
+            const auto res = system.getOs().getFilesystem().getFile(path, file);
             ASSERT(res == filesystem::FsResult::Success, Loader,
                    "Failed to get Homebrew file: {}", res);
 
             // NRO loader
             {
                 NroLoader nro_loader(file, false);
-                nro_loader.LoadProcess(system, process);
-                const auto executable_ptr = nro_loader.GetExecutablePtr();
+                nro_loader.loadProcess(system, process);
+                const auto executable_ptr = nro_loader.getExecutablePtr();
 
                 // Random
                 std::random_device rd;
                 std::mt19937_64 gen(rd());
 
                 // Config
-                const uptr config_offset = nro_loader.GetExecutableSize();
+                const uptr config_offset = nro_loader.getExecutableSize();
 
 #define ADD_ENTRY(t, f, value0, value1)                                        \
     {                                                                          \
@@ -190,14 +190,14 @@ class HomebrewThread : public kernel::GuestThread {
 #undef ADD_ENTRY
 
                 // Params
-                entry_point = nro_loader.GetEntryPoint();
+                entry_point = nro_loader.getEntryPoint();
                 return_address = state_base + RETURN_ADDRESS_OFFSET;
-                args[0] = nro_loader.GetExecutableBase() + config_offset;
+                args[0] = nro_loader.getExecutableBase() + config_offset;
                 args[1] = std::numeric_limits<u64>::max();
             }
 
             // Run
-            kernel::GuestThread::Run();
+            kernel::GuestThread::run();
 
             // Next load
             path = std::string(reinterpret_cast<const char*>(
@@ -215,7 +215,7 @@ class HomebrewThread : public kernel::GuestThread {
 
             // HACK: since the program exited by calling svcExitThread, we need
             // to reset the thread
-            Reset();
+            reset();
         }
     }
 
@@ -226,7 +226,7 @@ class HomebrewThread : public kernel::GuestThread {
     Handle self_handle{INVALID_HANDLE};
 
   public:
-    SETTER(self_handle, SetSelfHandle);
+    SETTER(self_handle, setSelfHandle);
 };
 
 } // namespace
@@ -234,18 +234,18 @@ class HomebrewThread : public kernel::GuestThread {
 HomebrewLoader::HomebrewLoader(filesystem::IFile* file_)
     : file{file_}, nro_loader(file, false) {
     // Asset section
-    const auto asset_begin = nro_loader.GetSize();
-    TryLoadAssetSection(new filesystem::FileView(file, asset_begin));
+    const auto asset_begin = nro_loader.getSize();
+    tryLoadAssetSection(new filesystem::FileView(file, asset_begin));
 }
 
-void HomebrewLoader::LoadProcess(System& system, kernel::Process* process) {
+void HomebrewLoader::loadProcess(System& system, kernel::Process* process) {
     // Get name
-    auto stream = nacp_file->Open(filesystem::FileOpenFlags::Read);
+    auto stream = nacp_file->open(filesystem::FileOpenFlags::Read);
 
     // Create a virtual filename
     const auto nacp = stream->read<services::ns::ApplicationControlProperty>();
     std::string title_name =
-        nacp.GetApplicationTitle(SystemLanguage::AmericanEnglish).name;
+        nacp.getApplicationTitle(SystemLanguage::AmericanEnglish).name;
     std::ranges::replace(title_name, ' ', '_');
 
     delete stream;
@@ -254,17 +254,17 @@ void HomebrewLoader::LoadProcess(System& system, kernel::Process* process) {
     std::string mapped_path =
         fmt::format(FS_SD_MOUNT "/switch/{}/{}.nro", title_name, title_name);
     const auto res =
-        system.GetOS().GetFilesystem().AddEntry(mapped_path, file, true);
+        system.getOs().getFilesystem().addEntry(mapped_path, file, true);
     ASSERT(res == filesystem::FsResult::Success, Loader,
            "Failed to map Homebrew file: {}", res);
 
     // Stack memory
-    process->CreateStackMemory(STACK_MEMORY_SIZE);
+    process->createStackMemory(STACK_MEMORY_SIZE);
 
     // Main thread
     auto main_thread = new HomebrewThread(system, process, mapped_path);
-    const auto main_thread_handle = process->SetMainThread(main_thread);
-    main_thread->SetSelfHandle(main_thread_handle);
+    const auto main_thread_handle = process->setMainThread(main_thread);
+    main_thread->setSelfHandle(main_thread_handle);
 }
 
 namespace {
@@ -273,7 +273,7 @@ struct AssetSection {
     u64 offset;
     u64 size;
 
-    filesystem::FileView* CreateFileView(filesystem::IFile* file) const {
+    filesystem::FileView* createFileView(filesystem::IFile* file) const {
         return new filesystem::FileView(file, offset, size);
     }
 };
@@ -288,8 +288,8 @@ struct AssetHeader {
 
 } // namespace
 
-void HomebrewLoader::TryLoadAssetSection(filesystem::IFile* asset_file) {
-    auto stream = asset_file->Open(filesystem::FileOpenFlags::Read);
+void HomebrewLoader::tryLoadAssetSection(filesystem::IFile* asset_file) {
+    auto stream = asset_file->open(filesystem::FileOpenFlags::Read);
 
     // Header
     const auto header = stream->read<AssetHeader>();
@@ -301,15 +301,15 @@ void HomebrewLoader::TryLoadAssetSection(filesystem::IFile* asset_file) {
 
     // Icon
     if (header.icon_section.size > 0)
-        icon_file = header.icon_section.CreateFileView(asset_file);
+        icon_file = header.icon_section.createFileView(asset_file);
 
     // NACP
     if (header.nacp_section.size > 0)
-        nacp_file = header.nacp_section.CreateFileView(asset_file);
+        nacp_file = header.nacp_section.createFileView(asset_file);
 
     // RomFS
     if (header.romfs_section.size > 0)
-        romfs_entry = header.romfs_section.CreateFileView(asset_file);
+        romfs_entry = header.romfs_section.createFileView(asset_file);
 
     delete stream;
 }

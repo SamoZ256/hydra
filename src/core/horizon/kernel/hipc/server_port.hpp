@@ -14,10 +14,10 @@ class ServerPort : public SynchronizationObject {
         : SynchronizationObject(TYPE_ID, false, debug_name) {}
 
     // Server
-    ServerSession* AcceptSession();
+    ServerSession* acceptSession();
 
     // Client
-    void ConnectSession(ServerSession* session);
+    void connectSession(ServerSession* session);
 
   private:
     std::mutex mutex;

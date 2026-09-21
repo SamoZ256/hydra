@@ -5,14 +5,14 @@
 
 namespace hydra::horizon::services::account {
 
-DEFINE_SERVICE_COMMAND_TABLE(INotifier, 0, GetSystemEvent)
+DEFINE_SERVICE_COMMAND_TABLE(INotifier, 0, getSystemEvent)
 
 INotifier::INotifier()
     : event{new kernel::Event(false, "account::INotifier event")} {}
 
-result_t INotifier::GetSystemEvent(kernel::Process* process,
+result_t INotifier::getSystemEvent(kernel::Process* process,
                                    OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = process->AddHandle(event);
+    out_handle = process->addHandle(event);
     return RESULT_SUCCESS;
 }
 

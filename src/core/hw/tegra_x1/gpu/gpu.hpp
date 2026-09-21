@@ -44,49 +44,49 @@ class Gpu {
     ZTD_MAKE_NON_MOVABLE(Gpu);
 
     // Memory map
-    Handle CreateMap(u64 size) { return memory_maps.Insert(0, size).value(); }
+    Handle createMap(u64 size) { return memory_maps.insert(0, size).value(); }
 
-    void AllocateMap(Handle handle, uptr addr, bool write) {
+    void allocateMap(Handle handle, uptr addr, bool write) {
         // TODO: error?
-        ZTD_ASSIGN_OR_RETURN(auto memory_map, memory_maps.Get(handle));
+        ZTD_ASSIGN_OR_RETURN(auto memory_map, memory_maps.get(handle));
         memory_map->addr = addr;
         memory_map->write = write;
     }
 
-    void FreeMap(Handle handle) {
-        ASSERT_DEBUG(memory_maps.Free(handle), Gpu, "Failed to free map {}",
+    void freeMap(Handle handle) {
+        ASSERT_DEBUG(memory_maps.free(handle), Gpu, "Failed to free map {}",
                      handle);
     }
 
-    std::optional<MemoryMap*> GetMap(Handle handle) {
-        return memory_maps.Get(handle);
+    std::optional<MemoryMap*> getMap(Handle handle) {
+        return memory_maps.get(handle);
     }
 
     // Engines
-    std::optional<engines::EngineBase*> GetEngineAtSubchannel(u32 subchannel) {
+    std::optional<engines::EngineBase*> getEngineAtSubchannel(u32 subchannel) {
         if (subchannel > SUBCHANNEL_COUNT)
             return std::nullopt;
         return subchannels[subchannel];
     }
 
-    void SubchannelMethod(u32 subchannel, u32 method, u32 arg);
+    void subchannelMethod(u32 subchannel, u32 method, u32 arg);
 
-    void SubchannelFlushMacro(u32 subchannel) {
-        const auto engine = GetEngineAtSubchannel(subchannel);
+    void subchannelFlushMacro(u32 subchannel) {
+        const auto engine = getEngineAtSubchannel(subchannel);
         if (!engine)
             LOG_FATAL(Gpu, "Invalid subchannel {}", subchannel);
 
-        (*engine)->FlushMacro();
+        (*engine)->flushMacro();
     }
 
     // Texture
-    renderer::ITextureView* GetTexture(renderer::ICommandBuffer* command_buffer,
+    renderer::ITextureView* getTexture(renderer::ICommandBuffer* command_buffer,
                                        cpu::IMmu* mmu,
                                        const NvGraphicsBuffer& buff);
 
     // Getters
-    Pfifo& GetPfifo() { return pfifo; }
-    renderer::IRenderer& GetRenderer() const { return *renderer; }
+    Pfifo& getPfifo() { return pfifo; }
+    renderer::IRenderer& getRenderer() const { return *renderer; }
 
   private:
     // Pfifo

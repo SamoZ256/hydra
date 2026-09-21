@@ -48,9 +48,9 @@ struct NsoHeader {
     u32 data_hash[0x8];
 };
 
-void read_segment(ztd::io::IStream* stream, uptr executable_mem_ptr,
-                  const Segment& segment, const u64 segment_file_size,
-                  bool is_compressed) {
+void readSegment(ztd::io::IStream* stream, uptr executable_mem_ptr,
+                 const Segment& segment, const u64 segment_file_size,
+                 bool is_compressed) {
     // Skip
     stream->seekTo(segment.file_offset);
 
@@ -86,7 +86,7 @@ constexpr u64 ARG_DATA_SIZE = 0x9000;
 NsoLoader::NsoLoader(filesystem::IFile* file_, const std::string_view name_,
                      const bool is_entry_point_)
     : file{file_}, name{name_}, is_entry_point{is_entry_point_} {
-    auto stream = file->Open(filesystem::FileOpenFlags::Read);
+    auto stream = file->open(filesystem::FileOpenFlags::Read);
 
     // Header
     const auto header = stream->read<NsoHeader>();
@@ -128,13 +128,13 @@ NsoLoader::NsoLoader(filesystem::IFile* file_, const std::string_view name_,
     delete stream;
 }
 
-void NsoLoader::LoadProcess(System& system, kernel::Process* process) {
+void NsoLoader::loadProcess(System& system, kernel::Process* process) {
     // Register executable
-    DEBUGGER_MANAGER_INSTANCE.GetDebugger(process).RegisterExecutable(name,
+    DEBUGGER_MANAGER_INSTANCE.getDebugger(process).registerExecutable(name,
                                                                       file);
 
     // Load
-    auto stream = file->Open(filesystem::FileOpenFlags::Read);
+    auto stream = file->open(filesystem::FileOpenFlags::Read);
 
     // Create executable memory
     const auto set = kernel::CodeSet{
@@ -146,13 +146,13 @@ void NsoLoader::LoadProcess(System& system, kernel::Process* process) {
         .data = ztd::Range<u64>::fromSize(segments[2].seg.memory_offset,
                                           segments[2].seg.size)};
     vaddr_t base;
-    auto ptr = process->CreateExecutableMemory(name, set, base);
+    auto ptr = process->createExecutableMemory(name, set, base);
     LOG_DEBUG(Loader, "Base: 0x{:08x}, size: 0x{:08x}", base, executable_size);
 
     // Segments
     for (const auto& segment : segments) {
-        read_segment(stream, ptr, segment.seg, segment.file_size,
-                     segment.compressed);
+        readSegment(stream, ptr, segment.seg, segment.file_size,
+                    segment.compressed);
     }
 
     // Arg data
@@ -161,7 +161,7 @@ void NsoLoader::LoadProcess(System& system, kernel::Process* process) {
 
     vaddr_t arg_data_base;
     // TODO: memory type
-    auto arg_data_ptr = reinterpret_cast<ArgData*>(process->CreateMemory(
+    auto arg_data_ptr = reinterpret_cast<ArgData*>(process->createMemory(
         kernel::EXECUTABLE_REGION, ARG_DATA_SIZE,
         static_cast<kernel::MemoryType>(4), kernel::MemoryPermission::ReadWrite,
         arg_data_base));
@@ -206,9 +206,9 @@ void NsoLoader::LoadProcess(System& system, kernel::Process* process) {
     for (const auto& symbol : dyn_sym) {
         std::string_view symbol_name(dyn_str.data() + symbol.st_name);
         if (symbol.st_shndx != 0) {
-            DEBUGGER_MANAGER_INSTANCE.GetDebugger(process)
-                .GetFunctionTable()
-                .RegisterSymbol({.name = demangle(std::string(symbol_name)),
+            DEBUGGER_MANAGER_INSTANCE.getDebugger(process)
+                .getFunctionTable()
+                .registerSymbol({.name = demangle(std::string(symbol_name)),
                                  .guest_mem_range = ztd::Range<vaddr_t>(
                                      base + symbol.st_value,
                                      base + symbol.st_value + symbol.st_size)});
@@ -219,18 +219,18 @@ void NsoLoader::LoadProcess(System& system, kernel::Process* process) {
 
     if (is_entry_point) {
         // Stack
-        process->CreateStackMemory(main_thread_stack_size);
+        process->createStackMemory(main_thread_stack_size);
 
         // Main thread
         auto main_thread = new kernel::GuestThread(
             system, process,
             kernel::STACK_REGION.getBegin() + main_thread_stack_size - 0x10,
             main_thread_priority);
-        const auto main_thread_handle = process->SetMainThread(main_thread);
+        const auto main_thread_handle = process->setMainThread(main_thread);
 
-        main_thread->SetEntryPoint(base + text_offset);
-        main_thread->SetArg(0, 0x0);
-        main_thread->SetArg(1, main_thread_handle.GetRaw());
+        main_thread->setEntryPoint(base + text_offset);
+        main_thread->setArg(0, 0x0);
+        main_thread->setArg(1, main_thread_handle.GetRaw());
     }
 }
 

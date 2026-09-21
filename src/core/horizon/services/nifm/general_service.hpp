@@ -38,18 +38,18 @@ struct DnsSetting {
 
 class IGeneralService : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t CreateRequest(RequestContext* ctx, i32 requirement_preset);
+    result_t createRequest(RequestContext* ctx, i32 requirement_preset);
     result_t
-    GetCurrentNetworkProfile(OutBuffer<BufferAttr::HipcPointer> out_buffer);
-    result_t GetCurrentIpAddress(IpV4Address* out_ip);
-    result_t GetCurrentIpConfigInfo(IpAddressSetting* out_ip_address_setting,
+    getCurrentNetworkProfile(OutBuffer<BufferAttr::HipcPointer> out_buffer);
+    result_t getCurrentIpAddress(IpV4Address* out_ip);
+    result_t getCurrentIpConfigInfo(IpAddressSetting* out_ip_address_setting,
                                     DnsSetting* out_dns_setting);
-    result_t GetInternetConnectionStatus(InternetConnectionType* out_type,
+    result_t getInternetConnectionStatus(InternetConnectionType* out_type,
                                          u32* out_wifi_strength,
                                          InternetConnectionStatus* out_status);
 };

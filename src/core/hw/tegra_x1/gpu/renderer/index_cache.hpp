@@ -20,12 +20,12 @@ class IndexCache {
     explicit IndexCache(IRenderer& renderer_) : renderer{renderer_} {}
     ~IndexCache();
 
-    BufferView Decode(ICommandBuffer* command_buffer,
+    BufferView decode(ICommandBuffer* command_buffer,
                       const IndexDescriptor& descriptor,
                       engines::IndexType& out_type,
                       engines::PrimitiveType& out_primitive_type,
                       u32& out_count);
-    static u32 Hash(const IndexDescriptor& descriptor);
+    static u32 hash(const IndexDescriptor& descriptor);
 
   private:
     IRenderer& renderer;

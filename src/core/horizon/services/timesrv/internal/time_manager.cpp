@@ -19,18 +19,18 @@ constexpr u32 CONTINUOUS_ADJUSTMENT_TIME_POINT_OFFSET = 0xd0;
 } // namespace
 
 TimeManager::TimeManager(System& system_)
-    : system{system_}, steady_clock(system.GetWallClock()),
+    : system{system_}, steady_clock(system.getWallClock()),
       system_clock(steady_clock),
-      time_zone_manager(system.GetOS().GetFilesystem()),
+      time_zone_manager(system.getOs().getFilesystem()),
       shared_memory{
-          new kernel::SharedMemory(system.GetCpu(), SHARED_MEMORY_SIZE)} {
+          new kernel::SharedMemory(system.getCpu(), SHARED_MEMORY_SIZE)} {
     // Clock
-    UpdateSteadyClockContext();
-    UpdateSystemClockContext();
+    updateSteadyClockContext();
+    updateSystemClockContext();
 
     // TODO: implement
-    WriteAutomaticCorrectionEnabled(false);
-    WriteContinuousAdjustmentTimePoint(
+    writeAutomaticCorrectionEnabled(false);
+    writeContinuousAdjustmentTimePoint(
         {.clock_offset = 0,
          .multiplier = 1,
          .divisor_log2 = 0,
@@ -44,56 +44,56 @@ TimeManager::TimeManager(System& system_)
          }});
 
     // Time zone
-    time_zone_manager.LoadMyRule();
+    time_zone_manager.loadMyRule();
 }
 
-void TimeManager::UpdateSteadyClockContext() {
-    WriteSteadyClockContext({
-        .internal_offset = steady_clock.GetOffsetNs(),
+void TimeManager::updateSteadyClockContext() {
+    writeSteadyClockContext({
+        .internal_offset = steady_clock.getOffsetNs(),
         .clock_source_id = CLOCK_SOURCE_ID,
     });
 }
 
-void TimeManager::UpdateSystemClockContext() {
+void TimeManager::updateSystemClockContext() {
     // TODO: handle local and network separately?
-    WriteSystemClockContext({
-        .offset = static_cast<i64>(system_clock.GetOffsetS()),
+    writeSystemClockContext({
+        .offset = static_cast<i64>(system_clock.getOffsetS()),
         .steady_time_point =
             {
-                .time_point = system_clock.GetSteadyTimePoint(),
+                .time_point = system_clock.getSteadyTimePoint(),
                 .clock_source_id = CLOCK_SOURCE_ID,
             },
     });
 }
 
-void TimeManager::WriteSteadyClockContext(const SteadyClockContext& context) {
-    WriteObjectToSharedMemory(STEADY_CLOCK_CONTEXT_OFFSET, 0x4, context);
+void TimeManager::writeSteadyClockContext(const SteadyClockContext& context) {
+    writeObjectToSharedMemory(STEADY_CLOCK_CONTEXT_OFFSET, 0x4, context);
 }
 
-void TimeManager::WriteLocalSystemClockContext(
+void TimeManager::writeLocalSystemClockContext(
     const SystemClockContext& context) {
-    WriteObjectToSharedMemory(LOCAL_SYSTEM_CLOCK_CONTEXT_OFFSET, 0x4, context);
+    writeObjectToSharedMemory(LOCAL_SYSTEM_CLOCK_CONTEXT_OFFSET, 0x4, context);
 }
 
-void TimeManager::WriteNetworkSystemClockContext(
+void TimeManager::writeNetworkSystemClockContext(
     const SystemClockContext& context) {
-    WriteObjectToSharedMemory(NETWORK_SYSTEM_CLOCK_CONTEXT_OFFSET, 0x4,
+    writeObjectToSharedMemory(NETWORK_SYSTEM_CLOCK_CONTEXT_OFFSET, 0x4,
                               context);
 }
 
-void TimeManager::WriteSystemClockContext(const SystemClockContext& context) {
-    WriteLocalSystemClockContext(context);
-    WriteNetworkSystemClockContext(context);
+void TimeManager::writeSystemClockContext(const SystemClockContext& context) {
+    writeLocalSystemClockContext(context);
+    writeNetworkSystemClockContext(context);
 }
 
-void TimeManager::WriteAutomaticCorrectionEnabled(bool enabled) {
-    WriteObjectToSharedMemory(AUTOMATIC_CORRECTION_ENABLED_OFFSET, 0x0,
+void TimeManager::writeAutomaticCorrectionEnabled(bool enabled) {
+    writeObjectToSharedMemory(AUTOMATIC_CORRECTION_ENABLED_OFFSET, 0x0,
                               enabled);
 }
 
-void TimeManager::WriteContinuousAdjustmentTimePoint(
+void TimeManager::writeContinuousAdjustmentTimePoint(
     const ContinuousAdjustmentTimePoint& time_point) {
-    WriteObjectToSharedMemory(CONTINUOUS_ADJUSTMENT_TIME_POINT_OFFSET, 0x4,
+    writeObjectToSharedMemory(CONTINUOUS_ADJUSTMENT_TIME_POINT_OFFSET, 0x4,
                               time_point);
 }
 

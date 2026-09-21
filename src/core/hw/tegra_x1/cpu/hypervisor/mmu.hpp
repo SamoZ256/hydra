@@ -14,30 +14,31 @@ class Mmu : public IMmu {
     explicit Mmu(System& system);
     ~Mmu() override;
 
-    void Map(vaddr_t dst_va, ztd::Range<uptr> range,
+    void map(vaddr_t dst_va, ztd::Range<uptr> range,
              const horizon::kernel::MemoryState state) override;
-    void Map(vaddr_t dst_va, ztd::Range<vaddr_t> range) override;
-    void Unmap(ztd::Range<vaddr_t> range) override;
-    void Protect(ztd::Range<vaddr_t> range,
+    void map(vaddr_t dst_va, ztd::Range<vaddr_t> range) override;
+    void unmap(ztd::Range<vaddr_t> range) override;
+    void protect(ztd::Range<vaddr_t> range,
                  horizon::kernel::MemoryPermission perm) override;
 
-    uptr UnmapAddr(vaddr_t va) const override;
-    MemoryRegion QueryRegion(vaddr_t va) const override;
-    void SetMemoryAttribute(ztd::Range<vaddr_t> range,
+    uptr unmapAddr(vaddr_t va) const override;
+    MemoryRegion queryRegion(vaddr_t va) const override;
+    void setMemoryAttribute(ztd::Range<vaddr_t> range,
                             horizon::kernel::MemoryAttribute mask,
                             horizon::kernel::MemoryAttribute value) override;
 
   protected:
     // Write tracking
-    void SetWriteTrackingEnabled(ztd::Range<vaddr_t> range, bool enable) override;
-    bool TrySuspendWriteTracking(ztd::Range<vaddr_t> range) override;
-    void ResumeWriteTracking(ztd::Range<vaddr_t> range) override;
+    void setWriteTrackingEnabled(ztd::Range<vaddr_t> range,
+                                 bool enable) override;
+    bool trySuspendWriteTracking(ztd::Range<vaddr_t> range) override;
+    void resumeWriteTracking(ztd::Range<vaddr_t> range) override;
 
   private:
     PageTable user_page_table;
 
   public:
-    CONST_REF_GETTER(user_page_table, GetUserPageTable);
+    CONST_REF_GETTER(user_page_table, getUserPageTable);
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor

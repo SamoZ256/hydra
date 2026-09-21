@@ -6,13 +6,13 @@ namespace hydra::horizon::services::friends {
 
 class IServiceCreator : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t CreateFriendService(RequestContext* ctx);
-    result_t CreateNotificationService(RequestContext* ctx,
+    result_t createFriendService(RequestContext* ctx);
+    result_t createNotificationService(RequestContext* ctx,
                                        uuid_t user_id); // 2.0.0+
 };
 

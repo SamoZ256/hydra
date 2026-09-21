@@ -7,13 +7,13 @@ namespace hydra::horizon::services::i2c {
 
 class IManager : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t OpenSession(RequestContext* ctx, I2cDevice device);
-    result_t HasDevice(I2cDevice device, bool* out_has);
+    result_t openSession(RequestContext* ctx, I2cDevice device);
+    result_t hasDevice(I2cDevice device, bool* out_has);
 };
 
 } // namespace hydra::horizon::services::i2c

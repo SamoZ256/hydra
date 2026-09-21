@@ -37,13 +37,13 @@ constexpr SharedFontName shared_font_names[] = {
 
 #undef SHARED_FONT_ENTRY
 
-filesystem::IFile* GetSharedFontFile(filesystem::Filesystem& filesystem,
+filesystem::IFile* getSharedFontFile(filesystem::Filesystem& filesystem,
                                      SharedFontType font_type) {
     const auto& name = shared_font_names[static_cast<u32>(font_type)];
 
     // NCA
     filesystem::IFile* file;
-    auto res = filesystem.GetFile(
+    auto res = filesystem.getFile(
         fmt::format(FS_FIRMWARE_PATH "/{}", name.name), file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Services, "Failed to get shared font {} file: {}", font_type,
@@ -55,7 +55,7 @@ filesystem::IFile* GetSharedFontFile(filesystem::Filesystem& filesystem,
 
     // Data
     filesystem::IFile* data_file;
-    res = content_archive.GetFile("data", data_file);
+    res = content_archive.getFile("data", data_file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Services, "Failed to get shared font {} data: {}", font_type,
                   res);
@@ -67,7 +67,7 @@ filesystem::IFile* GetSharedFontFile(filesystem::Filesystem& filesystem,
 
     // Font
     filesystem::IFile* font_file;
-    res = romfs.GetFile(name.filename, font_file);
+    res = romfs.getFile(name.filename, font_file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Services, "Failed to get shared font {}: {}", font_type, res);
         return nullptr;
@@ -79,7 +79,7 @@ filesystem::IFile* GetSharedFontFile(filesystem::Filesystem& filesystem,
 constexpr u32 BFTTF_MAGIC = 0x18029a7f;
 constexpr u32 FONT_KEY = 0x06186249;
 
-result_t DecryptBFTTF(ztd::io::IStream* in_stream,
+result_t decryptBfttf(ztd::io::IStream* in_stream,
                       ztd::io::IStream* out_stream) {
 #define KEY_XOR(x) (x ^ FONT_KEY)
 
@@ -103,28 +103,28 @@ result_t DecryptBFTTF(ztd::io::IStream* in_stream,
 
 SharedFontManager::SharedFontManager(System& system_)
     : system{system_}, shared_memory{new kernel::SharedMemory(
-                           system.GetCpu(), SHARED_MEMORY_SIZE)} {}
+                           system.getCpu(), SHARED_MEMORY_SIZE)} {}
 
 SharedFontManager::~SharedFontManager() { delete shared_memory; }
 
-void SharedFontManager::LoadFonts() {
+void SharedFontManager::loadFonts() {
     for (auto type = SharedFontType::JapanUsEurope;
          type <= SharedFontType::NintendoExtended; type++)
-        LoadFont(type);
+        loadFont(type);
 }
 
-void SharedFontManager::LoadFont(const SharedFontType type) {
-    auto file = GetSharedFontFile(system.GetOS().GetFilesystem(), type);
+void SharedFontManager::loadFont(const SharedFontType type) {
+    auto file = getSharedFontFile(system.getOs().getFilesystem(), type);
     if (file == nullptr)
         return;
 
     // Load
-    auto stream = file->Open(filesystem::FileOpenFlags::Read);
+    auto stream = file->open(filesystem::FileOpenFlags::Read);
 
     ztd::io::MemoryStream out_stream(std::span(
-        reinterpret_cast<u8*>(shared_memory->GetPtr()) + shared_memory_offset,
+        reinterpret_cast<u8*>(shared_memory->getPtr()) + shared_memory_offset,
         SHARED_MEMORY_SIZE - shared_memory_offset));
-    const auto res = DecryptBFTTF(stream, &out_stream);
+    const auto res = decryptBfttf(stream, &out_stream);
 
     delete stream;
     if (res != RESULT_SUCCESS)
@@ -133,8 +133,8 @@ void SharedFontManager::LoadFont(const SharedFontType type) {
     // Set state
     auto& state = states[static_cast<u32>(type)];
     state.shared_memory_offset = shared_memory_offset;
-    state.size = file->GetSize();
-    shared_memory_offset += file->GetSize();
+    state.size = file->getSize();
+    shared_memory_offset += file->getSize();
 }
 
 } // namespace hydra::horizon::services::pl::internal

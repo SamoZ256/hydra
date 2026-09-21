@@ -5,24 +5,24 @@
 namespace hydra::horizon::display {
 
 Driver::Driver(System& system_) : system{system_} {
-    ASSERT_DEBUG(display_pool.Insert().has_value(), Horizon,
+    ASSERT_DEBUG(display_pool.insert().has_value(), Horizon,
                  "Fail to create display");
 }
 
-bool Driver::AcquirePresentTextures(
+bool Driver::acquirePresentTextures(
     hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer) {
     bool acquired = false;
     {
         std::scoped_lock lock(layer_mutex);
         for (const auto& layer : layer_pool) {
-            acquired |= layer->AcquirePresentTexture(command_buffer);
+            acquired |= layer->acquirePresentTexture(command_buffer);
         }
     }
 
     return acquired;
 }
 
-void Driver::Present(
+void Driver::present(
     hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer,
     hw::tegra_x1::gpu::renderer::ISurfaceCompositor* compositor, u32 width,
     u32 height) {
@@ -32,7 +32,7 @@ void Driver::Present(
         // Find the correct position
         bool inserted = false;
         for (u32 i = 0; i < sorted_layers.size(); i++) {
-            if (sorted_layers[i]->GetZ() > layer->GetZ()) {
+            if (sorted_layers[i]->getZ() > layer->getZ()) {
                 sorted_layers.insert(sorted_layers.begin() + i, layer);
                 inserted = true;
                 break;
@@ -43,7 +43,7 @@ void Driver::Present(
     }
 
     // Viewport
-    const auto src_size = float2(system.GetOS().GetDisplayResolution());
+    const auto src_size = float2(system.getOs().getDisplayResolution());
     auto scale_x = static_cast<f32>(width) / src_size.x();
     auto scale_y = static_cast<f32>(height) / src_size.y();
 
@@ -63,22 +63,22 @@ void Driver::Present(
 
     // Present
     for (u32 i = 0; i < sorted_layers.size(); i++)
-        sorted_layers[i]->Present(command_buffer, compositor, dst_rect,
+        sorted_layers[i]->present(command_buffer, compositor, dst_rect,
                                   dst_scale, i != 0);
 }
 
-void Driver::SignalVSync() {
+void Driver::signalVSync() {
     // NOTE: we signal all displays at once for simplicity
     std::scoped_lock lock(display_mutex);
     for (const auto& display : display_pool) {
-        display->GetVSyncEvent()->Signal();
+        display->getVSyncEvent()->signal();
     }
 }
 
-Layer* Driver::GetFirstLayerForProcess(kernel::Process* process) {
+Layer* Driver::getFirstLayerForProcess(kernel::Process* process) {
     std::scoped_lock lock(layer_mutex);
     for (const auto& layer : layer_pool) {
-        if (layer->GetProcess() == process)
+        if (layer->getProcess() == process)
             return layer;
     }
 

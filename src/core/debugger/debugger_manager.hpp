@@ -2,33 +2,33 @@
 
 #include "core/debugger/debugger.hpp"
 
-#define DEBUGGER_MANAGER_INSTANCE debugger::DebuggerManager::GetInstance()
+#define DEBUGGER_MANAGER_INSTANCE debugger::DebuggerManager::getInstance()
 #define GET_CURRENT_PROCESS_DEBUGGER()                                         \
-    DEBUGGER_MANAGER_INSTANCE.GetDebuggerForCurrentProcess()
+    DEBUGGER_MANAGER_INSTANCE.getDebuggerForCurrentProcess()
 
 namespace hydra::debugger {
 
 // TODO: sort out mutex locking
 class DebuggerManager {
   public:
-    static DebuggerManager& GetInstance();
+    static DebuggerManager& getInstance();
 
     DebuggerManager();
     ~DebuggerManager();
 
-    void AttachDebugger(hydra::horizon::kernel::Process* process,
+    void attachDebugger(hydra::horizon::kernel::Process* process,
                         const std::string_view name);
-    void DetachDebugger(hydra::horizon::kernel::Process* process);
+    void detachDebugger(hydra::horizon::kernel::Process* process);
 
-    Debugger& GetDebugger(hydra::horizon::kernel::Process* process);
-    Debugger& GetDebuggerForCurrentProcess();
+    Debugger& getDebugger(hydra::horizon::kernel::Process* process);
+    Debugger& getDebuggerForCurrentProcess();
 
     // API
-    void Lock() { mutex.lock(); }
-    void Unlock() { mutex.unlock(); }
+    void lock() { mutex.lock(); }
+    void unlock() { mutex.unlock(); }
 
-    usize GetDebuggerCount() const { return debuggers.size() + 1; }
-    Debugger& GetDebugger(const u32 index) {
+    usize getDebuggerCount() const { return debuggers.size() + 1; }
+    Debugger& getDebugger(const u32 index) {
         if (index == 0)
             return hydra_debugger;
 

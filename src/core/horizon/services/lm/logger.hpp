@@ -19,14 +19,14 @@ struct Packet {
 
 class ILogger : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     Packet packet{};
 
     // Commands
-    result_t Log(InBuffer<BufferAttr::AutoSelect> buffer);
+    result_t log(InBuffer<BufferAttr::AutoSelect> buffer);
 };
 
 } // namespace hydra::horizon::services::lm

@@ -26,30 +26,30 @@ class ServerSession : public SynchronizationObject {
         : SynchronizationObject(TYPE_ID, false, debug_name) {}
     ~ServerSession() override;
 
-    void OnClientClose();
+    void onClientClose();
 
-    bool IsClientOpen() {
+    bool isClientOpen() {
         std::scoped_lock lock(mutex);
         return client_open;
     }
 
     // Server
-    void Receive(IThread* crnt_thread);
-    void Reply(uptr ptr);
+    void receive(IThread* crnt_thread);
+    void reply(uptr ptr);
 
-    bool HasRequests() {
+    bool hasRequests() {
         std::scoped_lock lock(mutex);
         return !requests.empty();
     }
 
     // HACK
-    kernel::Process* GetActiveRequestClientProcess() {
+    kernel::Process* getActiveRequestClientProcess() {
         std::scoped_lock lock(mutex);
         return active_request->client_process;
     }
 
     // Client
-    void EnqueueRequest(Process* client_process, IThread* client_thread,
+    void enqueueRequest(Process* client_process, IThread* client_thread,
                         uptr ptr);
 
   private:
@@ -62,7 +62,7 @@ class ServerSession : public SynchronizationObject {
     std::optional<SessionRequest> active_request;
 
   public:
-    GETTER_AND_SETTER(parent, GetParent, SetParent);
+    GETTER_AND_SETTER(parent, getParent, setParent);
 };
 
 } // namespace hydra::horizon::kernel::hipc

@@ -66,16 +66,16 @@ union InstShflrR {
     BitField64<reg_t, 20, 8> src_b;
 };
 
-void EmitShflR(DecoderContext& context, InstShflrR inst);
-void EmitShfrR(DecoderContext& context, InstShflrR inst);
+void emitShflR(DecoderContext& context, InstShflrR inst);
+void emitShfrR(DecoderContext& context, InstShflrR inst);
 
 union InstShflrI {
     InstShflrBase base;
     BitField64<u32, 20, 6> imm6;
 };
 
-void EmitShflI(DecoderContext& context, InstShflrI inst);
-void EmitShfrI(DecoderContext& context, InstShflrI inst);
+void emitShflI(DecoderContext& context, InstShflrI inst);
+void emitShfrI(DecoderContext& context, InstShflrI inst);
 */
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

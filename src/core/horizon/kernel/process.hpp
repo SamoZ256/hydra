@@ -42,52 +42,52 @@ class Process : public SynchronizationObject {
     ~Process() override;
 
     // Memory
-    uptr CreateMemory(ztd::Range<vaddr_t> region, u64 size, MemoryType type,
+    uptr createMemory(ztd::Range<vaddr_t> region, u64 size, MemoryType type,
                       MemoryPermission perm, vaddr_t& out_base);
-    uptr CreateExecutableMemory(const std::string_view module_name,
+    uptr createExecutableMemory(const std::string_view module_name,
                                 CodeSet code_set, vaddr_t& out_base);
-    hw::tegra_x1::cpu::IMemory* CreateTlsMemory(vaddr_t& base);
-    void CreateStackMemory(u64 stack_size);
-    void ResizeHeap(u64 size);
+    hw::tegra_x1::cpu::IMemory* createTlsMemory(vaddr_t& base);
+    void createStackMemory(u64 stack_size);
+    void resizeHeap(u64 size);
 
     // Thread
-    Handle SetMainThread(GuestThread* thread) {
+    Handle setMainThread(GuestThread* thread) {
         main_thread = thread;
-        return AddHandle(main_thread);
+        return addHandle(main_thread);
     }
 
-    void RegisterThread(IThread* thread) {
+    void registerThread(IThread* thread) {
         std::scoped_lock lock(thread_mutex);
         threads.push_back(thread);
     }
-    void UnregisterThread(IThread* thread) {
+    void unregisterThread(IThread* thread) {
         std::scoped_lock lock(thread_mutex);
         std::erase(threads, thread);
 
         // Signal
         if (threads.empty())
-            SignalStateChange(ProcessState::Exited);
+            signalStateChange(ProcessState::Exited);
     }
 
-    void Start();
-    void Stop();
+    void start();
+    void stop();
 
-    void SupervisorPause();
-    void SupervisorResume();
+    void supervisorPause();
+    void supervisorResume();
 
-    bool IsRunning() {
+    bool isRunning() {
         std::scoped_lock lock(thread_mutex);
         return !threads.empty();
     }
 
-    ProcessState GetState() const { return state; }
+    ProcessState getState() const { return state; }
 
     // Helpers
 
     // Handles
     template <typename T>
     // TODO: uncomment
-    /*std::optional<T*>*/ T* GetHandle(Handle handle) {
+    /*std::optional<T*>*/ T* getHandle(Handle handle) {
         static_assert(std::is_base_of_v<AutoObject, T>,
                       "T must be derived from AutoObject");
 
@@ -107,49 +107,49 @@ class Process : public SynchronizationObject {
         }
 
         // HACK
-        return handle_pool.Get(handle)
+        return handle_pool.get(handle)
             .transform(
                 [](AutoObject* obj) -> auto { return static_cast<T*>(obj); })
             .value_or(nullptr);
     }
 
-    Handle AddHandleNoRetain(AutoObject* obj) {
+    Handle addHandleNoRetain(AutoObject* obj) {
         // TODO: remove
         if (obj == nullptr) [[unlikely]]
             return INVALID_HANDLE;
 
-        return handle_pool.Insert(obj).value();
+        return handle_pool.insert(obj).value();
     }
 
-    Handle AddHandle(AutoObject* obj) {
+    Handle addHandle(AutoObject* obj) {
         // TODO: remove
         if (obj == nullptr) [[unlikely]]
             return INVALID_HANDLE;
 
-        obj->Retain();
-        return handle_pool.Insert(obj).value();
+        obj->retain();
+        return handle_pool.insert(obj).value();
     }
 
-    bool FreeHandle(Handle handle) {
+    bool freeHandle(Handle handle) {
         ASSERT_DEBUG(handle != CURRENT_PROCESS_PSEUDO_HANDLE, Kernel,
                      "Cannot free current process handle");
         ASSERT_DEBUG(handle != CURRENT_THREAD_PSEUDO_HANDLE, Kernel,
                      "Cannot free current thread handle");
 
-        const auto object = handle_pool.Get(handle);
+        const auto object = handle_pool.get(handle);
         if (!object.has_value()) {
             LOG_WARN(Kernel, "Invalid handle {}", handle);
             return false;
         }
 
-        object.value()->Release();
-        ASSERT_DEBUG(handle_pool.Free(handle), Kernel,
+        object.value()->release();
+        ASSERT_DEBUG(handle_pool.free(handle), Kernel,
                      "Failed to free handle {}", handle);
         return true;
     }
 
-    hw::tegra_x1::cpu::IMmu* GetMmu() const { return mmu.get(); }
-    hw::tegra_x1::cpu::IMemory* GetHeapMemory() const { return heap_mem.get(); }
+    hw::tegra_x1::cpu::IMmu* getMmu() const { return mmu.get(); }
+    hw::tegra_x1::cpu::IMemory* getHeapMemory() const { return heap_mem.get(); }
 
   private:
     System& system;
@@ -184,18 +184,18 @@ class Process : public SynchronizationObject {
 
     std::atomic<ProcessState> state{ProcessState::Created};
 
-    void CleanUp();
+    void cleanUp();
 
-    void SignalStateChange(ProcessState new_state);
+    void signalStateChange(ProcessState new_state);
 
   public:
-    REF_GETTER(gmmu, GetGMmu);
-    REF_GETTER(applet_state, GetAppletState);
-    GETTER_AND_SETTER(title_id, GetTitleID, SetTitleID);
-    GETTER_AND_SETTER(system_resource_size, GetSystemResourceSize,
-                      SetSystemResourceSize);
-    CONST_REF_GETTER(random_entropy, GetRandomEntropy);
-    GETTER(main_thread, GetMainThread);
+    REF_GETTER(gmmu, getGMmu);
+    REF_GETTER(applet_state, getAppletState);
+    GETTER_AND_SETTER(title_id, getTitleId, setTitleId);
+    GETTER_AND_SETTER(system_resource_size, getSystemResourceSize,
+                      setSystemResourceSize);
+    CONST_REF_GETTER(random_entropy, getRandomEntropy);
+    GETTER(main_thread, getMainThread);
 };
 
 } // namespace hydra::horizon::kernel

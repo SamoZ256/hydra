@@ -11,7 +11,7 @@ class RomFS final : public Directory {
     explicit RomFS(const Directory& dir);
     ~RomFS() override = default;
 
-    SparseFile* Build();
+    SparseFile* build();
 };
 
 } // namespace hydra::horizon::filesystem::romfs

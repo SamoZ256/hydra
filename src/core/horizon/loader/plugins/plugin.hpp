@@ -42,9 +42,9 @@ class Plugin {
 
     // HACK: need to accept const std::string& instead of std::string_view, as
     // dlopen needs a null-terminated string
-    static std::expected<Plugin, Error> Create(const std::string& path);
+    static std::expected<Plugin, Error> create(const std::string& path);
     static std::expected<Plugin, Error>
-    Create(const std::string& path,
+    create(const std::string& path,
            const std::map<std::string, std::string>& options);
 
     Plugin() = default;
@@ -52,14 +52,15 @@ class Plugin {
 
     ZTD_MAKE_NON_COPYABLE(Plugin);
     ZTD_MAKE_MOVABLE(Plugin, library, std::exchange(other.library, nullptr),
-                     get_api_version, other.get_api_version, query, other.query,
-                     create_context, other.create_context, destroy_context,
-                     other.destroy_context, create_loader_from_file,
-                     other.create_loader_from_file, loader_destroy,
-                     other.loader_destroy, file_destroy, other.file_destroy,
-                     file_open, other.file_open, file_get_size,
-                     other.file_get_size, stream_destroy, other.stream_destroy,
-                     stream_get_seek, other.stream_get_seek, stream_seek_to,
+                     get_api_version, other.get_api_version, query_fn,
+                     other.query_fn, create_context, other.create_context,
+                     destroy_context, other.destroy_context,
+                     create_loader_from_file, other.create_loader_from_file,
+                     loader_destroy, other.loader_destroy, file_destroy,
+                     other.file_destroy, file_open, other.file_open,
+                     file_get_size, other.file_get_size, stream_destroy,
+                     other.stream_destroy, stream_get_seek,
+                     other.stream_get_seek, stream_seek_to,
                      other.stream_seek_to, stream_seek_by, other.stream_seek_by,
                      stream_get_size, other.stream_get_size, stream_read_raw,
                      other.stream_read_raw, name, other.name, display_version,
@@ -68,34 +69,34 @@ class Plugin {
                      std::move(other.option_configs), context,
                      std::exchange(other.context, nullptr));
 
-    std::optional<NxLoader*> Load(std::string_view path);
+    std::optional<NxLoader*> load(std::string_view path);
 
     // API
-    u64 GetApiVersion();
-    std::span<const u8> Query(api::QueryType what);
-    std::string_view QueryString(api::QueryType what);
+    u64 getApiVersion();
+    std::span<const u8> query(api::QueryType what);
+    std::string_view queryString(api::QueryType what);
     std::expected<void*, Error>
-    CreateContext(const std::map<std::string, std::string>& options);
-    void DestroyContext();
-    std::optional<void*> CreateLoaderFromFile(filesystem::Directory* root_dir,
+    createContext(const std::map<std::string, std::string>& options);
+    void destroyContext();
+    std::optional<void*> createLoaderFromFile(filesystem::Directory* root_dir,
                                               std::string_view path);
-    void LoaderDestroy(void* loader);
-    void FileDestroy(void* file);
-    void* FileOpen(void* file);
-    u64 FileGetSize(void* file);
-    void StreamDestroy(void* stream);
-    u64 StreamGetSeek(void* stream);
-    void StreamSeekTo(void* stream, u64 offset);
-    void StreamSeekBy(void* stream, u64 offset);
-    u64 StreamGetSize(void* stream);
-    void StreamReadRaw(void* stream, std::span<u8> buffer);
+    void loaderDestroy(void* loader);
+    void fileDestroy(void* file);
+    void* fileOpen(void* file);
+    u64 fileGetSize(void* file);
+    void streamDestroy(void* stream);
+    u64 streamGetSeek(void* stream);
+    void streamSeekTo(void* stream, u64 offset);
+    void streamSeekBy(void* stream, u64 offset);
+    u64 streamGetSize(void* stream);
+    void streamReadRaw(void* stream, std::span<u8> buffer);
 
   private:
     void* library{nullptr};
 
     // Functions
     api::GetApiVersionFnT get_api_version;
-    api::QueryFnT query;
+    api::QueryFnT query_fn;
     api::CreateContextFnT create_context;
     api::DestroyContextFnT destroy_context;
     api::CreateLoaderFromFileFnT create_loader_from_file;
@@ -121,7 +122,7 @@ class Plugin {
 
     // Helpers
     template <api::Function api_func, typename T>
-    T LoadFunction() {
+    T loadFunction() {
         std::string symbol_name;
         switch (api_func) {
         case api::Function::GetApiVersion:
@@ -179,10 +180,10 @@ class Plugin {
     }
 
   public:
-    CONST_REF_GETTER(name, GetName);
-    CONST_REF_GETTER(display_version, GetDisplayVersion);
-    CONST_REF_GETTER(supported_formats, GetSupportedFormats);
-    CONST_REF_GETTER(option_configs, GetOptionConfigs);
+    CONST_REF_GETTER(name, getName);
+    CONST_REF_GETTER(display_version, getDisplayVersion);
+    CONST_REF_GETTER(supported_formats, getSupportedFormats);
+    CONST_REF_GETTER(option_configs, getOptionConfigs);
 };
 
 } // namespace hydra::horizon::loader::plugins

@@ -9,12 +9,12 @@
 
 namespace hydra::horizon::services::fssrv {
 
-DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 0, CreateFile, 1, DeleteFile, 2,
-                             CreateDirectory, 3, DeleteDirectory, 4,
-                             DeleteDirectoryRecursively, 5, RenameFile, 7,
-                             GetEntryType, 8, OpenFile, 9, OpenDirectory, 10,
-                             Commit, 11, GetFreeSpaceSize, 12,
-                             GetTotalSpaceSize, 14, GetFileTimeStampRaw)
+DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 0, createFile, 1, deleteFile, 2,
+                             createDirectory, 3, deleteDirectory, 4,
+                             deleteDirectoryRecursively, 5, renameFile, 7,
+                             getEntryType, 8, openFile, 9, openDirectory, 10,
+                             commit, 11, getFreeSpaceSize, 12,
+                             getTotalSpaceSize, 14, getFileTimeStampRaw)
 
 #define READ_PATH_IMPL(path_var, debug_name)                                   \
     [[maybe_unused]] const auto path_var =                                     \
@@ -26,7 +26,7 @@ DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 0, CreateFile, 1, DeleteFile, 2,
 
 // TODO: flags
 result_t
-IFileSystem::CreateFile(System* system, CreateOption flags, u64 size,
+IFileSystem::createFile(System* system, CreateOption flags, u64 size,
                         InBuffer<BufferAttr::HipcPointer> in_path_buffer) {
     (void)flags;
 
@@ -38,7 +38,7 @@ IFileSystem::CreateFile(System* system, CreateOption flags, u64 size,
         size = 16_MiB;
     }
 
-    const auto res = system->GetOS().GetFilesystem().CreateFile(
+    const auto res = system->getOs().getFilesystem().createFile(
         path, size, true); // TODO: should create_intermediate be true?
     if (res == filesystem::FsResult::AlreadyExists) {
         LOG_WARN(Services, "File \"{}\" already exists", path);
@@ -50,11 +50,11 @@ IFileSystem::CreateFile(System* system, CreateOption flags, u64 size,
 }
 
 result_t
-IFileSystem::DeleteFile(System* system,
+IFileSystem::deleteFile(System* system,
                         InBuffer<BufferAttr::HipcPointer> in_path_buffer) {
     READ_PATH();
 
-    const auto res = system->GetOS().GetFilesystem().DeleteEntry(path);
+    const auto res = system->getOs().getFilesystem().deleteEntry(path);
     if (res != filesystem::FsResult::Success) {
         LOG_WARN(Services, "Failed to delete file \"{}\": {}", path, res);
         return MAKE_RESULT(Fs, 1);
@@ -64,11 +64,11 @@ IFileSystem::DeleteFile(System* system,
 }
 
 result_t
-IFileSystem::CreateDirectory(System* system,
+IFileSystem::createDirectory(System* system,
                              InBuffer<BufferAttr::HipcPointer> in_path_buffer) {
     READ_PATH();
 
-    const auto res = system->GetOS().GetFilesystem().CreateDirectory(
+    const auto res = system->getOs().getFilesystem().createDirectory(
         path, true); // TODO: should create_intermediate be true?
     if (res == filesystem::FsResult::AlreadyExists) {
         LOG_WARN(Services, "Directory \"{}\" already exists", path);
@@ -80,22 +80,22 @@ IFileSystem::CreateDirectory(System* system,
 }
 
 result_t
-IFileSystem::DeleteDirectory(System* system,
+IFileSystem::deleteDirectory(System* system,
                              InBuffer<BufferAttr::HipcPointer> in_path_buffer) {
     READ_PATH();
 
-    const auto res = system->GetOS().GetFilesystem().DeleteEntry(path);
+    const auto res = system->getOs().getFilesystem().deleteEntry(path);
     ASSERT(res == filesystem::FsResult::Success, Services,
            "Failed to delete directory \"{}\": {}", path, res);
 
     return RESULT_SUCCESS;
 }
 
-result_t IFileSystem::DeleteDirectoryRecursively(
+result_t IFileSystem::deleteDirectoryRecursively(
     System* system, InBuffer<BufferAttr::HipcPointer> in_path_buffer) {
     READ_PATH();
 
-    const auto res = system->GetOS().GetFilesystem().DeleteEntry(path, true);
+    const auto res = system->getOs().getFilesystem().deleteEntry(path, true);
     ASSERT(res == filesystem::FsResult::Success, Services,
            "Failed to delete directory recursively \"{}\": {}", path, res);
 
@@ -103,7 +103,7 @@ result_t IFileSystem::DeleteDirectoryRecursively(
 }
 
 result_t
-IFileSystem::RenameFile(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
+IFileSystem::renameFile(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
                         InBuffer<BufferAttr::HipcPointer> in_new_path_buffer) {
     LOG_FUNC_STUBBED(Services);
 
@@ -114,25 +114,25 @@ IFileSystem::RenameFile(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
 }
 
 result_t
-IFileSystem::GetEntryType(System* system,
+IFileSystem::getEntryType(System* system,
                           InBuffer<BufferAttr::HipcPointer> in_path_buffer,
                           EntryType* out_entry_type) {
     READ_PATH();
 
     filesystem::IEntry* entry;
-    const auto res = system->GetOS().GetFilesystem().GetEntry(path, entry);
+    const auto res = system->getOs().getFilesystem().getEntry(path, entry);
     if (res != filesystem::FsResult::Success) {
         LOG_WARN(Services, "Error getting entry \"{}\": {}", path, res);
         return MAKE_RESULT(Fs, 1);
     }
 
     *out_entry_type =
-        entry->IsDirectory() ? EntryType::Directory : EntryType::File;
+        entry->isDirectory() ? EntryType::Directory : EntryType::File;
     return RESULT_SUCCESS;
 }
 
 result_t
-IFileSystem::OpenFile(RequestContext* ctx, System* system,
+IFileSystem::openFile(RequestContext* ctx, System* system,
                       filesystem::FileOpenFlags flags,
                       InBuffer<BufferAttr::HipcPointer> in_path_buffer) {
     READ_PATH();
@@ -140,18 +140,18 @@ IFileSystem::OpenFile(RequestContext* ctx, System* system,
     LOG_DEBUG(Services, "Flags: {}", flags);
 
     filesystem::IFile* file;
-    const auto res = system->GetOS().GetFilesystem().GetFile(path, file);
+    const auto res = system->getOs().getFilesystem().getFile(path, file);
     if (res != filesystem::FsResult::Success) {
         LOG_WARN(Services, "Error opening file \"{}\": {}", path, res);
         return MAKE_RESULT(Fs, 1);
     }
 
-    AddService(*ctx, new IFile(file, flags));
+    addService(*ctx, new IFile(file, flags));
     return RESULT_SUCCESS;
 }
 
 result_t
-IFileSystem::OpenDirectory(RequestContext* ctx, System* system,
+IFileSystem::openDirectory(RequestContext* ctx, System* system,
                            DirectoryFilterFlags filter_flags,
                            InBuffer<BufferAttr::HipcPointer> in_path_buffer) {
     READ_PATH();
@@ -160,18 +160,18 @@ IFileSystem::OpenDirectory(RequestContext* ctx, System* system,
 
     filesystem::Directory* directory;
     const auto res =
-        system->GetOS().GetFilesystem().GetDirectory(path, directory);
+        system->getOs().getFilesystem().getDirectory(path, directory);
     if (res != filesystem::FsResult::Success) {
         LOG_WARN(Services, "Error opening directory \"{}\": {}", path, res);
         return MAKE_RESULT(Fs, 1);
     }
 
-    AddService(*ctx, new IDirectory(directory, filter_flags));
+    addService(*ctx, new IDirectory(directory, filter_flags));
     return RESULT_SUCCESS;
 }
 
 result_t
-IFileSystem::GetFreeSpaceSize(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
+IFileSystem::getFreeSpaceSize(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
                               u64* out_size) {
     LOG_FUNC_STUBBED(Services);
 
@@ -183,7 +183,7 @@ IFileSystem::GetFreeSpaceSize(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
 }
 
 result_t
-IFileSystem::GetTotalSpaceSize(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
+IFileSystem::getTotalSpaceSize(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
                                u64* out_size) {
     LOG_FUNC_STUBBED(Services);
 
@@ -194,7 +194,7 @@ IFileSystem::GetTotalSpaceSize(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
     return RESULT_SUCCESS;
 }
 
-result_t IFileSystem::GetFileTimeStampRaw(
+result_t IFileSystem::getFileTimeStampRaw(
     System* system, InBuffer<BufferAttr::HipcPointer> in_path_buffer,
     TimeStampRaw* out_timestamp) {
     LOG_FUNC_STUBBED(Services);
@@ -202,7 +202,7 @@ result_t IFileSystem::GetFileTimeStampRaw(
     READ_PATH();
 
     filesystem::IFile* file;
-    const auto res = system->GetOS().GetFilesystem().GetFile(path, file);
+    const auto res = system->getOs().getFilesystem().getFile(path, file);
     if (res != filesystem::FsResult::Success) {
         LOG_WARN(Services, "Error opening file \"{}\": {}", path, res);
         // TODO: set is_valid to false?

@@ -3,7 +3,7 @@
 int main(int argc, const char* argv[]) {
     // Window
     hydra::frontend::sdl3::Window window(argc, argv);
-    window.Run();
+    window.run();
 
     return 0;
 }

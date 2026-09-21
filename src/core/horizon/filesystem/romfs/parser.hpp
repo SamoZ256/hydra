@@ -12,8 +12,8 @@ class Parser {
            const TableLocation& file_meta_loc,
            const TableLocation& directory_meta_loc);
 
-    void LoadFile(Directory* parent, u32 offset) const;
-    void LoadDirectory(Directory* parent, u32 offset) const;
+    void loadFile(Directory* parent, u32 offset) const;
+    void loadDirectory(Directory* parent, u32 offset) const;
 
   private:
     IFile* data_file;
@@ -22,7 +22,7 @@ class Parser {
 
     // Helpers
     template <typename T, auto meta_member>
-    std::pair<T, std::string> LoadEntry(u32 offset) const {
+    std::pair<T, std::string> loadEntry(u32 offset) const {
         // Entry
         const auto& meta = this->*meta_member;
         T entry;

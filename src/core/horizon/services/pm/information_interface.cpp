@@ -4,11 +4,11 @@
 
 namespace hydra::horizon::services::pm {
 
-DEFINE_SERVICE_COMMAND_TABLE(IInformationInterface, 0, GetProgramId)
+DEFINE_SERVICE_COMMAND_TABLE(IInformationInterface, 0, getProgramId)
 
-result_t IInformationInterface::GetProgramId(kernel::Process* process,
+result_t IInformationInterface::getProgramId(kernel::Process* process,
                                              u64* out_program_id) {
-    *out_program_id = process->GetTitleID();
+    *out_program_id = process->getTitleId();
     return RESULT_SUCCESS;
 }
 

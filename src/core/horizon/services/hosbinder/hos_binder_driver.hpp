@@ -31,29 +31,29 @@ enum class BinderType : i32 {
 
 class IHOSBinderDriver : public IService {
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     // Commands
-    result_t TransactParcel(System* system, i32 binder_id, TransactCode code,
+    result_t transactParcel(System* system, i32 binder_id, TransactCode code,
                             u32 flags,
                             InBuffer<BufferAttr::MapAlias> in_parcel_buffer,
                             OutBuffer<BufferAttr::MapAlias> out_parcel_buffer);
-    result_t AdjustRefcount(System* system, i32 binder_id, i32 add_value,
+    result_t adjustRefcount(System* system, i32 binder_id, i32 add_value,
                             BinderType type);
     result_t
-    GetNativeHandle(System* system, kernel::Process* process, i32 binder_id,
+    getNativeHandle(System* system, kernel::Process* process, i32 binder_id,
                     u32 code,
                     OutHandle<HandleAttr::Copy>
                         out_handle); // TODO: should code be TransactCode?
     result_t
-    TransactParcelAuto(System* system, i32 binder_id, TransactCode code,
+    transactParcelAuto(System* system, i32 binder_id, TransactCode code,
                        u32 flags,
                        InBuffer<BufferAttr::AutoSelect> in_parcel_buffer,
                        OutBuffer<BufferAttr::AutoSelect> out_parcel_buffer);
 
-    void TransactParcelImpl(System& system, i32 binder_id, TransactCode code,
+    void transactParcelImpl(System& system, i32 binder_id, TransactCode code,
                             u32 flags,
                             std::optional<ztd::io::MemoryStream> in_stream,
                             std::optional<ztd::io::MemoryStream> out_stream);

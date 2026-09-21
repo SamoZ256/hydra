@@ -21,20 +21,20 @@ using create_service_fn_t = std::function<IService*()>;
 class Server {
   public:
     explicit Server(System& system_) : system{system_} {}
-    ~Server() { Stop(); }
+    ~Server() { stop(); }
 
     ZTD_MAKE_NON_COPYABLE(Server);
     ZTD_MAKE_NON_MOVABLE(Server);
 
-    void Start();
-    void Stop();
+    void start();
+    void stop();
 
-    void RegisterPort(kernel::hipc::ServerPort* port,
+    void registerPort(kernel::hipc::ServerPort* port,
                       create_service_fn_t service_creator);
-    void RegisterSession(kernel::hipc::ServerSession* session,
+    void registerSession(kernel::hipc::ServerSession* session,
                          IService* service);
 
-    IService* GetServiceForSession(kernel::hipc::ServerSession* session) {
+    IService* getServiceForSession(kernel::hipc::ServerSession* session) {
         return session_services.at(session);
     }
 
@@ -50,7 +50,7 @@ class Server {
     std::vector<kernel::hipc::ServerPort*> ports;
     std::vector<kernel::hipc::ServerSession*> sessions;
 
-    void MainLoop(const kernel::should_stop_fn_t& should_stop);
+    void mainLoop(const kernel::should_stop_fn_t& should_stop);
 };
 
 } // namespace hydra::horizon::services

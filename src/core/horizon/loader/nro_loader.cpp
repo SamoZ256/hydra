@@ -35,7 +35,7 @@ struct NroHeader {
     u32 dyn_sym_offset;
     u32 dyn_sym_size;
 
-    const NroSection& GetSection(NroSectionType type) const {
+    const NroSection& getSection(NroSectionType type) const {
         return sections[static_cast<u32>(type)];
     }
 };
@@ -44,7 +44,7 @@ struct NroHeader {
 
 NroLoader::NroLoader(filesystem::IFile* file_, const bool is_entry_point_)
     : file{file_}, is_entry_point{is_entry_point_} {
-    auto stream = file->Open(filesystem::FileOpenFlags::Read);
+    auto stream = file->open(filesystem::FileOpenFlags::Read);
 
     // Header
     const auto header = stream->read<NroHeader>();
@@ -54,22 +54,22 @@ NroLoader::NroLoader(filesystem::IFile* file_, const bool is_entry_point_)
            "Invalid NRO magic \"{}\"", header.magic);
 
     size = header.size;
-    sections[0] = header.GetSection(NroSectionType::Text);
-    sections[1] = header.GetSection(NroSectionType::Ro);
-    sections[2] = header.GetSection(NroSectionType::Data);
+    sections[0] = header.getSection(NroSectionType::Text);
+    sections[1] = header.getSection(NroSectionType::Ro);
+    sections[2] = header.getSection(NroSectionType::Data);
     sections[2].size += header.bss_size;
     bss_size = header.bss_size;
 
     delete stream;
 }
 
-void NroLoader::LoadProcess(System& system, kernel::Process* process) {
-    auto stream = file->Open(filesystem::FileOpenFlags::Read);
+void NroLoader::loadProcess(System& system, kernel::Process* process) {
+    auto stream = file->open(filesystem::FileOpenFlags::Read);
 
     // Create executable memory
     // TODO: is the size correct?
     const auto set = kernel::CodeSet{
-        .size = GetExecutableSize() + 0x1000, // HACK: one extra page
+        .size = getExecutableSize() + 0x1000, // HACK: one extra page
         .code = ztd::Range<u64>::fromSize(sections[0].offset, sections[0].size),
         .ro_data =
             ztd::Range<u64>::fromSize(sections[1].offset, sections[1].size),
@@ -77,7 +77,7 @@ void NroLoader::LoadProcess(System& system, kernel::Process* process) {
             ztd::Range<u64>::fromSize(sections[2].offset, sections[2].size)};
     // TODO: module name
     executable_ptr =
-        process->CreateExecutableMemory("main.nro", set, executable_base);
+        process->createExecutableMemory("main.nro", set, executable_base);
     stream->seekTo(0);
     stream->readToSpan(std::span(reinterpret_cast<u8*>(executable_ptr), size));
 
@@ -103,7 +103,7 @@ void NroLoader::LoadProcess(System& system, kernel::Process* process) {
     }
 }
 
-vaddr_t NroLoader::GetEntryPoint() const {
+vaddr_t NroLoader::getEntryPoint() const {
     return executable_base + sizeof(NroHeader) + sections[0].offset;
 }
 

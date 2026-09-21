@@ -40,40 +40,40 @@ struct RemapOp {
 
 class NvHostAsGpu : public FdBase {
   public:
-    NvResult Ioctl([[maybe_unused]] IoctlContext& context, u32 type,
+    NvResult ioctl([[maybe_unused]] IoctlContext& context, u32 type,
                    u32 nr) override;
-    NvResult Ioctl3([[maybe_unused]] IoctlContext& context, u32 type,
+    NvResult ioctl3([[maybe_unused]] IoctlContext& context, u32 type,
                     u32 nr) override;
 
   private:
     // Ioctls
-    NvResult BindChannel(u32 fd_id);
-    NvResult AllocSpace(kernel::Process* process, u32 pages, u32 page_size,
+    NvResult bindChannel(u32 fd_id);
+    NvResult allocSpace(kernel::Process* process, u32 pages, u32 page_size,
                         Aligned<AllocSpaceFlags, 8> flags,
                         InOut<u64, gpu_vaddr_t> align_and_offset);
-    NvResult FreeSpace(vaddr_t offset, u32 pages, u32 page_size);
-    NvResult UnmapBuffer(gpu_vaddr_t addr);
-    NvResult MapBufferEX(System* system, kernel::Process* process,
+    NvResult freeSpace(vaddr_t offset, u32 pages, u32 page_size);
+    NvResult unmapBuffer(gpu_vaddr_t addr);
+    NvResult mapBufferEx(System* system, kernel::Process* process,
                          MapBufferFlags flags, hw::tegra_x1::gpu::NvKind kind,
                          Handle nvmap_handle, [[maybe_unused]] u32 reserved,
                          u64 buffer_offset, u64 mapping_size,
                          InOutSingle<gpu_vaddr_t> inout_addr);
-    NvResult GetVaRegions(gpu_vaddr_t buffer_addr,
+    NvResult getVaRegions(gpu_vaddr_t buffer_addr,
                           InOutSingle<u32> inout_buffer_size,
                           [[maybe_unused]] u32 reserved,
                           std::array<VaRegion, 2>* out_va_regions);
-    NvResult AllocAsEX(kernel::Process* process, u32 big_page_size, i32 as_fd,
+    NvResult allocAsEx(kernel::Process* process, u32 big_page_size, i32 as_fd,
                        u32 flags, [[maybe_unused]] u32 reserved,
                        u64 va_range_start, u64 va_range_end,
                        u64 va_range_split);
-    NvResult Remap(const RemapOp* entries);
+    NvResult remap(const RemapOp* entries);
 
-    NvResult GetVaRegions3(gpu_vaddr_t buffer_addr,
+    NvResult getVaRegions3(gpu_vaddr_t buffer_addr,
                            InOutSingle<u32> inout_buffer_size,
                            [[maybe_unused]] u32 reserved) {
         // TODO: does this just throw the out_va_regions away?
         std::array<VaRegion, 2> out_va_regions;
-        return GetVaRegions(buffer_addr, inout_buffer_size, reserved,
+        return getVaRegions(buffer_addr, inout_buffer_size, reserved,
                             &out_va_regions);
     }
 };

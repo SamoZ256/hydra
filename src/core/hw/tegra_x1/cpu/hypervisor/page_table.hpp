@@ -24,46 +24,46 @@ ZTD_ENABLE_ENUM_BITWISE_OPERATORS(PageFlags);
 struct PageTableLevel {
     PageTableLevel(u32 level_, const Page page_, const vaddr_t base_va_);
 
-    u64 GetBlockSize() const { return 1ul << GET_BLOCK_SHIFT(level); }
+    u64 getBlockSize() const { return 1ul << GET_BLOCK_SHIFT(level); }
 
-    uptr PaToIndex(uptr pa) const {
+    uptr paToIndex(uptr pa) const {
         return (pa - page.pa) >> GET_BLOCK_SHIFT(level);
     }
 
-    u32 VaToIndex(vaddr_t va) const {
+    u32 vaToIndex(vaddr_t va) const {
         return static_cast<u32>((va - base_va) >> GET_BLOCK_SHIFT(level));
     }
 
-    u64& GetEntry(u32 index) const {
+    u64& getEntry(u32 index) const {
         u64* table = reinterpret_cast<u64*>(page.ptr);
         return table[index];
     }
 
-    PageTableLevel* GetNextNoNew(u32 index) {
+    PageTableLevel* getNextNoNew(u32 index) {
         ASSERT_DEBUG(level < 2, Hypervisor, "Level 2 is the last level");
         return next_levels[index].level;
     }
 
-    const PageTableLevel* GetNextNoNew(u32 index) const {
+    const PageTableLevel* getNextNoNew(u32 index) const {
         ASSERT_DEBUG(level < 2, Hypervisor, "Level 2 is the last level");
         return next_levels[index].level;
     }
 
-    PageTableLevel& GetNext(PageAllocator& allocator, u32 index);
+    PageTableLevel& getNext(PageAllocator& allocator, u32 index);
 
-    u32 GetBlockShift() const { return GET_BLOCK_SHIFT(level); }
+    u32 getBlockShift() const { return GET_BLOCK_SHIFT(level); }
 
-    horizon::kernel::MemoryState& GetLevelState(u32 index) {
+    horizon::kernel::MemoryState& getLevelState(u32 index) {
         return next_levels[index].state;
     }
 
-    const horizon::kernel::MemoryState& GetLevelState(u32 index) const {
+    const horizon::kernel::MemoryState& getLevelState(u32 index) const {
         return next_levels[index].state;
     }
 
-    PageFlags& GetLevelFlags(u32 index) { return next_levels[index].flags; }
+    PageFlags& getLevelFlags(u32 index) { return next_levels[index].flags; }
 
-    const PageFlags& GetLevelFlags(u32 index) const {
+    const PageFlags& getLevelFlags(u32 index) const {
         return next_levels[index].flags;
     }
 
@@ -80,7 +80,7 @@ struct PageTableLevel {
     std::array<NextLevel, ENTRY_COUNT> next_levels{};
 
   public:
-    GETTER(level, GetLevel);
+    GETTER(level, getLevel);
 };
 
 struct PageRegion {
@@ -89,7 +89,7 @@ struct PageRegion {
     u64 size;
     horizon::kernel::MemoryState state;
 
-    paddr_t UnmapAddr(vaddr_t va_) const { return pa + (va_ - va); }
+    paddr_t unmapAddr(vaddr_t va_) const { return pa + (va_ - va); }
 };
 
 class PageTable {
@@ -97,44 +97,44 @@ class PageTable {
     explicit PageTable(paddr_t base_pa);
     ~PageTable();
 
-    void Map(vaddr_t va, ztd::Range<uptr> range,
+    void map(vaddr_t va, ztd::Range<uptr> range,
              const horizon::kernel::MemoryState state, ApFlags ap_flags);
-    void Unmap(ztd::Range<vaddr_t> range);
+    void unmap(ztd::Range<vaddr_t> range);
 
     // State
-    PageRegion QueryRegion(vaddr_t va) const;
-    void SetMemoryPermission(ztd::Range<vaddr_t> range,
+    PageRegion queryRegion(vaddr_t va) const;
+    void setMemoryPermission(ztd::Range<vaddr_t> range,
                              horizon::kernel::MemoryPermission perm,
                              ApFlags ap_flags);
-    void SetMemoryAttribute(ztd::Range<vaddr_t> range,
+    void setMemoryAttribute(ztd::Range<vaddr_t> range,
                             horizon::kernel::MemoryAttribute mask,
                             horizon::kernel::MemoryAttribute value);
 
     // Write tracking
-    void SetWriteTrackingEnabled(ztd::Range<vaddr_t> range, bool enable);
-    bool TrySuspendWriteTracking(ztd::Range<vaddr_t> range);
-    void ResumeWriteTracking(ztd::Range<vaddr_t> range);
+    void setWriteTrackingEnabled(ztd::Range<vaddr_t> range, bool enable);
+    bool trySuspendWriteTracking(ztd::Range<vaddr_t> range);
+    void resumeWriteTracking(ztd::Range<vaddr_t> range);
 
-    paddr_t UnmapAddr(vaddr_t va) const;
+    paddr_t unmapAddr(vaddr_t va) const;
 
-    paddr_t GetBase() const { return allocator.GetBase(); }
+    paddr_t getBase() const { return allocator.getBase(); }
 
   private:
     PageAllocator allocator;
     PageTableLevel top_level;
 
-    void MapLevel(PageTableLevel& level, vaddr_t va, paddr_t pa, u64 size,
+    void mapLevel(PageTableLevel& level, vaddr_t va, paddr_t pa, u64 size,
                   const horizon::kernel::MemoryState state, ApFlags ap_flags);
-    void MapLevelNext(PageTableLevel& level, vaddr_t va, paddr_t pa, u64 size,
+    void mapLevelNext(PageTableLevel& level, vaddr_t va, paddr_t pa, u64 size,
                       const horizon::kernel::MemoryState state,
                       ApFlags ap_flags);
 
     void
-    IterateRange(ztd::Range<vaddr_t> range,
+    iterateRange(ztd::Range<vaddr_t> range,
                  const std::function<void(ztd::Range<vaddr_t>, u64,
                                           const horizon::kernel::MemoryState&,
                                           PageFlags)>& callback) const;
-    void ModifyRange(ztd::Range<vaddr_t> range,
+    void modifyRange(ztd::Range<vaddr_t> range,
                      const std::function<void(ztd::Range<vaddr_t>, u64&,
                                               horizon::kernel::MemoryState&,
                                               PageFlags&)>& callback);

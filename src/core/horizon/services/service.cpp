@@ -9,17 +9,17 @@
 
 namespace hydra::horizon::services {
 
-void IService::HandleRequest(System& system, kernel::Process* caller_process,
+void IService::handleRequest(System& system, kernel::Process* caller_process,
                              uptr ptr) {
     // HIPC header
-    auto hipc_in = kernel::hipc::parse_request(reinterpret_cast<void*>(ptr));
+    auto hipc_in = kernel::hipc::parseRequest(reinterpret_cast<void*>(ptr));
     auto command_type =
         static_cast<kernel::hipc::cmif::CommandType>(hipc_in.meta.type);
     const bool is_tipc =
         (command_type >= kernel::hipc::cmif::CommandType::TipcCommandRegion);
     if (!is_tipc)
         hipc_in.data.data_words =
-            kernel::hipc::cmif::AlignDataStart(hipc_in.data.data_words);
+            kernel::hipc::cmif::alignDataStart(hipc_in.data.data_words);
 
     // Scratch memory
     u8 scratch_buffer[0x200];
@@ -28,7 +28,7 @@ void IService::HandleRequest(System& system, kernel::Process* caller_process,
     u8 scratch_buffer_move_handles[0x100];
 
     // Request context
-    kernel::hipc::Streams streams(caller_process->GetMmu(), hipc_in,
+    kernel::hipc::Streams streams(caller_process->getMmu(), hipc_in,
                                   scratch_buffer, scratch_buffer_objects,
                                   scratch_buffer_copy_handles,
                                   scratch_buffer_move_handles);
@@ -46,20 +46,20 @@ void IService::HandleRequest(System& system, kernel::Process* caller_process,
     case kernel::hipc::cmif::CommandType::Close:
     case kernel::hipc::cmif::CommandType::TipcClose: // TODO: is this the same
                                                      // as regular close?
-        Close();
+        close();
         should_respond = false;
         break;
     case kernel::hipc::cmif::CommandType::Request:
     case kernel::hipc::cmif::CommandType::RequestWithContext: {
         // TODO: how is RequestWithContext different?
-        Request(context);
+        request(context);
         // TODO: respond command type 0?
         break;
     }
     case kernel::hipc::cmif::CommandType::Control:
     case kernel::hipc::cmif::CommandType::ControlWithContext:
         // TODO: how is ControlWithContext different?
-        Control(context);
+        control(context);
         break;
     default:
         if (command_type >=
@@ -68,7 +68,7 @@ void IService::HandleRequest(System& system, kernel::Process* caller_process,
                 static_cast<u32>(command_type) -
                 static_cast<u32>(
                     kernel::hipc::cmif::CommandType::TipcCommandRegion);
-            TipcRequest(context, command_id);
+            tipcRequest(context, command_id);
             response_command_type = command_type; // Same as input
             break;
         }
@@ -95,10 +95,10 @@ void IService::HandleRequest(System& system, kernel::Process* caller_process,
             .num_copy_handles = GET_ARRAY_SIZE(out_copy_handles_stream),
             .num_move_handles = GET_ARRAY_SIZE(out_move_handles_stream)};
         auto response =
-            kernel::hipc::make_request(reinterpret_cast<void*>(ptr), meta);
+            kernel::hipc::makeRequest(reinterpret_cast<void*>(ptr), meta);
         if (!is_tipc)
             response.data_words =
-                kernel::hipc::cmif::AlignDataStart(response.data_words);
+                kernel::hipc::cmif::alignDataStart(response.data_words);
 
         u8* data_start = reinterpret_cast<u8*>(response.data_words);
         if (command_type <
@@ -120,14 +120,14 @@ void IService::HandleRequest(System& system, kernel::Process* caller_process,
     }
 }
 
-void IService::AddService(RequestContext& context, IService* service) {
+void IService::addService(RequestContext& context, IService* service) {
     service->server = server;
     if (is_domain) {
         // Convert to domain
         service->is_domain = true;
         service->parent = parent;
 
-        const auto handle = AddSubservice(service);
+        const auto handle = addSubservice(service);
         context.streams.out_objects_stream.write(handle);
     } else {
         // Create new session
@@ -136,37 +136,37 @@ void IService::AddService(RequestContext& context, IService* service) {
         new kernel::hipc::Session(server_session, client_session);
 
         // Register server side
-        server->RegisterSession(server_session, service);
+        server->registerSession(server_session, service);
 
         // Register client side
-        const auto handle = context.process->AddHandleNoRetain(client_session);
+        const auto handle = context.process->addHandleNoRetain(client_session);
         context.streams.out_move_handles_stream.write(handle);
     }
 }
 
-IService* IService::GetService(RequestContext& context, Handle handle) {
+IService* IService::getService(RequestContext& context, Handle handle) {
     if (is_domain) {
-        return GetSubservice(handle);
+        return getSubservice(handle);
     } else {
-        return server->GetServiceForSession(
-            context.process->GetHandle<kernel::hipc::ClientSession>(handle)
-                ->GetParent()
-                ->GetServerSide());
+        return server->getServiceForSession(
+            context.process->getHandle<kernel::hipc::ClientSession>(handle)
+                ->getParent()
+                ->getServerSide());
     }
 }
 
-void IService::Close() {
+void IService::close() {
     // TODO
     LOG_FUNC_NOT_IMPLEMENTED(Services);
 }
 
-void IService::Request(RequestContext& context) {
+void IService::request(RequestContext& context) {
     if (is_domain) {
         // Domain in
         auto cmif_in = context.streams.in_stream
                            .read<kernel::hipc::cmif::DomainInHeader>();
         // LOG_DEBUG(Services, "Object ID: 0x{:08x}", cmif_in.object_id);
-        auto subservice = GetSubservice(cmif_in.object_id);
+        auto subservice = getSubservice(cmif_in.object_id);
 
         if (cmif_in.num_in_objects != 0) {
             auto objects = context.streams.in_stream.getPtr() +
@@ -176,15 +176,15 @@ void IService::Request(RequestContext& context) {
                 std::span(objects, cmif_in.num_in_objects * sizeof(Handle)));
         }
 
-        kernel::hipc::cmif::write_domain_out_header(context.streams.out_stream);
+        kernel::hipc::cmif::writeDomainOutHeader(context.streams.out_stream);
 
         switch (cmif_in.type) {
         case kernel::hipc::cmif::DomainCommandType::SendMessage: {
-            subservice->CmifRequest(context);
+            subservice->cmifRequest(context);
             break;
         }
         case kernel::hipc::cmif::DomainCommandType::Close:
-            FreeSubservice(cmif_in.object_id);
+            freeSubservice(cmif_in.object_id);
             LOG_DEBUG(Kernel, "Closed subservice");
             break;
         default:
@@ -192,29 +192,29 @@ void IService::Request(RequestContext& context) {
             break;
         }
     } else {
-        CmifRequest(context);
+        cmifRequest(context);
     }
 }
 
-void IService::CmifRequest(RequestContext& context) {
+void IService::cmifRequest(RequestContext& context) {
     auto cmif_in =
         context.streams.in_stream.read<kernel::hipc::cmif::InHeader>();
     ASSERT_DEBUG(cmif_in.magic == kernel::hipc::cmif::IN_HEADER_MAGIC, Services,
                  "Invalid CMIF in magic 0x{:08x}", cmif_in.magic);
 
     auto result =
-        kernel::hipc::cmif::write_out_header(context.streams.out_stream);
-    *result = RequestImpl(context, cmif_in.command_id);
+        kernel::hipc::cmif::writeOutHeader(context.streams.out_stream);
+    *result = requestImpl(context, cmif_in.command_id);
 }
 
-void IService::Control(RequestContext& context) {
+void IService::control(RequestContext& context) {
     auto cmif_in =
         context.streams.in_stream.read<kernel::hipc::cmif::InHeader>();
     ASSERT_DEBUG(cmif_in.magic == kernel::hipc::cmif::IN_HEADER_MAGIC, Kernel,
                  "Invalid CMIF in magic 0x{:08x}", cmif_in.magic);
 
     result_t* result =
-        kernel::hipc::cmif::write_out_header(context.streams.out_stream);
+        kernel::hipc::cmif::writeOutHeader(context.streams.out_stream);
 
     const auto command =
         static_cast<kernel::hipc::cmif::ControlCommandType>(cmif_in.command_id);
@@ -223,13 +223,13 @@ void IService::Control(RequestContext& context) {
     case kernel::hipc::cmif::ControlCommandType::ConvertCurrentObjectToDomain: {
         is_domain = true;
         subservice_pool.emplace();
-        const auto handle = AddSubservice(this->Retain());
+        const auto handle = addSubservice(this->retain());
         context.streams.out_stream.write(handle);
         *result = RESULT_SUCCESS;
         break;
     }
     case kernel::hipc::cmif::ControlCommandType::CloneCurrentObject:
-        Clone(context);
+        clone(context);
         *result = RESULT_SUCCESS;
         break;
     case kernel::hipc::cmif::ControlCommandType::QueryPointerBufferSize:
@@ -241,7 +241,7 @@ void IService::Control(RequestContext& context) {
         break;
     case kernel::hipc::cmif::ControlCommandType::CloneCurrentObjectEx:
         // TODO: u32 tag
-        Clone(context);
+        clone(context);
         *result = RESULT_SUCCESS;
         break;
     default:
@@ -250,24 +250,24 @@ void IService::Control(RequestContext& context) {
     }
 }
 
-void IService::Clone(RequestContext& context) {
+void IService::clone(RequestContext& context) {
     // Create new session
     auto server_session = new kernel::hipc::ServerSession();
     auto client_session = new kernel::hipc::ClientSession();
     new kernel::hipc::Session(server_session, client_session);
 
     // Register server side
-    server->RegisterSession(server_session, this);
+    server->registerSession(server_session, this);
 
     // Register client side
-    const auto handle = context.process->AddHandleNoRetain(client_session);
+    const auto handle = context.process->addHandleNoRetain(client_session);
     context.streams.out_move_handles_stream.write(handle);
 }
 
-void IService::TipcRequest(RequestContext& context, const u32 command_id) {
+void IService::tipcRequest(RequestContext& context, const u32 command_id) {
     ASSERT_DEBUG(!is_domain, Kernel,
                  "TIPC is not supported for domain services");
-    const auto result = RequestImpl(context, command_id);
+    const auto result = requestImpl(context, command_id);
     context.streams.out_stream.write(result);
 }
 

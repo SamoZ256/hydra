@@ -20,11 +20,11 @@ class Cpu : public ICpu {
   public:
     Cpu();
 
-    IMmu* CreateMmu(System& system) override;
-    IThread* CreateThread(WallClock& wall_clock, IMmu* mmu,
+    IMmu* createMmu(System& system) override;
+    IThread* createThread(WallClock& wall_clock, IMmu* mmu,
                           const ThreadCallbacks& callbacks, IMemory* tls_mem,
                           vaddr_t tls_mem_base) override;
-    IMemory* AllocateMemory(u64 size) override;
+    IMemory* allocateMemory(u64 size) override;
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::dynarmic

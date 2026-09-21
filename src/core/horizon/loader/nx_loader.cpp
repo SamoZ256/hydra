@@ -14,79 +14,79 @@
 namespace hydra::horizon::loader {
 
 NxLoader::NxLoader(const filesystem::Directory& dir_) : dir{dir_} {
-    ParseInfo();
-    ParseNpdm();
+    parseInfo();
+    parseNpdm();
 
     // NACP
-    auto res = dir.GetFile(NACP_PATH, nacp_file);
+    auto res = dir.getFile(NACP_PATH, nacp_file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Loader, "Failed to get " NACP_PATH ": {}", res);
         return;
     }
 
     // Icon
-    FindIcon();
+    findIcon();
 
     // Nintendo logo
-    res = dir.GetFile(NINTENDO_LOGO_PATH, nintendo_logo_file);
+    res = dir.getFile(NINTENDO_LOGO_PATH, nintendo_logo_file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Loader, "Failed to get " NINTENDO_LOGO_PATH ": {}", res);
         return;
     }
 
     // Startup movie
-    res = dir.GetFile(STARTUP_MOVIE_PATH, startup_movie_file);
+    res = dir.getFile(STARTUP_MOVIE_PATH, startup_movie_file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Loader, "Failed to get " STARTUP_MOVIE_PATH ": {}", res);
         return;
     }
 
     // ExeFS
-    res = dir.GetDirectory("exefs", exefs_dir);
+    res = dir.getDirectory("exefs", exefs_dir);
     ASSERT(res == filesystem::FsResult::Success, Loader,
            "Failed to get ExeFS directory: {}", res);
 
     // RomFS
-    res = dir.GetEntry("romfs", romfs_entry);
+    res = dir.getEntry("romfs", romfs_entry);
     ASSERT(res == filesystem::FsResult::Success, Loader,
            "Failed to get RomFS entry: {}", res);
 }
 
-void NxLoader::LoadProcess(System& system, kernel::Process* process) {
+void NxLoader::loadProcess(System& system, kernel::Process* process) {
     // Title ID
-    process->SetTitleID(title_id);
+    process->setTitleId(title_id);
 
     // ExeFS
-    LoadCode(system, process, exefs_dir);
+    loadCode(system, process, exefs_dir);
 
     // RomFS
     filesystem::IFile* romfs_file;
-    if (romfs_entry->IsFile()) {
+    if (romfs_entry->isFile()) {
         // Just set the file directly
         romfs_file = static_cast<filesystem::IFile*>(romfs_entry);
     } else {
         // Build romFS
         filesystem::romfs::RomFS romfs(
             *static_cast<filesystem::Directory*>(romfs_entry));
-        romfs_file = romfs.Build();
+        romfs_file = romfs.build();
         ASSERT(romfs_file, Loader, "Failed to build romFS");
     }
 
-    const auto res = system.GetOS().GetFilesystem().AddEntry(
+    const auto res = system.getOs().getFilesystem().addEntry(
         FS_SD_MOUNT "/rom/romFS", romfs_file, true);
     ASSERT(res == filesystem::FsResult::Success, Loader,
            "Failed to add romFS file: {}", res);
 }
 
-void NxLoader::ParseInfo() {
+void NxLoader::parseInfo() {
     filesystem::IFile* file;
-    auto res = dir.GetFile("info.toml", file);
+    auto res = dir.getFile("info.toml", file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Loader, "Failed to load info.toml: {}", res);
         return;
     }
 
-    auto stream = file->Open(filesystem::FileOpenFlags::Read);
+    auto stream = file->open(filesystem::FileOpenFlags::Read);
 
     std::string content;
     content.resize(stream->getSize());
@@ -97,15 +97,15 @@ void NxLoader::ParseInfo() {
     delete stream;
 }
 
-void NxLoader::ParseNpdm() {
+void NxLoader::parseNpdm() {
     filesystem::IFile* file;
-    auto res = dir.GetFile("exefs/main.npdm", file);
+    auto res = dir.getFile("exefs/main.npdm", file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Loader, "Failed to load main.npdm: {}", res);
         return;
     }
 
-    auto stream = file->Open(filesystem::FileOpenFlags::Read);
+    auto stream = file->open(filesystem::FileOpenFlags::Read);
 
     const auto meta = stream->read<NpdmMeta>();
 
@@ -138,7 +138,7 @@ void NxLoader::ParseNpdm() {
 
 namespace {
 
-std::string_view GetLanguageIconFilename(LanguageCode code) {
+std::string_view getLanguageIconFilename(LanguageCode code) {
     switch (code) {
     case LanguageCode::Japanese:
         return "Japanese";
@@ -181,23 +181,23 @@ std::string_view GetLanguageIconFilename(LanguageCode code) {
 
 } // namespace
 
-void NxLoader::FindIcon() {
+void NxLoader::findIcon() {
     // Get the icons directory
     filesystem::Directory* icons_dir;
-    auto res = dir.GetDirectory(ICONS_PATH, icons_dir);
+    auto res = dir.getDirectory(ICONS_PATH, icons_dir);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Loader, "Failed to get " ICONS_PATH ": {}", res);
         return;
     }
 
     // First, try to get the icon for the desired language
-    const auto lang_code = ToLanguageCode(CONFIG_INSTANCE.GetSystemLanguage());
-    const auto filename = GetLanguageIconFilename(lang_code);
-    res = dir.GetFile(filename, icon_file);
+    const auto lang_code = toLanguageCode(CONFIG_INSTANCE.GetSystemLanguage());
+    const auto filename = getLanguageIconFilename(lang_code);
+    res = dir.getFile(filename, icon_file);
     if (res != filesystem::FsResult::Success) {
         // Failed, get any icon
-        auto it = icons_dir->GetEntries().begin();
-        if (it == icons_dir->GetEntries().end()) {
+        auto it = icons_dir->getEntries().begin();
+        if (it == icons_dir->getEntries().end()) {
             LOG_ERROR(Loader, "Failed to get icon");
             return;
         }
@@ -206,30 +206,30 @@ void NxLoader::FindIcon() {
     }
 }
 
-void NxLoader::LoadCode(System& system, kernel::Process* process,
+void NxLoader::loadCode(System& system, kernel::Process* process,
                         filesystem::Directory* exefs_dir) const {
     // HACK: if rtld is not present, use main as the entry point
     std::string entry_point = "rtld";
     filesystem::IEntry* e;
-    if (exefs_dir->GetEntry("rtld", e) == filesystem::FsResult::DoesNotExist)
+    if (exefs_dir->getEntry("rtld", e) == filesystem::FsResult::DoesNotExist)
         entry_point = "main";
 
-    for (const auto& [filename, entry] : exefs_dir->GetEntries()) {
-        ASSERT(entry->IsFile(), Loader, "Code entry is not a file");
+    for (const auto& [filename, entry] : exefs_dir->getEntries()) {
+        ASSERT(entry->isFile(), Loader, "Code entry is not a file");
         auto file = static_cast<filesystem::IFile*>(entry);
         if (filename == "main.npdm") {
             // Do nothing
         } else {
             LOG_DEBUG(Loader, "Loading {}", filename);
             NsoLoader loader(file, filename, filename == entry_point);
-            loader.SetMainThreadParams(main_thread_priority,
+            loader.setMainThreadParams(main_thread_priority,
                                        main_thread_core_number,
                                        main_thread_stack_size);
-            loader.LoadProcess(system, process);
+            loader.loadProcess(system, process);
         }
     }
 
-    process->SetSystemResourceSize(system_resource_size);
+    process->setSystemResourceSize(system_resource_size);
 
     // TODO: ACI and ACID
 }

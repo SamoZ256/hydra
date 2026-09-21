@@ -7,26 +7,26 @@ namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 class Memory : public IMemory {
   public:
-    explicit Memory(u64 size) : IMemory(size) { Allocate(); }
-    ~Memory() override { Free(); }
+    explicit Memory(u64 size) : IMemory(size) { allocate(); }
+    ~Memory() override { free(); }
 
-    uptr GetPtr() const override { return ptr; }
+    uptr getPtr() const override { return ptr; }
 
   protected:
-    void ResizeImpl() override {
-        Free();
-        Allocate();
+    void resizeImpl() override {
+        free();
+        allocate();
     }
 
   private:
     uptr ptr;
 
     // Helpers
-    u64 GetSizeAligned() const { return align(GetSize(), APPLE_PAGE_SIZE); }
+    u64 getSizeAligned() const { return align(getSize(), APPLE_PAGE_SIZE); }
 
-    void Allocate() {
-        const auto size = GetSizeAligned();
-        ptr = AllocateVmMemory(size);
+    void allocate() {
+        const auto size = getSizeAligned();
+        ptr = allocateVmMemory(size);
 
         // Map
         // TODO: if AllocateVmMemory passes a pointer greater than 0x8000000000, this will fail
@@ -35,12 +35,12 @@ class Memory : public IMemory {
                       HV_MEMORY_READ | HV_MEMORY_WRITE | HV_MEMORY_EXEC));
     }
 
-    void Free() {
+    void free() {
         // Unmap
         HV_ASSERT_SUCCESS(
-            hv_vm_unmap(ptr, align(GetSizeAligned(), APPLE_PAGE_SIZE)));
+            hv_vm_unmap(ptr, align(getSizeAligned(), APPLE_PAGE_SIZE)));
 
-        FreeVmMemory(ptr, GetSizeAligned());
+        freeVmMemory(ptr, getSizeAligned());
     }
 };
 

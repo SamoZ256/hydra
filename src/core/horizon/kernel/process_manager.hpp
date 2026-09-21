@@ -13,13 +13,13 @@ class ProcessManager {
     explicit ProcessManager(System& system_) : system{system_} {}
     ~ProcessManager();
 
-    Process* CreateProcess(const std::string_view name);
-    void DestroyProcess(Process* process);
+    Process* createProcess(const std::string_view name);
+    void destroyProcess(Process* process);
 
-    bool HasRunningProcesses();
+    bool hasRunningProcesses();
 
-    std::vector<Process*>::iterator Begin() { return processes.begin(); }
-    std::vector<Process*>::iterator End() { return processes.end(); }
+    std::vector<Process*>::iterator begin() { return processes.begin(); }
+    std::vector<Process*>::iterator end() { return processes.end(); }
 
   private:
     System& system;

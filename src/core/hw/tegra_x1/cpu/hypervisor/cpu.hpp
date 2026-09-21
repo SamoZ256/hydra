@@ -27,11 +27,11 @@ class Cpu : public ICpu {
     Cpu();
     ~Cpu() noexcept override = default;
 
-    IMmu* CreateMmu(System& system) override;
-    IThread* CreateThread(WallClock& wall_clock, IMmu* mmu,
+    IMmu* createMmu(System& system) override;
+    IThread* createThread(WallClock& wall_clock, IMmu* mmu,
                           const ThreadCallbacks& callbacks, IMemory* tls_mem,
                           vaddr_t tls_mem_base) override;
-    IMemory* AllocateMemory(u64 size) override;
+    IMemory* allocateMemory(u64 size) override;
 
   private:
     VirtualMachine vm;
@@ -39,7 +39,7 @@ class Cpu : public ICpu {
     PageTable kernel_page_table;
 
   public:
-    CONST_REF_GETTER(kernel_page_table, GetKernelPageTable);
+    CONST_REF_GETTER(kernel_page_table, getKernelPageTable);
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor

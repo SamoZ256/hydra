@@ -13,11 +13,11 @@ class NroLoader : public ILoader {
   public:
     NroLoader(filesystem::IFile* file_, const bool is_entry_point_);
 
-    void LoadProcess(System& system, kernel::Process* process) override;
+    void loadProcess(System& system, kernel::Process* process) override;
 
-    vaddr_t GetEntryPoint() const;
+    vaddr_t getEntryPoint() const;
 
-    u64 GetExecutableSize() const { return size + bss_size; }
+    u64 getExecutableSize() const { return size + bss_size; }
 
   private:
     filesystem::IFile* file;
@@ -31,12 +31,12 @@ class NroLoader : public ILoader {
     vaddr_t executable_base{invalid<vaddr_t>()};
     u64 executable_size{0};
 
-    void TryLoadAssetSection(filesystem::IFile* file);
+    void tryLoadAssetSection(filesystem::IFile* file);
 
   public:
-    GETTER(size, GetSize);
-    GETTER(executable_ptr, GetExecutablePtr);
-    GETTER(executable_base, GetExecutableBase);
+    GETTER(size, getSize);
+    GETTER(executable_ptr, getExecutablePtr);
+    GETTER(executable_base, getExecutableBase);
 };
 
 } // namespace hydra::horizon::loader

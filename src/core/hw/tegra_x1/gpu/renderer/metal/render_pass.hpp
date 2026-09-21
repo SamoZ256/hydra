@@ -11,7 +11,7 @@ class RenderPass final : public RenderPassBase {
     ~RenderPass() override;
 
     // Getters
-    MTL::RenderPassDescriptor* GetRenderPassDescriptor() const {
+    MTL::RenderPassDescriptor* getRenderPassDescriptor() const {
         return render_pass_descriptor;
     }
 

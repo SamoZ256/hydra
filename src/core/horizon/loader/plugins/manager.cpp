@@ -2,7 +2,7 @@
 
 namespace hydra::horizon::loader::plugins {
 
-void Manager::Refresh() {
+void Manager::refresh() {
     plugins.clear();
     plugins.reserve(CONFIG_INSTANCE.GetLoaderPlugins().size());
     for (const auto& plugin_config : CONFIG_INSTANCE.GetLoaderPlugins()) {
@@ -17,14 +17,14 @@ void Manager::Refresh() {
             continue;
         }
 
-        (void)Plugin::Create(plugin_config.path, plugin_config.options)
+        (void)Plugin::create(plugin_config.path, plugin_config.options)
             .transform([this](Plugin plugin) {
                 plugins.emplace_back(std::move(plugin));
             });
     }
 }
 
-Plugin* Manager::FindPluginForFormat(std::string_view format) {
+Plugin* Manager::findPluginForFormat(std::string_view format) {
     for (auto& plugin : plugins) {
         if (std::ranges::find(plugin.supported_formats, format) !=
             plugin.supported_formats.end())

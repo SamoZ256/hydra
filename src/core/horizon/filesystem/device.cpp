@@ -10,38 +10,38 @@ namespace hydra::horizon::filesystem {
 
 Device::~Device() { delete root; }
 
-FsResult Device::AddEntry(const std::string_view path, IEntry* entry,
+FsResult Device::addEntry(const std::string_view path, IEntry* entry,
                           bool add_intermediate) {
     VERIFY_PATH(path);
-    return root->AddEntry(path.substr(1), entry, add_intermediate);
+    return root->addEntry(path.substr(1), entry, add_intermediate);
 }
 
-FsResult Device::AddEntry(const std::string_view path,
+FsResult Device::addEntry(const std::string_view path,
                           const std::string_view host_path,
                           bool add_intermediate) {
     VERIFY_PATH(path);
-    return root->AddEntry(path.substr(1), host_path, add_intermediate);
+    return root->addEntry(path.substr(1), host_path, add_intermediate);
 }
 
-FsResult Device::DeleteEntry(const std::string_view path, bool recursive) {
+FsResult Device::deleteEntry(const std::string_view path, bool recursive) {
     VERIFY_PATH(path);
-    return root->DeleteEntry(path.substr(1), recursive);
+    return root->deleteEntry(path.substr(1), recursive);
 }
 
-FsResult Device::GetEntry(const std::string_view path, IEntry*& out_entry) {
+FsResult Device::getEntry(const std::string_view path, IEntry*& out_entry) {
     VERIFY_PATH(path);
-    return root->GetEntry(path.substr(1), out_entry);
+    return root->getEntry(path.substr(1), out_entry);
 }
 
-FsResult Device::GetFile(const std::string_view path, IFile*& out_file) {
+FsResult Device::getFile(const std::string_view path, IFile*& out_file) {
     VERIFY_PATH(path);
-    return root->GetFile(path.substr(1), out_file);
+    return root->getFile(path.substr(1), out_file);
 }
 
-FsResult Device::GetDirectory(const std::string_view path,
+FsResult Device::getDirectory(const std::string_view path,
                               Directory*& out_directory) {
     VERIFY_PATH(path);
-    return root->GetDirectory(path.substr(1), out_directory);
+    return root->getDirectory(path.substr(1), out_directory);
 }
 
 } // namespace hydra::horizon::filesystem

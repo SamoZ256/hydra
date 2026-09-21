@@ -81,7 +81,7 @@ namespace hydra::horizon {
 namespace {
 
 template <typename Key>
-void RegisterServiceToPort(services::Server* server,
+void registerServiceToPort(services::Server* server,
                            kernel::hipc::ServiceManager<Key>& service_manager,
                            const Key& port_name,
                            services::create_service_fn_t service_creator) {
@@ -101,13 +101,13 @@ void RegisterServiceToPort(services::Server* server,
                            fmt::format("\"{}\" port", debug_name));
 
     // Register server side
-    server->RegisterPort(server_port, std::move(service_creator));
+    server->registerPort(server_port, std::move(service_creator));
 
     // Register client side
-    service_manager.RegisterPort(port_name, client_port);
+    service_manager.registerPort(port_name, client_port);
 }
 
-uint2 RoundUpToNearestStandardResolution(uint2 surface_resolution) {
+uint2 roundUpToNearestStandardResolution(uint2 surface_resolution) {
     // TODO: constexpr
     constexpr std::array<uint2, 5> standard_resolutions = {
         uint2({1280, 720}), uint2({1920, 1080}), uint2({2560, 1440}),
@@ -132,16 +132,16 @@ OS::OS(System& system_)
     const auto& sysmodules_path = CONFIG_INSTANCE.GetSysmodulesPath();
     if (std::filesystem::exists(sysmodules_path)) {
         auto res =
-            filesystem.AddEntry(FS_SYSMODULES_PATH, sysmodules_path, true);
+            filesystem.addEntry(FS_SYSMODULES_PATH, sysmodules_path, true);
         ASSERT(res == horizon::filesystem::FsResult::Success, Other,
                "Failed to add sysmodules", res);
     }
 
     // System avatars
-    user_manager.LoadSystemAvatars(filesystem);
+    user_manager.loadSystemAvatars(filesystem);
 
     // Shared font
-    shared_font_manager.LoadFonts();
+    shared_font_manager.loadFonts();
 
     // Services
 
@@ -150,17 +150,17 @@ OS::OS(System& system_)
     // TODO: adjust the number of servers based on host CPU core count
 
     // SM
-    RegisterServiceToPort<std::string>(
-        &others_server, kernel.GetServiceManager(), "sm:", [this] {
+    registerServiceToPort<std::string>(
+        &others_server, kernel.getServiceManager(), "sm:", [this] {
             auto s = new services::sm::IUserInterface();
-            s->SetServer(&others_server);
+            s->setServer(&others_server);
             return s;
         });
 
 #define REGISTER_SERVICE_CASE(server, service, name)                           \
-    RegisterServiceToPort(server, service_manager, name##_u64, [this]() {      \
+    registerServiceToPort(server, service_manager, name##_u64, [this]() {      \
         auto s = new services::service();                                      \
-        s->SetServer(server);                                                  \
+        s->setServer(server);                                                  \
         return s;                                                              \
     });
 #define REGISTER_SERVICE(server_name, service, ...)                            \
@@ -217,7 +217,7 @@ OS::OS(System& system_)
     // Socket
     REGISTER_SERVICE(others, socket::IClient, "bsd:u", "bsd:s", "bsd:a");
     REGISTER_SERVICE(others, nsd::IManager, "nsd:u", "nsd:a");
-    REGISTER_SERVICE(others, socket::Resolver::IResolver, "sfdnsres");
+    REGISTER_SERVICE(others, socket::resolver::IResolver, "sfdnsres");
 
     // Capsrv
     REGISTER_SERVICE(others, mmnv::IRequest, "mm:u");
@@ -262,7 +262,7 @@ OS::OS(System& system_)
     // Nvservices
     REGISTER_SERVICE(nvservices, nvdrv::INvDrvServices, "nvdrv", "nvdrv:a",
                      "nvdrv:s", "nvdrv:t");
-    nvservices_server.Start();
+    nvservices_server.start();
 
     // PM
     REGISTER_SERVICE(others, pm::IBootModeInterface, "pm:bm");
@@ -311,7 +311,7 @@ OS::OS(System& system_)
     // Unknown
     REGISTER_SERVICE(others, lm::ILogService, "lm");
 
-    others_server.Start();
+    others_server.start();
 
     // Sysmodules
     if (std::filesystem::exists(sysmodules_path)) {
@@ -330,38 +330,38 @@ OS::OS(System& system_)
             // TODO: get the name from toolbox.json
             // TODO: get title ID from toolbox.json
             auto process =
-                kernel.GetProcessManager().CreateProcess("Sysmodule");
-            loader.LoadProcess(system, process);
-            process->Start();
+                kernel.getProcessManager().createProcess("Sysmodule");
+            loader.loadProcess(system, process);
+            process->start();
         }
     }
 }
 
-void OS::NotifyOperationModeChanged() {
+void OS::notifyOperationModeChanged() {
     // Disconnect and connect npads
     // TODO: update supported style sets?
-    hid_resource_manager.SetupNpads();
+    hid_resource_manager.setupNpads();
 
     // Send a message to all processes
-    for (auto it = kernel.GetProcessManager().Begin();
-         it != kernel.GetProcessManager().End(); it++) {
-        (*it)->GetAppletState().SendMessage(
+    for (auto it = kernel.getProcessManager().begin();
+         it != kernel.getProcessManager().end(); it++) {
+        (*it)->getAppletState().sendMessage(
             kernel::AppletMessage::OperationModeChanged);
     }
 }
 
-void OS::SetSurfaceResolution(uint2 resolution) {
+void OS::setSurfaceResolution(uint2 resolution) {
     // TODO: signal resolution change event if changed
     surface_resolution = resolution;
 }
 
-uint2 OS::GetDisplayResolution() const {
+uint2 OS::getDisplayResolution() const {
     if (CONFIG_INSTANCE.GetHandheldMode()) {
         return {1280, 720}; // Handheld display resolution is fixed
     } else {
         switch (CONFIG_INSTANCE.GetDisplayResolution()) {
         case Resolution::Auto:
-            return RoundUpToNearestStandardResolution(surface_resolution);
+            return roundUpToNearestStandardResolution(surface_resolution);
         case Resolution::_720p:
             return {1280, 720};
         case Resolution::_1080p:

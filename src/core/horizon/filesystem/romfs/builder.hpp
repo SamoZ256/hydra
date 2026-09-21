@@ -10,7 +10,7 @@ class Builder {
   public:
     explicit Builder(Directory* root);
 
-    std::vector<SparseFileEntry> Build();
+    std::vector<SparseFileEntry> build();
 
   private:
     struct DirContext;
@@ -27,15 +27,16 @@ class Builder {
     u64 dir_hash_table_size = 0;
     u64 file_hash_table_size = 0;
 
-    void VisitDirectory(Directory* dir, const std::shared_ptr<DirContext>& parent);
+    void visitDirectory(Directory* dir,
+                        const std::shared_ptr<DirContext>& parent);
 
-    void AddDirectory(std::shared_ptr<DirContext> ctx);
-    void AddFile(std::shared_ptr<FileContext> ctx);
+    void addDirectory(std::shared_ptr<DirContext> ctx);
+    void addFile(std::shared_ptr<FileContext> ctx);
 
-    static u32 CalcPathHash(u32 parent, const std::string& path, u32 start,
+    static u32 calcPathHash(u32 parent, const std::string& path, u32 start,
                             u32 len);
 
-    static u64 CalcHashTableSize(u64 entries);
+    static u64 calcHashTableSize(u64 entries);
 };
 
 } // namespace hydra::horizon::filesystem::romfs

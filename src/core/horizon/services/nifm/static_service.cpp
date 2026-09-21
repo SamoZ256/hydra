@@ -4,17 +4,17 @@
 
 namespace hydra::horizon::services::nifm {
 
-DEFINE_SERVICE_COMMAND_TABLE(IStaticService, 4, CreateGeneralServiceOld, 5,
-                             CreateGeneralService)
+DEFINE_SERVICE_COMMAND_TABLE(IStaticService, 4, createGeneralServiceOld, 5,
+                             createGeneralService)
 
-result_t IStaticService::CreateGeneralServiceOld(RequestContext* ctx) {
-    AddService(*ctx, new IGeneralService());
+result_t IStaticService::createGeneralServiceOld(RequestContext* ctx) {
+    addService(*ctx, new IGeneralService());
     return RESULT_SUCCESS;
 }
 
-result_t IStaticService::CreateGeneralService(RequestContext* ctx) {
+result_t IStaticService::createGeneralService(RequestContext* ctx) {
     // TODO: some PID stuff
-    AddService(*ctx, new IGeneralService());
+    addService(*ctx, new IGeneralService());
     return RESULT_SUCCESS;
 }
 

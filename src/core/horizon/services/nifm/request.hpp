@@ -27,24 +27,24 @@ class IRequest : public IService {
     IRequest();
 
   protected:
-    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+    result_t requestImpl([[maybe_unused]] RequestContext& context,
                          u32 id) override;
 
   private:
     std::array<std::unique_ptr<kernel::Event>, 2> events;
 
     // Commands
-    result_t GetRequestState(RequestState* out_state);
-    STUB_REQUEST_COMMAND(GetResult);
+    result_t getRequestState(RequestState* out_state);
+    STUB_REQUEST_COMMAND(getResult);
     result_t
-    GetSystemEventReadableHandles(kernel::Process* process,
+    getSystemEventReadableHandles(kernel::Process* process,
                                   OutHandle<HandleAttr::Copy> out_handle0,
                                   OutHandle<HandleAttr::Copy> out_handle1);
-    STUB_REQUEST_COMMAND(Cancel);
-    STUB_REQUEST_COMMAND(Submit);
-    STUB_REQUEST_COMMAND(SetRequirementPreset);
+    STUB_REQUEST_COMMAND(cancel);
+    STUB_REQUEST_COMMAND(submit);
+    STUB_REQUEST_COMMAND(setRequirementPreset);
     result_t
-    SetConnectionConfirmationOption(ConnectionConfirmationOption option);
+    setConnectionConfirmationOption(ConnectionConfirmationOption option);
 };
 
 } // namespace hydra::horizon::services::nifm

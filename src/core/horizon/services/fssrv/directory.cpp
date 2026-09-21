@@ -17,17 +17,17 @@ struct FsDirectoryEntry {
 
 } // namespace
 
-DEFINE_SERVICE_COMMAND_TABLE(IDirectory, 0, Read, 1, GetEntryCount)
+DEFINE_SERVICE_COMMAND_TABLE(IDirectory, 0, read, 1, getEntryCount)
 
-result_t IDirectory::Read(u64* out_entry_count,
+result_t IDirectory::read(u64* out_entry_count,
                           OutBuffer<BufferAttr::MapAlias> out_entries) {
-    if (entry_index >= directory->GetEntries().size()) {
+    if (entry_index >= directory->getEntries().size()) {
         *out_entry_count = 0;
         return RESULT_SUCCESS;
     }
 
     u32 i = 0;
-    for (const auto& [path, entry] : directory->GetEntries()) {
+    for (const auto& [path, entry] : directory->getEntries()) {
         // Check if the stream has enough space to write the entry
         if (out_entries.stream->getSeek() + sizeof(FsDirectoryEntry) >
             out_entries.stream->getSize())
@@ -41,18 +41,18 @@ result_t IDirectory::Read(u64* out_entry_count,
             continue;
 
         // Filter
-        if (entry->IsFile() && !any(filter_flags & DirectoryFilterFlags::Files))
+        if (entry->isFile() && !any(filter_flags & DirectoryFilterFlags::Files))
             continue;
-        if (entry->IsDirectory() &&
+        if (entry->isDirectory() &&
             !any(filter_flags & DirectoryFilterFlags::Directories))
             continue;
 
         FsDirectoryEntry e{};
         memcpy(e.name, path.c_str(), path.size());
         e.type =
-            (entry->IsDirectory() ? EntryType::Directory : EntryType::File);
-        if (!entry->IsDirectory())
-            e.file_size = static_cast<filesystem::IFile*>(entry)->GetSize();
+            (entry->isDirectory() ? EntryType::Directory : EntryType::File);
+        if (!entry->isDirectory())
+            e.file_size = static_cast<filesystem::IFile*>(entry)->getSize();
         else
             e.file_size = 0;
 
@@ -67,8 +67,8 @@ result_t IDirectory::Read(u64* out_entry_count,
     return RESULT_SUCCESS;
 }
 
-result_t IDirectory::GetEntryCount(u64* out_count) {
-    *out_count = directory->GetEntries().size();
+result_t IDirectory::getEntryCount(u64* out_count) {
+    *out_count = directory->getEntries().size();
     return RESULT_SUCCESS;
 }
 

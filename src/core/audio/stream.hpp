@@ -17,12 +17,12 @@ class IStream {
           buffer_finished_callback{std::move(buffer_finished_callback_)} {}
     virtual ~IStream() noexcept = default;
 
-    virtual void Start() = 0;
-    virtual void Stop() = 0;
+    virtual void start() = 0;
+    virtual void stop() = 0;
 
-    virtual void EnqueueBuffer(buffer_id_t id, std::span<const u8> buffer) = 0;
+    virtual void enqueueBuffer(buffer_id_t id, std::span<const u8> buffer) = 0;
 
-    StreamState GetState() const { return state; }
+    StreamState getState() const { return state; }
 
   protected:
     PcmFormat format;

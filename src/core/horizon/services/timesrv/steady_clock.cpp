@@ -4,16 +4,16 @@
 
 namespace hydra::horizon::services::timesrv {
 
-DEFINE_SERVICE_COMMAND_TABLE(ISteadyClock, 0, GetCurrentTimePoint)
+DEFINE_SERVICE_COMMAND_TABLE(ISteadyClock, 0, getCurrentTimePoint)
 
 result_t
-ISteadyClock::GetCurrentTimePoint(RequestContext* ctx,
+ISteadyClock::getCurrentTimePoint(RequestContext* ctx,
                                   SteadyClockTimePoint* out_time_point) {
     *out_time_point = {
-        .time_point = ctx->system.GetOS()
-                          .GetTimeManager()
-                          .GetSteadyClock()
-                          .GetTimePoint(),
+        .time_point = ctx->system.getOs()
+                          .getTimeManager()
+                          .getSteadyClock()
+                          .getTimePoint(),
         .clock_source_id = CLOCK_SOURCE_ID,
     };
     return RESULT_SUCCESS;

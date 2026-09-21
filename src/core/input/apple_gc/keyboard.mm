@@ -4,7 +4,7 @@
 
 namespace hydra::input::apple_gc {
 
-bool Keyboard::IsPressedImpl(Key key) {
+bool Keyboard::isPressedImpl(Key key) {
 #define KEY_CASE(key, gc_key)                                                  \
     case Key::key:                                                             \
         gc_key_code = GCKeyCode##gc_key;                                       \

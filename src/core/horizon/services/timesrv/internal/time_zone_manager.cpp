@@ -16,7 +16,7 @@ TimeZoneManager::TimeZoneManager(filesystem::Filesystem& filesystem_)
 
     // NCA
     filesystem::IFile* time_zone_archive_file;
-    auto res = filesystem.GetFile(FS_FIRMWARE_PATH "/TimeZoneBinary",
+    auto res = filesystem.getFile(FS_FIRMWARE_PATH "/TimeZoneBinary",
                                   time_zone_archive_file);
     if (res != filesystem::FsResult::Success) {
         // TODO: return error?
@@ -28,7 +28,7 @@ TimeZoneManager::TimeZoneManager(filesystem::Filesystem& filesystem_)
 
     // Data
     filesystem::IFile* data_file;
-    res = time_zone_archive.GetFile("data", data_file);
+    res = time_zone_archive.getFile("data", data_file);
     if (res != filesystem::FsResult::Success) {
         // TODO: return error?
         LOG_ERROR(Services, "Failed to get time zone data: {}", res);
@@ -39,9 +39,9 @@ TimeZoneManager::TimeZoneManager(filesystem::Filesystem& filesystem_)
 
     // List file
     filesystem::IFile* list_file;
-    res = romfs.GetFile("binaryList.txt", list_file);
+    res = romfs.getFile("binaryList.txt", list_file);
 
-    const auto stream = list_file->Open(filesystem::FileOpenFlags::Read);
+    const auto stream = list_file->open(filesystem::FileOpenFlags::Read);
     char buffer[256];
     u32 str_size = 0;
     while (stream->getRemainingSize() != 0u) {
@@ -66,7 +66,7 @@ TimeZoneManager::TimeZoneManager(filesystem::Filesystem& filesystem_)
     delete stream;
 }
 
-std::string_view TimeZoneManager::GetDeviceLocationName() {
+std::string_view TimeZoneManager::getDeviceLocationName() {
     const auto& system_location = CONFIG_INSTANCE.GetSystemLocation();
 
     std::string_view name;
@@ -88,13 +88,13 @@ std::string_view TimeZoneManager::GetDeviceLocationName() {
     return name;
 }
 
-void TimeZoneManager::LoadRule(std::string_view location_name,
+void TimeZoneManager::loadRule(std::string_view location_name,
                                TimeZoneRule& out_rule) const {
     LOG_DEBUG(Services, "Location name: {}", location_name);
 
     // NCA
     filesystem::IFile* time_zone_archive_file;
-    auto res = filesystem.GetFile(FS_FIRMWARE_PATH "/TimeZoneBinary",
+    auto res = filesystem.getFile(FS_FIRMWARE_PATH "/TimeZoneBinary",
                                   time_zone_archive_file);
     if (res != filesystem::FsResult::Success) {
         // TODO: return error?
@@ -106,7 +106,7 @@ void TimeZoneManager::LoadRule(std::string_view location_name,
 
     // Data
     filesystem::IFile* data_file;
-    res = time_zone_archive.GetFile("data", data_file);
+    res = time_zone_archive.getFile("data", data_file);
     if (res != filesystem::FsResult::Success) {
         // TODO: return error?
         LOG_ERROR(Services, "Failed to get time zone data: {}", res);
@@ -117,20 +117,20 @@ void TimeZoneManager::LoadRule(std::string_view location_name,
 
     // Info file
     filesystem::IFile* info_file;
-    res = romfs.GetFile(fmt::format("zoneinfo/{}", location_name), info_file);
+    res = romfs.getFile(fmt::format("zoneinfo/{}", location_name), info_file);
     if (res != filesystem::FsResult::Success) {
         // TODO: return error?
         LOG_ERROR(Services, "Failed to get time zone info: {}", res);
         return;
     }
 
-    const auto stream = info_file->Open(filesystem::FileOpenFlags::Read);
-    internal::ParseTimeZoneBinary(stream, out_rule);
+    const auto stream = info_file->open(filesystem::FileOpenFlags::Read);
+    internal::parseTimeZoneBinary(stream, out_rule);
     delete stream;
 }
 
-void TimeZoneManager::LoadMyRule() {
-    LoadRule(GetDeviceLocationName(), my_rule);
+void TimeZoneManager::loadMyRule() {
+    loadRule(getDeviceLocationName(), my_rule);
 }
 
 } // namespace hydra::horizon::services::timesrv::internal

@@ -8,20 +8,20 @@ namespace hydra::horizon::services::nvdrv::ioctl {
 
 DEFINE_IOCTL_TABLE(NvHostAsGpu,
                    DEFINE_IOCTL_TABLE_ENTRY(NvHostAsGpu, 0x41, 0x01,
-                                            BindChannel, 0x02, AllocSpace, 0x03,
-                                            FreeSpace, 0x05, UnmapBuffer, 0x06,
-                                            MapBufferEX, 0x08, GetVaRegions,
-                                            0x09, AllocAsEX, 0x14, Remap))
+                                            bindChannel, 0x02, allocSpace, 0x03,
+                                            freeSpace, 0x05, unmapBuffer, 0x06,
+                                            mapBufferEx, 0x08, getVaRegions,
+                                            0x09, allocAsEx, 0x14, remap))
 
 DEFINE_IOCTL3_TABLE(NvHostAsGpu, DEFINE_IOCTL3_TABLE_ENTRY(NvHostAsGpu, 0x41,
-                                                           0x08, GetVaRegions))
+                                                           0x08, getVaRegions))
 
-NvResult NvHostAsGpu::BindChannel(u32 fd_id) {
+NvResult NvHostAsGpu::bindChannel(u32 fd_id) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "FD: {}", fd_id);
     return NvResult::Success;
 }
 
-NvResult NvHostAsGpu::AllocSpace(kernel::Process* process, u32 pages,
+NvResult NvHostAsGpu::allocSpace(kernel::Process* process, u32 pages,
                                  u32 page_size,
                                  Aligned<AllocSpaceFlags, 8> flags,
                                  InOut<u64, gpu_vaddr_t> align_and_offset) {
@@ -29,25 +29,25 @@ NvResult NvHostAsGpu::AllocSpace(kernel::Process* process, u32 pages,
     if (any(flags & AllocSpaceFlags::FixedOffset))
         gpu_addr = align_and_offset; // TODO: is it really align?
 
-    align_and_offset = process->GetGMmu().AllocatePrivateAddressSpace(
+    align_and_offset = process->getGMmu().allocatePrivateAddressSpace(
         static_cast<u64>(pages) * static_cast<u64>(page_size), gpu_addr);
     return NvResult::Success;
 }
 
-NvResult NvHostAsGpu::FreeSpace(vaddr_t offset, u32 pages, u32 page_size) {
+NvResult NvHostAsGpu::freeSpace(vaddr_t offset, u32 pages, u32 page_size) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services,
                                "offset: {:#x}, pages: {}, page_size: {:#x}",
                                offset, pages, page_size);
     return NvResult::Success;
 }
 
-NvResult NvHostAsGpu::UnmapBuffer(gpu_vaddr_t addr) {
+NvResult NvHostAsGpu::unmapBuffer(gpu_vaddr_t addr) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "address: {:#x}", addr);
     return NvResult::Success;
 }
 
 // TODO: kind
-NvResult NvHostAsGpu::MapBufferEX(System* system, kernel::Process* process,
+NvResult NvHostAsGpu::mapBufferEx(System* system, kernel::Process* process,
                                   MapBufferFlags flags,
                                   hw::tegra_x1::gpu::NvKind kind,
                                   Handle nvmap_handle,
@@ -64,7 +64,7 @@ NvResult NvHostAsGpu::MapBufferEX(System* system, kernel::Process* process,
     }
 
     ZTD_ASSIGN_OR(
-        const auto map, system->GetGpu().GetMap(nvmap_handle), ZTD_PASS({
+        const auto map, system->getGpu().getMap(nvmap_handle), ZTD_PASS({
             LOG_WARN(Services, "Invalid nvmap handle {}", nvmap_handle);
             return NvResult::BadParameter; /* TODO: correct? */
         }));
@@ -77,12 +77,12 @@ NvResult NvHostAsGpu::MapBufferEX(System* system, kernel::Process* process,
     if (any(flags & MapBufferFlags::FixedOffset))
         addr = inout_addr;
 
-    inout_addr = process->GetGMmu().MapBufferToAddressSpace(
+    inout_addr = process->getGMmu().mapBufferToAddressSpace(
         ztd::Range<vaddr_t>::fromSize(map->addr + buffer_offset, size), addr);
     return NvResult::Success;
 }
 
-NvResult NvHostAsGpu::GetVaRegions(gpu_vaddr_t buffer_addr,
+NvResult NvHostAsGpu::getVaRegions(gpu_vaddr_t buffer_addr,
                                    InOutSingle<u32> inout_buffer_size,
                                    [[maybe_unused]] u32 reserved,
                                    std::array<VaRegion, 2>* out_va_regions) {
@@ -98,7 +98,7 @@ NvResult NvHostAsGpu::GetVaRegions(gpu_vaddr_t buffer_addr,
     return NvResult::Success;
 }
 
-NvResult NvHostAsGpu::AllocAsEX(kernel::Process* process, u32 big_page_size,
+NvResult NvHostAsGpu::allocAsEx(kernel::Process* process, u32 big_page_size,
                                 i32 as_fd, u32 flags,
                                 [[maybe_unused]] u32 reserved,
                                 u64 va_range_start, u64 va_range_end,
@@ -112,12 +112,12 @@ NvResult NvHostAsGpu::AllocAsEX(kernel::Process* process, u32 big_page_size,
     // TODO: why does nouveau pass 0x0 for all of these?
 
     // TODO: what is split for?
-    process->GetGMmu().AllocatePrivateAddressSpace(
+    process->getGMmu().allocatePrivateAddressSpace(
         va_range_end - va_range_start, va_range_start);
     return NvResult::Success;
 }
 
-NvResult NvHostAsGpu::Remap(const RemapOp* entries) {
+NvResult NvHostAsGpu::remap(const RemapOp* entries) {
     // TODO: what should the entry count be?
     std::span<const RemapOp> entries_span(entries, 1);
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "entries: {}",

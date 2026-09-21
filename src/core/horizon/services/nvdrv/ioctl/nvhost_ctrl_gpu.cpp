@@ -6,20 +6,20 @@ namespace hydra::horizon::services::nvdrv::ioctl {
 
 DEFINE_IOCTL_TABLE(NvHostCtrlGpu,
                    DEFINE_IOCTL_TABLE_ENTRY(NvHostCtrlGpu, 0x47, 0x01,
-                                            ZCullGetCtxSize, 0x02, ZCullGetInfo,
-                                            0x03, ZbcSetTable, 0x05,
-                                            GetCharacteristics, 0x06,
-                                            GetTpcMasks, 0x14,
-                                            ZbcGetActiveSlotMask, 0x15,
-                                            PmuGetGpuLoad, 0x1c, GetGpuTime))
+                                            zCullGetCtxSize, 0x02, zCullGetInfo,
+                                            0x03, zbcSetTable, 0x05,
+                                            getCharacteristics, 0x06,
+                                            getTpcMasks, 0x14,
+                                            zbcGetActiveSlotMask, 0x15,
+                                            pmuGetGpuLoad, 0x1c, getGpuTime))
 
 // TODO: also 0x12 and 0x13
 DEFINE_IOCTL3_TABLE(NvHostCtrlGpu,
                     DEFINE_IOCTL3_TABLE_ENTRY(NvHostCtrlGpu, 0x47, 0x05,
-                                              GetCharacteristics, 0x06,
-                                              GetTpcMasks))
+                                              getCharacteristics, 0x06,
+                                              getTpcMasks))
 
-NvResult NvHostCtrlGpu::QueryEvent(u32 event_id_u32,
+NvResult NvHostCtrlGpu::queryEvent(u32 event_id_u32,
                                    kernel::Event*& out_event) {
     switch (event_id_u32) {
     case 0x01:
@@ -36,7 +36,7 @@ NvResult NvHostCtrlGpu::QueryEvent(u32 event_id_u32,
     return NvResult::Success;
 }
 
-NvResult NvHostCtrlGpu::ZCullGetCtxSize(u32* out_size) {
+NvResult NvHostCtrlGpu::zCullGetCtxSize(u32* out_size) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK
@@ -44,7 +44,7 @@ NvResult NvHostCtrlGpu::ZCullGetCtxSize(u32* out_size) {
     return NvResult::Success;
 }
 
-NvResult NvHostCtrlGpu::ZCullGetInfo(ZCullInfo* out_info) {
+NvResult NvHostCtrlGpu::zCullGetInfo(ZCullInfo* out_info) {
     LOG_FUNC_STUBBED(Services);
 
     // From Ryujinx
@@ -63,7 +63,7 @@ NvResult NvHostCtrlGpu::ZCullGetInfo(ZCullInfo* out_info) {
     return NvResult::Success;
 }
 
-NvResult NvHostCtrlGpu::ZbcSetTable(std::array<u32, 4> color_ds,
+NvResult NvHostCtrlGpu::zbcSetTable(std::array<u32, 4> color_ds,
                                     std::array<u32, 4> color_l2, u32 depth,
                                     u32 format, u32 table) {
     LOG_FUNC_WITH_ARGS_STUBBED(
@@ -75,7 +75,7 @@ NvResult NvHostCtrlGpu::ZbcSetTable(std::array<u32, 4> color_ds,
 }
 
 NvResult
-NvHostCtrlGpu::GetCharacteristics(InOutSingle<u64> inout_buffer_size,
+NvHostCtrlGpu::getCharacteristics(InOutSingle<u64> inout_buffer_size,
                                   gpu_vaddr_t buffer_addr,
                                   GpuCharacteristics* out_characteristics) {
     if (buffer_addr == 0x0)
@@ -129,7 +129,7 @@ NvHostCtrlGpu::GetCharacteristics(InOutSingle<u64> inout_buffer_size,
 }
 
 NvResult
-NvHostCtrlGpu::GetTpcMasks(u32 mask_buffer_size,
+NvHostCtrlGpu::getTpcMasks(u32 mask_buffer_size,
                            [[maybe_unused]] std::array<u32, 3> reserved,
                            u64* out_mask_buffer) {
     LOG_FUNC_STUBBED(Services);
@@ -142,7 +142,7 @@ NvHostCtrlGpu::GetTpcMasks(u32 mask_buffer_size,
     return NvResult::Success;
 }
 
-NvResult NvHostCtrlGpu::ZbcGetActiveSlotMask(u32* out_slot, u32* out_mask) {
+NvResult NvHostCtrlGpu::zbcGetActiveSlotMask(u32* out_slot, u32* out_mask) {
     LOG_FUNC_STUBBED(Services);
 
     // TODO: correct?
@@ -151,7 +151,7 @@ NvResult NvHostCtrlGpu::ZbcGetActiveSlotMask(u32* out_slot, u32* out_mask) {
     return NvResult::Success;
 }
 
-NvResult NvHostCtrlGpu::PmuGetGpuLoad(u32* out_load) {
+NvResult NvHostCtrlGpu::pmuGetGpuLoad(u32* out_load) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK
@@ -159,9 +159,9 @@ NvResult NvHostCtrlGpu::PmuGetGpuLoad(u32* out_load) {
     return NvResult::Success;
 }
 
-NvResult NvHostCtrlGpu::GetGpuTime(System* system, u64* out_timestamp,
+NvResult NvHostCtrlGpu::getGpuTime(System* system, u64* out_timestamp,
                                    [[maybe_unused]] u64* _out_reserved) {
-    *out_timestamp = system->GetWallClock().GetGpuTick();
+    *out_timestamp = system->getWallClock().getGpuTick();
     return NvResult::Success;
 }
 

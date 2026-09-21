@@ -10,15 +10,15 @@ enum class BoolOp {
     Xor = 2,
 };
 
-inline ir::Value GetLogical(DecoderContext& context, BoolOp op, ir::Value a,
+inline ir::Value getLogical(DecoderContext& context, BoolOp op, ir::Value a,
                             ir::Value b) {
     switch (op) {
     case BoolOp::And:
-        return context.builder.OpBitwiseAnd(a, b);
+        return context.builder.opBitwiseAnd(a, b);
     case BoolOp::Or:
-        return context.builder.OpBitwiseOr(a, b);
+        return context.builder.opBitwiseOr(a, b);
     case BoolOp::Xor:
-        return context.builder.OpBitwiseXor(a, b);
+        return context.builder.opBitwiseXor(a, b);
     }
 }
 

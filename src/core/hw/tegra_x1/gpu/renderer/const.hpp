@@ -25,7 +25,7 @@ enum class TextureTypeClass {
     _3D,
 };
 
-TextureTypeClass GetTextureTypeClass(TextureType type);
+TextureTypeClass getTextureTypeClass(TextureType type);
 
 enum class TextureFormat {
     Invalid,
@@ -168,21 +168,21 @@ struct TextureFormatInfo {
     bool is_depth_stencil;
 };
 
-const TextureFormatInfo& GetTextureFormatInfo(TextureFormat format);
+const TextureFormatInfo& getTextureFormatInfo(TextureFormat format);
 
-TextureFormat to_texture_format(NvColorFormat color_format);
-TextureFormat to_texture_format(const ImageFormatWord image_format_word,
-                                bool is_srgb);
-TextureFormat to_texture_format(ColorSurfaceFormat color_surface_format);
-TextureFormat to_texture_format(DepthSurfaceFormat depth_surface_format);
+TextureFormat toTextureFormat(NvColorFormat color_format);
+TextureFormat toTextureFormat(const ImageFormatWord image_format_word,
+                              bool is_srgb);
+TextureFormat toTextureFormat(ColorSurfaceFormat color_surface_format);
+TextureFormat toTextureFormat(DepthSurfaceFormat depth_surface_format);
 
-u32 GetTextureFormatStride(const TextureFormat format, u32 width);
-u32 GetTextureFormatRows(const TextureFormat format, u32 height);
-u32 GetTextureFormatSliceStride(const TextureFormat format, u32 width,
+u32 getTextureFormatStride(const TextureFormat format, u32 width);
+u32 getTextureFormatRows(const TextureFormat format, u32 height);
+u32 getTextureFormatSliceStride(const TextureFormat format, u32 width,
                                 u32 height);
-u32 get_texture_format_bpp(const TextureFormat format);
-bool is_texture_format_compressed(const TextureFormat format);
-bool is_texture_format_depth_or_stencil(const TextureFormat format);
+u32 getTextureFormatBpp(const TextureFormat format);
+bool isTextureFormatCompressed(const TextureFormat format);
+bool isTextureFormatDepthOrStencil(const TextureFormat format);
 
 enum class ColorDataType : u8 {
     Invalid,
@@ -191,7 +191,7 @@ enum class ColorDataType : u8 {
     UInt,
 };
 
-ColorDataType to_color_data_type(ColorSurfaceFormat format);
+ColorDataType toColorDataType(ColorSurfaceFormat format);
 
 struct SwizzleChannels {
     ImageSwizzle r : 3;
@@ -246,21 +246,23 @@ struct TextureDescriptor {
           block_height_gobs_log2{block_height_gobs_log2_},
           block_depth_gobs_log2{block_depth_gobs_log2_},
           layer_size{layer_size_} {
-        CalculateSize();
+        calculateSize();
     }
 
-    ztd::Range<uptr> GetRange() const { return ztd::Range<uptr>::fromSize(ptr, size); }
+    ztd::Range<uptr> getRange() const {
+        return ztd::Range<uptr>::fromSize(ptr, size);
+    }
 
-    u32 GetGroupHash() const;
-    u32 GetStorageHash() const;
+    u32 getGroupHash() const;
+    u32 getStorageHash() const;
 
-    uint3 GetLevelDimensions(u32 level) const;
-    uint3 GetLevelBlockSizeLog2(u32 level) const;
-    u32 GetLevelOffset(u32 level) const;
-    u32 GetLevelSize(u32 level) const;
+    uint3 getLevelDimensions(u32 level) const;
+    uint3 getLevelBlockSizeLog2(u32 level) const;
+    u32 getLevelOffset(u32 level) const;
+    u32 getLevelSize(u32 level) const;
 
   private:
-    void CalculateSize();
+    void calculateSize();
 };
 
 struct TextureViewDescriptor {
@@ -276,7 +278,7 @@ struct TextureViewDescriptor {
         : type{type_}, format{format_}, levels{levels_}, layers{layers_},
           swizzle_channels{swizzle_channels_} {}
 
-    u32 GetHash() const;
+    u32 getHash() const;
 };
 
 enum class SamplerFilter {
@@ -428,7 +430,7 @@ struct PipelineDescriptor {
     ColorTargetState color_target_states[COLOR_TARGET_COUNT];
 };
 
-usize get_vertex_format_size(engines::VertexAttribSize size);
+usize getVertexFormatSize(engines::VertexAttribSize size);
 
 enum class TextureUsage {
     Read,

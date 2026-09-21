@@ -15,54 +15,54 @@ class MslEmitter final : public LangEmitter {
   protected:
     // Emit
 
-    void EmitHeader() override;
-    void EmitTypeAliases() override;
-    void EmitDeclarations() override;
-    void EmitStateBindings() override;
-    void EmitStateBindingAssignments() override;
-    void EmitMainPrototype() override;
-    void EmitExitReturn() override;
+    void emitHeader() override;
+    void emitTypeAliases() override;
+    void emitDeclarations() override;
+    void emitStateBindings() override;
+    void emitStateBindingAssignments() override;
+    void emitMainPrototype() override;
+    void emitExitReturn() override;
 
     // Data
-    void EmitBitCast(const ir::Value& dst, const ir::Value& src) override;
+    void emitBitCast(const ir::Value& dst, const ir::Value& src) override;
 
     // Math
-    void EmitIsNan(const ir::Value& dst, const ir::Value& src) override;
-    void EmitReciprocal(const ir::Value& dst, const ir::Value& src) override;
-    void EmitSin(const ir::Value& dst, const ir::Value& src) override;
-    void EmitCos(const ir::Value& dst, const ir::Value& src) override;
-    void EmitExp2(const ir::Value& dst, const ir::Value& src) override;
-    void EmitLog2(const ir::Value& dst, const ir::Value& src) override;
-    void EmitSqrt(const ir::Value& dst, const ir::Value& src) override;
-    void EmitReciprocalSqrt(const ir::Value& dst,
+    void emitIsNan(const ir::Value& dst, const ir::Value& src) override;
+    void emitReciprocal(const ir::Value& dst, const ir::Value& src) override;
+    void emitSin(const ir::Value& dst, const ir::Value& src) override;
+    void emitCos(const ir::Value& dst, const ir::Value& src) override;
+    void emitExp2(const ir::Value& dst, const ir::Value& src) override;
+    void emitLog2(const ir::Value& dst, const ir::Value& src) override;
+    void emitSqrt(const ir::Value& dst, const ir::Value& src) override;
+    void emitReciprocalSqrt(const ir::Value& dst,
                             const ir::Value& src) override;
 
     // Logical & Bitwise
-    void EmitBitfieldExtract(const ir::Value& dst, const ir::Value& src_a,
+    void emitBitfieldExtract(const ir::Value& dst, const ir::Value& src_a,
                              const ir::Value& src_b,
                              const ir::Value& src_c) override;
 
     // Texture
-    void EmitTextureSample(const ir::Value& dst, u32 const_buffer_index,
+    void emitTextureSample(const ir::Value& dst, u32 const_buffer_index,
                            TextureType type, TextureSampleFlags flags,
                            const ir::Value& array_index,
                            const ir::Value& coords, const ir::Value& cmp_value,
                            const ir::Value& lod) override;
-    void EmitTextureGather(const ir::Value& dst, u32 const_buffer_index,
+    void emitTextureGather(const ir::Value& dst, u32 const_buffer_index,
                            const ir::Value& coords, u8 component) override;
-    void EmitTextureQueryDimension(const ir::Value& dst, u32 const_buffer_index,
+    void emitTextureQueryDimension(const ir::Value& dst, u32 const_buffer_index,
                                    u32 dimension) override;
 
     // Exit
-    void EmitDiscard() override;
+    void emitDiscard() override;
 
-    std::string GetSvAccessQualifiedStr(const SvAccess& sv_access,
+    std::string getSvAccessQualifiedStr(const SvAccess& sv_access,
                                         bool output) override;
 
   private:
     // Helpers
-    static std::string GetSvStr(const Sv& sv);
-    std::string GetSvQualifierStr(const Sv& sv, bool output);
+    static std::string getSvStr(const Sv& sv);
+    std::string getSvQualifierStr(const Sv& sv, bool output);
 };
 
 } // namespace

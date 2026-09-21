@@ -22,7 +22,7 @@ class PipelineBase;
 struct Info {
     bool supports_quads_primitive;
 
-    bool IsPrimitiveSupported(engines::PrimitiveType primitive_type) const {
+    bool isPrimitiveSupported(engines::PrimitiveType primitive_type) const {
         // NOLINTNEXTLINE(readability-trivial-switch)
         switch (primitive_type) {
         case engines::PrimitiveType::Quads:
@@ -49,19 +49,19 @@ class IRenderer {
           index_cache(*this) {}
     virtual ~IRenderer() = default;
 
-    void InvalidateMemory(
+    void invalidateMemory(
         ztd::Range<uptr> range,
         MemoryInvalidationScope scope = MemoryInvalidationScope::BufferCache |
                                         MemoryInvalidationScope::TextureCache |
                                         MemoryInvalidationScope::ShaderCache) {
         if (any(scope & MemoryInvalidationScope::BufferCache)) {
-            std::scoped_lock lock(buffer_cache.GetMutex());
-            buffer_cache.InvalidateMemory(range);
+            std::scoped_lock lock(buffer_cache.getMutex());
+            buffer_cache.invalidateMemory(range);
         }
 
         if (any(scope & MemoryInvalidationScope::TextureCache)) {
-            std::scoped_lock lock(texture_cache.GetMutex());
-            texture_cache.InvalidateMemory(range);
+            std::scoped_lock lock(texture_cache.getMutex());
+            texture_cache.invalidateMemory(range);
         }
 
         if (any(scope & MemoryInvalidationScope::ShaderCache)) {
@@ -70,17 +70,17 @@ class IRenderer {
     }
 
     // Surface
-    virtual void SetSurface(void* surface) = 0;
-    virtual ISurfaceCompositor* AcquireNextSurface() = 0;
+    virtual void setSurface(void* surface) = 0;
+    virtual ISurfaceCompositor* acquireNextSurface() = 0;
 
     // Buffer
-    virtual BufferBase* CreateBuffer(u64 size) = 0;
-    virtual BufferBase* AllocateTemporaryBuffer(const u64 size) = 0;
-    virtual void FreeTemporaryBuffer(BufferBase* buffer) = 0;
+    virtual BufferBase* createBuffer(u64 size) = 0;
+    virtual BufferBase* allocateTemporaryBuffer(const u64 size) = 0;
+    virtual void freeTemporaryBuffer(BufferBase* buffer) = 0;
 
     // Texture
-    virtual ITexture* CreateTexture(const TextureDescriptor& descriptor) = 0;
-    virtual void BlitTexture(ICommandBuffer* command_buffer, ITextureView* src,
+    virtual ITexture* createTexture(const TextureDescriptor& descriptor) = 0;
+    virtual void blitTexture(ICommandBuffer* command_buffer, ITextureView* src,
                              float3 src_origin, uint3 src_size, u32 src_level,
                              u32 src_layer, ITextureView* dst,
                              float3 dst_origin, uint3 dst_size, u32 dst_level,
@@ -88,79 +88,79 @@ class IRenderer {
                              u32 layer_count) = 0;
 
     // Sampler
-    virtual SamplerBase* CreateSampler(const SamplerDescriptor& descriptor) = 0;
+    virtual SamplerBase* createSampler(const SamplerDescriptor& descriptor) = 0;
 
     // Command buffer
-    virtual ICommandBuffer* CreateCommandBuffer() = 0;
+    virtual ICommandBuffer* createCommandBuffer() = 0;
 
     // Render pass
     virtual RenderPassBase*
-    CreateRenderPass(const RenderPassDescriptor& descriptor) = 0;
-    virtual void BindRenderPass(const RenderPassBase* render_pass) = 0;
+    createRenderPass(const RenderPassDescriptor& descriptor) = 0;
+    virtual void bindRenderPass(const RenderPassBase* render_pass) = 0;
 
     // Clear
-    virtual void ClearColor(ICommandBuffer* command_buffer,
+    virtual void clearColor(ICommandBuffer* command_buffer,
                             u32 render_target_id, u32 layer, u8 mask,
                             const uint4 color) = 0;
-    virtual void ClearDepth(ICommandBuffer* command_buffer, u32 layer,
+    virtual void clearDepth(ICommandBuffer* command_buffer, u32 layer,
                             const float value) = 0;
-    virtual void ClearStencil(ICommandBuffer* command_buffer, u32 layer,
+    virtual void clearStencil(ICommandBuffer* command_buffer, u32 layer,
                               const u32 value) = 0;
 
     // Shader
-    virtual ShaderBase* CreateShader(const ShaderDescriptor& descriptor) = 0;
+    virtual ShaderBase* createShader(const ShaderDescriptor& descriptor) = 0;
 
     // Pipeline
     virtual PipelineBase*
-    CreatePipeline(const PipelineDescriptor& descriptor) = 0;
-    virtual void BindPipeline(const PipelineBase* pipeline) = 0;
+    createPipeline(const PipelineDescriptor& descriptor) = 0;
+    virtual void bindPipeline(const PipelineBase* pipeline) = 0;
 
     // Depth stencil
-    virtual void SetDepthTestEnabled(bool enabled) = 0;
-    virtual void SetDepthWriteEnabled(bool enabled) = 0;
-    virtual void SetDepthCompareOp(engines::CompareOp op) = 0;
+    virtual void setDepthTestEnabled(bool enabled) = 0;
+    virtual void setDepthWriteEnabled(bool enabled) = 0;
+    virtual void setDepthCompareOp(engines::CompareOp op) = 0;
 
     // Viewport and scissor
-    virtual void SetViewport(u32 index, const Viewport& viewport) = 0;
-    virtual void SetScissor(u32 index, const Scissor& scissor) = 0;
+    virtual void setViewport(u32 index, const Viewport& viewport) = 0;
+    virtual void setScissor(u32 index, const Scissor& scissor) = 0;
 
     // Resource binding
-    virtual void BindVertexBuffer(const BufferView& buffer, u32 index) = 0;
-    virtual void BindIndexBuffer(const BufferView& index_buffer,
+    virtual void bindVertexBuffer(const BufferView& buffer, u32 index) = 0;
+    virtual void bindIndexBuffer(const BufferView& index_buffer,
                                  engines::IndexType index_type) = 0;
-    virtual void BindUniformBuffer(const BufferView& buffer,
+    virtual void bindUniformBuffer(const BufferView& buffer,
                                    ShaderType shader_type, u32 index) = 0;
     // TODO: storage buffers
-    virtual void BindTexture(ITextureView* texture, SamplerBase* sampler,
+    virtual void bindTexture(ITextureView* texture, SamplerBase* sampler,
                              ShaderType shader_type, u32 index) = 0;
     // TODO: images
 
     // Resource unbinding
-    virtual void UnbindUniformBuffers(ShaderType shader_type) = 0;
-    virtual void UnbindTextures(ShaderType shader_type) = 0;
+    virtual void unbindUniformBuffers(ShaderType shader_type) = 0;
+    virtual void unbindTextures(ShaderType shader_type) = 0;
 
     // Draw
-    virtual void Draw(ICommandBuffer* command_buffer,
+    virtual void draw(ICommandBuffer* command_buffer,
                       const engines::PrimitiveType primitive_type,
                       const u32 start, const u32 count, const u32 base_instance,
                       const u32 instance_count) = 0;
-    virtual void DrawIndexed(ICommandBuffer* command_buffer,
+    virtual void drawIndexed(ICommandBuffer* command_buffer,
                              const engines::PrimitiveType primitive_type,
                              const u32 start, const u32 count,
                              const u32 base_vertex, const u32 base_instance,
                              const u32 instance_count) = 0;
 
     // Debug
-    void CaptureFrames(u32 count) { frames_to_capture = count; }
-    void NotifyDebugFrameBoundary() {
+    void captureFrames(u32 count) { frames_to_capture = count; }
+    void notifyDebugFrameBoundary() {
         if (frames_to_capture > 0) {
             if (capturing) {
                 if (--frames_to_capture == 0) {
-                    EndCapture();
+                    endCapture();
                     capturing = false;
                 }
             } else {
-                BeginCapture();
+                beginCapture();
                 capturing = true;
             }
         }
@@ -170,8 +170,8 @@ class IRenderer {
     Info info{};
 
     // Capture
-    virtual void BeginCapture() = 0;
-    virtual void EndCapture() = 0;
+    virtual void beginCapture() = 0;
+    virtual void endCapture() = 0;
 
   private:
     // Caches
@@ -188,14 +188,14 @@ class IRenderer {
     bool capturing{false};
 
   public:
-    CONST_REF_GETTER(info, GetInfo);
-    REF_GETTER(buffer_cache, GetBufferCache);
-    REF_GETTER(texture_cache, GetTextureCache);
-    REF_GETTER(sampler_cache, GetSamplerCache);
-    REF_GETTER(render_pass_cache, GetRenderPassCache);
-    REF_GETTER(shader_cache, GetShaderCache);
-    REF_GETTER(pipeline_cache, GetPipelineCache);
-    REF_GETTER(index_cache, GetIndexCache);
+    CONST_REF_GETTER(info, getInfo);
+    REF_GETTER(buffer_cache, getBufferCache);
+    REF_GETTER(texture_cache, getTextureCache);
+    REF_GETTER(sampler_cache, getSamplerCache);
+    REF_GETTER(render_pass_cache, getRenderPassCache);
+    REF_GETTER(shader_cache, getShaderCache);
+    REF_GETTER(pipeline_cache, getPipelineCache);
+    REF_GETTER(index_cache, getIndexCache);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

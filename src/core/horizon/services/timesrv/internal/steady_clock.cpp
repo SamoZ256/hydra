@@ -13,20 +13,20 @@ constexpr u64 STEADY_CLOCK_OFFSET =
 }
 
 SteadyClock::SteadyClock(hw::WallClock& wall_clock_) : wall_clock{wall_clock_} {
-    UpdateOffset();
+    updateOffset();
 }
 
-u64 SteadyClock::GetTimePoint() const {
-    return (offset_ns + wall_clock.GetTimeNs()) / 1'000'000'000;
+u64 SteadyClock::getTimePoint() const {
+    return (offset_ns + wall_clock.getTimeNs()) / 1'000'000'000;
 }
 
-u64 SteadyClock::UpdateOffset() {
+u64 SteadyClock::updateOffset() {
     offset_ns = STEADY_CLOCK_OFFSET +
                 static_cast<u64>(
                     std::chrono::duration_cast<std::chrono::nanoseconds>(
                         std::chrono::steady_clock::now().time_since_epoch())
                         .count()) -
-                wall_clock.GetTimeNs();
+                wall_clock.getTimeNs();
     return offset_ns;
 }
 

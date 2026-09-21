@@ -8,18 +8,14 @@ namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 Sampler::Sampler(MTL::Device* device, const SamplerDescriptor& descriptor)
     : SamplerBase(descriptor) {
     MTL::SamplerDescriptor* desc = MTL::SamplerDescriptor::alloc()->init();
-    desc->setMinFilter(to_mtl_sampler_min_mag_filter(descriptor.min_filter));
-    desc->setMagFilter(to_mtl_sampler_min_mag_filter(descriptor.mag_filter));
-    desc->setMipFilter(to_mtl_sampler_mip_filter(descriptor.mip_filter));
-    desc->setSAddressMode(
-        to_mtl_sampler_address_mode(descriptor.address_mode_s));
-    desc->setTAddressMode(
-        to_mtl_sampler_address_mode(descriptor.address_mode_t));
-    desc->setRAddressMode(
-        to_mtl_sampler_address_mode(descriptor.address_mode_r));
+    desc->setMinFilter(toMtlSamplerMinMagFilter(descriptor.min_filter));
+    desc->setMagFilter(toMtlSamplerMinMagFilter(descriptor.mag_filter));
+    desc->setMipFilter(toMtlSamplerMipFilter(descriptor.mip_filter));
+    desc->setSAddressMode(toMtlSamplerAddressMode(descriptor.address_mode_s));
+    desc->setTAddressMode(toMtlSamplerAddressMode(descriptor.address_mode_t));
+    desc->setRAddressMode(toMtlSamplerAddressMode(descriptor.address_mode_r));
     if (descriptor.depth_compare_op != engines::CompareOp::Invalid)
-        desc->setCompareFunction(
-            to_mtl_compare_func(descriptor.depth_compare_op));
+        desc->setCompareFunction(toMtlCompareFunc(descriptor.depth_compare_op));
 
     // Border color
     const auto border_color = std::bit_cast<float4>(descriptor.border_color_u);

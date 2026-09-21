@@ -26,7 +26,7 @@ union InstShfl {
     BitField64<pred_t, 48, 3> dst_pred;
 };
 
-void EmitShfl(DecoderContext& context, InstShfl inst);
+void emitShfl(DecoderContext& context, InstShfl inst);
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder
 

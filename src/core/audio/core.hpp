@@ -9,7 +9,7 @@ class ICore {
     virtual ~ICore() = default;
 
     virtual IStream*
-    CreateStream(PcmFormat format, u32 sample_rate, u16 channel_count,
+    createStream(PcmFormat format, u32 sample_rate, u16 channel_count,
                  buffer_finished_callback_fn_t buffer_finished_callback) = 0;
 };
 

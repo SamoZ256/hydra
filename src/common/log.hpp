@@ -11,10 +11,10 @@
 #include "common/macros.hpp"
 #include "common/type_aliases.hpp"
 
-#define LOGGER_INSTANCE Logger::GetInstance()
+#define LOGGER_INSTANCE Logger::getInstance()
 
 #define LOG(level, c, ...)                                                     \
-    LOGGER_INSTANCE.Log(LogLevel::level, LogClass::c,                          \
+    LOGGER_INSTANCE.log(LogLevel::level, LogClass::c,                          \
                         TrimSourcePath(__FILE__), __LINE__, __func__,          \
                         __VA_ARGS__)
 
@@ -162,7 +162,7 @@ using log_callback_fn_t = std::function<void(const LogMessage&)>;
 
 class Logger {
   public:
-    static Logger& GetInstance() {
+    static Logger& getInstance() {
         static Logger instance;
         return instance;
     }
@@ -189,7 +189,7 @@ class Logger {
     }
 
     template <typename... T>
-    void Log(LogLevel level, LogClass c, const std::string_view file, u32 line,
+    void log(LogLevel level, LogClass c, const std::string_view file, u32 line,
              const std::string_view function, fmt::format_string<T...> f,
              T&&... args) {
         {

@@ -4,17 +4,17 @@
 
 namespace hydra::horizon::services::nifm {
 
-DEFINE_SERVICE_COMMAND_TABLE(IRequest, 0, GetRequestState, 1, GetResult, 2,
-                             GetSystemEventReadableHandles, 3, Cancel, 4,
-                             Submit, 6, SetRequirementPreset, 11,
-                             SetConnectionConfirmationOption)
+DEFINE_SERVICE_COMMAND_TABLE(IRequest, 0, getRequestState, 1, getResult, 2,
+                             getSystemEventReadableHandles, 3, cancel, 4,
+                             submit, 6, setRequirementPreset, 11,
+                             setConnectionConfirmationOption)
 
 IRequest::IRequest()
     : events{
           std::make_unique<kernel::Event>(false, "IRequest system event 0"),
           std::make_unique<kernel::Event>(false, "IRequest system event 1")} {}
 
-result_t IRequest::GetRequestState(RequestState* out_state) {
+result_t IRequest::getRequestState(RequestState* out_state) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK
@@ -23,16 +23,16 @@ result_t IRequest::GetRequestState(RequestState* out_state) {
     return RESULT_SUCCESS;
 }
 
-result_t IRequest::GetSystemEventReadableHandles(
+result_t IRequest::getSystemEventReadableHandles(
     kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle0,
     OutHandle<HandleAttr::Copy> out_handle1) {
-    out_handle0 = process->AddHandle(events[0].get());
-    out_handle1 = process->AddHandle(events[1].get());
+    out_handle0 = process->addHandle(events[0].get());
+    out_handle1 = process->addHandle(events[1].get());
     return RESULT_SUCCESS;
 }
 
 result_t
-IRequest::SetConnectionConfirmationOption(ConnectionConfirmationOption option) {
+IRequest::setConnectionConfirmationOption(ConnectionConfirmationOption option) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "option: {}", option);
     return RESULT_SUCCESS;
 }
