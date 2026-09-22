@@ -10,7 +10,7 @@
 namespace hydra {
 
 #ifdef ZTD_PLATFORM_APPLE
-inline std::string GetBundleResourcePath(const std::string& filename) {
+inline std::string getBundleResourcePath(const std::string& filename) {
     CFBundleRef main_bundle = CFBundleGetMainBundle();
     if (main_bundle == nullptr) {
         LOG_FATAL(Common, APP_NAME " is not a bundle");

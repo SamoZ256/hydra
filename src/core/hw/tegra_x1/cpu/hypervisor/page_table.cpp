@@ -196,7 +196,7 @@ void PageTable::mapLevel(PageTableLevel& level, vaddr_t va, paddr_t pa,
             state, ap_flags);
 
         vaddr_t old_va = va;
-        va = align_down(va + level.getBlockSize(), level.getBlockSize());
+        va = alignDown(va + level.getBlockSize(), level.getBlockSize());
         pa += va - old_va;
     } while (va < end_va);
 }

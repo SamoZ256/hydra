@@ -1,5 +1,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/index_cache.hpp"
 
+#include <cstddef>
+
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
 
@@ -158,7 +160,7 @@ BufferView IndexCache::decode(ICommandBuffer* command_buffer,
 
     const auto index_size = getIndexTypeSize(out_type);
     index_buffer = renderer.allocateTemporaryBuffer(
-        static_cast<u64>(out_count * index_size));
+        static_cast<u64>(out_count) * static_cast<u64>(index_size));
     uptr in_ptr = 0x0;
     if (descriptor.mem_range)
         in_ptr = descriptor.mem_range->getBegin();

@@ -44,12 +44,12 @@ bool Controller::isPressedImpl(ControllerInput input) {
 }
 
 f32 positiveAxisToFloat(i16 value) {
-    return std::max(static_cast<i16>(0), value) /
+    return static_cast<f32>(std::max(static_cast<i16>(0), value)) /
            static_cast<f32>(std::numeric_limits<i16>::max());
 }
 
 f32 negativeAxisToFloat(i16 value) {
-    return std::min(static_cast<i16>(0), value) /
+    return static_cast<f32>(std::min(static_cast<i16>(0), value)) /
            static_cast<f32>(std::numeric_limits<i16>::min());
 }
 

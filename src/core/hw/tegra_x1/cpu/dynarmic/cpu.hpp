@@ -13,9 +13,6 @@ class IMmu;
 
 namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
-class Mmu;
-class Thread;
-
 class Cpu : public ICpu {
   public:
     Cpu();

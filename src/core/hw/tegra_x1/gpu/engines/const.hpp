@@ -159,7 +159,7 @@ enum class BlockDim : u32 {
 };
 
 inline i32 getBlockSizeLog2(const BlockDim dim) {
-    return sign_extend<i32, 4>(static_cast<i32>(dim));
+    return signExtend<i32, 4>(static_cast<i32>(dim));
 }
 
 enum class ColorWriteMask : u32 {

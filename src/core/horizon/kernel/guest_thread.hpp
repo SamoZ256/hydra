@@ -24,7 +24,7 @@ class GuestThread : public IThread {
         return_address = return_address_;
     }
     void setArg(u32 index, u64 value) {
-        ASSERT(index < sizeof_array(args), Kernel, "Invalid argument index {}",
+        ASSERT(index < SIZEOF_ARRAY(args), Kernel, "Invalid argument index {}",
                index);
         args[index] = value;
     }

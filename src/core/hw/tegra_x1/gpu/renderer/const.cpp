@@ -371,12 +371,12 @@ TextureFormat toTextureFormat(DepthSurfaceFormat depth_surface_format) {
 
 u32 getTextureFormatStride(const TextureFormat format, u32 width) {
     const auto& info = getTextureFormatInfo(format);
-    return ceil_divide(width, info.block_width) * info.bytes_per_block;
+    return ceilDivide(width, info.block_width) * info.bytes_per_block;
 }
 
 u32 getTextureFormatRows(const TextureFormat format, u32 height) {
     const auto& info = getTextureFormatInfo(format);
-    return ceil_divide(height, info.block_height);
+    return ceilDivide(height, info.block_height);
 }
 
 u32 getTextureFormatSliceStride(const TextureFormat format, u32 width,

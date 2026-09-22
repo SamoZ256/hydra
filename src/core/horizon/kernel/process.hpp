@@ -91,7 +91,7 @@ class Process : public SynchronizationObject {
         static_assert(std::is_base_of_v<AutoObject, T>,
                       "T must be derived from AutoObject");
 
-        if (!handle.IsValid())
+        if (!handle.isValid())
             return nullptr; // TODO: std::nullopt
 
         if constexpr (std::is_base_of_v<T, Process>) {

@@ -44,7 +44,7 @@ bool DriverBase::parseInstruction(u32 pc) {
 // TODO: rename
 #define GET_B(shift) GET_DATA_U32(shift, 5)
 #define GET_IMM_U32() GET_DATA_U32(14, 18)
-#define GET_IMM_I32() sign_extend<i32, 18>(GET_DATA_I32(14, 18))
+#define GET_IMM_I32() signExtend<i32, 18>(GET_DATA_I32(14, 18))
 #define GET_SIZE(shift) GET_DATA_U32(shift, 5)
 
     // Operation

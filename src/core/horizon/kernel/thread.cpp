@@ -154,7 +154,7 @@ std::optional<IThread*> getMutexOwner(Process* process, u32 mutex) {
 std::optional<IThread*> getMutexOwner(Process* process, u32* mutex_ptr) {
     if (mutex_ptr == nullptr)
         return std::nullopt;
-    return getMutexOwner(process, atomic_load(mutex_ptr));
+    return getMutexOwner(process, atomicLoad(mutex_ptr));
 }
 
 } // namespace hydra::horizon::kernel

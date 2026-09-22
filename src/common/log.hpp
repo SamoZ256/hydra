@@ -15,13 +15,13 @@
 
 #define LOG(level, c, ...)                                                     \
     LOGGER_INSTANCE.log(LogLevel::level, LogClass::c,                          \
-                        TrimSourcePath(__FILE__), __LINE__, __func__,          \
+                        trimSourcePath(__FILE__), __LINE__, __func__,          \
                         __VA_ARGS__)
 
 #ifdef HYDRA_DEBUG
 #define LOG_DEBUG(c, ...)                                                      \
     {                                                                          \
-        if (CONFIG_INSTANCE.GetDebugLogging())                                 \
+        if (CONFIG_INSTANCE.getDebugLogging())                                 \
             LOG(Debug, c, __VA_ARGS__);                                        \
     }
 #else
@@ -61,7 +61,7 @@
     }
 
 #define ASSERT_ALIGNMENT(value, alignment, c, name)                            \
-    ASSERT(is_aligned<decltype(value)>(value, alignment), c,                   \
+    ASSERT(isAligned<decltype(value)>(value, alignment), c,                    \
            name " must be {:#x}-byte aligned (value: {:#x})", alignment,       \
            value)
 
@@ -81,7 +81,7 @@
 namespace hydra {
 
 // From yuzu
-constexpr const char* TrimSourcePath(std::string_view source) {
+constexpr const char* trimSourcePath(std::string_view source) {
     const auto rfind = [source](const std::string_view match) {
         return source.rfind(match) == std::string_view::npos
                    ? 0
@@ -173,17 +173,17 @@ class Logger {
     ZTD_MAKE_NON_COPYABLE(Logger);
     ZTD_MAKE_NON_MOVABLE(Logger);
 
-    void InstallCallback(const log_callback_fn_t& callback_) {
+    void installCallback(const log_callback_fn_t& callback_) {
         std::lock_guard lock(mutex);
         callback = callback_;
     }
 
-    void UninstallCallback() {
+    void uninstallCallback() {
         std::lock_guard lock(mutex);
         callback = std::nullopt;
     }
 
-    void SetOutput(const LogOutput output_) {
+    void setOutput(const LogOutput output_) {
         std::lock_guard lock(mutex);
         output = output_;
     }
@@ -234,7 +234,7 @@ class Logger {
                 break;
             }
             case LogOutput::File: {
-                EnsureOutputStream();
+                ensureOutputStream();
 
                 // Debug info
                 const auto crnt_time = clock_t::now();
@@ -290,7 +290,7 @@ class Logger {
 
     clock_t::time_point start_time{};
 
-    void EnsureOutputStream();
+    void ensureOutputStream();
 };
 
 } // namespace hydra

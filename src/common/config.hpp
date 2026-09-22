@@ -85,89 +85,89 @@ class Config {
 
     Config();
 
-    void LoadDefaults();
+    void loadDefaults();
 
-    void Serialize();
-    void Deserialize();
+    void serialize();
+    void deserialize();
 
-    void Log();
+    void log();
 
     // Paths
-    std::string_view GetAppDataPath() const { return app_data_path; }
-    std::string_view GetLogsPath() const { return logs_path; }
-    std::string_view GetPicturesPath() const { return pictures_path; }
+    std::string_view getAppDataPath() const { return app_data_path; }
+    std::string_view getLogsPath() const { return logs_path; }
+    std::string_view getPicturesPath() const { return pictures_path; }
 
-    std::string GetConfigPath() const {
+    std::string getConfigPath() const {
         return fmt::format("{}/config.toml", app_data_path);
     }
 
     // Default values
-    static std::vector<std::string> GetDefaultGamePaths() { return {}; }
-    static std::vector<LoaderPlugin> GetDefaultLoaderPlugins() { return {}; }
-    static std::vector<std::string> GetDefaultPatchPaths() { return {}; }
-    static InputBackend GetDefaultInputBackend() {
+    static std::vector<std::string> getDefaultGamePaths() { return {}; }
+    static std::vector<LoaderPlugin> getDefaultLoaderPlugins() { return {}; }
+    static std::vector<std::string> getDefaultPatchPaths() { return {}; }
+    static InputBackend getDefaultInputBackend() {
 #ifdef ZTD_PLATFORM_APPLE
         return InputBackend::AppleGameController;
 #else
         return InputBackend::Sdl;
 #endif
     }
-    static std::vector<std::string> GetDefaultInputProfiles() {
+    static std::vector<std::string> getDefaultInputProfiles() {
         return {"Default", "", "", "", "", "", "", "", "", ""};
     }
-    static CpuBackend GetDefaultCpuBackend() {
+    static CpuBackend getDefaultCpuBackend() {
 #ifdef HYDRA_HYPERVISOR_ENABLED
         return CpuBackend::AppleHypervisor;
 #else
         return CpuBackend::Dynarmic;
 #endif
     }
-    static GpuRenderer GetDefaultGpuRenderer() {
+    static GpuRenderer getDefaultGpuRenderer() {
 #ifdef ZTD_PLATFORM_APPLE
         return GpuRenderer::Metal;
 #else
         return GpuRenderer::Null;
 #endif
     }
-    static ShaderBackend GetDefaultShaderBackend() {
+    static ShaderBackend getDefaultShaderBackend() {
         return ShaderBackend::Msl;
     }
-    static Resolution GetDefaultDisplayResolution() { return Resolution::Auto; }
-    static uint2 GetDefaultCustomDisplayResolution() { return {1920, 1080}; }
-    static AudioBackend GetDefaultAudioBackend() {
+    static Resolution getDefaultDisplayResolution() { return Resolution::Auto; }
+    static uint2 getDefaultCustomDisplayResolution() { return {1920, 1080}; }
+    static AudioBackend getDefaultAudioBackend() {
 #ifdef HYDRA_CUBEB_ENABLED
         return AudioBackend::Cubeb;
 #else
         return AudioBackend::Null;
 #endif
     }
-    static uuid_t GetDefaultUserID() {
+    static uuid_t getDefaultUserId() {
         return 0x0; // TODO: INVALID_USER_ID
     }
-    static std::string GetDefaultDeviceNickname() { return "Hydra's Switch"; }
-    static SystemLanguage GetDefaultSystemLanguage() {
+    static std::string getDefaultDeviceNickname() { return "Hydra's Switch"; }
+    static SystemLanguage getDefaultSystemLanguage() {
         return SystemLanguage::AmericanEnglish;
     }
-    static std::string GetDefaultSystemLocation() { return "auto"; }
-    static std::string GetDefaultFirmwarePath() { return ""; }
-    std::string GetDefaultSdCardPath() const {
+    static std::string getDefaultSystemLocation() { return "auto"; }
+    static std::string getDefaultFirmwarePath() { return ""; }
+    std::string getDefaultSdCardPath() const {
         return fmt::format("{}/sdmc", app_data_path);
     }
-    std::string GetDefaultSavePath() const {
+    std::string getDefaultSavePath() const {
         return fmt::format("{}/save", app_data_path);
     }
-    std::string GetDefaultSysmodulesPath() const {
+    std::string getDefaultSysmodulesPath() const {
         return fmt::format("{}/sysmodules", app_data_path);
     }
-    static bool GetDefaultHandheldMode() { return true; }
-    static LogOutput GetDefaultLogOutput() { return LogOutput::File; }
-    static bool GetDefaultLogFsAccess() { return false; }
-    static bool GetDefaultDebugLogging() { return false; }
-    static std::vector<std::string> GetDefaultProcessArgs() { return {}; }
-    static bool GetDefaultRecoverFromSegfault() { return false; }
-    static bool GetDefaultGdbEnabled() { return false; }
-    static u16 GetDefaultGdbPort() { return 1234; }
-    static bool GetDefaultGdbWaitForClient() { return false; }
+    static bool getDefaultHandheldMode() { return true; }
+    static LogOutput getDefaultLogOutput() { return LogOutput::File; }
+    static bool getDefaultLogFsAccess() { return false; }
+    static bool getDefaultDebugLogging() { return false; }
+    static std::vector<std::string> getDefaultProcessArgs() { return {}; }
+    static bool getDefaultRecoverFromSegfault() { return false; }
+    static bool getDefaultGdbEnabled() { return false; }
+    static u16 getDefaultGdbPort() { return 1234; }
+    static bool getDefaultGdbWaitForClient() { return false; }
 
   private:
     std::string app_data_path;
@@ -205,34 +205,34 @@ class Config {
     bool gdb_wait_for_client;
 
   public:
-    REF_GETTER(game_paths, GetGamePaths);
-    REF_GETTER(loader_plugins, GetLoaderPlugins);
-    REF_GETTER(patch_paths, GetPatchPaths);
-    REF_GETTER(input_backend, GetInputBackend);
-    REF_GETTER(input_profiles, GetInputProfiles);
-    REF_GETTER(cpu_backend, GetCpuBackend);
-    REF_GETTER(gpu_renderer, GetGpuRenderer);
-    REF_GETTER(shader_backend, GetShaderBackend);
-    REF_GETTER(display_resolution, GetDisplayResolution);
-    REF_GETTER(custom_display_resolution, GetCustomDisplayResolution);
-    REF_GETTER(audio_backend, GetAudioBackend);
-    REF_GETTER(user_id, GetUserId);
-    REF_GETTER(device_nickname, GetDeviceNickname);
-    REF_GETTER(system_language, GetSystemLanguage);
-    REF_GETTER(system_location, GetSystemLocation);
-    REF_GETTER(firmware_path, GetFirmwarePath);
-    REF_GETTER(sd_card_path, GetSdCardPath);
-    REF_GETTER(save_path, GetSavePath);
-    REF_GETTER(sysmodules_path, GetSysmodulesPath);
-    REF_GETTER(handheld_mode, GetHandheldMode);
-    REF_GETTER(log_output, GetLogOutput);
-    REF_GETTER(log_fs_access, GetLogFsAccess);
-    REF_GETTER(debug_logging, GetDebugLogging);
-    REF_GETTER(process_args, GetProcessArgs);
-    REF_GETTER(recover_from_segfault, GetRecoverFromSegfault);
-    REF_GETTER(gdb_enabled, GetGdbEnabled);
-    REF_GETTER(gdb_port, GetGdbPort);
-    REF_GETTER(gdb_wait_for_client, GetGdbWaitForClient);
+    REF_GETTER(game_paths, getGamePaths);
+    REF_GETTER(loader_plugins, getLoaderPlugins);
+    REF_GETTER(patch_paths, getPatchPaths);
+    REF_GETTER(input_backend, getInputBackend);
+    REF_GETTER(input_profiles, getInputProfiles);
+    REF_GETTER(cpu_backend, getCpuBackend);
+    REF_GETTER(gpu_renderer, getGpuRenderer);
+    REF_GETTER(shader_backend, getShaderBackend);
+    REF_GETTER(display_resolution, getDisplayResolution);
+    REF_GETTER(custom_display_resolution, getCustomDisplayResolution);
+    REF_GETTER(audio_backend, getAudioBackend);
+    REF_GETTER(user_id, getUserId);
+    REF_GETTER(device_nickname, getDeviceNickname);
+    REF_GETTER(system_language, getSystemLanguage);
+    REF_GETTER(system_location, getSystemLocation);
+    REF_GETTER(firmware_path, getFirmwarePath);
+    REF_GETTER(sd_card_path, getSdCardPath);
+    REF_GETTER(save_path, getSavePath);
+    REF_GETTER(sysmodules_path, getSysmodulesPath);
+    REF_GETTER(handheld_mode, getHandheldMode);
+    REF_GETTER(log_output, getLogOutput);
+    REF_GETTER(log_fs_access, getLogFsAccess);
+    REF_GETTER(debug_logging, getDebugLogging);
+    REF_GETTER(process_args, getProcessArgs);
+    REF_GETTER(recover_from_segfault, getRecoverFromSegfault);
+    REF_GETTER(gdb_enabled, getGdbEnabled);
+    REF_GETTER(gdb_port, getGdbPort);
+    REF_GETTER(gdb_wait_for_client, getGdbWaitForClient);
 };
 
 } // namespace hydra

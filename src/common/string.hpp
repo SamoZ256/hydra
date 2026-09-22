@@ -5,7 +5,7 @@
 namespace hydra {
 
 // TODO: make sure the string's length doesn't exceed 8 characters
-inline constexpr u64 StringAsU64(std::string_view str) {
+inline constexpr u64 stringAsU64(std::string_view str) {
     u64 res = 0;
     for (u32 i = 0; i < str.size(); i++)
         res |= static_cast<u64>(str[i]) << (i * 8);
@@ -14,39 +14,39 @@ inline constexpr u64 StringAsU64(std::string_view str) {
 }
 
 // TODO: rework?
-inline std::string U64AsString(u64 value) {
+inline std::string u64AsString(u64 value) {
     char* str = reinterpret_cast<char*>(&value);
     return {str, std::min<usize>(strlen(str), 8)};
 }
 
 inline constexpr u64 operator""_u64(const char* str, unsigned long len) {
-    return StringAsU64(std::string_view(str, len));
+    return stringAsU64(std::string_view(str, len));
 }
 
-constexpr usize SizeOfString(char value) {
+constexpr usize sizeOfString(char value) {
     (void)value;
     return 1;
 }
 
-constexpr usize SizeOfString(std::string_view value) { return value.size(); }
+constexpr usize sizeOfString(std::string_view value) { return value.size(); }
 
-constexpr usize SizeOfString(const std::string& value) { return value.size(); }
+constexpr usize sizeOfString(const std::string& value) { return value.size(); }
 
 template <typename T, typename Delimiter>
-std::vector<T> Split(std::string_view s, Delimiter delimiter) {
+std::vector<T> split(std::string_view s, Delimiter delimiter) {
     std::vector<T> tokens;
     usize pos = 0;
     while ((pos = s.find(delimiter)) != std::string::npos) {
         std::string_view token = s.substr(0, pos);
         tokens.push_back(T(token));
-        s = s.substr(pos + SizeOfString(delimiter));
+        s = s.substr(pos + sizeOfString(delimiter));
     }
     tokens.push_back(T(s));
 
     return tokens;
 }
 
-inline std::optional<std::string> Utf16ToUtf8(const std::u16string& utf16_str) {
+inline std::optional<std::string> utf16ToUtf8(const std::u16string& utf16_str) {
     std::string utf8_str;
     utf8_str.reserve(utf16_str.size() *
                      3); // Reserve space to avoid reallocations
@@ -96,7 +96,7 @@ inline std::optional<std::string> Utf16ToUtf8(const std::u16string& utf16_str) {
     return utf8_str;
 }
 
-inline std::optional<std::u16string> Utf8ToUtf16(const std::string& utf8_str) {
+inline std::optional<std::u16string> utf8ToUtf16(const std::string& utf8_str) {
     std::u16string utf16_str;
     utf16_str.reserve(utf8_str.size()); // Reserve space to avoid reallocations
 
@@ -174,6 +174,15 @@ inline std::optional<std::u16string> Utf8ToUtf16(const std::string& utf8_str) {
     }
 
     return utf16_str;
+}
+
+template <typename T>
+std::expected<T, std::errc> fromChars(std::string_view sv, i32 base = 10) {
+    T value;
+    const auto [_, ec] =
+        std::from_chars(sv.data(), sv.data() + sv.size(), value, base);
+    return ec == std::errc{} ? std::expected<T, std::errc>(value)
+                             : std::unexpected(ec);
 }
 
 } // namespace hydra

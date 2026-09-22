@@ -42,21 +42,21 @@ CheckOptions:
   readability-identifier-naming.MethodIgnoredRegexp: '(alignas|alignof|and|and_eq|asm|auto|bitand|bitor|bool|break|case|catch|char|char8_t|char16_t|char32_t|class|compl|concept|const|consteval|constexpr|constinit|const_cast|continue|co_await|co_return|co_yield|decltype|default|delete|do|double|dynamic_cast|else|enum|explicit|export|extern|false|float|for|friend|goto|if|inline|int|long|mutable|namespace|new|noexcept|not|not_eq|nullptr|operator|or|or_eq|private|protected|public|register|reinterpret_cast|requires|return|short|signed|sizeof|static|static_assert|static_cast|struct|switch|template|this|thread_local|throw|true|try|typedef|typeid|typename|union|unsigned|using|virtual|void|volatile|wchar_t|while|xor|xor_eq)_'
 
   readability-identifier-naming.ClassCase: CamelCase
-  readability-identifier-naming.ClassIgnoredRegexp: '[a-z][a-z0-9_]*_t|hydra_[a-z0-9_]+'
+  readability-identifier-naming.ClassIgnoredRegexp: '[a-z][a-z0-9_]*_t|iterator'
   readability-identifier-naming.StructCase: CamelCase
-  readability-identifier-naming.StructIgnoredRegexp: '[a-z][a-z0-9_]*_t|hydra_[a-z0-9_]+|[a-z][a-z0-9_]*_traits|[A-Z][A-Za-z0-9]*_[A-Za-z0-9]*'
+  readability-identifier-naming.StructIgnoredRegexp: '[a-z][a-z0-9_]*_t|[a-z][a-z0-9_]*_traits|[A-Z][A-Za-z0-9]*_[A-Za-z0-9]*|formatter|arg|always_false'
   readability-identifier-naming.UnionCase: CamelCase
-  readability-identifier-naming.UnionIgnoredRegexp: '[a-z][a-z0-9_]*_t|hydra_[a-z0-9_]+|[A-Z][A-Za-z0-9]*_[A-Za-z0-9]+'
+  readability-identifier-naming.UnionIgnoredRegexp: '[a-z][a-z0-9_]*_t|[A-Z][A-Za-z0-9]*_[A-Za-z0-9]+'
   readability-identifier-naming.EnumCase: CamelCase
   readability-identifier-naming.NamespaceCase: lower_case
   readability-identifier-naming.TypeAliasCase: CamelCase
-  readability-identifier-naming.TypeAliasIgnoredRegexp: '[a-z][a-z0-9_]*_t|hydra_[a-z0-9_]+|traits'
+  readability-identifier-naming.TypeAliasIgnoredRegexp: '[a-z][a-z0-9_]*|traits|[iuf](8|16|32|64|128)|usize|uptr|bool32|(u?char|u?short|u?int|u?long|float|usize)[234]'
   readability-identifier-naming.TypedefCase: CamelCase
-  readability-identifier-naming.TypedefIgnoredRegexp: '[a-z][a-z0-9_]*_t|hydra_[a-z0-9_]+'
+  readability-identifier-naming.TypedefIgnoredRegexp: '[a-z][a-z0-9_]*_t'
   readability-identifier-naming.TypeTemplateParameterCase: CamelCase
   readability-identifier-naming.TypeTemplateParameterIgnoredRegexp: '[A-Za-z][A-Za-z0-9]*_'
   readability-identifier-naming.ValueTemplateParameterCase: lower_case
-  readability-identifier-naming.ValueTemplateParameterIgnoredRegexp: '_?[a-z][a-z0-9_]*_?|Is'
+  readability-identifier-naming.ValueTemplateParameterIgnoredRegexp: '_?[a-z][a-z0-9_]*_?|Is|N'
 
   # Members, parameters and locals are snake_case (+ optional underscores)
   readability-identifier-naming.PrivateMemberCase: lower_case

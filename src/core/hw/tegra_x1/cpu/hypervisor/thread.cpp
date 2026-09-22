@@ -185,7 +185,7 @@ void Thread::run() {
                     bool far_valid = (esr & 0x00000400) == 0;
                     ASSERT_DEBUG(far_valid, Hypervisor, "FAR not valid");
 
-                    if (CONFIG_INSTANCE.GetRecoverFromSegfault()) {
+                    if (CONFIG_INSTANCE.getRecoverFromSegfault()) {
                         LOG_ERROR(
                             Hypervisor,
                             "Data abort (PC: 0x{:08x}, address: 0x{:08x})",

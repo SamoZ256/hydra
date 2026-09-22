@@ -2,7 +2,7 @@
 
 #define APP_NAME "Hydra"
 
-#define sizeof_array(array) (sizeof(array) / sizeof(array[0]))
+#define SIZEOF_ARRAY(array) (sizeof(array) / sizeof(array[0]))
 
 #define ONCE(code)                                                             \
     {                                                                          \

@@ -205,7 +205,7 @@ ContentArchive::ContentArchive(IFile* file) {
     // Header
     const auto header = stream->read<Header>();
     // TODO: allow other NCA versions as well
-    ASSERT(header.magic == make_magic4('N', 'C', 'A', '3'), Filesystem,
+    ASSERT(header.magic == makeMagic4('N', 'C', 'A', '3'), Filesystem,
            "Invalid NCA magic 0x{:08x}", header.magic);
 
     content_type = header.content_type;

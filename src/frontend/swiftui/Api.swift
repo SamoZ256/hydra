@@ -72,10 +72,10 @@ class MutableHandleClass: Identifiable, Hashable {
 // TODO: avoid copying
 /*
 class HydraString: Hashable, Identifiable {
-    fileprivate var handle: hydra_string
+    fileprivate var handle: HydraString
     private var ownsData = false
 
-    fileprivate init(handle: hydra_string) {
+    fileprivate init(handle: HydraString) {
         self.handle = handle
     }
 
@@ -104,15 +104,15 @@ class HydraString: Hashable, Identifiable {
         self.handle.data
     }
 
-    private static func stringToHydraString(_ val: String) -> hydra_string {
+    private static func stringToHydraString(_ val: String) -> HydraString {
         let data = val.data(using: String.Encoding.utf8)!
         let handle = data.withUnsafeBytes { bytes in
             let cCharPointer = bytes.bindMemory(to: CChar.self).baseAddress
-            return hydra_string(data: cCharPointer, size: data.count)
+            return HydraString(data: cCharPointer, size: data.count)
         }
         let ptr = malloc(handle.size)
         memcpy(ptr, handle.data, handle.size)
-        return hydra_string(data: ptr!.assumingMemoryBound(to: CChar.self), size: handle.size)
+        return HydraString(data: ptr!.assumingMemoryBound(to: CChar.self), size: handle.size)
     }
 
     var value: String {
@@ -133,7 +133,7 @@ class HydraString: Hashable, Identifiable {
         }
     }
 
-    static let empty = HydraString(handle: hydra_string(data: nil, size: 0))
+    static let empty = HydraString(handle: HydraString(data: nil, size: 0))
 
     func isEmpty() -> Bool {
         self.handle.data == nil
@@ -141,26 +141,26 @@ class HydraString: Hashable, Identifiable {
 }
 */
 
-extension hydra_u128: Equatable {
-    public static func == (lhs: hydra_u128, rhs: hydra_u128) -> Bool {
+extension HydraU128: Equatable {
+    public static func == (lhs: HydraU128, rhs: HydraU128) -> Bool {
         lhs.lo == rhs.lo && lhs.hi == rhs.hi
     }
 }
 
-extension hydra_uint2: Equatable {
-    public static func == (lhs: hydra_uint2, rhs: hydra_uint2) -> Bool {
+extension HydraUint2: Equatable {
+    public static func == (lhs: HydraUint2, rhs: HydraUint2) -> Bool {
         lhs.x == rhs.x && lhs.y == rhs.y
     }
 }
 
-extension hydra_uchar3: Equatable {
-    public static func == (lhs: hydra_uchar3, rhs: hydra_uchar3) -> Bool {
+extension HydraUchar3: Equatable {
+    public static func == (lhs: HydraUchar3, rhs: HydraUchar3) -> Bool {
         lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z
     }
 }
 
 extension String {
-    init(withHydraString str: hydra_string) {
+    init(withHydraString str: HydraString) {
         if str.data == nil && str.size == 0 {
             self.init()
         } else {
@@ -169,10 +169,10 @@ extension String {
         }
     }
 
-    func withHydraString<T>(_ callback: (hydra_string) -> T) -> T {
+    func withHydraString<T>(_ callback: (HydraString) -> T) -> T {
         let data = self.data(using: .utf8)!
         return data.withUnsafeBytes { bytes in
-            let str = hydra_string(
+            let str = HydraString(
                 data: bytes.bindMemory(to: CChar.self).baseAddress, size: data.count)
             return callback(str)
         }
@@ -406,7 +406,7 @@ func configGetDisplayResolution() -> UnsafeMutablePointer<UInt32> {
     hydraConfigGetDisplayResolution()
 }
 
-func configGetCustomDisplayResolution() -> UnsafeMutablePointer<hydra_uint2> {
+func configGetCustomDisplayResolution() -> UnsafeMutablePointer<HydraUint2> {
     hydraConfigGetCustomDisplayResolution()
 }
 
@@ -414,7 +414,7 @@ func configGetAudioBackend() -> UnsafeMutablePointer<UInt32> {
     hydraConfigGetAudioBackend()
 }
 
-func configGetUserId() -> UnsafeMutablePointer<hydra_u128> {
+func configGetUserId() -> UnsafeMutablePointer<HydraU128> {
     hydraConfigGetUserId()
 }
 
@@ -835,7 +835,7 @@ class HydraUserManager: MutableHandleClass {
         hydraUserManagerFlush(self.handle)
     }
 
-    func createUser() -> hydra_u128 {
+    func createUser() -> HydraU128 {
         hydraUserManagerCreateUser(self.handle)
     }
 
@@ -843,11 +843,11 @@ class HydraUserManager: MutableHandleClass {
         Int(hydraUserManagerGetUserCount(self.handle))
     }
 
-    func getUserId(at index: Int) -> hydra_u128 {
+    func getUserId(at index: Int) -> HydraU128 {
         hydraUserManagerGetUserId(self.handle, UInt32(index))
     }
 
-    func getUser(id: hydra_u128) -> HydraUser {
+    func getUser(id: HydraU128) -> HydraUser {
         HydraUser(handle: hydraUserManagerGetUser(self.handle, id))
     }
 
@@ -889,7 +889,7 @@ struct HydraUser: MutableHandleStruct {
         }
     }
 
-    var avatarBgColor: hydra_uchar3 {
+    var avatarBgColor: HydraUchar3 {
         get {
             hydraUserGetAvatarBgColor(self.handle)
         }

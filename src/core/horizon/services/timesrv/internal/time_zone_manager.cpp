@@ -67,7 +67,7 @@ TimeZoneManager::TimeZoneManager(filesystem::Filesystem& filesystem_)
 }
 
 std::string_view TimeZoneManager::getDeviceLocationName() {
-    const auto& system_location = CONFIG_INSTANCE.GetSystemLocation();
+    const auto& system_location = CONFIG_INSTANCE.getSystemLocation();
 
     std::string_view name;
     if (system_location == "auto") {

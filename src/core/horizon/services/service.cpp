@@ -105,7 +105,7 @@ void IService::handleRequest(System& system, kernel::Process* caller_process,
             kernel::hipc::cmif::CommandType::TipcCommandRegion) // TODO: is this
                                                                 // really how it
                                                                 // works?
-            data_start = AlignPtr(data_start, 0x10);
+            data_start = alignPtr(data_start, 0x10);
         WRITE_ARRAY(out_stream, data_start);
         if (streams.out_objects_stream.getSeek() != 0) {
             memcpy(data_start + GET_ARRAY_SIZE(out_stream) * sizeof(u32),

@@ -10,20 +10,20 @@ DEFINE_SERVICE_COMMAND_TABLE(ISettingsServer, 0, getLanguageCode, 1,
                              getAvailableLanguageCodes2, 11, getDeviceNickName)
 
 result_t ISettingsServer::getLanguageCode(LanguageCode* out_language_code) {
-    *out_language_code = toLanguageCode(CONFIG_INSTANCE.GetSystemLanguage());
+    *out_language_code = toLanguageCode(CONFIG_INSTANCE.getSystemLanguage());
     return RESULT_SUCCESS;
 }
 
 result_t ISettingsServer::getAvailableLanguageCodes(
     i32* out_count, OutBuffer<BufferAttr::HipcPointer> out_buffer) {
     out_buffer.stream->writeSpan(
-        std::span(available_languages, sizeof_array(available_languages)));
-    *out_count = sizeof_array(available_languages);
+        std::span(available_languages, SIZEOF_ARRAY(available_languages)));
+    *out_count = SIZEOF_ARRAY(available_languages);
     return RESULT_SUCCESS;
 }
 
 result_t ISettingsServer::getAvailableLanguageCodeCount(i32* out_count) {
-    *out_count = sizeof_array(available_languages);
+    *out_count = SIZEOF_ARRAY(available_languages);
     return RESULT_SUCCESS;
 }
 
@@ -36,17 +36,17 @@ result_t ISettingsServer::getRegionCode(RegionCode* out_code) {
 result_t ISettingsServer::getAvailableLanguageCodes2(
     i32* out_count, OutBuffer<BufferAttr::MapAlias> out_buffer) {
     out_buffer.stream->writeSpan(
-        std::span(available_languages, sizeof_array(available_languages)));
-    *out_count = sizeof_array(available_languages);
+        std::span(available_languages, SIZEOF_ARRAY(available_languages)));
+    *out_count = SIZEOF_ARRAY(available_languages);
     return RESULT_SUCCESS;
 }
 
 result_t
 ISettingsServer::getDeviceNickName(OutBuffer<BufferAttr::MapAlias> out_buffer) {
     DeviceNickName nickname{};
-    std::memset(nickname.name, 0, sizeof_array(nickname.name));
-    std::memcpy(nickname.name, CONFIG_INSTANCE.GetDeviceNickname().data(),
-                CONFIG_INSTANCE.GetDeviceNickname().size());
+    std::memset(nickname.name, 0, SIZEOF_ARRAY(nickname.name));
+    std::memcpy(nickname.name, CONFIG_INSTANCE.getDeviceNickname().data(),
+                CONFIG_INSTANCE.getDeviceNickname().size());
     out_buffer.stream->write(nickname);
     return RESULT_SUCCESS;
 }

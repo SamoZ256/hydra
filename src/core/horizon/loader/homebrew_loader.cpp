@@ -104,13 +104,13 @@ class HomebrewThread : public kernel::GuestThread {
         {
             auto user_id_ptr =
                 reinterpret_cast<u128*>(state_ptr + USER_ID_STORAGE_OFFSET);
-            *user_id_ptr = CONFIG_INSTANCE.GetUserId();
+            *user_id_ptr = CONFIG_INSTANCE.getUserId();
         }
 
         // Argv
         {
             std::string argv = fmt::format("\"{}\"", path);
-            for (const auto& arg : CONFIG_INSTANCE.GetProcessArgs())
+            for (const auto& arg : CONFIG_INSTANCE.getProcessArgs())
                 argv += fmt::format(" \"{}\"", arg);
 
             auto argv_ptr = reinterpret_cast<char*>(state_ptr + ARGV_OFFSET);
@@ -157,8 +157,8 @@ class HomebrewThread : public kernel::GuestThread {
                 auto entry = reinterpret_cast<ConfigEntry*>(executable_ptr +
                                                             config_offset);
 
-                ADD_ENTRY_OPTIONAL(MainThreadHandle, self_handle.GetRaw(), 0);
-                ADD_ENTRY_OPTIONAL(ProcessHandle, self_process_handle.GetRaw(),
+                ADD_ENTRY_OPTIONAL(MainThreadHandle, self_handle.getRaw(), 0);
+                ADD_ENTRY_OPTIONAL(ProcessHandle, self_process_handle.getRaw(),
                                    0);
                 ADD_ENTRY_OPTIONAL(
                     AppletType,
@@ -294,7 +294,7 @@ void HomebrewLoader::tryLoadAssetSection(filesystem::IFile* asset_file) {
     // Header
     const auto header = stream->read<AssetHeader>();
     // TODO: is this the correct way to check if the asset section is present?
-    if (header.magic != make_magic4('A', 'S', 'E', 'T')) {
+    if (header.magic != makeMagic4('A', 'S', 'E', 'T')) {
         LOG_WARN(Loader, "Asset section not found");
         return;
     }

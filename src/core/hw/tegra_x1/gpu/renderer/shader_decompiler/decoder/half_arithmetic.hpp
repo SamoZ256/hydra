@@ -57,7 +57,7 @@ union InstHadd2I {
     BitField64<bool, 52, 1> sat;
 
     u32 getH1Imm10() const {
-        return h1_imm10_0.Get() | (h1_imm10_9.Get() << 9);
+        return h1_imm10_0.get() | (h1_imm10_9.get() << 9);
     }
 };
 
@@ -119,7 +119,7 @@ union InstHmul2I {
     BitField64<bool, 52, 1> sat;
 
     u32 getH1Imm10() const {
-        return h1_imm10_0.Get() | (h1_imm10_9.Get() << 9);
+        return h1_imm10_0.get() | (h1_imm10_9.get() << 9);
     }
 };
 
@@ -201,7 +201,7 @@ union InstHfma2I {
     BitField64<u32, 57, 2> fmz; // TODO
 
     u32 getH1Imm10() const {
-        return h1_imm10_0.Get() | (h1_imm10_9.Get() << 9);
+        return h1_imm10_0.get() | (h1_imm10_9.get() << 9);
     }
 };
 

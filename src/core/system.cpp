@@ -7,6 +7,7 @@
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 
+#include <cstddef>
 #include <hatch/hatch.hpp>
 
 #pragma GCC diagnostic pop
@@ -48,7 +49,7 @@ constexpr auto STARTUP_MOVIE_FADE_IN_DURATION = 100ms;
 constexpr auto STARTUP_MOVIE_BREAK_AFTER_FADE_IN_DURATION = 200ms;
 
 hw::tegra_x1::cpu::ICpu* createCpu() {
-    switch (CONFIG_INSTANCE.GetCpuBackend()) {
+    switch (CONFIG_INSTANCE.getCpuBackend()) {
     case CpuBackend::AppleHypervisor:
 #ifdef HYDRA_HYPERVISOR_ENABLED
         return new hw::tegra_x1::cpu::hypervisor::Cpu();
@@ -60,12 +61,12 @@ hw::tegra_x1::cpu::ICpu* createCpu() {
     default:
         // TODO: return an error instead
         LOG_FATAL(Other, "Unknown CPU backend {}",
-                  CONFIG_INSTANCE.GetCpuBackend());
+                  CONFIG_INSTANCE.getCpuBackend());
     }
 }
 
 audio::ICore* createAudioCore() {
-    switch (CONFIG_INSTANCE.GetAudioBackend()) {
+    switch (CONFIG_INSTANCE.getAudioBackend()) {
     case AudioBackend::Null:
         return new audio::null::Core();
     case AudioBackend::Cubeb:
@@ -77,7 +78,7 @@ audio::ICore* createAudioCore() {
     default:
         // TODO: return an error instead
         LOG_FATAL(Other, "Unknown audio backend {}",
-                  CONFIG_INSTANCE.GetAudioBackend());
+                  CONFIG_INSTANCE.getAudioBackend());
     }
 }
 
@@ -87,12 +88,12 @@ System::System(horizon::ui::IHandler& ui_handler_)
     : ui_handler{ui_handler_}, cpu{createCpu()}, audio_core{createAudioCore()},
       os(*this) {
     // TODO: set this elsewhere
-    LOGGER_INSTANCE.SetOutput(CONFIG_INSTANCE.GetLogOutput());
+    LOGGER_INSTANCE.setOutput(CONFIG_INSTANCE.getLogOutput());
 }
 
 System::~System() {
     // TODO: set this elsewhere
-    LOGGER_INSTANCE.SetOutput(LogOutput::StdOut);
+    LOGGER_INSTANCE.setOutput(LogOutput::StdOut);
 }
 
 void System::loadAndStart(horizon::loader::ILoader* loader) {
@@ -177,7 +178,7 @@ void System::loadAndStart(horizon::loader::ILoader* loader) {
                 .version = 1,
                 .error_code_number = MAKE_RESULT(Svc, 0),
                 .language_code = horizon::toLanguageCode(
-                    CONFIG_INSTANCE.GetSystemLanguage()),
+                    CONFIG_INSTANCE.getSystemLanguage()),
                 .dialog_message = "Dialog message",
                 .fullscreen_message = "Fullscreen message",
         };
@@ -315,7 +316,8 @@ void System::loadAndStart(horizon::loader::ILoader* loader) {
                     auto tmp_buffer =
                         gpu.getRenderer().allocateTemporaryBuffer(size);
                     std::memcpy(reinterpret_cast<void*>(tmp_buffer->getPtr()),
-                                data + i * height * width, size);
+                                data + static_cast<usize>(i) * height * width,
+                                size);
                     texture->copyFrom(command_buffer.get(), tmp_buffer);
                     gpu.getRenderer().freeTemporaryBuffer(tmp_buffer);
                     startup_movie.push_back(
@@ -336,7 +338,7 @@ void System::loadAndStart(horizon::loader::ILoader* loader) {
     const auto target_patch_filename =
         fmt::format("{:016x}.hatch", loader->getTitleId());
     // TODO: iterate recursively
-    for (const auto& patch_path : CONFIG_INSTANCE.GetPatchPaths()) {
+    for (const auto& patch_path : CONFIG_INSTANCE.getPatchPaths()) {
         if (!std::filesystem::exists(patch_path)) {
             LOG_ERROR(Other, "Patch path does not exist: {}", patch_path);
             continue;
@@ -357,7 +359,7 @@ void System::loadAndStart(horizon::loader::ILoader* loader) {
     }
 
     LOG_INFO(Other, "-------- Config --------");
-    CONFIG_INSTANCE.Log();
+    CONFIG_INSTANCE.log();
 
     LOG_INFO(Other, "-------- Run --------");
 
@@ -369,7 +371,7 @@ void System::loadAndStart(horizon::loader::ILoader* loader) {
         horizon::kernel::AppletFocusState::InFocus);
 
     // Preselected user
-    auto user_id = CONFIG_INSTANCE.GetUserId();
+    auto user_id = CONFIG_INSTANCE.getUserId();
     if (user_id == horizon::services::account::internal::INVALID_USER_ID) {
         // If there is just a single user, use that
         if (os.getUserManager().getUserCount() == 1) {
@@ -388,8 +390,8 @@ void System::loadAndStart(horizon::loader::ILoader* loader) {
     main_process->start();
 
     // Activate GDB server
-    if (CONFIG_INSTANCE.GetGdbEnabled()) {
-        if (CONFIG_INSTANCE.GetGdbWaitForClient())
+    if (CONFIG_INSTANCE.getGdbEnabled()) {
+        if (CONFIG_INSTANCE.getGdbWaitForClient())
             main_process->getMainThread()->supervisorPause();
 
         // HACK: spinlock until the main thread is running
@@ -412,17 +414,14 @@ void System::loadAndStart(horizon::loader::ILoader* loader) {
 void System::requestStop() {
     // We don't request the processes to stop yet, instead we send a message to
     // all of them and give them some time to react
-    for (auto it = os.getKernel().getProcessManager().begin();
-         it != os.getKernel().getProcessManager().end(); ++it)
-        (*it)->getAppletState().sendMessage(
-            horizon::kernel::AppletMessage::Exit);
+    for (auto& it : os.getKernel().getProcessManager())
+        it->getAppletState().sendMessage(horizon::kernel::AppletMessage::Exit);
 }
 
 void System::forceStop() {
     // Request all processes to stop immediately
-    for (auto it = os.getKernel().getProcessManager().begin();
-         it != os.getKernel().getProcessManager().end(); ++it)
-        (*it)->stop();
+    for (auto& it : os.getKernel().getProcessManager())
+        it->stop();
 
     // Wait a small amount of time for all threads to catch up
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -435,15 +434,13 @@ void System::forceStop() {
 }
 
 void System::pause() {
-    for (auto it = os.getKernel().getProcessManager().begin();
-         it != os.getKernel().getProcessManager().end(); ++it)
-        (*it)->supervisorPause();
+    for (auto& it : os.getKernel().getProcessManager())
+        it->supervisorPause();
 }
 
 void System::resume() {
-    for (auto it = os.getKernel().getProcessManager().begin();
-         it != os.getKernel().getProcessManager().end(); ++it)
-        (*it)->supervisorResume();
+    for (auto& it : os.getKernel().getProcessManager())
+        it->supervisorResume();
 }
 
 void System::progressFrame(u32 width, u32 height,
@@ -620,7 +617,7 @@ void System::takeScreenshot() {
         // TODO: use title name in the filename
         std::string filename =
             fmt::format("{}/screenshot_{:%Y-%m-%d_%H-%M-%S}.jpg",
-                        CONFIG_INSTANCE.GetPicturesPath(), now);
+                        CONFIG_INSTANCE.getPicturesPath(), now);
 
         stbi_flip_vertically_on_write(flip_y);
         if (!stbi_write_jpg(filename.c_str(), rect.size.x(), rect.size.y(), 4,
@@ -642,7 +639,7 @@ void System::captureGpuFrame() {
 void System::tryApplyPatch(horizon::kernel::Process* process,
                            const std::string_view target_filename,
                            const std::filesystem::path& path) {
-    if (to_lower(path.filename().string()) != target_filename)
+    if (toLower(path.filename().string()) != target_filename)
         return;
 
     LOG_INFO(Other, "Applying patch \"{}\"", path.string());

@@ -13,7 +13,7 @@ namespace hydra::hw::tegra_x1::gpu {
 namespace {
 
 renderer::IRenderer* createRenderer() {
-    const auto renderer_type = CONFIG_INSTANCE.GetGpuRenderer();
+    const auto renderer_type = CONFIG_INSTANCE.getGpuRenderer();
     switch (renderer_type) {
     case GpuRenderer::Metal:
 #ifdef ZTD_PLATFORM_APPLE

@@ -83,7 +83,7 @@ enum class HalfSwizzle {
 inline u32 getIntImm20(u32 imm20_0, u32 imm20_19, bool extend) {
     const auto imm20 = imm20_0 | (imm20_19 << 19);
     if (extend)
-        return sign_extend<u32, 20>(imm20);
+        return signExtend<u32, 20>(imm20);
     else
         return imm20;
 }
@@ -105,8 +105,8 @@ inline ir::Value getHalf2Const20(ir::Builder& builder, u32 h0_imm10,
 }
 
 inline ir::Value getHalf2Const32(ir::Builder& builder, u32 imm32) {
-    return getHalf2Const(builder, extract_bits(imm32, 0, 16),
-                         extract_bits(imm32, 16, 16));
+    return getHalf2Const(builder, extractBits(imm32, 0, 16),
+                         extractBits(imm32, 16, 16));
 }
 
 inline ir::Value negIf(ir::Builder& builder, const ir::Value& value, bool neg) {

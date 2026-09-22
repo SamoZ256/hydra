@@ -19,23 +19,23 @@ class HandlePool {
         -> std::expected<Handle, ztd::mem::IAllocator::Error> {
         return pool.insert(std::forward<Args>(args)...)
             .transform(
-                [](usize index) -> Handle { return Handle::FromIndex(index); });
+                [](usize index) -> Handle { return Handle::fromIndex(index); });
     }
 
     [[nodiscard]] auto free(Handle handle) noexcept -> bool {
-        ZTD_ASSIGN_OR_RETURN_VALUE(const auto index, handle.ToIndex(), false);
+        ZTD_ASSIGN_OR_RETURN_VALUE(const auto index, handle.toIndex(), false);
         return pool.free(index);
     }
 
     [[nodiscard]] auto isValid(Handle handle) const noexcept -> bool {
-        ZTD_ASSIGN_OR_RETURN_VALUE(const auto index, handle.ToIndex(), false);
+        ZTD_ASSIGN_OR_RETURN_VALUE(const auto index, handle.toIndex(), false);
         return pool.isValid(index);
     }
 
     auto get(Handle handle) noexcept -> std::optional<T>
         requires std::is_pointer_v<T>
     {
-        ZTD_ASSIGN_OR_RETURN_VALUE(const auto index, handle.ToIndex(),
+        ZTD_ASSIGN_OR_RETURN_VALUE(const auto index, handle.toIndex(),
                                    std::nullopt);
         return pool.get(index);
     }
@@ -43,7 +43,7 @@ class HandlePool {
     auto get(Handle handle) const noexcept -> std::optional<const T>
         requires std::is_pointer_v<T>
     {
-        ZTD_ASSIGN_OR_RETURN_VALUE(const auto index, handle.ToIndex(),
+        ZTD_ASSIGN_OR_RETURN_VALUE(const auto index, handle.toIndex(),
                                    std::nullopt);
         return pool.get(index);
     }
@@ -51,7 +51,7 @@ class HandlePool {
     auto get(Handle handle) noexcept -> std::optional<T*>
         requires(!std::is_pointer_v<T>)
     {
-        ZTD_ASSIGN_OR_RETURN_VALUE(const auto index, handle.ToIndex(),
+        ZTD_ASSIGN_OR_RETURN_VALUE(const auto index, handle.toIndex(),
                                    std::nullopt);
         return pool.get(index);
     }
@@ -59,7 +59,7 @@ class HandlePool {
     auto get(Handle handle) const noexcept -> std::optional<const T*>
         requires(!std::is_pointer_v<T>)
     {
-        ZTD_ASSIGN_OR_RETURN_VALUE(const auto index, handle.ToIndex(),
+        ZTD_ASSIGN_OR_RETURN_VALUE(const auto index, handle.toIndex(),
                                    std::nullopt);
         return pool.get(index);
     }

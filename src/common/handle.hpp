@@ -6,7 +6,7 @@ namespace hydra {
 
 struct Handle {
   public:
-    static constexpr Handle FromIndex(usize index) noexcept {
+    static constexpr Handle fromIndex(usize index) noexcept {
         return {static_cast<u32>(index + 1)};
     }
 
@@ -15,15 +15,15 @@ struct Handle {
 
     bool operator==(Handle other) const noexcept { return raw == other.raw; }
 
-    u32 GetRaw() const noexcept { return raw; }
+    u32 getRaw() const noexcept { return raw; }
 
-    std::optional<usize> ToIndex() const noexcept {
+    std::optional<usize> toIndex() const noexcept {
         if (raw == 0)
             return std::nullopt;
         return raw - 1;
     }
 
-    [[nodiscard]] bool IsValid() const noexcept { return raw != 0; }
+    [[nodiscard]] bool isValid() const noexcept { return raw != 0; }
 
   private:
     u32 raw{0};
@@ -37,9 +37,9 @@ template <>
 struct fmt::formatter<hydra::Handle> : formatter<string_view> {
     template <typename FormatContext>
     auto format(hydra::Handle handle, FormatContext& ctx) const {
-        if (!handle.IsValid())
+        if (!handle.isValid())
             return formatter<string_view>::format("null", ctx);
         return formatter<string_view>::format(
-            fmt::format("{:#x}", handle.GetRaw()), ctx);
+            fmt::format("{:#x}", handle.getRaw()), ctx);
     }
 };

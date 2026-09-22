@@ -32,7 +32,7 @@ ICommonStateGetter::receiveMessage(kernel::Process* process,
 }
 
 result_t ICommonStateGetter::getOperationMode(OperationMode* out_mode) {
-    *out_mode = CONFIG_INSTANCE.GetHandheldMode() ? OperationMode::Handheld
+    *out_mode = CONFIG_INSTANCE.getHandheldMode() ? OperationMode::Handheld
                                                   : OperationMode::Console;
     return RESULT_SUCCESS;
 }

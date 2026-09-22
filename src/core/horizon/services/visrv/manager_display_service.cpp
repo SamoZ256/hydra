@@ -27,7 +27,7 @@ result_t IManagerDisplayService::createManagedLayer(System* system,
     *out_layer_id = system->getOs()
                         .getDisplayDriver()
                         .createLayer(process, binder_handle)
-                        .GetRaw();
+                        .getRaw();
     return RESULT_SUCCESS;
 }
 

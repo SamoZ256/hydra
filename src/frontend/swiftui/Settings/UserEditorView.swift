@@ -7,7 +7,7 @@ struct UserEditorView: View {
     @State private var showAvatarEditor = false
 
     @State private var nickname: String = ""
-    @State private var avatarBgColor: hydra_uchar3 = hydra_uchar3(x: 0, y: 0, z: 0)
+    @State private var avatarBgColor: HydraUchar3 = HydraUchar3(x: 0, y: 0, z: 0)
     @State private var avatarPath: String = ""
 
     var body: some View {

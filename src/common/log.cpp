@@ -12,11 +12,11 @@ constexpr usize MAX_LOG_FILES = 3;
 
 }
 
-void Logger::EnsureOutputStream() {
+void Logger::ensureOutputStream() {
     if (ofs.has_value())
         return;
 
-    const auto logs_path = CONFIG_INSTANCE.GetLogsPath();
+    const auto logs_path = CONFIG_INSTANCE.getLogsPath();
 
     // List log files
     std::vector<std::filesystem::directory_entry> logs;

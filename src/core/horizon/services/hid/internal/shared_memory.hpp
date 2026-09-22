@@ -8,8 +8,8 @@ template <typename T, usize max_entries = 17>
 struct RingLifo {
   public:
     void clear() {
-        atomic_store(&index, 0ull);
-        atomic_store(&count, 0ull);
+        atomicStore(&index, 0ull);
+        atomicStore(&count, 0ull);
     }
 
     std::optional<T*> getCurrentStorage() {
@@ -22,12 +22,12 @@ struct RingLifo {
     void write(const T& data) {
         const auto next_index = (readIndex() + 1) % max_entries;
         storages[next_index].write(data);
-        atomic_store(&index, next_index);
+        atomicStore(&index, next_index);
 
         // TODO: why?
         // TODO: should be max_entries - 1
         if (readCount() < 1) {
-            atomic_fetch_add(&count, 1ull);
+            atomicFetchAdd(&count, 1ull);
         }
     }
 
@@ -51,10 +51,10 @@ struct RingLifo {
         u64 sampling_number;
         T data;
 
-        u64 readSamplingNumber() const { return atomic_load(&sampling_number); }
+        u64 readSamplingNumber() const { return atomicLoad(&sampling_number); }
 
         void write(const T& data_) {
-            atomic_store(&sampling_number, data_.sampling_number);
+            atomicStore(&sampling_number, data_.sampling_number);
             // TODO: thread barrier?
             data = data_;
         }
@@ -63,8 +63,8 @@ struct RingLifo {
     std::array<AtomicStorage, max_entries> storages;
 
     // Helpers
-    u64 readIndex() { return atomic_load(&index); }
-    u64 readCount() { return atomic_load(&count); }
+    u64 readIndex() { return atomicLoad(&index); }
+    u64 readCount() { return atomicLoad(&count); }
 
     std::optional<AtomicStorage*> getCurrentAtomicStorage() {
         const auto count_ =

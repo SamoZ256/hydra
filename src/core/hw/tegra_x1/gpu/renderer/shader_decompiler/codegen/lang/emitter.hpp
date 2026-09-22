@@ -339,7 +339,7 @@ class LangEmitter : public Emitter {
         return "xyzw"[component_index];
     }
 
-    static std::string getTypeSuffixStr(ir::Type type) {
+    static std::string_view getTypeSuffixStr(ir::Type type) {
         switch (type.getKind()) {
         case ir::TypeKind::Scalar: {
             switch (type.getScalarType()) {

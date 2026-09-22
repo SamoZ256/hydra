@@ -11,7 +11,7 @@ namespace hydra::input {
 namespace {
 
 IDeviceList* createDeviceList() {
-    const auto input_backend = CONFIG_INSTANCE.GetInputBackend();
+    const auto input_backend = CONFIG_INSTANCE.getInputBackend();
     switch (input_backend) {
     case InputBackend::Sdl:
 #ifdef HYDRA_SDL_ENABLED
@@ -35,7 +35,7 @@ IDeviceList* createDeviceList() {
 DeviceManager::DeviceManager() : device_list{createDeviceList()} {
     // Profiles
     for (u32 i = 0; i < horizon::services::hid::NPAD_COUNT; i++) {
-        const auto& name = CONFIG_INSTANCE.GetInputProfiles()[i];
+        const auto& name = CONFIG_INSTANCE.getInputProfiles()[i];
         if (name.empty())
             continue;
 

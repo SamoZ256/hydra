@@ -111,7 +111,7 @@ void NxLoader::parseNpdm() {
 
     delete stream;
 
-    ASSERT(meta.magic == make_magic4('M', 'E', 'T', 'A'), Loader,
+    ASSERT(meta.magic == makeMagic4('M', 'E', 'T', 'A'), Loader,
            "Invalid NPDM meta magic 0x{:08x}", meta.magic);
 
     // TODO: support 32-bit games
@@ -191,7 +191,7 @@ void NxLoader::findIcon() {
     }
 
     // First, try to get the icon for the desired language
-    const auto lang_code = toLanguageCode(CONFIG_INSTANCE.GetSystemLanguage());
+    const auto lang_code = toLanguageCode(CONFIG_INSTANCE.getSystemLanguage());
     const auto filename = getLanguageIconFilename(lang_code);
     res = dir.getFile(filename, icon_file);
     if (res != filesystem::FsResult::Success) {

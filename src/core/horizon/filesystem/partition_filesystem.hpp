@@ -44,10 +44,10 @@ class PartitionFilesystem final : public Directory {
         // Header
         const auto header = stream->read<PfsHeader>();
         if (!is_hfs) {
-            ASSERT(header.magic == make_magic4('P', 'F', 'S', '0'), Filesystem,
+            ASSERT(header.magic == makeMagic4('P', 'F', 'S', '0'), Filesystem,
                    "Invalid PFS0 magic 0x{:08x}", header.magic);
         } else {
-            ASSERT(header.magic == make_magic4('H', 'F', 'S', '0'), Filesystem,
+            ASSERT(header.magic == makeMagic4('H', 'F', 'S', '0'), Filesystem,
                    "Invalid HFS0 magic 0x{:08x}", header.magic);
         }
 

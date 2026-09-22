@@ -14,7 +14,7 @@ namespace hydra::horizon::services::account::internal {
 
 namespace {
 
-constexpr magic4_t HUSR_MAGIC = make_magic4('H', 'U', 'S', 'R');
+constexpr magic4_t HUSR_MAGIC = makeMagic4('H', 'U', 'S', 'R');
 constexpr u32 CURRENT_HUSR_VERSION = 2;
 
 struct HusrHeader {
@@ -95,7 +95,7 @@ uuid_t UserManager::createUser() {
 void UserManager::loadSystemAvatars(filesystem::Filesystem& fs) {
     // Default avatar
     const auto default_image_path =
-        GetBundleResourcePath("default_avatar_image.png");
+        getBundleResourcePath("default_avatar_image.png");
     avatars[DEFAULT_AVATAR_IMAGE_PATH] = {
         .file = new filesystem::DiskFile(default_image_path)};
 
@@ -331,7 +331,8 @@ void UserManager::preloadAvatar(Avatar& avatar, bool is_compressed) {
         avatar.dimensions = static_cast<u32>(width);
 
         // TODO: avoid intermediate copy
-        u64 size = static_cast<u64>(avatar.dimensions * avatar.dimensions * 4);
+        const u64 size =
+            static_cast<u64>(avatar.dimensions) * avatar.dimensions * 4;
         avatar.data.resize(size);
         std::memcpy(avatar.data.data(), pixels, size);
         stbi_image_free(pixels);

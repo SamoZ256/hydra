@@ -19,11 +19,11 @@ result_t DisplayServiceBase::createStrayLayerImpl(
     *out_layer_id = system.getOs()
                         .getDisplayDriver()
                         .createLayer(process, binder_handle)
-                        .GetRaw();
+                        .getRaw();
 
     // Parcel
     hosbinder::ParcelWriter parcel_writer(out_parcel_stream.value());
-    parcel_writer.writeObject(binder_handle.GetRaw(), "dispdrv"_u64);
+    parcel_writer.writeObject(binder_handle.getRaw(), "dispdrv"_u64);
     parcel_writer.finish();
 
     *out_native_window_size = parcel_writer.getWrittenSize();

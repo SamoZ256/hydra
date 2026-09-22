@@ -35,7 +35,7 @@ void SurfaceCompositor::drawTexture(ICommandBuffer* command_buffer,
         command_buffer_impl->getRenderCommandEncoder(render_pass_descriptor);
 
     // Draw
-    encoder->setRenderPipelineState(renderer.getBlitPipelineCache().Find(
+    encoder->setRenderPipelineState(renderer.getBlitPipelineCache().find(
         {.pixel_format = drawable->texture()->pixelFormat(),
          .transparent = transparent}));
     encoder->setViewport(
@@ -54,10 +54,10 @@ void SurfaceCompositor::drawTexture(ICommandBuffer* command_buffer,
     const auto src_width = descriptor.width;
     const auto src_height = descriptor.height;
     BlitParams params = {
-        .src_offset = {src_rect.origin.x() / src_width,
-                       src_rect.origin.y() / src_height},
-        .src_scale = {src_rect.size.x() / src_width,
-                      src_rect.size.y() / src_height},
+        .src_offset = {src_rect.origin.x() / static_cast<f32>(src_width),
+                       src_rect.origin.y() / static_cast<f32>(src_height)},
+        .src_scale = {src_rect.size.x() / static_cast<f32>(src_width),
+                      src_rect.size.y() / static_cast<f32>(src_height)},
         .opacity = opacity,
     };
 

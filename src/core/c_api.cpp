@@ -15,11 +15,11 @@
 
 namespace {
 
-hydra_string hydraStringFromStringView(std::string_view str) {
-    return hydra_string{.data = str.data(), .size = str.size()};
+HydraString hydraStringFromStringView(std::string_view str) {
+    return HydraString{.data = str.data(), .size = str.size()};
 }
 
-std::string_view stringViewFromHydraString(hydra_string str) {
+std::string_view stringViewFromHydraString(HydraString str) {
     return {str.data, str.size};
 }
 
@@ -39,7 +39,7 @@ HYDRA_EXPORT uint32_t hydraStringListGetCount(const void* list) {
         reinterpret_cast<const std::vector<std::string>*>(list)->size());
 }
 
-HYDRA_EXPORT hydra_string hydraStringListGet(const void* list, uint32_t index) {
+HYDRA_EXPORT HydraString hydraStringListGet(const void* list, uint32_t index) {
     return hydraStringFromStringView(
         reinterpret_cast<const std::vector<std::string>*>(list)->at(index));
 }
@@ -49,12 +49,12 @@ HYDRA_EXPORT void hydraStringListResize(void* list, uint32_t size) {
 }
 
 HYDRA_EXPORT void hydraStringListSet(void* list, uint32_t index,
-                                     hydra_string value) {
+                                     HydraString value) {
     (*reinterpret_cast<std::vector<std::string>*>(list))[index] =
         stringViewFromHydraString(value);
 }
 
-HYDRA_EXPORT void hydraStringListAppend(void* list, hydra_string value) {
+HYDRA_EXPORT void hydraStringListAppend(void* list, HydraString value) {
     reinterpret_cast<std::vector<std::string>*>(list)->emplace_back(
         stringViewFromHydraString(value));
 }
@@ -65,7 +65,7 @@ HYDRA_EXPORT uint32_t hydraStringViewListGetCount(const void* list) {
         reinterpret_cast<const std::vector<std::string_view>*>(list)->size());
 }
 
-HYDRA_EXPORT hydra_string hydraStringViewListGet(const void* list,
+HYDRA_EXPORT HydraString hydraStringViewListGet(const void* list,
                                                  uint32_t index) {
     return hydraStringFromStringView(
         reinterpret_cast<const std::vector<std::string_view>*>(list)->at(
@@ -77,12 +77,12 @@ HYDRA_EXPORT void hydraStringViewListResize(void* list, uint32_t size) {
 }
 
 HYDRA_EXPORT void hydraStringViewListSet(void* list, uint32_t index,
-                                         hydra_string value) {
+                                         HydraString value) {
     (*reinterpret_cast<std::vector<std::string_view>*>(list))[index] =
         stringViewFromHydraString(value);
 }
 
-HYDRA_EXPORT void hydraStringViewListAppend(void* list, hydra_string value) {
+HYDRA_EXPORT void hydraStringViewListAppend(void* list, HydraString value) {
     reinterpret_cast<std::vector<std::string_view>*>(list)->push_back(
         stringViewFromHydraString(value));
 }
@@ -102,7 +102,7 @@ HYDRA_EXPORT uint32_t hydraStringToStringMapGetCount(const void* map) {
             ->size());
 }
 
-HYDRA_EXPORT hydra_string hydraStringToStringMapGetKey(const void* map,
+HYDRA_EXPORT HydraString hydraStringToStringMapGetKey(const void* map,
                                                        uint32_t index) {
     auto it = reinterpret_cast<const std::map<std::string, std::string>*>(map)
                   ->begin();
@@ -110,7 +110,7 @@ HYDRA_EXPORT hydra_string hydraStringToStringMapGetKey(const void* map,
     return hydraStringFromStringView(it->first);
 }
 
-HYDRA_EXPORT hydra_string hydraStringToStringMapGetValue(const void* map,
+HYDRA_EXPORT HydraString hydraStringToStringMapGetValue(const void* map,
                                                          uint32_t index) {
     auto it = reinterpret_cast<const std::map<std::string, std::string>*>(map)
                   ->begin();
@@ -118,8 +118,8 @@ HYDRA_EXPORT hydra_string hydraStringToStringMapGetValue(const void* map,
     return hydraStringFromStringView(it->second);
 }
 
-HYDRA_EXPORT hydra_string
-hydraStringToStringMapGetValueByKey(const void* map, hydra_string key) {
+HYDRA_EXPORT HydraString
+hydraStringToStringMapGetValueByKey(const void* map, HydraString key) {
     return hydraStringFromStringView(
         reinterpret_cast<const std::map<std::string, std::string>*>(map)->at(
             std::string(stringViewFromHydraString(key))));
@@ -129,20 +129,20 @@ HYDRA_EXPORT void hydraStringToStringMapRemoveAll(void* map) {
     reinterpret_cast<std::map<std::string, std::string>*>(map)->clear();
 }
 
-HYDRA_EXPORT void hydraStringToStringMapSetByKey(void* map, hydra_string key,
-                                                 hydra_string value) {
+HYDRA_EXPORT void hydraStringToStringMapSetByKey(void* map, HydraString key,
+                                                 HydraString value) {
     (*reinterpret_cast<std::map<std::string, std::string>*>(
         map))[std::string(stringViewFromHydraString(key))] =
         stringViewFromHydraString(value);
 }
 
 // Loader plugin
-HYDRA_EXPORT hydra_string hydraLoaderPluginGetPath(const void* plugin) {
+HYDRA_EXPORT HydraString hydraLoaderPluginGetPath(const void* plugin) {
     return hydraStringFromStringView(
         reinterpret_cast<const hydra::LoaderPlugin*>(plugin)->path);
 }
 
-HYDRA_EXPORT void hydraLoaderPluginSetPath(void* plugin, hydra_string path) {
+HYDRA_EXPORT void hydraLoaderPluginSetPath(void* plugin, HydraString path) {
     reinterpret_cast<hydra::LoaderPlugin*>(plugin)->path =
         stringViewFromHydraString(path);
 }
@@ -167,167 +167,167 @@ HYDRA_EXPORT void hydraLoaderPluginListResize(void* list, uint32_t size) {
 }
 
 // Config
-HYDRA_EXPORT void hydraConfigSerialize() { hydra::CONFIG_INSTANCE.Serialize(); }
+HYDRA_EXPORT void hydraConfigSerialize() { hydra::CONFIG_INSTANCE.serialize(); }
 
 HYDRA_EXPORT void hydraConfigDeserialize() {
-    hydra::CONFIG_INSTANCE.Deserialize();
+    hydra::CONFIG_INSTANCE.deserialize();
 }
 
-HYDRA_EXPORT hydra_string hydraConfigGetAppDataPath() {
-    return hydraStringFromStringView(hydra::CONFIG_INSTANCE.GetAppDataPath());
+HYDRA_EXPORT HydraString hydraConfigGetAppDataPath() {
+    return hydraStringFromStringView(hydra::CONFIG_INSTANCE.getAppDataPath());
 }
 
-HYDRA_EXPORT hydra_string hydraConfigGetLogsPath() {
-    return hydraStringFromStringView(hydra::CONFIG_INSTANCE.GetLogsPath());
+HYDRA_EXPORT HydraString hydraConfigGetLogsPath() {
+    return hydraStringFromStringView(hydra::CONFIG_INSTANCE.getLogsPath());
 }
 
 HYDRA_EXPORT void* hydraConfigGetGamePaths() {
-    return &hydra::CONFIG_INSTANCE.GetGamePaths();
+    return &hydra::CONFIG_INSTANCE.getGamePaths();
 }
 
 HYDRA_EXPORT void* hydraConfigGetLoaderPlugins() {
-    return &hydra::CONFIG_INSTANCE.GetLoaderPlugins();
+    return &hydra::CONFIG_INSTANCE.getLoaderPlugins();
 }
 
 HYDRA_EXPORT void* hydraConfigGetPatchPaths() {
-    return &hydra::CONFIG_INSTANCE.GetPatchPaths();
+    return &hydra::CONFIG_INSTANCE.getPatchPaths();
 }
 
 HYDRA_EXPORT uint32_t* hydraConfigGetInputBackend() {
     return reinterpret_cast<uint32_t*>(
-        &hydra::CONFIG_INSTANCE.GetInputBackend());
+        &hydra::CONFIG_INSTANCE.getInputBackend());
 }
 
 HYDRA_EXPORT void* hydraConfigGetInputProfiles() {
-    return &hydra::CONFIG_INSTANCE.GetInputProfiles();
+    return &hydra::CONFIG_INSTANCE.getInputProfiles();
 }
 
 HYDRA_EXPORT uint32_t* hydraConfigGetCpuBackend() {
-    return reinterpret_cast<uint32_t*>(&hydra::CONFIG_INSTANCE.GetCpuBackend());
+    return reinterpret_cast<uint32_t*>(&hydra::CONFIG_INSTANCE.getCpuBackend());
 }
 
 HYDRA_EXPORT uint32_t* hydraConfigGetGpuRenderer() {
     return reinterpret_cast<uint32_t*>(
-        &hydra::CONFIG_INSTANCE.GetGpuRenderer());
+        &hydra::CONFIG_INSTANCE.getGpuRenderer());
 }
 
 HYDRA_EXPORT uint32_t* hydraConfigGetShaderBackend() {
     return reinterpret_cast<uint32_t*>(
-        &hydra::CONFIG_INSTANCE.GetShaderBackend());
+        &hydra::CONFIG_INSTANCE.getShaderBackend());
 }
 
 HYDRA_EXPORT uint32_t* hydraConfigGetDisplayResolution() {
     return reinterpret_cast<uint32_t*>(
-        &hydra::CONFIG_INSTANCE.GetDisplayResolution());
+        &hydra::CONFIG_INSTANCE.getDisplayResolution());
 }
 
-HYDRA_EXPORT hydra_uint2* hydraConfigGetCustomDisplayResolution() {
-    return reinterpret_cast<hydra_uint2*>(
-        &hydra::CONFIG_INSTANCE.GetCustomDisplayResolution());
+HYDRA_EXPORT HydraUint2* hydraConfigGetCustomDisplayResolution() {
+    return reinterpret_cast<HydraUint2*>(
+        &hydra::CONFIG_INSTANCE.getCustomDisplayResolution());
 }
 
 HYDRA_EXPORT uint32_t* hydraConfigGetAudioBackend() {
     return reinterpret_cast<uint32_t*>(
-        &hydra::CONFIG_INSTANCE.GetAudioBackend());
+        &hydra::CONFIG_INSTANCE.getAudioBackend());
 }
 
-HYDRA_EXPORT hydra_u128* hydraConfigGetUserId() {
-    return reinterpret_cast<hydra_u128*>(&hydra::CONFIG_INSTANCE.GetUserId());
+HYDRA_EXPORT HydraU128* hydraConfigGetUserId() {
+    return reinterpret_cast<HydraU128*>(&hydra::CONFIG_INSTANCE.getUserId());
 }
 
-HYDRA_EXPORT hydra_string hydraConfigGetDeviceNickname() {
+HYDRA_EXPORT HydraString hydraConfigGetDeviceNickname() {
     return hydraStringFromStringView(
-        hydra::CONFIG_INSTANCE.GetDeviceNickname());
+        hydra::CONFIG_INSTANCE.getDeviceNickname());
 }
 
-HYDRA_EXPORT void hydraConfigSetDeviceNickname(hydra_string value) {
-    hydra::CONFIG_INSTANCE.GetDeviceNickname() =
+HYDRA_EXPORT void hydraConfigSetDeviceNickname(HydraString value) {
+    hydra::CONFIG_INSTANCE.getDeviceNickname() =
         stringViewFromHydraString(value);
 }
 
 HYDRA_EXPORT uint32_t* hydraConfigGetSystemLanguage() {
     return reinterpret_cast<uint32_t*>(
-        &hydra::CONFIG_INSTANCE.GetSystemLanguage());
+        &hydra::CONFIG_INSTANCE.getSystemLanguage());
 }
 
-HYDRA_EXPORT hydra_string hydraConfigGetSystemLocation() {
+HYDRA_EXPORT HydraString hydraConfigGetSystemLocation() {
     return hydraStringFromStringView(
-        hydra::CONFIG_INSTANCE.GetSystemLocation());
+        hydra::CONFIG_INSTANCE.getSystemLocation());
 }
 
-HYDRA_EXPORT void hydraConfigSetSystemLocation(hydra_string value) {
-    hydra::CONFIG_INSTANCE.GetSystemLocation() =
+HYDRA_EXPORT void hydraConfigSetSystemLocation(HydraString value) {
+    hydra::CONFIG_INSTANCE.getSystemLocation() =
         stringViewFromHydraString(value);
 }
 
-HYDRA_EXPORT hydra_string hydraConfigGetFirmwarePath() {
-    return hydraStringFromStringView(hydra::CONFIG_INSTANCE.GetFirmwarePath());
+HYDRA_EXPORT HydraString hydraConfigGetFirmwarePath() {
+    return hydraStringFromStringView(hydra::CONFIG_INSTANCE.getFirmwarePath());
 }
 
-HYDRA_EXPORT void hydraConfigSetFirmwarePath(hydra_string value) {
-    hydra::CONFIG_INSTANCE.GetFirmwarePath() = stringViewFromHydraString(value);
+HYDRA_EXPORT void hydraConfigSetFirmwarePath(HydraString value) {
+    hydra::CONFIG_INSTANCE.getFirmwarePath() = stringViewFromHydraString(value);
 }
 
-HYDRA_EXPORT hydra_string hydraConfigGetSdCardPath() {
-    return hydraStringFromStringView(hydra::CONFIG_INSTANCE.GetSdCardPath());
+HYDRA_EXPORT HydraString hydraConfigGetSdCardPath() {
+    return hydraStringFromStringView(hydra::CONFIG_INSTANCE.getSdCardPath());
 }
 
-HYDRA_EXPORT void hydraConfigSetSdCardPath(hydra_string value) {
-    hydra::CONFIG_INSTANCE.GetSdCardPath() = stringViewFromHydraString(value);
+HYDRA_EXPORT void hydraConfigSetSdCardPath(HydraString value) {
+    hydra::CONFIG_INSTANCE.getSdCardPath() = stringViewFromHydraString(value);
 }
 
-HYDRA_EXPORT hydra_string hydraConfigGetSavePath() {
-    return hydraStringFromStringView(hydra::CONFIG_INSTANCE.GetSavePath());
+HYDRA_EXPORT HydraString hydraConfigGetSavePath() {
+    return hydraStringFromStringView(hydra::CONFIG_INSTANCE.getSavePath());
 }
 
-HYDRA_EXPORT void hydraConfigSetSavePath(hydra_string value) {
-    hydra::CONFIG_INSTANCE.GetSavePath() = stringViewFromHydraString(value);
+HYDRA_EXPORT void hydraConfigSetSavePath(HydraString value) {
+    hydra::CONFIG_INSTANCE.getSavePath() = stringViewFromHydraString(value);
 }
 
-HYDRA_EXPORT hydra_string hydraConfigGetSysmodulesPath() {
+HYDRA_EXPORT HydraString hydraConfigGetSysmodulesPath() {
     return hydraStringFromStringView(
-        hydra::CONFIG_INSTANCE.GetSysmodulesPath());
+        hydra::CONFIG_INSTANCE.getSysmodulesPath());
 }
 
-HYDRA_EXPORT void hydraConfigSetSysmodulesPath(hydra_string value) {
-    hydra::CONFIG_INSTANCE.GetSysmodulesPath() =
+HYDRA_EXPORT void hydraConfigSetSysmodulesPath(HydraString value) {
+    hydra::CONFIG_INSTANCE.getSysmodulesPath() =
         stringViewFromHydraString(value);
 }
 
 HYDRA_EXPORT bool* hydraConfigGetHandheldMode() {
-    return &hydra::CONFIG_INSTANCE.GetHandheldMode();
+    return &hydra::CONFIG_INSTANCE.getHandheldMode();
 }
 
 HYDRA_EXPORT uint32_t* hydraConfigGetLogOutput() {
-    return reinterpret_cast<uint32_t*>(&hydra::CONFIG_INSTANCE.GetLogOutput());
+    return reinterpret_cast<uint32_t*>(&hydra::CONFIG_INSTANCE.getLogOutput());
 }
 
 HYDRA_EXPORT bool* hydraConfigGetLogFsAccess() {
-    return &hydra::CONFIG_INSTANCE.GetLogFsAccess();
+    return &hydra::CONFIG_INSTANCE.getLogFsAccess();
 }
 
 HYDRA_EXPORT bool* hydraConfigGetDebugLogging() {
-    return &hydra::CONFIG_INSTANCE.GetDebugLogging();
+    return &hydra::CONFIG_INSTANCE.getDebugLogging();
 }
 
 HYDRA_EXPORT void* hydraConfigGetProcessArgs() {
-    return &hydra::CONFIG_INSTANCE.GetProcessArgs();
+    return &hydra::CONFIG_INSTANCE.getProcessArgs();
 }
 
 HYDRA_EXPORT bool* hydraConfigGetRecoverFromSegfault() {
-    return &hydra::CONFIG_INSTANCE.GetRecoverFromSegfault();
+    return &hydra::CONFIG_INSTANCE.getRecoverFromSegfault();
 }
 
 HYDRA_EXPORT bool* hydraConfigGetGdbEnabled() {
-    return &hydra::CONFIG_INSTANCE.GetGdbEnabled();
+    return &hydra::CONFIG_INSTANCE.getGdbEnabled();
 }
 
 HYDRA_EXPORT uint16_t* hydraConfigGetGdbPort() {
-    return &hydra::CONFIG_INSTANCE.GetGdbPort();
+    return &hydra::CONFIG_INSTANCE.getGdbPort();
 }
 
 HYDRA_EXPORT bool* hydraConfigGetGdbWaitForClient() {
-    return &hydra::CONFIG_INSTANCE.GetGdbWaitForClient();
+    return &hydra::CONFIG_INSTANCE.getGdbWaitForClient();
 }
 
 // Option config
@@ -342,7 +342,7 @@ HYDRA_EXPORT void hydraLoaderPluginOptionConfigDestroy(void* config) {
         config);
 }
 
-HYDRA_EXPORT hydra_string
+HYDRA_EXPORT HydraString
 hydraLoaderPluginOptionConfigGetName(const void* config) {
     return hydraStringFromStringView(
         reinterpret_cast<const hydra::horizon::loader::plugins::OptionConfig*>(
@@ -350,7 +350,7 @@ hydraLoaderPluginOptionConfigGetName(const void* config) {
             ->name);
 }
 
-HYDRA_EXPORT hydra_string
+HYDRA_EXPORT HydraString
 hydraLoaderPluginOptionConfigGetDescription(const void* config) {
     return hydraStringFromStringView(
         reinterpret_cast<const hydra::horizon::loader::plugins::OptionConfig*>(
@@ -396,7 +396,7 @@ HYDRA_EXPORT void hydraFilesystemDestroy(void* fs) {
     delete reinterpret_cast<hydra::horizon::filesystem::Filesystem*>(fs);
 }
 
-HYDRA_EXPORT void* hydraOpenFile(hydra_string path) {
+HYDRA_EXPORT void* hydraOpenFile(HydraString path) {
     return new hydra::horizon::filesystem::DiskFile(
         stringViewFromHydraString(path));
 }
@@ -443,7 +443,7 @@ HYDRA_EXPORT uint32_t hydraTimeZoneManagerGetLocationCount(void* manager) {
             .size());
 }
 
-HYDRA_EXPORT hydra_string hydraTimeZoneManagerGetLocation(void* manager,
+HYDRA_EXPORT HydraString hydraTimeZoneManagerGetLocation(void* manager,
                                                           uint32_t index) {
     // HACK
     auto it =
@@ -457,7 +457,7 @@ HYDRA_EXPORT hydra_string hydraTimeZoneManagerGetLocation(void* manager,
 }
 
 // Loader
-HYDRA_EXPORT void* hydraCreateLoaderFromPath(hydra_string path,
+HYDRA_EXPORT void* hydraCreateLoaderFromPath(HydraString path,
                                              void* plugin_manager) {
     // TODO: return the error
     return hydra::horizon::loader::ILoader::createFromPath(
@@ -497,7 +497,7 @@ HYDRA_EXPORT bool hydraLoaderHasIcon(const void* loader) {
 }
 
 HYDRA_EXPORT void hydraLoaderExtractIcon(const void* loader,
-                                         hydra_string path) {
+                                         HydraString path) {
     reinterpret_cast<const hydra::horizon::loader::ILoader*>(loader)
         ->extractIcon(stringViewFromHydraString(path));
 }
@@ -508,7 +508,7 @@ HYDRA_EXPORT bool hydraLoaderHasExefs(const void* loader) {
 }
 
 HYDRA_EXPORT void hydraLoaderExtractExefs(const void* loader,
-                                          hydra_string path) {
+                                          HydraString path) {
     reinterpret_cast<const hydra::horizon::loader::ILoader*>(loader)
         ->extractExeFs(stringViewFromHydraString(path));
 }
@@ -519,7 +519,7 @@ HYDRA_EXPORT bool hydraLoaderHasRomfs(const void* loader) {
 }
 
 HYDRA_EXPORT void hydraLoaderExtractRomfs(const void* loader,
-                                          hydra_string path) {
+                                          HydraString path) {
     reinterpret_cast<const hydra::horizon::loader::ILoader*>(loader)
         ->extractRomFs(stringViewFromHydraString(path));
 }
@@ -531,7 +531,7 @@ hydraCreateNcaLoaderFromContentArchive(void* content_archive) {
             content_archive));
 }
 
-HYDRA_EXPORT hydra_string hydraNcaLoaderGetName(void* nca_loader) {
+HYDRA_EXPORT HydraString hydraNcaLoaderGetName(void* nca_loader) {
     return hydraStringFromStringView(
         reinterpret_cast<hydra::horizon::loader::NcaLoader*>(nca_loader)
             ->getName());
@@ -554,7 +554,7 @@ HYDRA_EXPORT void hydraLoaderPluginManagerRefresh(void* manager) {
 }
 
 // Plugin
-HYDRA_EXPORT void* hydraCreateLoaderPlugin(hydra_string path) {
+HYDRA_EXPORT void* hydraCreateLoaderPlugin(HydraString path) {
     // TODO: return the error
     return hydra::horizon::loader::plugins::Plugin::create(
                std::string(stringViewFromHydraString(path)))
@@ -573,13 +573,13 @@ HYDRA_EXPORT void hydraLoaderPluginDestroy(void* plugin) {
     delete reinterpret_cast<hydra::horizon::loader::plugins::Plugin*>(plugin);
 }
 
-HYDRA_EXPORT hydra_string hydraLoaderPluginGetName(const void* plugin) {
+HYDRA_EXPORT HydraString hydraLoaderPluginGetName(const void* plugin) {
     return hydraStringFromStringView(
         reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
             ->getName());
 }
 
-HYDRA_EXPORT hydra_string
+HYDRA_EXPORT HydraString
 hydraLoaderPluginGetDisplayVersion(const void* plugin) {
     return hydraStringFromStringView(
         reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
@@ -594,7 +594,7 @@ hydraLoaderPluginGetSupportedFormatCount(const void* plugin) {
             .size());
 }
 
-HYDRA_EXPORT hydra_string
+HYDRA_EXPORT HydraString
 hydraLoaderPluginGetSupportedFormat(const void* plugin, uint32_t index) {
     return hydraStringFromStringView(
         reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
@@ -629,7 +629,7 @@ HYDRA_EXPORT const void* hydraNacpGetTitle(void* nacp,
                 ->getApplicationTitle(static_cast<hydra::SystemLanguage>(lang));
 }
 
-HYDRA_EXPORT hydra_string hydraNacpGetDisplayVersion(void* nacp) {
+HYDRA_EXPORT HydraString hydraNacpGetDisplayVersion(void* nacp) {
     return hydraStringFromStringView(
         reinterpret_cast<
             hydra::horizon::services::ns::ApplicationControlProperty*>(nacp)
@@ -637,14 +637,14 @@ HYDRA_EXPORT hydra_string hydraNacpGetDisplayVersion(void* nacp) {
 }
 
 // NACP title
-HYDRA_EXPORT hydra_string hydraNacpTitleGetName(const void* title) {
+HYDRA_EXPORT HydraString hydraNacpTitleGetName(const void* title) {
     return hydraStringFromStringView(
         reinterpret_cast<const hydra::horizon::services::ns::ApplicationTitle*>(
             title)
             ->name);
 }
 
-HYDRA_EXPORT hydra_string hydraNacpTitleGetAuthor(const void* title) {
+HYDRA_EXPORT HydraString hydraNacpTitleGetAuthor(const void* title) {
     return hydraStringFromStringView(
         reinterpret_cast<const hydra::horizon::services::ns::ApplicationTitle*>(
             title)
@@ -668,8 +668,8 @@ HYDRA_EXPORT void hydraUserManagerFlush(void* user_manager) {
         ->flush();
 }
 
-HYDRA_EXPORT hydra_u128 hydraUserManagerCreateUser(void* user_manager) {
-    return std::bit_cast<hydra_u128>(
+HYDRA_EXPORT HydraU128 hydraUserManagerCreateUser(void* user_manager) {
+    return std::bit_cast<HydraU128>(
         reinterpret_cast<
             hydra::horizon::services::account::internal::UserManager*>(
             user_manager)
@@ -684,9 +684,9 @@ HYDRA_EXPORT uint32_t hydraUserManagerGetUserCount(void* user_manager) {
             ->getUserCount());
 }
 
-HYDRA_EXPORT hydra_u128 hydraUserManagerGetUserId(void* user_manager,
+HYDRA_EXPORT HydraU128 hydraUserManagerGetUserId(void* user_manager,
                                                   uint32_t index) {
-    return std::bit_cast<hydra_u128>(
+    return std::bit_cast<HydraU128>(
         reinterpret_cast<
             hydra::horizon::services::account::internal::UserManager*>(
             user_manager)
@@ -694,7 +694,7 @@ HYDRA_EXPORT hydra_u128 hydraUserManagerGetUserId(void* user_manager,
 }
 
 HYDRA_EXPORT void* hydraUserManagerGetUser(void* user_manager,
-                                           hydra_u128 user_id) {
+                                           HydraU128 user_id) {
     return &reinterpret_cast<
                 hydra::horizon::services::account::internal::UserManager*>(
                 user_manager)
@@ -710,7 +710,7 @@ HYDRA_EXPORT void hydraUserManagerLoadSystemAvatars(void* user_manager,
 }
 
 HYDRA_EXPORT const void*
-hydraUserManagerLoadAvatarImage(void* user_manager, hydra_string path,
+hydraUserManagerLoadAvatarImage(void* user_manager, HydraString path,
                                 uint32_t* out_dimensions) {
     return reinterpret_cast<
                hydra::horizon::services::account::internal::UserManager*>(
@@ -728,7 +728,7 @@ HYDRA_EXPORT uint32_t hydraUserManagerGetAvatarCount(void* user_manager) {
             .size());
 }
 
-HYDRA_EXPORT hydra_string hydraUserManagerGetAvatarPath(void* user_manager,
+HYDRA_EXPORT HydraString hydraUserManagerGetAvatarPath(void* user_manager,
                                                         uint32_t index) {
     return hydraStringFromStringView(
         reinterpret_cast<
@@ -737,38 +737,38 @@ HYDRA_EXPORT hydra_string hydraUserManagerGetAvatarPath(void* user_manager,
             ->getAvatarPath(index));
 }
 
-HYDRA_EXPORT hydra_string hydraUserGetNickname(void* user) {
+HYDRA_EXPORT HydraString hydraUserGetNickname(void* user) {
     return hydraStringFromStringView(
         reinterpret_cast<hydra::horizon::services::account::internal::User*>(
             user)
             ->getNickname());
 }
 
-HYDRA_EXPORT void hydraUserSetNickname(void* user, hydra_string nickname) {
+HYDRA_EXPORT void hydraUserSetNickname(void* user, HydraString nickname) {
     reinterpret_cast<hydra::horizon::services::account::internal::User*>(user)
         ->setNickname(stringViewFromHydraString(nickname));
 }
 
-HYDRA_EXPORT hydra_uchar3 hydraUserGetAvatarBgColor(void* user) {
-    return std::bit_cast<hydra_uchar3>(
+HYDRA_EXPORT HydraUchar3 hydraUserGetAvatarBgColor(void* user) {
+    return std::bit_cast<HydraUchar3>(
         reinterpret_cast<hydra::horizon::services::account::internal::User*>(
             user)
             ->getAvatarBgColor());
 }
 
-HYDRA_EXPORT void hydraUserSetAvatarBgColor(void* user, hydra_uchar3 color) {
+HYDRA_EXPORT void hydraUserSetAvatarBgColor(void* user, HydraUchar3 color) {
     reinterpret_cast<hydra::horizon::services::account::internal::User*>(user)
         ->setAvatarBgColor(std::bit_cast<hydra::uchar3>(color));
 }
 
-HYDRA_EXPORT hydra_string hydraUserGetAvatarPath(void* user) {
+HYDRA_EXPORT HydraString hydraUserGetAvatarPath(void* user) {
     return hydraStringFromStringView(
         reinterpret_cast<hydra::horizon::services::account::internal::User*>(
             user)
             ->getAvatarPath());
 }
 
-HYDRA_EXPORT void hydraUserSetAvatarPath(void* user, hydra_string path) {
+HYDRA_EXPORT void hydraUserSetAvatarPath(void* user, HydraString path) {
     reinterpret_cast<hydra::horizon::services::account::internal::User*>(user)
         ->setAvatarPath(stringViewFromHydraString(path));
 }
@@ -921,7 +921,7 @@ HYDRA_EXPORT void* hydraDebuggerManagerGetDebuggerForProcess(void* process) {
 }
 
 // Debugger
-HYDRA_EXPORT hydra_string hydraDebuggerGetName(void* debugger) {
+HYDRA_EXPORT HydraString hydraDebuggerGetName(void* debugger) {
     return hydraStringFromStringView(
         reinterpret_cast<hydra::debugger::Debugger*>(debugger)->getName());
 }
@@ -935,7 +935,7 @@ HYDRA_EXPORT void hydraDebuggerUnlock(void* debugger) {
 }
 
 HYDRA_EXPORT void hydraDebuggerRegisterThisThread(void* debugger,
-                                                  hydra_string name) {
+                                                  HydraString name) {
     reinterpret_cast<hydra::debugger::Debugger*>(debugger)->registerThisThread(
         stringViewFromHydraString(name));
 }
@@ -956,7 +956,7 @@ HYDRA_EXPORT void* hydraDebuggerGetThread(void* debugger, uint32_t index) {
 }
 
 // Thread
-HYDRA_EXPORT hydra_string hydraDebuggerThreadGetName(void* thread) {
+HYDRA_EXPORT HydraString hydraDebuggerThreadGetName(void* thread) {
     return hydraStringFromStringView(
         reinterpret_cast<hydra::debugger::Thread*>(thread)->getName());
 }
@@ -975,7 +975,7 @@ hydraDebuggerThreadGetStatus(void* thread) {
         reinterpret_cast<hydra::debugger::Thread*>(thread)->getStatus());
 }
 
-HYDRA_EXPORT hydra_string hydraDebuggerThreadGetBreakReason(void* thread) {
+HYDRA_EXPORT HydraString hydraDebuggerThreadGetBreakReason(void* thread) {
     return hydraStringFromStringView(
         reinterpret_cast<hydra::debugger::Thread*>(thread)->getBreakReason());
 }
@@ -1002,7 +1002,7 @@ HYDRA_EXPORT HydraLogClass hydraDebuggerMessageGetLogClass(const void* msg) {
         reinterpret_cast<const hydra::debugger::Message*>(msg)->log.c);
 }
 
-HYDRA_EXPORT hydra_string hydraDebuggerMessageGetFile(const void* msg) {
+HYDRA_EXPORT HydraString hydraDebuggerMessageGetFile(const void* msg) {
     return hydraStringFromStringView(
         reinterpret_cast<const hydra::debugger::Message*>(msg)->log.file);
 }
@@ -1011,12 +1011,12 @@ HYDRA_EXPORT uint32_t hydraDebuggerMessageGetLine(const void* msg) {
     return reinterpret_cast<const hydra::debugger::Message*>(msg)->log.line;
 }
 
-HYDRA_EXPORT hydra_string hydraDebuggerMessageGetFunction(const void* msg) {
+HYDRA_EXPORT HydraString hydraDebuggerMessageGetFunction(const void* msg) {
     return hydraStringFromStringView(
         reinterpret_cast<const hydra::debugger::Message*>(msg)->log.function);
 }
 
-HYDRA_EXPORT hydra_string hydraDebuggerMessageGetString(const void* msg) {
+HYDRA_EXPORT HydraString hydraDebuggerMessageGetString(const void* msg) {
     return hydraStringFromStringView(
         reinterpret_cast<const hydra::debugger::Message*>(msg)->log.str);
 }
@@ -1062,7 +1062,7 @@ hydraDebuggerResolvedStackFrameDestroy(void* resolved_stack_frame) {
         resolved_stack_frame);
 }
 
-HYDRA_EXPORT hydra_string
+HYDRA_EXPORT HydraString
 hydraDebuggerResolvedStackFrameGetModule(const void* resolved_stack_frame) {
     return hydraStringFromStringView(
         reinterpret_cast<const hydra::debugger::ResolvedStackFrame*>(
@@ -1070,7 +1070,7 @@ hydraDebuggerResolvedStackFrameGetModule(const void* resolved_stack_frame) {
             ->module);
 }
 
-HYDRA_EXPORT hydra_string
+HYDRA_EXPORT HydraString
 hydraDebuggerResolvedStackFrameGetFunction(const void* resolved_stack_frame) {
     return hydraStringFromStringView(
         reinterpret_cast<const hydra::debugger::ResolvedStackFrame*>(

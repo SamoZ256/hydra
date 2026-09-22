@@ -60,7 +60,7 @@ class UserManager {
     }
 
     static std::string getUsersPath() {
-        return fmt::format("{}/user", CONFIG_INSTANCE.GetAppDataPath());
+        return fmt::format("{}/user", CONFIG_INSTANCE.getAppDataPath());
     }
 
     static std::string getUserPath(uuid_t user_id) {

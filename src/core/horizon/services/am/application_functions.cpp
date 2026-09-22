@@ -39,7 +39,7 @@ result_t IApplicationFunctions::ensureSaveData(uuid_t user_id,
 
 result_t
 IApplicationFunctions::getDesiredLanguage(LanguageCode* out_language_code) {
-    *out_language_code = toLanguageCode(CONFIG_INSTANCE.GetSystemLanguage());
+    *out_language_code = toLanguageCode(CONFIG_INSTANCE.getSystemLanguage());
     return RESULT_SUCCESS;
 }
 

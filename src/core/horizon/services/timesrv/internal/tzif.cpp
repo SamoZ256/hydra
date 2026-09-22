@@ -55,7 +55,7 @@ bool timeTypeEquals(const TimeZoneRule& rule, u8 a_index, u8 b_index) {
 // From Ryujinx
 void parseTimeZoneBinary(ztd::io::IStream* stream, TimeZoneRule& out_rule) {
     const auto header = stream->read<TzifHeader>();
-    ASSERT(header.magic == make_magic4('T', 'Z', 'i', 'f'), Services,
+    ASSERT(header.magic == makeMagic4('T', 'Z', 'i', 'f'), Services,
            "Invalid TZif magic {:#x}", header.magic);
 
     u32 data_size = static_cast<u32>(stream->getRemainingSize());
@@ -74,9 +74,10 @@ void parseTimeZoneBinary(ztd::io::IStream* stream, TimeZoneRule& out_rule) {
                (ttis_std_count == type_count || ttis_std_count == 0) &&
                (ttis_gmt_count == type_count || ttis_gmt_count == 0),
            Services, "Invalid header parameters");
-    ASSERT((time_count * sizeof(u64) + time_count + type_count * 6 +
-            char_count + leap_count * (sizeof(u64) + 4) + ttis_std_count +
-            ttis_gmt_count) <= data_size,
+    ASSERT((time_count * sizeof(u64) + time_count +
+            static_cast<usize>(type_count) * 6 + char_count +
+            leap_count * (sizeof(u64) + 4) + ttis_std_count + ttis_gmt_count) <=
+               data_size,
            Services, "Insufficient data size");
 
     out_rule.time_count = time_count;

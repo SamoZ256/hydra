@@ -13,9 +13,9 @@ namespace hydra {
 template <typename Underlying, typename T, u64 b, u64 count>
 class BitField {
   public:
-    operator T() { return Get(); }
+    operator T() { return get(); }
 
-    T Get() const { return static_cast<T>(extract_bits(raw, b, count)); }
+    T get() const { return static_cast<T>(extractBits(raw, b, count)); }
 
   private:
     Underlying raw;
@@ -29,23 +29,23 @@ using BitField64 = BitField<u64, T, b, count>;
 
 // TODO: rework
 template <typename T, u32 component_count>
-class vec {
+class Vector {
   public:
-    constexpr vec() = default;
-    constexpr vec(const T& value) {
+    constexpr Vector() = default;
+    constexpr Vector(const T& value) {
         for (u32 i = 0; i < component_count; i++)
             components[i] = value;
     }
-    constexpr vec(const std::initializer_list<T>& values) {
+    constexpr Vector(const std::initializer_list<T>& values) {
         std::copy(values.begin(), values.end(), components.begin());
     }
     template <typename OtherT, u32 other_component_count>
-    constexpr vec(const vec<OtherT, other_component_count>& other) {
+    constexpr Vector(const Vector<OtherT, other_component_count>& other) {
         for (u32 i = 0; i < component_count; i++)
             components[i] = static_cast<T>(other[i]);
     }
 
-    bool operator==(const vec<T, component_count>& other) const {
+    bool operator==(const Vector<T, component_count>& other) const {
         for (u32 i = 0; i < component_count; i++) {
             if (components[i] != other[i])
                 return false;
@@ -104,8 +104,8 @@ class vec {
 };
 
 template <typename T, u32 component_count>
-vec<T, component_count> operator+(const vec<T, component_count>& l, T r) {
-    vec<T, component_count> result = l;
+Vector<T, component_count> operator+(const Vector<T, component_count>& l, T r) {
+    Vector<T, component_count> result = l;
     for (u32 i = 0; i < component_count; i++)
         result[i] += r;
 
@@ -113,9 +113,9 @@ vec<T, component_count> operator+(const vec<T, component_count>& l, T r) {
 }
 
 template <typename T, u32 component_count>
-vec<T, component_count> operator+(const vec<T, component_count>& l,
-                                  const vec<T, component_count>& r) {
-    vec<T, component_count> result = l;
+Vector<T, component_count> operator+(const Vector<T, component_count>& l,
+                                     const Vector<T, component_count>& r) {
+    Vector<T, component_count> result = l;
     for (u32 i = 0; i < component_count; i++)
         result[i] += r[i];
 
@@ -123,8 +123,8 @@ vec<T, component_count> operator+(const vec<T, component_count>& l,
 }
 
 template <typename T, u32 component_count>
-vec<T, component_count> operator-(const vec<T, component_count>& l, T r) {
-    vec<T, component_count> result = l;
+Vector<T, component_count> operator-(const Vector<T, component_count>& l, T r) {
+    Vector<T, component_count> result = l;
     for (u32 i = 0; i < component_count; i++)
         result[i] -= r;
 
@@ -132,9 +132,9 @@ vec<T, component_count> operator-(const vec<T, component_count>& l, T r) {
 }
 
 template <typename T, u32 component_count>
-vec<T, component_count> operator-(const vec<T, component_count>& l,
-                                  const vec<T, component_count>& r) {
-    vec<T, component_count> result = l;
+Vector<T, component_count> operator-(const Vector<T, component_count>& l,
+                                     const Vector<T, component_count>& r) {
+    Vector<T, component_count> result = l;
     for (u32 i = 0; i < component_count; i++)
         result[i] -= r[i];
 
@@ -142,8 +142,8 @@ vec<T, component_count> operator-(const vec<T, component_count>& l,
 }
 
 template <typename T, u32 component_count>
-vec<T, component_count> operator*(const vec<T, component_count>& l, T r) {
-    vec<T, component_count> result = l;
+Vector<T, component_count> operator*(const Vector<T, component_count>& l, T r) {
+    Vector<T, component_count> result = l;
     for (u32 i = 0; i < component_count; i++)
         result[i] *= r;
 
@@ -151,9 +151,9 @@ vec<T, component_count> operator*(const vec<T, component_count>& l, T r) {
 }
 
 template <typename T, u32 component_count>
-vec<T, component_count> operator*(const vec<T, component_count>& l,
-                                  const vec<T, component_count>& r) {
-    vec<T, component_count> result = l;
+Vector<T, component_count> operator*(const Vector<T, component_count>& l,
+                                     const Vector<T, component_count>& r) {
+    Vector<T, component_count> result = l;
     for (u32 i = 0; i < component_count; i++)
         result[i] *= r[i];
 
@@ -161,8 +161,8 @@ vec<T, component_count> operator*(const vec<T, component_count>& l,
 }
 
 template <typename T, u32 component_count>
-vec<T, component_count> operator/(const vec<T, component_count>& l, T r) {
-    vec<T, component_count> result = l;
+Vector<T, component_count> operator/(const Vector<T, component_count>& l, T r) {
+    Vector<T, component_count> result = l;
     for (u32 i = 0; i < component_count; i++)
         result[i] /= r;
 
@@ -170,55 +170,55 @@ vec<T, component_count> operator/(const vec<T, component_count>& l, T r) {
 }
 
 template <typename T, u32 component_count>
-vec<T, component_count> operator/(const vec<T, component_count>& l,
-                                  const vec<T, component_count>& r) {
-    vec<T, component_count> result = l;
+Vector<T, component_count> operator/(const Vector<T, component_count>& l,
+                                     const Vector<T, component_count>& r) {
+    Vector<T, component_count> result = l;
     for (u32 i = 0; i < component_count; i++)
         result[i] /= r[i];
 
     return result;
 }
 
-using char2 = vec<i8, 2>;
-using short2 = vec<i16, 2>;
-using int2 = vec<i32, 2>;
-using long2 = vec<i64, 2>;
-using uchar2 = vec<u8, 2>;
-using ushort2 = vec<u16, 2>;
-using uint2 = vec<u32, 2>;
-using ulong2 = vec<u64, 2>;
-using usize2 = vec<usize, 2>;
-using float2 = vec<float, 2>;
+using char2 = Vector<i8, 2>;
+using short2 = Vector<i16, 2>;
+using int2 = Vector<i32, 2>;
+using long2 = Vector<i64, 2>;
+using uchar2 = Vector<u8, 2>;
+using ushort2 = Vector<u16, 2>;
+using uint2 = Vector<u32, 2>;
+using ulong2 = Vector<u64, 2>;
+using usize2 = Vector<usize, 2>;
+using float2 = Vector<float, 2>;
 
-using char3 = vec<i8, 3>;
-using short3 = vec<i16, 3>;
-using int3 = vec<i32, 3>;
-using long3 = vec<i64, 3>;
-using uchar3 = vec<u8, 3>;
-using ushort3 = vec<u16, 3>;
-using uint3 = vec<u32, 3>;
-using ulong3 = vec<u64, 3>;
-using float3 = vec<float, 3>;
+using char3 = Vector<i8, 3>;
+using short3 = Vector<i16, 3>;
+using int3 = Vector<i32, 3>;
+using long3 = Vector<i64, 3>;
+using uchar3 = Vector<u8, 3>;
+using ushort3 = Vector<u16, 3>;
+using uint3 = Vector<u32, 3>;
+using ulong3 = Vector<u64, 3>;
+using float3 = Vector<float, 3>;
 
-using char4 = vec<i8, 4>;
-using short4 = vec<i16, 4>;
-using int4 = vec<i32, 4>;
-using long4 = vec<i64, 4>;
-using uchar4 = vec<u8, 4>;
-using ushort4 = vec<u16, 4>;
-using uint4 = vec<u32, 4>;
-using ulong4 = vec<u64, 4>;
-using usize4 = vec<usize, 4>;
-using float4 = vec<float, 4>;
+using char4 = Vector<i8, 4>;
+using short4 = Vector<i16, 4>;
+using int4 = Vector<i32, 4>;
+using long4 = Vector<i64, 4>;
+using uchar4 = Vector<u8, 4>;
+using ushort4 = Vector<u16, 4>;
+using uint4 = Vector<u32, 4>;
+using ulong4 = Vector<u64, 4>;
+using usize4 = Vector<usize, 4>;
+using float4 = Vector<float, 4>;
 
 template <typename Origin, typename Size>
 struct Rect2D {
-    vec<Origin, 2> origin;
-    vec<Size, 2> size;
+    Vector<Origin, 2> origin;
+    Vector<Size, 2> size;
 
     Rect2D() = default;
 
-    Rect2D(vec<Origin, 2> origin_, vec<Size, 2> size_)
+    Rect2D(Vector<Origin, 2> origin_, Vector<Size, 2> size_)
         : origin{origin_}, size{size_} {}
 
     template <typename OtherOrigin, typename OtherSize>
@@ -247,14 +247,14 @@ class Aligned {
     operator T&() { return value; }
     operator const T&() const { return value; }
 
-    void ZeroOutPadding() { std::fill(padding.begin(), padding.end(), 0); }
+    void zeroOutPadding() { std::fill(padding.begin(), padding.end(), 0); }
 
   private:
     T value;
     std::array<u8, alignment - sizeof(T)> padding;
 
   public:
-    CONST_REF_GETTER(value, Get);
+    CONST_REF_GETTER(value, get);
 };
 #pragma pack(pop)
 
@@ -336,7 +336,7 @@ class CacheBase {
 
     ZTD_MAKE_NON_COPYABLE(CacheBase);
 
-    T& Find(const DescriptorT& descriptor) {
+    T& find(const DescriptorT& descriptor) {
         u32 hash = THIS->hash(descriptor);
         auto it = cache.find(hash);
         if (it == cache.end()) {
@@ -367,14 +367,15 @@ struct fmt::formatter<hydra::Aligned<T, alignment>> : formatter<string_view> {
     template <typename FormatContext>
     auto format(const hydra::Aligned<T, alignment>& value,
                 FormatContext& ctx) const {
-        return value_formatter.format(value.Get(), ctx);
+        return value_formatter.format(value.get(), ctx);
     }
 };
 
 template <typename T, hydra::u32 component_count>
-struct fmt::formatter<hydra::vec<T, component_count>> : formatter<string_view> {
+struct fmt::formatter<hydra::Vector<T, component_count>>
+    : formatter<string_view> {
     template <typename FormatContext>
-    auto format(const hydra::vec<T, component_count>& value,
+    auto format(const hydra::Vector<T, component_count>& value,
                 FormatContext& ctx) const {
         // TODO: optimize
         std::string str = "(";

@@ -9,9 +9,6 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::null {
 
-class Buffer;
-class TextureView;
-
 class CommandBuffer final : public ICommandBuffer {
   public:
     CommandBuffer();

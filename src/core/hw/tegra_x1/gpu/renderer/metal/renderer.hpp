@@ -10,7 +10,6 @@
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 class CommandBuffer;
-class Buffer;
 class TextureView;
 class Sampler;
 class RenderPass;

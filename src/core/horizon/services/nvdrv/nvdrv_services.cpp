@@ -67,7 +67,7 @@ result_t INvDrvServices::open(InBuffer<BufferAttr::MapAlias> path_buffer,
         return MAKE_RESULT(Svc, 0);       // TODO
     }
 
-    *out_fd_id = fd_handle.GetRaw();
+    *out_fd_id = fd_handle.getRaw();
     *out_error = 0;
     return RESULT_SUCCESS;
 }

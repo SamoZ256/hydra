@@ -19,7 +19,8 @@ void InlineBase::loadInlineDataImpl(Gpu& gpu, RegsInline& regs, const u32 index,
     inline_data.push_back(data);
     // TODO: correct?
     if (inline_data.size() * sizeof(u32) ==
-        static_cast<usize>(regs.line_length_in * regs.line_count)) {
+        static_cast<usize>(regs.line_length_in) *
+            static_cast<usize>(regs.line_count)) {
         // Flush
         // TODO: determine what type of copy this is based on launch DMA args
 

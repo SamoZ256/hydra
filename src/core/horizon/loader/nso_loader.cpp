@@ -90,7 +90,7 @@ NsoLoader::NsoLoader(filesystem::IFile* file_, const std::string_view name_,
 
     // Header
     const auto header = stream->read<NsoHeader>();
-    ASSERT(header.magic == make_magic4('N', 'S', 'O', '0'), Loader,
+    ASSERT(header.magic == makeMagic4('N', 'S', 'O', '0'), Loader,
            "Invalid NSO magic");
 
     text_offset = header.text.memory_offset;
@@ -230,7 +230,7 @@ void NsoLoader::loadProcess(System& system, kernel::Process* process) {
 
         main_thread->setEntryPoint(base + text_offset);
         main_thread->setArg(0, 0x0);
-        main_thread->setArg(1, main_thread_handle.GetRaw());
+        main_thread->setArg(1, main_thread_handle.getRaw());
     }
 }
 

@@ -15,43 +15,43 @@ namespace hydra {
 #if HYDRA_HAS_ATOMIC_REF
 
 template <typename T>
-void atomic_store(T* ptr, T value) {
+void atomicStore(T* ptr, T value) {
     std::atomic_ref ref(*ptr);
     ref.store(value);
 }
 
 template <typename T>
-T atomic_load(T* ptr) {
+T atomicLoad(T* ptr) {
     std::atomic_ref ref(*ptr);
     return ref.load();
 }
 
 template <typename T>
-T atomic_exchange(T* ptr, T value) {
+T atomicExchange(T* ptr, T value) {
     std::atomic_ref ref(*ptr);
     return ref.exchange(value);
 }
 
 template <typename T>
-bool atomic_compare_exchange_weak(T* ptr, T& expected, T desired) {
+bool atomicCompareExchangeWeak(T* ptr, T& expected, T desired) {
     std::atomic_ref ref(*ptr);
     return ref.compare_exchange_weak(expected, desired);
 }
 
 template <typename T>
-bool atomic_compare_exchange_strong(T* ptr, T& expected, T desired) {
+bool atomicCompareExchangeStrong(T* ptr, T& expected, T desired) {
     std::atomic_ref ref(*ptr);
     return ref.compare_exchange_strong(expected, desired);
 }
 
 template <typename T>
-T atomic_fetch_add(T* ptr, T value) {
+T atomicFetchAdd(T* ptr, T value) {
     std::atomic_ref ref(*ptr);
     return ref.fetch_add(value);
 }
 
 template <typename T>
-T atomic_fetch_sub(T* ptr, T value) {
+T atomicFetchSub(T* ptr, T value) {
     std::atomic_ref ref(*ptr);
     return ref.fetch_sub(value);
 }
@@ -73,41 +73,41 @@ concept valid_atomic =
     std::is_trivially_copyable_v<T> and atomic_supported_size<T>;
 
 template <valid_atomic T>
-void atomic_store(T* ptr, T value) {
+void atomicStore(T* ptr, T value) {
     __atomic_store_n(ptr, value, __ATOMIC_SEQ_CST);
 }
 
 template <valid_atomic T>
-T atomic_load(T* ptr) {
+T atomicLoad(T* ptr) {
     return __atomic_load_n(ptr, __ATOMIC_SEQ_CST);
 }
 
 template <valid_atomic T>
-T atomic_exchange(T* ptr, T value) {
+T atomicExchange(T* ptr, T value) {
     return __atomic_exchange_n(ptr, value, __ATOMIC_SEQ_CST);
 }
 
 template <valid_atomic T>
-bool atomic_compare_exchange_weak(T* ptr, T& expected, T desired) {
+bool atomicCompareExchangeWeak(T* ptr, T& expected, T desired) {
     return __atomic_compare_exchange_n(ptr, &expected, desired,
                                        /* weak = */ true, __ATOMIC_SEQ_CST,
                                        __ATOMIC_SEQ_CST);
 }
 
 template <valid_atomic T>
-bool atomic_compare_exchange_strong(T* ptr, T& expected, T desired) {
+bool atomicCompareExchangeStrong(T* ptr, T& expected, T desired) {
     return __atomic_compare_exchange_n(ptr, &expected, desired,
                                        /* weak = */ false, __ATOMIC_SEQ_CST,
                                        __ATOMIC_SEQ_CST);
 }
 
 template <valid_atomic T>
-T atomic_fetch_add(T* ptr, T value) {
+T atomicFetchAdd(T* ptr, T value) {
     return __atomic_fetch_add(ptr, value, __ATOMIC_SEQ_CST);
 }
 
 template <valid_atomic T>
-T atomic_fetch_sub(T* ptr, T value) {
+T atomicFetchSub(T* ptr, T value) {
     return __atomic_fetch_sub(ptr, value, __ATOMIC_SEQ_CST);
 }
 

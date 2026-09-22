@@ -28,7 +28,7 @@ struct TextureGroup {
     SmallCache<u32, TextureStorage> cache;
 
     // Debug
-    usize getStorageCount() const { return cache.GetCount(); }
+    usize getStorageCount() const { return cache.getCount(); }
 
     const TextureStorage& getStorage(u32 index) const {
         // HACK: const cast
@@ -54,7 +54,7 @@ struct TextureMem {
     SmallCache<u32, TextureGroup> cache;
 
     // Debug
-    usize getTextureGroupCount() const { return cache.GetCount(); }
+    usize getTextureGroupCount() const { return cache.getCount(); }
 
     const TextureGroup& getTextureGroup(u32 index) const {
         // HACK: const cast

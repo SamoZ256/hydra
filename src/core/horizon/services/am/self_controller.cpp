@@ -52,7 +52,7 @@ result_t ISelfController::createManagedDisplayLayer(System* system,
     *out_layer_id = system->getOs()
                         .getDisplayDriver()
                         .createLayer(process, binder_handle)
-                        .GetRaw();
+                        .getRaw();
     return RESULT_SUCCESS;
 }
 
@@ -70,12 +70,12 @@ result_t ISelfController::createManagedDisplaySeparableLayer(
     *out_display_layer_id = system->getOs()
                                 .getDisplayDriver()
                                 .createLayer(process, binder_handle)
-                                .GetRaw();
+                                .getRaw();
     // TODO: what is a recording layer?
     *out_recording_layer_id = system->getOs()
                                   .getDisplayDriver()
                                   .createLayer(process, binder_handle)
-                                  .GetRaw();
+                                  .getRaw();
     return RESULT_SUCCESS;
 }
 

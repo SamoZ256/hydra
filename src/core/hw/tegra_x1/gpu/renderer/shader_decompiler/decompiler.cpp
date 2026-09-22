@@ -99,10 +99,10 @@ void decompile(ztd::io::MemoryStream& code_stream, const ShaderType type,
         for (u32 i = 0; i < PIXEL_IMAP_COUNT; i++) {
             const auto imap = header.ps.imap_generic_vector[i];
             context.frag.pixel_imaps[i] = {
-                .x = static_cast<PixelImapType>(extract_bits(imap, 0, 2)),
-                .y = static_cast<PixelImapType>(extract_bits(imap, 2, 2)),
-                .z = static_cast<PixelImapType>(extract_bits(imap, 4, 2)),
-                .w = static_cast<PixelImapType>(extract_bits(imap, 6, 2)),
+                .x = static_cast<PixelImapType>(extractBits(imap, 0, 2)),
+                .y = static_cast<PixelImapType>(extractBits(imap, 2, 2)),
+                .z = static_cast<PixelImapType>(extractBits(imap, 4, 2)),
+                .w = static_cast<PixelImapType>(extractBits(imap, 6, 2)),
             };
         }
     }
@@ -145,7 +145,7 @@ void decompile(ztd::io::MemoryStream& code_stream, const ShaderType type,
 
     // Decompile
     codegen::Emitter* emitter;
-    out_backend = CONFIG_INSTANCE.GetShaderBackend();
+    out_backend = CONFIG_INSTANCE.getShaderBackend();
     // NOLINTNEXTLINE(readability-trivial-switch)
     switch (out_backend) {
     case ShaderBackend::Msl: {

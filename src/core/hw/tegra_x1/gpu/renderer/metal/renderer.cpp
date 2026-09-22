@@ -142,7 +142,7 @@ void Renderer::blitTexture(ICommandBuffer* command_buffer, ITextureView* src,
         command_buffer_impl->createRenderCommandEncoder(render_pass_descriptor);
 
     // Draw
-    encoder->setRenderPipelineState(blit_pipeline_cache.Find(
+    encoder->setRenderPipelineState(blit_pipeline_cache.find(
         {.pixel_format = src_impl->getTexture()->pixelFormat(),
          .transparent = false}));
     encoder->setViewport(MTL::Viewport(
@@ -211,7 +211,7 @@ void Renderer::clearColor(ICommandBuffer* command_buffer, u32 render_target_id,
 
     auto encoder = getRenderCommandEncoder(command_buffer_impl);
 
-    command_buffer_impl->setRenderPipelineState(clear_color_pipeline_cache.Find(
+    command_buffer_impl->setRenderPipelineState(clear_color_pipeline_cache.find(
         {.pixel_format = toMtlPixelFormat(texture->getDescriptor().format),
          .render_target_id = render_target_id,
          .mask = mask}));
@@ -246,7 +246,7 @@ void Renderer::clearDepth(ICommandBuffer* command_buffer, u32 layer,
 
     auto encoder = getRenderCommandEncoder(command_buffer_impl);
 
-    command_buffer_impl->setRenderPipelineState(clear_depth_pipeline_cache.Find(
+    command_buffer_impl->setRenderPipelineState(clear_depth_pipeline_cache.find(
         toMtlPixelFormat(texture->getDescriptor().format)));
     command_buffer_impl->setDepthStencilState(
         depth_stencil_state_always_and_write);
@@ -413,7 +413,7 @@ void Renderer::setDepthStencilState(CommandBuffer* command_buffer) {
     };
 
     command_buffer->setDepthStencilState(
-        depth_stencil_state_cache.Find(descriptor));
+        depth_stencil_state_cache.find(descriptor));
 }
 
 void Renderer::setVertexBuffer(CommandBuffer* command_buffer, u32 index) {
@@ -469,7 +469,7 @@ void Renderer::beginCapture() {
     } else {
         // TODO: don't hardcode the directory
         const std::string gpu_capture_dir =
-            fmt::format("{}/gpu_captures", CONFIG_INSTANCE.GetAppDataPath());
+            fmt::format("{}/gpu_captures", CONFIG_INSTANCE.getAppDataPath());
         if (gpu_capture_dir.empty()) {
             LOG_ERROR(
                 MetalRenderer,
@@ -555,8 +555,8 @@ void Renderer::bindDrawState(CommandBuffer* command_buffer) {
         scissors[i] = MTL::ScissorRect(scissor.origin.x(), scissor.origin.y(),
                                        scissor.size.x(), scissor.size.y());
     }
-    encoder->setViewports(viewports, sizeof_array(viewports));
-    encoder->setScissorRects(scissors, sizeof_array(scissors));
+    encoder->setViewports(viewports, SIZEOF_ARRAY(viewports));
+    encoder->setScissorRects(scissors, SIZEOF_ARRAY(scissors));
 
     // Resources
     for (u32 i = 0; i < VERTEX_ARRAY_COUNT; i++)

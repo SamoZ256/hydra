@@ -90,7 +90,7 @@ void registerServiceToPort(services::Server* server,
     if constexpr (std::is_same_v<Key, std::string>)
         debug_name = port_name;
     else
-        debug_name = U64AsString(port_name);
+        debug_name = u64AsString(port_name);
 
     // Session
     auto server_port = new kernel::hipc::ServerPort(
@@ -129,7 +129,7 @@ OS::OS(System& system_)
       hid_resource_manager(system), shared_font_manager(system),
       time_manager(system), ir_sensor_manager(system) {
     // Sysmodules
-    const auto& sysmodules_path = CONFIG_INSTANCE.GetSysmodulesPath();
+    const auto& sysmodules_path = CONFIG_INSTANCE.getSysmodulesPath();
     if (std::filesystem::exists(sysmodules_path)) {
         auto res =
             filesystem.addEntry(FS_SYSMODULES_PATH, sysmodules_path, true);
@@ -343,9 +343,8 @@ void OS::notifyOperationModeChanged() {
     hid_resource_manager.setupNpads();
 
     // Send a message to all processes
-    for (auto it = kernel.getProcessManager().begin();
-         it != kernel.getProcessManager().end(); it++) {
-        (*it)->getAppletState().sendMessage(
+    for (auto& it : kernel.getProcessManager()) {
+        it->getAppletState().sendMessage(
             kernel::AppletMessage::OperationModeChanged);
     }
 }
@@ -356,10 +355,10 @@ void OS::setSurfaceResolution(uint2 resolution) {
 }
 
 uint2 OS::getDisplayResolution() const {
-    if (CONFIG_INSTANCE.GetHandheldMode()) {
+    if (CONFIG_INSTANCE.getHandheldMode()) {
         return {1280, 720}; // Handheld display resolution is fixed
     } else {
-        switch (CONFIG_INSTANCE.GetDisplayResolution()) {
+        switch (CONFIG_INSTANCE.getDisplayResolution()) {
         case Resolution::Auto:
             return roundUpToNearestStandardResolution(surface_resolution);
         case Resolution::_720p:
@@ -375,7 +374,7 @@ uint2 OS::getDisplayResolution() const {
         case Resolution::AutoExact:
             return surface_resolution;
         case Resolution::Custom:
-            return CONFIG_INSTANCE.GetCustomDisplayResolution();
+            return CONFIG_INSTANCE.getCustomDisplayResolution();
         default:
             unreachable();
         }

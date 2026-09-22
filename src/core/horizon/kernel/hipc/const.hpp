@@ -263,22 +263,22 @@ inline Request makeRequest(void* base, Metadata meta) {
     return calcRequestLayout(meta, base);
 }
 
-u8* get_buffer_ptr(const hw::tegra_x1::cpu::IMmu* mmu,
-                   const BufferDescriptor& descriptor, u64& size);
+u8* getBufferPtr(const hw::tegra_x1::cpu::IMmu* mmu,
+                 const BufferDescriptor& descriptor, u64& size);
 
-u8* get_static_ptr(const hw::tegra_x1::cpu::IMmu* mmu,
-                   const StaticDescriptor& descriptor, u64& size);
+u8* getStaticPtr(const hw::tegra_x1::cpu::IMmu* mmu,
+                 const StaticDescriptor& descriptor, u64& size);
 
 u8* getListEntryPtr(const hw::tegra_x1::cpu::IMmu* mmu,
                     const RecvListEntry& descriptor, u64& size);
 
-#define CREATE_STREAMS(buffer_or_static, type)                                 \
+#define CREATE_STREAMS(buffer_or_static, BufferOrStatic, type)                 \
     type##_##buffer_or_static##s_streams.reserve(                              \
         hipc_in.meta.num_##type##_##buffer_or_static##s);                      \
     for (u32 i = 0; i < hipc_in.meta.num_##type##_##buffer_or_static##s;       \
          i++) {                                                                \
         u64 size;                                                              \
-        u8* ptr = get_##buffer_or_static##_ptr(                                \
+        u8* ptr = get##BufferOrStatic##Ptr(                                    \
             mmu, hipc_in.data.type##_##buffer_or_static##s[i], size);          \
         type##_##buffer_or_static##s_streams.push_back(                        \
             ptr != nullptr ? std::make_optional<ztd::io::MemoryStream>(        \
@@ -286,8 +286,8 @@ u8* getListEntryPtr(const hw::tegra_x1::cpu::IMmu* mmu,
                            : std::nullopt);                                    \
     }
 
-#define CREATE_STATIC_STREAMS(type) CREATE_STREAMS(static, type)
-#define CREATE_BUFFER_STREAMS(type) CREATE_STREAMS(buffer, type)
+#define CREATE_STATIC_STREAMS(type) CREATE_STREAMS(static, Static, type)
+#define CREATE_BUFFER_STREAMS(type) CREATE_STREAMS(buffer, Buffer, type)
 
 struct Streams {
     ztd::io::MemoryStream in_stream;

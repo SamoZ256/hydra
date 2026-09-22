@@ -55,7 +55,7 @@ void GuestThread::run() {
     state.pc = entry_point;
     state.sp = stack_top_addr;
     state.lr = return_address;
-    for (u32 i = 0; i < sizeof_array(args); i++)
+    for (u32 i = 0; i < SIZEOF_ARRAY(args); i++)
         state.r[i] = args[i];
 
     // Run

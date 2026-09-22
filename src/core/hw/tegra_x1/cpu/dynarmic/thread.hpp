@@ -7,10 +7,6 @@ namespace hydra::horizon {
 class OS;
 }
 
-namespace hydra::hw::tegra_x1::cpu {
-class Memory;
-}
-
 namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
 class Cpu;

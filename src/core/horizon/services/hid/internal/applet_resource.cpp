@@ -60,7 +60,7 @@ void AppletResource::setupNpads() {
 
         // Disable handheld npads in docked mode
         if (style_set == NpadStyleSet::Handheld &&
-            !CONFIG_INSTANCE.GetHandheldMode())
+            !CONFIG_INSTANCE.getHandheldMode())
             style_set = NpadStyleSet::None;
 
         // TODO: auto-remap ProController to JoyDual and vice-versa

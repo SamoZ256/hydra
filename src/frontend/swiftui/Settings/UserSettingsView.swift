@@ -13,7 +13,7 @@ struct UserSettingsView: View {
     // TODO: this never gets deallocated, is it a problem?
     @StateObject private var state = UserSettingsState()
 
-    @State private var userIDs: [hydra_u128] = []
+    @State private var userIDs: [HydraU128] = []
     @State private var selectedUserIndex: Int = 0
 
     var body: some View {

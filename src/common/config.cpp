@@ -40,9 +40,9 @@ struct from<CustomResolution> {
             LOG_FATAL(Other, "Invalid custom display resolution {}", str);
 
         uint2 res;
-        if (!str_to_num(std::string_view(str).substr(0, x_pos), res.x()))
+        if (!strToNum(std::string_view(str).substr(0, x_pos), res.x()))
             LOG_FATAL(Other, "Invalid custom display resolution {}", str);
-        if (!str_to_num(std::string_view(str).substr(x_pos + 1), res.y()))
+        if (!strToNum(std::string_view(str).substr(x_pos + 1), res.y()))
             LOG_FATAL(Other, "Invalid custom display resolution {}", str);
 
         return {res};
@@ -115,8 +115,8 @@ Config::Config() {
     std::filesystem::create_directories(pictures_path);
 #endif
 
-    LoadDefaults();
-    Deserialize();
+    loadDefaults();
+    deserialize();
 
     // Create directories
     std::filesystem::create_directories(sd_card_path);
@@ -124,43 +124,43 @@ Config::Config() {
     std::filesystem::create_directories(sysmodules_path);
 }
 
-void Config::LoadDefaults() {
-    game_paths = GetDefaultGamePaths();
-    loader_plugins = GetDefaultLoaderPlugins();
-    patch_paths = GetDefaultPatchPaths();
-    input_backend = GetDefaultInputBackend();
-    input_profiles = GetDefaultInputProfiles();
-    cpu_backend = GetDefaultCpuBackend();
-    gpu_renderer = GetDefaultGpuRenderer();
-    shader_backend = GetDefaultShaderBackend();
-    display_resolution = GetDefaultDisplayResolution();
-    custom_display_resolution = GetDefaultCustomDisplayResolution();
-    audio_backend = GetDefaultAudioBackend();
-    user_id = GetDefaultUserID();
-    device_nickname = GetDefaultDeviceNickname();
-    system_language = GetDefaultSystemLanguage();
-    system_location = GetDefaultSystemLocation();
-    firmware_path = GetDefaultFirmwarePath();
-    sd_card_path = GetDefaultSdCardPath();
-    save_path = GetDefaultSavePath();
-    sysmodules_path = GetDefaultSysmodulesPath();
-    handheld_mode = GetDefaultHandheldMode();
-    log_output = GetDefaultLogOutput();
-    log_fs_access = GetDefaultLogFsAccess();
-    debug_logging = GetDefaultDebugLogging();
-    process_args = GetDefaultProcessArgs();
-    recover_from_segfault = GetDefaultRecoverFromSegfault();
-    gdb_enabled = GetDefaultGdbEnabled();
-    gdb_port = GetDefaultGdbPort();
-    gdb_wait_for_client = GetDefaultGdbWaitForClient();
+void Config::loadDefaults() {
+    game_paths = getDefaultGamePaths();
+    loader_plugins = getDefaultLoaderPlugins();
+    patch_paths = getDefaultPatchPaths();
+    input_backend = getDefaultInputBackend();
+    input_profiles = getDefaultInputProfiles();
+    cpu_backend = getDefaultCpuBackend();
+    gpu_renderer = getDefaultGpuRenderer();
+    shader_backend = getDefaultShaderBackend();
+    display_resolution = getDefaultDisplayResolution();
+    custom_display_resolution = getDefaultCustomDisplayResolution();
+    audio_backend = getDefaultAudioBackend();
+    user_id = getDefaultUserId();
+    device_nickname = getDefaultDeviceNickname();
+    system_language = getDefaultSystemLanguage();
+    system_location = getDefaultSystemLocation();
+    firmware_path = getDefaultFirmwarePath();
+    sd_card_path = getDefaultSdCardPath();
+    save_path = getDefaultSavePath();
+    sysmodules_path = getDefaultSysmodulesPath();
+    handheld_mode = getDefaultHandheldMode();
+    log_output = getDefaultLogOutput();
+    log_fs_access = getDefaultLogFsAccess();
+    debug_logging = getDefaultDebugLogging();
+    process_args = getDefaultProcessArgs();
+    recover_from_segfault = getDefaultRecoverFromSegfault();
+    gdb_enabled = getDefaultGdbEnabled();
+    gdb_port = getDefaultGdbPort();
+    gdb_wait_for_client = getDefaultGdbWaitForClient();
 }
 
-void Config::Serialize() {
+void Config::serialize() {
     // TODO: check if changed?
 
     // TODO: why is the order of everything reversed in the saved config?
 
-    std::ofstream config_file(GetConfigPath());
+    std::ofstream config_file(getConfigPath());
     if (!config_file.is_open()) {
         LOG_ERROR(Common, "Failed to open config file");
         return;
@@ -220,11 +220,11 @@ void Config::Serialize() {
         system["system_language"] = system_language;
         system["system_location"] = system_location;
         system["firmware_path"] = firmware_path;
-        if (sd_card_path != GetDefaultSdCardPath())
+        if (sd_card_path != getDefaultSdCardPath())
             system["sd_card_path"] = sd_card_path;
-        if (save_path != GetDefaultSavePath())
+        if (save_path != getDefaultSavePath())
             system["save_path"] = save_path;
-        if (sysmodules_path != GetDefaultSysmodulesPath())
+        if (sysmodules_path != getDefaultSysmodulesPath())
             system["sysmodules_path"] = sysmodules_path;
         system["handheld_mode"] = handheld_mode;
     }
@@ -245,14 +245,14 @@ void Config::Serialize() {
     config_file.close();
 }
 
-void Config::Deserialize() {
-    const std::string path = GetConfigPath();
+void Config::deserialize() {
+    const std::string path = getConfigPath();
 
     // Check if exists
     bool exists = std::filesystem::exists(path);
     if (!exists) {
-        LoadDefaults();
-        Serialize();
+        loadDefaults();
+        serialize();
         return;
     }
 
@@ -261,96 +261,96 @@ void Config::Deserialize() {
     if (data.contains("General")) {
         const auto& general = data.at("General");
         game_paths = toml::find_or<std::vector<std::string>>(
-            general, "game_paths", GetDefaultGamePaths());
+            general, "game_paths", getDefaultGamePaths());
         loader_plugins = toml::find_or<std::vector<LoaderPlugin>>(
-            general, "loader_plugins", GetDefaultLoaderPlugins());
+            general, "loader_plugins", getDefaultLoaderPlugins());
         patch_paths = toml::find_or<std::vector<std::string>>(
-            general, "patch_paths", GetDefaultPatchPaths());
+            general, "patch_paths", getDefaultPatchPaths());
     }
     if (data.contains("Input")) {
         const auto& input = data.at("Input");
         input_backend = toml::find_or<std::optional<InputBackend>>(
-                            input, "backend", GetDefaultInputBackend())
-                            .value_or(GetDefaultInputBackend());
+                            input, "backend", getDefaultInputBackend())
+                            .value_or(getDefaultInputBackend());
         input_profiles = toml::find_or<std::vector<std::string>>(
-            input, "profiles", GetDefaultInputProfiles());
+            input, "profiles", getDefaultInputProfiles());
     }
     if (data.contains("CPU")) {
         const auto& cpu = data.at("CPU");
         cpu_backend = toml::find_or<std::optional<CpuBackend>>(
-                          cpu, "backend", GetDefaultCpuBackend())
-                          .value_or(GetDefaultCpuBackend());
+                          cpu, "backend", getDefaultCpuBackend())
+                          .value_or(getDefaultCpuBackend());
     }
     if (data.contains("Graphics")) {
         const auto& graphics = data.at("Graphics");
         gpu_renderer = toml::find_or<std::optional<GpuRenderer>>(
-                           graphics, "renderer", GetDefaultGpuRenderer())
-                           .value_or(GetDefaultGpuRenderer());
+                           graphics, "renderer", getDefaultGpuRenderer())
+                           .value_or(getDefaultGpuRenderer());
         shader_backend =
             toml::find_or<std::optional<ShaderBackend>>(
-                graphics, "shader_backend", GetDefaultShaderBackend())
-                .value_or(GetDefaultShaderBackend());
+                graphics, "shader_backend", getDefaultShaderBackend())
+                .value_or(getDefaultShaderBackend());
         display_resolution =
             toml::find_or<std::optional<Resolution>>(
-                graphics, "display_resolution", GetDefaultDisplayResolution())
-                .value_or(GetDefaultDisplayResolution());
+                graphics, "display_resolution", getDefaultDisplayResolution())
+                .value_or(getDefaultDisplayResolution());
         custom_display_resolution = toml::find_or<CustomResolution>(
             graphics, "custom_display_resolution",
-            GetDefaultCustomDisplayResolution());
+            getDefaultCustomDisplayResolution());
     }
     if (data.contains("Audio")) {
         const auto& audio = data.at("Audio");
         audio_backend = toml::find_or<std::optional<AudioBackend>>(
-                            audio, "backend", GetDefaultAudioBackend())
-                            .value_or(GetDefaultAudioBackend());
+                            audio, "backend", getDefaultAudioBackend())
+                            .value_or(getDefaultAudioBackend());
     }
     if (data.contains("User")) {
         const auto& user = data.at("User");
-        user_id = toml::find_or<uuid_t>(user, "user_id", GetDefaultUserID());
+        user_id = toml::find_or<uuid_t>(user, "user_id", getDefaultUserId());
     }
     if (data.contains("System")) {
         const auto& system = data.at("System");
         device_nickname = toml::find_or<std::string>(
-            system, "device_nickname", GetDefaultDeviceNickname());
+            system, "device_nickname", getDefaultDeviceNickname());
         system_language =
             toml::find_or<std::optional<SystemLanguage>>(
-                system, "system_language", GetDefaultSystemLanguage())
-                .value_or(GetDefaultSystemLanguage());
+                system, "system_language", getDefaultSystemLanguage())
+                .value_or(getDefaultSystemLanguage());
         system_location = toml::find_or<std::string>(
-            system, "system_location", GetDefaultSystemLocation());
+            system, "system_location", getDefaultSystemLocation());
         firmware_path = toml::find_or<std::string>(system, "firmware_path",
-                                                   GetDefaultFirmwarePath());
+                                                   getDefaultFirmwarePath());
         sd_card_path = toml::find_or<std::string>(system, "sd_card_path",
-                                                  GetDefaultSdCardPath());
+                                                  getDefaultSdCardPath());
         save_path = toml::find_or<std::string>(system, "save_path",
-                                               GetDefaultSavePath());
+                                               getDefaultSavePath());
         sysmodules_path = toml::find_or<std::string>(
-            system, "sysmodules_path", GetDefaultSysmodulesPath());
+            system, "sysmodules_path", getDefaultSysmodulesPath());
         handheld_mode = toml::find_or<bool>(system, "handheld_mode",
-                                            GetDefaultHandheldMode());
+                                            getDefaultHandheldMode());
     }
     if (data.contains("Debug")) {
         const auto& debug = data.at("Debug");
         log_output = toml::find_or<std::optional<LogOutput>>(
-                         debug, "log_output", GetDefaultLogOutput())
-                         .value_or(GetDefaultLogOutput());
+                         debug, "log_output", getDefaultLogOutput())
+                         .value_or(getDefaultLogOutput());
         log_fs_access = toml::find_or<bool>(debug, "log_fs_access",
-                                            GetDefaultLogFsAccess());
+                                            getDefaultLogFsAccess());
         debug_logging = toml::find_or<bool>(debug, "debug_logging",
-                                            GetDefaultDebugLogging());
+                                            getDefaultDebugLogging());
         process_args = toml::find_or<std::vector<std::string>>(
-            debug, "process_args", GetDefaultProcessArgs());
+            debug, "process_args", getDefaultProcessArgs());
         recover_from_segfault = toml::find_or<bool>(
-            debug, "recover_from_segfault", GetDefaultRecoverFromSegfault());
+            debug, "recover_from_segfault", getDefaultRecoverFromSegfault());
         gdb_enabled =
-            toml::find_or<bool>(debug, "gdb_enabled", GetDefaultGdbEnabled());
-        gdb_port = toml::find_or<u16>(debug, "gdb_port", GetDefaultGdbPort());
+            toml::find_or<bool>(debug, "gdb_enabled", getDefaultGdbEnabled());
+        gdb_port = toml::find_or<u16>(debug, "gdb_port", getDefaultGdbPort());
         gdb_wait_for_client = toml::find_or<bool>(debug, "gdb_wait_for_client",
-                                                  GetDefaultGdbWaitForClient());
+                                                  getDefaultGdbWaitForClient());
     }
 }
 
-void Config::Log() {
+void Config::log() {
     LOG_INFO(Other, "Game paths: [{}]", fmt::join(game_paths, ", "));
     LOG_INFO(Other, "Loader plugins: [{}]", fmt::join(loader_plugins, ", "));
     LOG_INFO(Other, "Patch paths: [{}]", fmt::join(patch_paths, ", "));

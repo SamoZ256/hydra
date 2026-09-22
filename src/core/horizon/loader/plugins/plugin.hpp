@@ -124,6 +124,7 @@ class Plugin {
     template <api::Function api_func, typename T>
     T loadFunction() {
         std::string symbol_name;
+        // TODO: use camelCase
         switch (api_func) {
         case api::Function::GetApiVersion:
             symbol_name = "hydra_ext_get_api_version";

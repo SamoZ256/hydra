@@ -3,7 +3,7 @@
 #include "core/horizon/filesystem/file.hpp"
 
 #define LOG_FS_ACCESS(host_path, f, ...)                                       \
-    if (CONFIG_INSTANCE.GetLogFsAccess()) {                                    \
+    if (CONFIG_INSTANCE.getLogFsAccess()) {                                    \
         LOG_INFO(Filesystem, "\"{}\": " f,                                     \
                  host_path ZTD_PASS_VA_ARGS(__VA_ARGS__));                     \
     }

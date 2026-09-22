@@ -187,7 +187,7 @@ IFileSystemProxy::openDataStorageByDataId(RequestContext* ctx, System* system,
 
     filesystem::IFile* file;
     // NOLINTNEXTLINE(readability-trivial-switch)
-    switch (storage_id.Get()) {
+    switch (storage_id.get()) {
     case ncm::StorageID::BuiltInSystem: {
         // TODO: correct?
         const auto res = system->getOs().getFilesystem().getFile(

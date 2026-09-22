@@ -69,12 +69,13 @@ std::string numberToHex(T value) {
 }
 
 template <typename T>
-T hexToNumber(std::string_view hex) {
+std::expected<T, std::errc> hexToNumber(std::string_view hex) {
     T value = 0;
-    for (usize i = 0; i < sizeof(T); ++i)
-        value |=
-            static_cast<T>(std::stoi(hex.substr(i * 2, 2).data(), nullptr, 16))
-            << (i * 8);
+    for (usize i = 0; i < sizeof(T); ++i) {
+        ZTD_ASSIGN_OR_RETURN_ERROR(const auto crnt,
+                                   fromChars<T>(hex.substr(i * 2, 2), 16));
+        value |= crnt << (i * 8);
+    }
 
     return value;
 }
@@ -229,7 +230,7 @@ namespace hydra::debugger {
 
 GdbServer::GdbServer(System& system_, Debugger& debugger_)
     : system{system_}, debugger{debugger_} {
-    const u16 port = CONFIG_INSTANCE.GetGdbPort();
+    const u16 port = CONFIG_INSTANCE.getGdbPort();
 
     // Create the socket
     server_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -455,8 +456,10 @@ void GdbServer::handleVCont(std::string_view command) {
         case 's':
         case 'S': {
             const auto thread_id_str = entry.substr(entry.find(':') + 1);
-            thread = GET_THREAD_FROM_ID(
-                std::stoull(thread_id_str.data(), nullptr, 16));
+            ZTD_ASSIGN_OR(
+                const auto thread_id, fromChars<u64>(thread_id_str, 16),
+                LOG_FATAL(Debugger, "Invalid thread ID {}", thread_id_str));
+            thread = GET_THREAD_FROM_ID(thread_id);
             break;
         }
         default:
@@ -528,8 +531,10 @@ void GdbServer::handleQuery(std::string_view command) {
 }
 
 void GdbServer::handleSetActiveThread(std::string_view command) {
-    const auto thread =
-        GET_THREAD_FROM_ID(std::stoull(command.substr(1).data(), nullptr, 16));
+    const auto thread_id_str = command.substr(1);
+    ZTD_ASSIGN_OR(const auto thread_id, fromChars<u64>(thread_id_str, 16),
+                  LOG_FATAL(Debugger, "Invalid thread ID {}", thread_id_str));
+    const auto thread = GET_THREAD_FROM_ID(thread_id);
     if (thread != nullptr) {
         // TODO: check if thread is valid
         // if (debugger.threads.contains(thread)) {
@@ -548,16 +553,19 @@ void GdbServer::handleThreadStatus() {
 }
 
 void GdbServer::handleRegRead(std::string_view command) {
-    const auto id = static_cast<u32>(std::stoul(command.data(), nullptr, 16));
+    ZTD_ASSIGN_OR(const auto id, fromChars<u32>(command, 16),
+                  LOG_FATAL(Debugger, "Invalid reg ID {}", command));
     sendPacket(readReg(id));
 }
 
 void GdbServer::handleMemRead(std::string_view command) {
     const auto comma_pos = command.find(',');
-    const auto addr =
-        std::stoull(command.substr(0, comma_pos).data(), nullptr, 16);
-    const auto size =
-        std::stoull(command.substr(comma_pos + 1).data(), nullptr, 16);
+    const auto addr_str = command.substr(0, comma_pos);
+    const auto size_str = command.substr(comma_pos + 1);
+    ZTD_ASSIGN_OR(const auto addr, fromChars<u64>(addr_str, 16),
+                  LOG_FATAL(Debugger, "Invalid address {}", addr_str));
+    ZTD_ASSIGN_OR(const auto size, fromChars<u64>(size_str, 16),
+                  LOG_FATAL(Debugger, "Invalid size {}", size_str));
 
     std::string output;
     output.reserve(size * 2);
@@ -590,10 +598,16 @@ void GdbServer::handleInsertBreakpoint(std::string_view command) {
     const auto addr_pos = command.find(',') + 1;
     const auto size_pos = command.find(',', addr_pos) + 1;
 
-    const auto type =
-        static_cast<BreakpointType>(std::stoul(command.data(), nullptr, 16));
-    const auto addr = std::stoull(command.substr(addr_pos).data(), nullptr, 16);
-    const auto size = std::stoull(command.substr(size_pos).data(), nullptr, 16);
+    const auto type_str = command.substr(0, addr_pos - 1);
+    const auto addr_str = command.substr(addr_pos, size_pos - addr_pos - 1);
+    const auto size_str = command.substr(size_pos);
+    ZTD_ASSIGN_OR(const auto type_int, fromChars<u8>(type_str, 16),
+                  LOG_FATAL(Debugger, "Invalid type {}", type_str));
+    const auto type = static_cast<BreakpointType>(type_int);
+    ZTD_ASSIGN_OR(const auto addr, fromChars<u64>(addr_str, 16),
+                  LOG_FATAL(Debugger, "Invalid address {}", addr_str));
+    ZTD_ASSIGN_OR(const auto size, fromChars<u64>(size_str, 16),
+                  LOG_FATAL(Debugger, "Invalid size {}", size_str));
 
     // NOLINTNEXTLINE(readability-trivial-switch)
     switch (type) {
@@ -625,10 +639,16 @@ void GdbServer::handleRemoveBreakpoint(std::string_view command) {
     const auto addr_pos = command.find(',') + 1;
     const auto size_pos = command.find(',', addr_pos) + 1;
 
-    const auto type =
-        static_cast<BreakpointType>(std::stoul(command.data(), nullptr, 16));
-    const auto addr = std::stoull(command.substr(addr_pos).data(), nullptr, 16);
-    const auto size = std::stoull(command.substr(size_pos).data(), nullptr, 16);
+    const auto type_str = command.substr(0, addr_pos - 1);
+    const auto addr_str = command.substr(addr_pos, size_pos - addr_pos - 1);
+    const auto size_str = command.substr(size_pos);
+    ZTD_ASSIGN_OR(const auto type_int, fromChars<u8>(type_str, 16),
+                  LOG_FATAL(Debugger, "Invalid type {}", type_str));
+    const auto type = static_cast<BreakpointType>(type_int);
+    ZTD_ASSIGN_OR(const auto addr, fromChars<u64>(addr_str, 16),
+                  LOG_FATAL(Debugger, "Invalid address {}", addr_str));
+    ZTD_ASSIGN_OR(const auto size, fromChars<u64>(size_str, 16),
+                  LOG_FATAL(Debugger, "Invalid size {}", size_str));
 
     // NOLINTNEXTLINE(readability-trivial-switch)
     switch (type) {
@@ -786,10 +806,12 @@ std::string GdbServer::getThreadStatus(horizon::kernel::GuestThread* thread,
 std::string GdbServer::pageFromBuffer(std::string_view buffer,
                                       std::string_view page) {
     const auto comma_pos = page.find(',');
-    const auto offset =
-        std::stoull(page.substr(0, comma_pos).data(), nullptr, 16);
-    const auto size =
-        std::stoull(page.substr(comma_pos + 1).data(), nullptr, 16);
+    const auto offset_str = page.substr(0, comma_pos);
+    const auto size_str = page.substr(comma_pos + 1);
+    ZTD_ASSIGN_OR(const auto offset, fromChars<u64>(offset_str, 16),
+                  LOG_FATAL(Debugger, "Invalid offset {}", offset_str));
+    ZTD_ASSIGN_OR(const auto size, fromChars<u64>(size_str, 16),
+                  LOG_FATAL(Debugger, "Invalid size {}", size_str));
 
     if (offset + size <= buffer.size())
         return fmt::format("m{}", buffer.substr(offset, size));

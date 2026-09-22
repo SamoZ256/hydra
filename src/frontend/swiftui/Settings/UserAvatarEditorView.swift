@@ -3,7 +3,7 @@ import SwiftUI
 struct UserAvatarEditorView: View {
     let userManager: HydraUserManager
 
-    @Binding var avatarBgColor: hydra_uchar3
+    @Binding var avatarBgColor: HydraUchar3
     @Binding var avatarPath: String
 
     @State private var avatarBgColorColor: Color = .clear
@@ -36,7 +36,7 @@ struct UserAvatarEditorView: View {
                         ),
                             let components = cgColor.components
                         {
-                            self.avatarBgColor = hydra_uchar3(
+                            self.avatarBgColor = HydraUchar3(
                                 x: UInt8(components[0] * 255.0),
                                 y: UInt8(components[1] * 255.0),
                                 z: UInt8(components[2] * 255.0))

@@ -1,5 +1,7 @@
 #include "core/hw/tegra_x1/gpu/memory_util.hpp"
 
+#include <cstddef>
+
 namespace hydra::hw::tegra_x1::gpu {
 
 namespace {
@@ -64,10 +66,13 @@ void convertBlockLinearToLinear(u32 stride, u32 rows, u32 depth,
                     u8 out_gob[GOB_SIZE];
                     for (u32 i = 0; i < GOB_SIZE / sizeof(u128); i++) {
                         const auto local = unswizzleGobCoords(i);
-                        *reinterpret_cast<u128*>(
-                            out_gob + local.y() * GOB_WIDTH + local.x()) =
+                        *reinterpret_cast<u128*>(out_gob +
+                                                 static_cast<usize>(local.y()) *
+                                                     GOB_WIDTH +
+                                                 local.x()) =
                             reinterpret_cast<const u128*>(
-                                in_data + gob_index * GOB_SIZE)[i];
+                                in_data +
+                                static_cast<usize>(gob_index) * GOB_SIZE)[i];
                     }
 
                     write_fn(out_gob, block_x,
@@ -95,10 +100,11 @@ void convertBlockLinearToLinear(u32 src_stride, u32 dst_stride,
                 if (y >= rows)
                     break;
 
-                const u32 crnt_offset =
-                    gob_z * dst_slice_stride + y * dst_stride + x;
+                const usize crnt_offset =
+                    static_cast<usize>(gob_z) * dst_slice_stride +
+                    static_cast<usize>(y) * dst_stride + x;
                 std::memcpy(out_data + crnt_offset,
-                            in_gob + local_y * GOB_WIDTH,
+                            in_gob + static_cast<usize>(local_y) * GOB_WIDTH,
                             std::min(GOB_WIDTH, dst_stride - x));
             }
         });
@@ -132,9 +138,12 @@ void convertLinearToBlockLinear(u32 stride, u32 rows, u32 depth,
                     for (u32 i = 0; i < GOB_SIZE / sizeof(u128); i++) {
                         const auto local = unswizzleGobCoords(i);
                         reinterpret_cast<u128*>(out_data +
-                                                gob_index * GOB_SIZE)[i] =
+                                                static_cast<usize>(gob_index) *
+                                                    GOB_SIZE)[i] =
                             *reinterpret_cast<const u128*>(
-                                gob + local.y() * GOB_WIDTH + local.x());
+                                gob +
+                                static_cast<usize>(local.y()) * GOB_WIDTH +
+                                local.x());
                     }
 
                     gob_index++;
@@ -158,9 +167,10 @@ void convertLinearToBlockLinear(u32 src_stride, u32 src_slice_stride,
                 if (y >= rows)
                     break;
 
-                const u32 crnt_offset =
-                    gob_z * src_slice_stride + y * src_stride + x;
-                std::memcpy(out_gob + local_y * GOB_WIDTH,
+                const usize crnt_offset =
+                    static_cast<usize>(gob_z) * src_slice_stride +
+                    static_cast<usize>(y) * src_stride + x;
+                std::memcpy(out_gob + static_cast<usize>(local_y) * GOB_WIDTH,
                             in_data + crnt_offset,
                             std::min(GOB_WIDTH, src_stride - x));
             }

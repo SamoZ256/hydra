@@ -31,12 +31,12 @@ namespace hydra::horizon::filesystem {
 
 Filesystem::Filesystem() {
     // SD card
-    std::filesystem::create_directories(CONFIG_INSTANCE.GetSdCardPath());
-    mountImpl(FS_SD_MOUNT, new Directory(CONFIG_INSTANCE.GetSdCardPath()));
+    std::filesystem::create_directories(CONFIG_INSTANCE.getSdCardPath());
+    mountImpl(FS_SD_MOUNT, new Directory(CONFIG_INSTANCE.getSdCardPath()));
 
     // Save
-    std::filesystem::create_directories(CONFIG_INSTANCE.GetSavePath());
-    mountImpl(FS_SAVE_MOUNT, new Directory(CONFIG_INSTANCE.GetSavePath()));
+    std::filesystem::create_directories(CONFIG_INSTANCE.getSavePath());
+    mountImpl(FS_SAVE_MOUNT, new Directory(CONFIG_INSTANCE.getSavePath()));
 
     // Cache
     // TODO: support mounting to a real host path as well
@@ -83,13 +83,13 @@ FsResult Filesystem::createFile(const std::string_view path, u64 size,
     // TODO: keep a list of host paths for each mount point instead
     if (mount == FS_SD_MOUNT) {
         const auto host_path =
-            fmt::format("{}{}", CONFIG_INSTANCE.GetSdCardPath(), entry_path);
+            fmt::format("{}{}", CONFIG_INSTANCE.getSdCardPath(), entry_path);
         auto file = new DiskFile(host_path, true);
         file->resize(size);
         return addEntry(path, file, add_intermediate);
     } else if (mount == FS_SAVE_MOUNT) {
         const auto host_path =
-            fmt::format("{}{}", CONFIG_INSTANCE.GetSavePath(), entry_path);
+            fmt::format("{}{}", CONFIG_INSTANCE.getSavePath(), entry_path);
         auto file = new DiskFile(host_path, true);
         file->resize(size);
         return addEntry(path, file, add_intermediate);
@@ -135,7 +135,7 @@ void Filesystem::mountImpl(const std::string_view mount, Directory* root) {
 }
 
 void Filesystem::installFirmware() {
-    const auto& firmware_path = CONFIG_INSTANCE.GetFirmwarePath();
+    const auto& firmware_path = CONFIG_INSTANCE.getFirmwarePath();
     if (!std::filesystem::exists(firmware_path)) {
         LOG_WARN(Horizon, "Firmware path does not exist");
         // TODO: use replacements

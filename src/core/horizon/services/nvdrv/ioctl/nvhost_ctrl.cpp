@@ -15,12 +15,12 @@ DEFINE_IOCTL_TABLE(NvHostCtrl,
 NvResult NvHostCtrl::queryEvent(u32 event_id_u32, kernel::Event*& out_event) {
     u32 slot;
     u32 syncpoint_id;
-    if (extract_bits(event_id_u32, 28, 1) != 0u) { // New format
-        slot = extract_bits(event_id_u32, 0, 16);
-        syncpoint_id = extract_bits(event_id_u32, 16, 12);
+    if (extractBits(event_id_u32, 28, 1) != 0u) { // New format
+        slot = extractBits(event_id_u32, 0, 16);
+        syncpoint_id = extractBits(event_id_u32, 16, 12);
     } else { // Old format
-        slot = extract_bits(event_id_u32, 0, 8);
-        syncpoint_id = extract_bits(event_id_u32, 4, 28);
+        slot = extractBits(event_id_u32, 0, 8);
+        syncpoint_id = extractBits(event_id_u32, 4, 28);
     }
 
     if (slot >= EVENT_COUNT) {
@@ -39,8 +39,7 @@ NvResult NvHostCtrl::queryEvent(u32 event_id_u32, kernel::Event*& out_event) {
 NvResult NvHostCtrl::getConfig(std::array<char, 0x41> name,
                                std::array<char, 0x41> key,
                                std::array<u8, 0x101>* out_value) {
-    const auto key_str =
-        to_lower(fmt::format("{}!{}", name.data(), key.data()));
+    const auto key_str = toLower(fmt::format("{}!{}", name.data(), key.data()));
     LOG_DEBUG(Services, "Key: {}", key_str);
 
     auto it = settings::nx_settings.find(key_str);

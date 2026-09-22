@@ -10,7 +10,7 @@ DEFINE_IOCTL_TABLE(NvMap,
                                             0x09, param, 0x0e, getId))
 
 NvResult NvMap::create(System* system, u32 size, Handle* out_handle) {
-    *out_handle = system->getGpu().createMap(size).GetRaw();
+    *out_handle = system->getGpu().createMap(size).getRaw();
     return NvResult::Success;
 }
 
@@ -76,7 +76,7 @@ NvResult NvMap::param(System* system, Handle handle, NvMapParamType type,
 
 NvResult NvMap::getId(u32* out_id, Handle handle) {
     // Handle and ID are the same
-    *out_id = handle.GetRaw();
+    *out_id = handle.getRaw();
     return NvResult::Success;
 }
 

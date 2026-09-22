@@ -38,7 +38,7 @@ result_t IApplicationDisplayService::getRelayService(RequestContext* ctx,
     const auto name = "dispdrv"_u64;
     auto client_port = system->getOs().getServiceManager().getPort(name);
     if (client_port == nullptr) {
-        LOG_WARN(Services, "Unknown service name \"{}\"", U64AsString(name));
+        LOG_WARN(Services, "Unknown service name \"{}\"", u64AsString(name));
         return MAKE_RESULT(Svc, kernel::Error::NotFound); // TODO: module
     }
 
@@ -99,7 +99,7 @@ result_t IApplicationDisplayService::openDisplay(System* system,
         system->getOs().getDisplayDriver().getDisplay(display_handle);
     display.open();
 
-    *out_display_id = display_handle.GetRaw();
+    *out_display_id = display_handle.getRaw();
     return RESULT_SUCCESS;
 }
 
@@ -143,7 +143,7 @@ result_t IApplicationDisplayService::openLayer(
 
     // Parcel
     hosbinder::ParcelWriter parcel_writer(parcel_buffer.stream.value());
-    parcel_writer.writeObject(layer.getBinderHandle().GetRaw(), "dispdrv"_u64);
+    parcel_writer.writeObject(layer.getBinderHandle().getRaw(), "dispdrv"_u64);
     parcel_writer.finish();
 
     *out_native_window_size = parcel_writer.getWrittenSize();

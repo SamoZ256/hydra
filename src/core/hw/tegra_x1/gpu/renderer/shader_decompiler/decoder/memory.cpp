@@ -238,8 +238,7 @@ void emitLdc(DecoderContext& context, InstLdc inst) {
 
 void emitLdg(DecoderContext& context, InstLdg inst) {
     emitLoadGlobal(context, inst.pred, inst.pred_inv, inst.size, inst.dst,
-                   inst.src,
-                   sign_extend<i32, 24>(static_cast<i32>(inst.imm24)));
+                   inst.src, signExtend<i32, 24>(static_cast<i32>(inst.imm24)));
 }
 
 void emitIpa(DecoderContext& context, InstIpa inst) {

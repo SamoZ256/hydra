@@ -5,7 +5,7 @@ namespace hydra::horizon::services::ns {
 const ApplicationTitle&
 ApplicationControlProperty::getApplicationTitle(SystemLanguage lang) const {
     u32 index = static_cast<u32>(lang);
-    if (index >= sizeof_array(titles))
+    if (index >= SIZEOF_ARRAY(titles))
         index = 0;
 
     // Check if the language is set

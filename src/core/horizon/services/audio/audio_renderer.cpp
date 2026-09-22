@@ -216,7 +216,7 @@ result_t IAudioRenderer::requestUpdateImpl(
 
     // TODO: correct?
     auto header = out_stream->writeReturningPtr<UpdateDataHeader>();
-    header->revision = in_header.revision; // make_magic4('R', 'E', 'V', '4');
+    header->revision = in_header.revision; // makeMagic4('R', 'E', 'V', '4');
     header->total_size = sizeof(UpdateDataHeader);
 
     in_stream->seekBy(in_header.behavior_size);
@@ -258,7 +258,7 @@ result_t IAudioRenderer::requestUpdateImpl(
         } else if (voice_in.play_state == VoicePlayState::Started) {
             // HACK
             if (voice_in.wave_buffer_count >=
-                sizeof_array(voice_in.wave_buffers)) {
+                SIZEOF_ARRAY(voice_in.wave_buffers)) {
                 ONCE(LOG_WARN(Services,
                               "Voice {} has invalid wave buffer count {:#x}", i,
                               voice_in.wave_buffer_count));

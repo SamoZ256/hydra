@@ -29,14 +29,15 @@ result_t ISaveDataInfoReader::readSaveDataInfo(
     static SaveDataInfo entries[0] = {};
 
     auto stream = out_entry_buffer.stream;
-    for (u32 i = entry_index; i < sizeof_array(entries); i++) {
+    for (u32 i = entry_index; i < SIZEOF_ARRAY(entries); i++) {
         if (stream->getSeek() + sizeof(SaveDataInfo) > stream->getSize())
             break;
 
         stream->write(entries[i]);
     }
 
-    *out_entry_count = stream->getSeek() / sizeof(SaveDataInfo);
+    *out_entry_count =
+        static_cast<i64>(stream->getSeek() / sizeof(SaveDataInfo));
 
     return RESULT_SUCCESS;
 }

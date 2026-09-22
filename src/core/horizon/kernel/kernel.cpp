@@ -66,7 +66,7 @@ void Kernel::supervisorCall(Process* crnt_process, IThread* crnt_thread,
             crnt_process, state.r[1], state.r[2], state.r[3],
             std::bit_cast<i32>(static_cast<u32>(state.r[4])),
             std::bit_cast<i32>(static_cast<u32>(state.r[5])), thread);
-        state.r[1] = crnt_process->addHandleNoRetain(thread).GetRaw();
+        state.r[1] = crnt_process->addHandleNoRetain(thread).getRaw();
         break;
     }
     case 0x9:
@@ -131,7 +131,7 @@ void Kernel::supervisorCall(Process* crnt_process, IThread* crnt_thread,
         state.r[0] = createTransferMemory(
             state.r[1], state.r[2], static_cast<MemoryPermission>(state.r[3]),
             tmem);
-        state.r[1] = crnt_process->addHandleNoRetain(tmem).GetRaw();
+        state.r[1] = crnt_process->addHandleNoRetain(tmem).getRaw();
         break;
     }
     case 0x16:
@@ -193,7 +193,7 @@ void Kernel::supervisorCall(Process* crnt_process, IThread* crnt_thread,
             reinterpret_cast<const char*>(
                 crnt_process->getMmu()->unmapAddr(state.r[1])),
             client_session);
-        state.r[1] = crnt_process->addHandleNoRetain(client_session).GetRaw();
+        state.r[1] = crnt_process->addHandleNoRetain(client_session).getRaw();
         break;
     }
     case 0x21:
@@ -263,8 +263,8 @@ void Kernel::supervisorCall(Process* crnt_process, IThread* crnt_thread,
         hipc::ClientSession* client_session = nullptr;
         state.r[0] = createSession(state.r[2] != 0, state.r[3], server_session,
                                    client_session);
-        state.r[1] = crnt_process->addHandleNoRetain(server_session).GetRaw();
-        state.r[2] = crnt_process->addHandleNoRetain(client_session).GetRaw();
+        state.r[1] = crnt_process->addHandleNoRetain(server_session).getRaw();
+        state.r[2] = crnt_process->addHandleNoRetain(client_session).getRaw();
         break;
     }
     case 0x41: {
@@ -272,7 +272,7 @@ void Kernel::supervisorCall(Process* crnt_process, IThread* crnt_thread,
         state.r[0] = acceptSession(crnt_process->getHandle<hipc::ServerPort>(
                                        static_cast<u32>(state.r[1])),
                                    server_session);
-        state.r[1] = crnt_process->addHandleNoRetain(server_session).GetRaw();
+        state.r[1] = crnt_process->addHandleNoRetain(server_session).getRaw();
         break;
     }
     case 0x43: {
@@ -295,7 +295,7 @@ void Kernel::supervisorCall(Process* crnt_process, IThread* crnt_thread,
     case 0x4b: {
         CodeMemory* code_mem = nullptr;
         state.r[0] = createCodeMemory(state.r[1], state.r[2], code_mem);
-        state.r[1] = crnt_process->addHandleNoRetain(code_mem).GetRaw();
+        state.r[1] = crnt_process->addHandleNoRetain(code_mem).getRaw();
         break;
     }
     case 0x4c:
@@ -706,8 +706,8 @@ result_t Kernel::arbitrateLock(IThread* crnt_thread, IThread* owner_thread,
     {
         CriticalSectionLock cs_lock(*this);
 
-        if (atomic_load(reinterpret_cast<u32*>(mutex_addr)) !=
-            (owner_thread->self_handle_for_mutex.GetRaw() | MUTEX_WAIT_MASK))
+        if (atomicLoad(reinterpret_cast<u32*>(mutex_addr)) !=
+            (owner_thread->self_handle_for_mutex.getRaw() | MUTEX_WAIT_MASK))
             return RESULT_SUCCESS;
 
         crnt_thread->mutex_wait_addr = mutex_addr;
@@ -1045,10 +1045,10 @@ result_t Kernel::mapPhysicalMemory(Process* crnt_process, vaddr_t addr,
               "MapPhysicalMemory called (addr: 0x{:08x}, size: 0x{:08x})", addr,
               size);
 
-    if (!is_aligned(size, hw::tegra_x1::cpu::GUEST_PAGE_SIZE))
+    if (!isAligned(size, hw::tegra_x1::cpu::GUEST_PAGE_SIZE))
         return MAKE_RESULT(Svc, 102); // Invalid address
 
-    if (!is_aligned(size, hw::tegra_x1::cpu::GUEST_PAGE_SIZE))
+    if (!isAligned(size, hw::tegra_x1::cpu::GUEST_PAGE_SIZE))
         return MAKE_RESULT(Svc, 101); // Invalid size
 
     if (!ALIAS_REGION.contains(ztd::Range<vaddr_t>::fromSize(addr, size)))
@@ -1104,15 +1104,15 @@ result_t Kernel::waitForAddress(IThread* crnt_thread, uptr addr,
         u32 current_value;
         switch (arbitration_type) {
         case ArbitrationType::WaitIfLessThan:
-            current_value = atomic_load(value_ptr);
+            current_value = atomicLoad(value_ptr);
             wait = (current_value < value);
             break;
         case ArbitrationType::DecrementAndWaitIfLessThan:
-            current_value = atomic_fetch_sub(value_ptr, 1u);
+            current_value = atomicFetchSub(value_ptr, 1u);
             wait = (current_value < value);
             break;
         case ArbitrationType::WaitIfEqual:
-            current_value = atomic_load(value_ptr);
+            current_value = atomicLoad(value_ptr);
             wait = (current_value == value);
             break;
         }
@@ -1370,12 +1370,12 @@ void Kernel::tryAcquireMutex(Process* crnt_process, IThread* thread) {
     do {
         if (value == 0) {
             // Register this thread as the owner
-            new_value = thread->self_handle_for_mutex.GetRaw();
+            new_value = thread->self_handle_for_mutex.getRaw();
         } else {
             // Register this thread as a waiter
             new_value = value | MUTEX_WAIT_MASK;
         }
-    } while (!atomic_compare_exchange_weak(mutex, value, new_value));
+    } while (!atomicCompareExchangeWeak(mutex, value, new_value));
 
     if (value == 0) {
         // Mutex acquired
@@ -1395,15 +1395,15 @@ void Kernel::unlockMutex(IThread* thread, uptr mutex_addr) {
     u32 waiter_count;
     auto new_owner = thread->relinquishMutex(mutex_addr, waiter_count);
     if (new_owner == nullptr) {
-        atomic_store(mutex, 0u);
+        atomicStore(mutex, 0u);
         return;
     }
 
-    u32 value = new_owner->self_handle_for_mutex.GetRaw();
+    u32 value = new_owner->self_handle_for_mutex.getRaw();
     if (waiter_count > 0)
         value |= MUTEX_WAIT_MASK;
 
-    atomic_store(mutex, value);
+    atomicStore(mutex, value);
 
     // Resume the owner
     new_owner->resume();

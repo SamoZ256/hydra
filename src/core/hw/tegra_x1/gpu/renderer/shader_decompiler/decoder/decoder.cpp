@@ -50,8 +50,8 @@ void Decoder::parseNextInstruction() {
     }
     INST(0xf0f8000000000000, 0xfff8000000000000) { // sync
         // TODO: ccc
-        const auto pred = static_cast<pred_t>(extract_bits(inst, 16, 3));
-        const auto pred_inv = static_cast<bool>(extract_bits(inst, 19, 1));
+        const auto pred = static_cast<pred_t>(extractBits(inst, 16, 3));
+        const auto pred_inv = static_cast<bool>(extractBits(inst, 19, 1));
 
         ASSERT_DEBUG(!crnt_block->sync_point_stack.empty(), ShaderDecompiler,
                      "No sync point in stack");
@@ -215,8 +215,8 @@ void Decoder::parseNextInstruction() {
     }
     INST(0xe300000000000000, 0xfff0000000000000) { // exit
         // TODO: ccc, keep_ref_count
-        const auto pred = static_cast<pred_t>(extract_bits(inst, 16, 3));
-        const auto pred_inv = static_cast<bool>(extract_bits(inst, 19, 1));
+        const auto pred = static_cast<pred_t>(extractBits(inst, 16, 3));
+        const auto pred_inv = static_cast<bool>(extractBits(inst, 19, 1));
 
         if (pred == PT) {
             if (!pred_inv) {
@@ -260,7 +260,7 @@ void Decoder::parseNextInstruction() {
     INST(0xe290000000000000, 0xfff0000000000020) { // ssy
         const auto target = static_cast<u32>(
             static_cast<i32>(pc) +
-            sign_extend<i32, 24>(static_cast<i32>(extract_bits(inst, 20, 24))) /
+            signExtend<i32, 24>(static_cast<i32>(extractBits(inst, 20, 24))) /
                 static_cast<i32>(sizeof(instruction_t)) +
             1);
 
@@ -295,11 +295,11 @@ void Decoder::parseNextInstruction() {
     }
     INST(0xe240000000000000, 0xfff0000000000020) { // bra
         // TODO: ccc, ca, lmt, u
-        const auto pred = static_cast<pred_t>(extract_bits(inst, 16, 3));
-        const auto pred_inv = static_cast<bool>(extract_bits(inst, 19, 1));
+        const auto pred = static_cast<pred_t>(extractBits(inst, 16, 3));
+        const auto pred_inv = static_cast<bool>(extractBits(inst, 19, 1));
         const auto target = static_cast<u32>(
             static_cast<i32>(pc) +
-            sign_extend<i32, 24>(static_cast<i32>(extract_bits(inst, 20, 24))) /
+            signExtend<i32, 24>(static_cast<i32>(extractBits(inst, 20, 24))) /
                 static_cast<i32>(sizeof(instruction_t)) +
             1);
 

@@ -34,7 +34,7 @@ enum class AudioFeature {
 
 inline bool isAudioRendererFeatureSupported(const AudioFeature feature,
                                             u32 revision) {
-    const auto version = revision - make_magic4('R', 'E', 'V', '0');
+    const auto version = revision - makeMagic4('R', 'E', 'V', '0');
     // NOLINTNEXTLINE(readability-trivial-switch)
     switch (feature) {
     case AudioFeature::Splitter:

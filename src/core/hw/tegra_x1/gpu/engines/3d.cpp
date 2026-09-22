@@ -19,8 +19,8 @@ macro::DriverBase* createMacroDriver(ThreeD& three_d) {
     return new macro::interpreter::Driver(three_d);
 }
 
-u32 getImageHandle(u32 handle) { return extract_bits(handle, 0, 20); }
-u32 getSamplerHandle(u32 handle) { return extract_bits(handle, 20, 12); }
+u32 getImageHandle(u32 handle) { return extractBits(handle, 0, 20); }
+u32 getSamplerHandle(u32 handle) { return extractBits(handle, 20, 12); }
 
 renderer::TextureType toTextureType(TextureType type) {
     switch (type) {
@@ -432,7 +432,7 @@ void ThreeD::bindGroup(const u32 index, const u32 data) {
         LOG_WARN(Engines, "Reserved");
         break;
     case 0x4: {
-        const auto buffer_index = extract_bits(data, 4, 5);
+        const auto buffer_index = extractBits(data, 4, 5);
         bool valid = (data & 0x1) != 0u;
         if (valid) {
             const uptr const_buffer_gpu_ptr =
@@ -554,7 +554,7 @@ renderer::RenderPassBase* ThreeD::getRenderPass() const {
                                                : nullptr),
     };
 
-    return gpu.getRenderer().getRenderPassCache().Find(descriptor);
+    return gpu.getRenderer().getRenderPassCache().find(descriptor);
 }
 
 renderer::Viewport ThreeD::getViewport(u32 index) {
@@ -677,7 +677,7 @@ renderer::ShaderBase* ThreeD::getShader(ShaderStage stage) {
 
     auto& active_shader =
         active_shaders[static_cast<u32>(toRendererShaderType(stage))];
-    active_shader = gpu.getRenderer().getShaderCache().Find(descriptor);
+    active_shader = gpu.getRenderer().getShaderCache().find(descriptor);
 
     return active_shader;
 }
@@ -766,7 +766,7 @@ renderer::PipelineBase* ThreeD::getPipeline() {
         }
     }
 
-    return gpu.getRenderer().getPipelineCache().Find(descriptor);
+    return gpu.getRenderer().getPipelineCache().find(descriptor);
 }
 
 renderer::BufferView ThreeD::getVertexBuffer(u32 vertex_array_index) const {
@@ -794,7 +794,7 @@ ThreeD::getTexture(const TextureImageControl& tic) const {
         return nullptr;
     }
 
-    const uptr gpu_addr = make_addr(tic.addr_lo, tic.addr_hi);
+    const uptr gpu_addr = makeAddr(tic.addr_lo, tic.addr_hi);
     if (gpu_addr == 0x0) {
         LOG_ERROR(Engines, "Texture address is NULL");
         return nullptr;
@@ -864,7 +864,7 @@ ThreeD::getSampler(const TextureSamplerControl& tsc) const {
                                  tsc.border_color_b, tsc.border_color_a}),
     };
 
-    return gpu.getRenderer().getSamplerCache().Find(descriptor);
+    return gpu.getRenderer().getSamplerCache().find(descriptor);
 }
 
 void ThreeD::configureShaderStage(

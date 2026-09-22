@@ -98,7 +98,7 @@ void Npad::setup(NpadStyleSet style_set) {
                                    NpadSystemProperties::IsPlusAvailable |
                                    NpadSystemProperties::IsMinusAvailable;
         state.applet_footer_ui_type =
-            CONFIG_INSTANCE.GetHandheldMode()
+            CONFIG_INSTANCE.getHandheldMode()
                 ? AppletFooterUiType::HandheldJoyConLeftJoyConRight
                 : AppletFooterUiType::JoyDual;
         break;
@@ -108,7 +108,7 @@ void Npad::setup(NpadStyleSet style_set) {
         state.system_properties |= NpadSystemProperties::IsSlSrButtonOriented |
                                    NpadSystemProperties::IsMinusAvailable;
         state.applet_footer_ui_type =
-            CONFIG_INSTANCE.GetHandheldMode()
+            CONFIG_INSTANCE.getHandheldMode()
                 ? AppletFooterUiType::HandheldJoyConLeftOnly
                 : AppletFooterUiType::JoyDualLeftOnly;
         break;
@@ -118,7 +118,7 @@ void Npad::setup(NpadStyleSet style_set) {
         state.system_properties |= NpadSystemProperties::IsSlSrButtonOriented |
                                    NpadSystemProperties::IsPlusAvailable;
         state.applet_footer_ui_type =
-            CONFIG_INSTANCE.GetHandheldMode()
+            CONFIG_INSTANCE.getHandheldMode()
                 ? AppletFooterUiType::HandheldJoyConRightOnly
                 : AppletFooterUiType::JoyDualRightOnly;
         break;

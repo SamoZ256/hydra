@@ -29,7 +29,7 @@ class SmallCache {
 
         iterator(SmallCache* cache_, usize fast_index_)
             : cache{cache_}, fast_index{fast_index_} {
-            AdvanceFast();
+            advanceFast();
         }
 
         iterator(SmallCache* cache, map_iter slow_it)
@@ -47,7 +47,7 @@ class SmallCache {
         iterator& operator++() {
             if (fast_index < fast_cache_size) {
                 ++fast_index;
-                AdvanceFast();
+                advanceFast();
             } else {
                 ++slow_it;
             }
@@ -71,7 +71,7 @@ class SmallCache {
         }
 
       private:
-        void AdvanceFast() {
+        void advanceFast() {
             while (fast_index < fast_cache_size &&
                    !cache->fast_cache[fast_index].has_value()) {
                 ++fast_index;
@@ -98,7 +98,7 @@ class SmallCache {
     iterator end() { return iterator(this, slow_cache.end()); }
 
     // Functions
-    usize GetCount() const {
+    usize getCount() const {
         usize count = 0;
         for (auto& entry : fast_cache) {
             if (entry.has_value())
@@ -108,13 +108,13 @@ class SmallCache {
         return count + slow_cache.size();
     }
 
-    void Clear() {
+    void clear() {
         fast_cache.fill({});
         slow_cache.clear();
     }
 
     template <typename... Args>
-    T& Insert(KeyT key, Args&&... args) {
+    T& insert(KeyT key, Args&&... args) {
         // Insert into fast cache if possible
         for (auto& entry : fast_cache) {
             if (!entry.has_value()) {
@@ -136,7 +136,7 @@ class SmallCache {
         return res.first->second;
     }
 
-    iterator Remove(iterator it) {
+    iterator remove(iterator it) {
         // Fast cache
         if (it.fast_index < fast_cache_size) {
             fast_cache[it.fast_index] = std::nullopt;
@@ -157,9 +157,9 @@ class SmallCache {
         return end();
     }
 
-    void Remove(KeyT key) { Remove(FindIter(key)); }
+    void remove(KeyT key) { remove(findIter(key)); }
 
-    iterator FindIter(KeyT key) {
+    iterator findIter(KeyT key) {
         // Fast cache
         for (u32 i = 0; i < fast_cache_size; i++) {
             if (fast_cache[i].has_value() && fast_cache[i].value().first == key)
@@ -175,20 +175,20 @@ class SmallCache {
         return end();
     }
 
-    std::optional<T*> Find(KeyT key) {
-        const auto it = FindIter(key);
+    std::optional<T*> find(KeyT key) {
+        const auto it = findIter(key);
         if (it == end())
             return std::nullopt;
 
         return &it->second;
     }
 
-    T& FindOrAdd(KeyT key) {
-        const auto opt = Find(key);
+    T& findOrAdd(KeyT key) {
+        const auto opt = find(key);
         if (opt.has_value())
             return **opt;
 
-        return Add(key);
+        return insert(key);
     }
 
   private:

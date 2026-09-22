@@ -130,7 +130,7 @@ std::expected<Plugin, Plugin::Error> Plugin::create(const std::string& path) {
     // Info
     plugin.name = plugin.queryString(api::QueryType::Name);
     plugin.display_version = plugin.queryString(api::QueryType::DisplayVersion);
-    plugin.supported_formats = Split<std::string_view>(
+    plugin.supported_formats = split<std::string_view>(
         plugin.queryString(api::QueryType::SupportedFormats), ',');
     const auto api_option_configs_buffer =
         plugin.query(api::QueryType::OptionConfigs);
@@ -149,11 +149,11 @@ std::expected<Plugin, Plugin::Error> Plugin::create(const std::string& path) {
 
         switch (api_config.type) {
         case api::OptionType::Enumeration:
-            config.enum_value_names = Split<std::string_view>(
+            config.enum_value_names = split<std::string_view>(
                 std::string_view(api_config.enum_value_names), ',');
             break;
         case api::OptionType::Path:
-            config.path_content_types = Split<std::string_view>(
+            config.path_content_types = split<std::string_view>(
                 std::string_view(api_config.path_content_types), ',');
             break;
         default:

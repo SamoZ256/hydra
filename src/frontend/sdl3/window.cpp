@@ -62,7 +62,7 @@ void Window::run() {
                     if (e.key.key == SDLK_T) {
                         system.takeScreenshot();
                     } else if (e.key.key == SDLK_O) {
-                        auto& handheld_mode = CONFIG_INSTANCE.GetHandheldMode();
+                        auto& handheld_mode = CONFIG_INSTANCE.getHandheldMode();
                         handheld_mode = !handheld_mode;
                         system.notifyOperationModeChanged();
                     } else if (e.key.key == SDLK_P) {
@@ -151,7 +151,7 @@ void Window::updateWindowTitle() {
     // TODO: title name
     const auto title =
         fmt::format("Hydra | TODO(TITLE_NAME) - 0x{:016x} | {} | {} FPS",
-                    title_id, CONFIG_INSTANCE.GetGpuRenderer(), fps_str);
+                    title_id, CONFIG_INSTANCE.getGpuRenderer(), fps_str);
     setWindowTitle(title);
 }
 

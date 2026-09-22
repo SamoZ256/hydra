@@ -5,9 +5,8 @@ namespace hydra::frontend::sdl3 {
 namespace {
 
 constexpr u64 SDL3_CURSOR_TOUCH_ID =
-    static_cast<u64>(make_magic4('S', 'D', 'L', '3')) << 32 |
-    static_cast<u64>(make_magic4('C', 'R', 'S', 'R'));
-
+    static_cast<u64>(makeMagic4('S', 'D', 'L', '3')) << 32 |
+    static_cast<u64>(makeMagic4('C', 'R', 'S', 'R'));
 }
 
 void Cursor::poll(SDL_Event e) {

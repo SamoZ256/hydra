@@ -67,8 +67,8 @@ vaddr_t IMmu::findFreeMemory(ztd::Range<vaddr_t> region, u64 size) const {
 
 bool IMmu::trackWrite(ztd::Range<vaddr_t> range) {
     const auto aligned_range =
-        ztd::Range<vaddr_t>(align_down(range.getBegin(), GUEST_PAGE_SIZE),
-                       align(range.getEnd(), GUEST_PAGE_SIZE));
+        ztd::Range<vaddr_t>(alignDown(range.getBegin(), GUEST_PAGE_SIZE),
+                            align(range.getEnd(), GUEST_PAGE_SIZE));
     if (!trySuspendWriteTracking(aligned_range))
         return false;
 

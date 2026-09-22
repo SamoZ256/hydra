@@ -15,8 +15,7 @@
 #define ZTD_ASSIGN_OR_RETURN_ERROR(var, expected)                              \
     ZTD_ASSIGN_OR_RETURN_VALUE(var, expected, std::unexpected(expected.error()))
 
-#define ZTD_ASSIGN_OR_CONTINUE(var, expected, ret)                             \
+#define ZTD_ASSIGN_OR_CONTINUE(var, expected)                                  \
     ZTD_ASSIGN_OR(var, expected, continue)
 
-#define ZTD_ASSIGN_OR_BREAK(var, expected, ret)                                \
-    ZTD_ASSIGN_OR(var, expected, break)
+#define ZTD_ASSIGN_OR_BREAK(var, expected) ZTD_ASSIGN_OR(var, expected, break)

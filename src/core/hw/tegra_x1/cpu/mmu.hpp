@@ -96,7 +96,7 @@ class IMmu {
     void writeExclusive(vaddr_t va, T value) const {
         auto ptr = unmapAddr(va);
         ASSERT_DEBUG(ptr != 0x0, Cpu, "Failed to unmap va 0x{:08x}", va);
-        atomic_store(reinterpret_cast<T*>(ptr), value);
+        atomicStore(reinterpret_cast<T*>(ptr), value);
     }
 
   protected:

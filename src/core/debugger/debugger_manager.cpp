@@ -16,14 +16,14 @@ DebuggerManager::DebuggerManager() : hydra_debugger("Hydra", HYDRA_PROCESS) {
     hydra_debugger.registerThisThread("Main");
 
     // Callback
-    LOGGER_INSTANCE.InstallCallback([this](const LogMessage& msg) {
+    LOGGER_INSTANCE.installCallback([this](const LogMessage& msg) {
         getDebuggerForCurrentProcess().logOnThisThread(msg);
     });
 }
 
 DebuggerManager::~DebuggerManager() {
     // Callback
-    LOGGER_INSTANCE.UninstallCallback();
+    LOGGER_INSTANCE.uninstallCallback();
 
     // Hydra process
     hydra_debugger.unregisterThisThread();

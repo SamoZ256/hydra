@@ -11,7 +11,8 @@ class IStorage : public IService {
     template <typename T>
     explicit IStorage(const T& data_) {
         data.resize(sizeof(T));
-        std::memcpy(data.data(), &data_, sizeof(T));
+        std::memcpy(data.data(), reinterpret_cast<const void*>(&data_),
+                    sizeof(T));
     }
 
     std::span<u8> getData() { return data; }

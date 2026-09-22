@@ -152,7 +152,7 @@ result_t IHidServer::setNpadJoyHoldType(System* system,
 result_t IHidServer::getNpadJoyHoldType(System* system,
                                         kernel::AppletResourceUserId aruid,
                                         Aligned<NpadJoyHoldType, 8>* out_type) {
-    out_type->ZeroOutPadding();
+    out_type->zeroOutPadding();
     *out_type = APPLET_RESOURCE(aruid).getJoyHoldType();
     return RESULT_SUCCESS;
 }

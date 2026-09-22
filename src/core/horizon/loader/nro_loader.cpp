@@ -50,7 +50,7 @@ NroLoader::NroLoader(filesystem::IFile* file_, const bool is_entry_point_)
     const auto header = stream->read<NroHeader>();
 
     // Validate
-    ASSERT(header.magic == make_magic4('N', 'R', 'O', '0'), Loader,
+    ASSERT(header.magic == makeMagic4('N', 'R', 'O', '0'), Loader,
            "Invalid NRO magic \"{}\"", header.magic);
 
     size = header.size;

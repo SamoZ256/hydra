@@ -31,7 +31,7 @@ class Profile {
     // Helpers
     static std::string getProfilesPath() {
         return fmt::format("{}/input_profiles",
-                           CONFIG_INSTANCE.GetAppDataPath());
+                           CONFIG_INSTANCE.getAppDataPath());
     }
 
     std::string getPath() const {

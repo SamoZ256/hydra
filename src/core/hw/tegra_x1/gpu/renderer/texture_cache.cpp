@@ -1,5 +1,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/texture_cache.hpp"
 
+#include <cstddef>
+
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/tegra_x1/gpu/memory_util.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
@@ -110,11 +112,11 @@ void TextureCache::mergeMemories(TextureMem& mem, TextureMem& other) {
     };
 
     for (auto& [group_key, other_group] : other.cache) {
-        auto group_opt = mem.cache.Find(group_key);
+        auto group_opt = mem.cache.find(group_key);
         auto& group =
-            (group_opt.has_value() ? **group_opt : mem.cache.Insert(group_key));
+            (group_opt.has_value() ? **group_opt : mem.cache.insert(group_key));
         for (auto& [storage_key, storage] : other_group.cache) {
-            group.cache.Insert(storage_key, std::move(storage));
+            group.cache.insert(storage_key, std::move(storage));
         }
     }
 }
@@ -230,10 +232,10 @@ TextureCache::addToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
     const auto storage_hash = descriptor.getStorageHash();
 
     // Check if it is a new entry
-    auto group_opt = mem.cache.Find(group_hash);
+    auto group_opt = mem.cache.find(group_hash);
     if (!group_opt.has_value()) {
-        auto& group = mem.cache.Insert(group_hash);
-        auto& storage = group.cache.Insert(storage_hash);
+        auto& group = mem.cache.insert(group_hash);
+        auto& storage = group.cache.insert(storage_hash);
         return getTexture(command_buffer, storage, mem, descriptor,
                           view_descriptor, usage);
     }
@@ -241,7 +243,7 @@ TextureCache::addToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
     auto& group = **group_opt;
 
     // Check if the storage already exists
-    auto storage_opt = group.cache.Find(storage_hash);
+    auto storage_opt = group.cache.find(storage_hash);
     if (storage_opt) {
         auto& storage = **storage_opt;
         return getTextureView(command_buffer, storage, mem, view_descriptor,
@@ -269,13 +271,13 @@ TextureCache::addToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
             const u32 min_levels = level + descriptor.level_count;
             if (other_descriptor.level_count < min_levels) {
                 // Remove the old storage
-                group.cache.Remove(key);
+                group.cache.remove(key);
 
                 // Create a new storage
                 auto new_descriptor = other_descriptor;
                 new_descriptor.level_count = min_levels;
                 auto& new_storage =
-                    group.cache.Insert(new_descriptor.getStorageHash());
+                    group.cache.insert(new_descriptor.getStorageHash());
                 updateStorage(command_buffer, new_storage, mem, new_descriptor,
                               usage);
 
@@ -349,7 +351,7 @@ TextureCache::addToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
             }
 
             overlapping_storages.emplace_back(std::move(storage), level, layer);
-            it = group.cache.Remove(it);
+            it = group.cache.remove(it);
         } else {
             ++it;
         }
@@ -361,7 +363,7 @@ TextureCache::addToMemory(ICommandBuffer* command_buffer, TextureMem& mem,
     new_descriptor.layer_count = layer_count;
 
     // Create a new storage
-    auto& storage = group.cache.Insert(storage_hash);
+    auto& storage = group.cache.insert(storage_hash);
     updateStorage(command_buffer, storage, mem, new_descriptor, usage);
 
     // Copy overlapping storages
@@ -394,12 +396,12 @@ void TextureCache::updateStorage(ICommandBuffer* command_buffer,
 ITextureView*
 TextureCache::getTextureView(TextureStorage& storage,
                              const TextureViewDescriptor& view_descriptor) {
-    auto view_opt = storage.view_cache.Find(view_descriptor.getHash());
+    auto view_opt = storage.view_cache.find(view_descriptor.getHash());
     if (view_opt.has_value())
         return **view_opt;
 
     auto view = storage.base->createView(view_descriptor);
-    storage.view_cache.Insert(view_descriptor.getHash(), view);
+    storage.view_cache.insert(view_descriptor.getHash(), view);
     return view;
 }
 
@@ -598,8 +600,10 @@ void TextureCache::decodeTexture(ICommandBuffer* command_buffer,
         const u32 rows =
             getTextureFormatRows(descriptor.format, descriptor.height);
         for (u32 row = 0; row < rows; row++) {
-            std::memcpy(out_data + row * stride,
-                        in_data + row * descriptor.linear_stride, stride);
+            std::memcpy(out_data + static_cast<usize>(row) * stride,
+                        in_data +
+                            static_cast<usize>(row) * descriptor.linear_stride,
+                        stride);
         }
     } else {
         u32 offset = 0;
@@ -626,10 +630,13 @@ void TextureCache::decodeTexture(ICommandBuffer* command_buffer,
                             if (y >= rows)
                                 break;
 
-                            const u32 crnt_offset =
-                                offset + gob_z * slice_stride + y * stride + x;
+                            const usize crnt_offset =
+                                offset +
+                                static_cast<usize>(gob_z) * slice_stride +
+                                static_cast<usize>(y) * stride + x;
                             std::memcpy(out_data + crnt_offset,
-                                        in_gob + local_y * GOB_WIDTH,
+                                        in_gob + static_cast<usize>(local_y) *
+                                                     GOB_WIDTH,
                                         std::min(GOB_WIDTH, stride - x));
                         }
                     });

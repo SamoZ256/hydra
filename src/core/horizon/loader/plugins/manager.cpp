@@ -4,8 +4,8 @@ namespace hydra::horizon::loader::plugins {
 
 void Manager::refresh() {
     plugins.clear();
-    plugins.reserve(CONFIG_INSTANCE.GetLoaderPlugins().size());
-    for (const auto& plugin_config : CONFIG_INSTANCE.GetLoaderPlugins()) {
+    plugins.reserve(CONFIG_INSTANCE.getLoaderPlugins().size());
+    for (const auto& plugin_config : CONFIG_INSTANCE.getLoaderPlugins()) {
         if (!std::filesystem::exists(plugin_config.path)) {
             LOG_ERROR(Other, "Plugin path \"{}\" does not exist",
                       plugin_config.path);
@@ -17,10 +17,14 @@ void Manager::refresh() {
             continue;
         }
 
-        (void)Plugin::create(plugin_config.path, plugin_config.options)
-            .transform([this](Plugin plugin) {
-                plugins.emplace_back(std::move(plugin));
+        ZTD_ASSIGN_OR(
+            auto plugin,
+            Plugin::create(plugin_config.path, plugin_config.options), {
+                LOG_ERROR(Loader, "Failed to initialize plugin \"{}\"",
+                          plugin_config.path);
+                continue;
             });
+        plugins.emplace_back(std::move(plugin));
     }
 }
 

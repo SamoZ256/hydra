@@ -9,7 +9,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang::
 
 namespace {
 
-std::string pixelImapTypeToStr(PixelImapType type) {
+std::string_view pixelImapTypeToStr(PixelImapType type) {
     switch (type) {
     case PixelImapType::Constant:
         return "flat";
@@ -46,7 +46,7 @@ std::string textureTypeToStr(TextureType type, bool is_depth) {
     }
 }
 
-std::string componentToStr(u8 component) {
+std::string_view componentToStr(u8 component) {
     switch (component) {
     case 0:
         return "x";
@@ -62,7 +62,7 @@ std::string componentToStr(u8 component) {
 }
 
 // TODO: adjust for individual texture types
-std::string dimensionToStr(u32 dimension) {
+std::string_view dimensionToStr(u32 dimension) {
     switch (dimension) {
     case 0:
         return "width";
@@ -142,7 +142,7 @@ void MslEmitter::emitDeclarations() {
         write("float4 position [[position]];");
         for (const auto input : memory_analyzer.getStageInputs()) {
             const auto sv = Sv(SvSemantic::UserInOut, input);
-            std::string attribute = pixelImapTypeToStr(
+            const auto attribute = pixelImapTypeToStr(
                 context.frag.pixel_imaps[input].getFirstUsedType());
             // TODO: don't hardcode the type
             write("float4 {} [[{}{}{}]];", getSvStr(sv),
@@ -360,7 +360,7 @@ void MslEmitter::emitBitfieldExtract(const ir::Value& dst,
                                      const ir::Value& src_a,
                                      const ir::Value& src_b,
                                      const ir::Value& src_c) {
-    storeValue(dst, "extract_bits({}, {}, {})", getValueStr(src_a),
+    storeValue(dst, "extractBits({}, {}, {})", getValueStr(src_a),
                getValueStr(src_b), getValueStr(src_c));
 }
 

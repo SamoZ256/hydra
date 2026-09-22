@@ -4,8 +4,8 @@
 
 namespace hydra::horizon::kernel::hipc::cmif {
 
-constexpr u32 IN_HEADER_MAGIC = make_magic4('S', 'F', 'C', 'I');
-constexpr u32 OUT_HEADER_MAGIC = make_magic4('S', 'F', 'C', 'O');
+constexpr u32 IN_HEADER_MAGIC = makeMagic4('S', 'F', 'C', 'I');
+constexpr u32 OUT_HEADER_MAGIC = makeMagic4('S', 'F', 'C', 'O');
 
 enum class DomainCommandType : u8 {
     Invalid = 0,
@@ -84,7 +84,7 @@ inline void writeDomainOutHeader(ztd::io::MemoryStream& stream) {
 
 template <typename T>
 inline T* alignDataStart(T* data_start) {
-    return AlignPtr(data_start, 0x10); // align to 16 bytes
+    return alignPtr(data_start, 0x10); // align to 16 bytes
 }
 
 } // namespace hydra::horizon::kernel::hipc::cmif
