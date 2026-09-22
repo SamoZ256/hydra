@@ -7,6 +7,13 @@ option(ZTD_PRECOMPILE_HEADERS "Precompile the main ztd header" OFF)
 option(ZTD_CLANG_TIDY_ENABLED "Enable clang-tidy" ON)
 option(ZTD_FMT_ENABLED "Enable fmt support for some types" OFF)
 
+if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    set(ZTD_LINT_TARGET_DEFAULT ON)
+else ()
+    set(ZTD_LINT_TARGET_DEFAULT OFF)
+endif ()
+option(ZTD_LINT_TARGET "Add the ztd-lint target" ${ZTD_LINT_TARGET_DEFAULT})
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -101,6 +108,19 @@ target_include_directories(ztd PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 if (ZTD_PRECOMPILE_HEADERS)
     target_precompile_headers(ztd PUBLIC src/ztd/ztd.hpp)
+endif ()
+
+set(ZTD_LINT_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/tools/lint.py CACHE INTERNAL "")
+
+find_package(Python3 COMPONENTS Interpreter QUIET)
+if (ZTD_LINT_TARGET AND Python3_FOUND)
+    add_custom_target(ztd-lint
+        COMMAND ${Python3_EXECUTABLE} ${ZTD_LINT_SCRIPT} ${CMAKE_BINARY_DIR}
+                --sources "${CMAKE_CURRENT_SOURCE_DIR}/.*\\.(cpp|mm)"
+                --header-filter "${CMAKE_CURRENT_SOURCE_DIR}/.*"
+        USES_TERMINAL
+        VERBATIM
+    )
 endif ()
 
 add_library(ztd::ztd ALIAS ztd)

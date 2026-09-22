@@ -43,6 +43,15 @@ else ()
 endif ()
 
 option(CLANG_TIDY_ENABLED "Enable clang-tidy" ON)
+
+if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    set(HYDRA_LINT_TARGET_DEFAULT ON)
+else ()
+    set(HYDRA_LINT_TARGET_DEFAULT OFF)
+endif ()
+option(HYDRA_LINT_TARGET "Add the hydra-lint target" ${HYDRA_LINT_TARGET_DEFAULT})
+set(HYDRA_LINT_EXTRA_BUILD_DIRS "" CACHE STRING
+    "Extra build directories to include in hydra-lint (e.g. a second frontend)")
 option(CUBEB_ENABLED "Enable the cubeb audio backend" ON)
 option(SDL_ENABLED "Enable building SDL files" ON)
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
