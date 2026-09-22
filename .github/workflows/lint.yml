@@ -58,11 +58,10 @@ jobs:
                   cd hydra
                   dirs=()
                   for d in $BUILD_DIRS; do dirs+=("../$d"); done
+                  scope=(--sources "$PWD/src/.*\.(cpp|mm)" --header-filter "$PWD/src/.*")
                   if [[ -n "${{ inputs.diff-base }}" ]]; then
                     git fetch --no-tags origin ${{ github.base_ref }}
-                    scope=(--diff "${{ inputs.diff-base }}")
-                  else
-                    scope=(--sources "$PWD/src/.*\.(cpp|mm)" --header-filter "$PWD/src/.*")
+                    scope+=(--diff "${{ inputs.diff-base }}")
                   fi
                   python3 src/ztd/tools/lint.py "${dirs[@]}" "${scope[@]}" \
                     --color always -warnings-as-errors='*'

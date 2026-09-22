@@ -136,6 +136,12 @@ def check_compiles(entry):
         )
 
 
+def git_root(start):
+    r = subprocess.run(["git", "rev-parse", "--show-toplevel"], cwd=start,
+                       capture_output=True, text=True)
+    return r.stdout.strip() if r.returncode == 0 else ""
+
+
 def changed_files(rev, root):
     r = subprocess.run(
         ["git", "diff", "--name-only", "--diff-filter=d", rev],
@@ -243,9 +249,7 @@ def main():
     check_compiles(entries[0])
     cwd = a.cwd or os.path.commonpath([os.path.dirname(e["file"]) for e in entries])
 
-    root = subprocess.run(
-        ["git", "rev-parse", "--show-toplevel"], cwd=cwd, capture_output=True, text=True
-    ).stdout.strip()
+    root = git_root(cwd) or git_root(os.path.dirname(os.path.realpath(__file__)))
 
     if a.diff is not None:
         if not root:
