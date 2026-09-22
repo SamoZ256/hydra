@@ -232,7 +232,8 @@ def main():
 
     runner = shutil.which("run-clang-tidy")
     if runner is None:
-        sys.exit("lint: run-clang-tidy not found in PATH")
+        sys.exit("lint: run-clang-tidy not found; it ships with LLVM, so add "
+                 "that toolchain's bin directory to PATH")
 
     out_dir = a.out or os.path.join(a.build_dirs[0], "lint")
     os.makedirs(out_dir, exist_ok=True)

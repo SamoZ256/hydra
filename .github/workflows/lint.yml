@@ -34,7 +34,9 @@ jobs:
                   fetch-depth: ${{ inputs.diff-base != '' && '0' || '1' }}
 
             - name: Install dependencies
-              run: brew install llvm boost fmt sdl3
+              run: |
+                  brew install llvm boost fmt sdl3
+                  echo "$(brew --prefix llvm)/bin" >> $GITHUB_PATH
 
             - name: Configure
               run: |
