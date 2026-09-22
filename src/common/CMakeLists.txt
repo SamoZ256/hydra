@@ -26,6 +26,7 @@ if (HYDRA_LINT_TARGET AND Python3_FOUND AND ZTD_LINT_SCRIPT)
                 ${CMAKE_BINARY_DIR} ${HYDRA_LINT_EXTRA_BUILD_DIRS}
                 --sources "${CMAKE_SOURCE_DIR}/src/.*\\.(cpp|mm)"
                 --header-filter "${CMAKE_SOURCE_DIR}/src/.*"
+                --changed
         USES_TERMINAL
         VERBATIM
     )

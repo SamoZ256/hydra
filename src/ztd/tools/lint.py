@@ -47,6 +47,9 @@ def strip_pch(args, cache):
         if PCH_RE.search(a):
             i += 1
             continue
+        if a.startswith("@") and a.endswith(".modmap"):
+            i += 1
+            continue
         out.append(a)
         i += 1
     return out

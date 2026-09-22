@@ -8,18 +8,31 @@ on:
         paths:
             - "**"
             - "!.github/**"
-            - ".github/workflows/ci.yml"
+            - ".github/workflows/build.yml"
             - "!**.md"
 
     pull_request:
         paths:
             - "**"
             - "!.github/**"
-            - ".github/workflows/ci.yml"
+            - ".github/workflows/build.yml"
             - "!**.md"
 
 jobs:
+    lint:
+        if: github.event_name == 'pull_request'
+
+        permissions:
+            contents: read
+
+        uses: ./.github/workflows/lint.yml
+        with:
+            diff-base: origin/${{ github.base_ref }}
+
     build-macos:
+        needs: lint
+        if: ${{ !cancelled() && (needs.lint.result == 'success' || needs.lint.result == 'skipped') }}
+
         permissions:
             contents: read
 

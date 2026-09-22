@@ -1,0 +1,66 @@
+name: Lint
+
+on:
+    workflow_call:
+        inputs:
+            diff-base:
+                description: "Lint only lines changed against this ref; empty means the whole tree"
+                type: string
+                default: ""
+            configs:
+                description: "Space separated Frontend:BuildType trees to configure and lint"
+                type: string
+                default: "SDL3:Debug"
+
+jobs:
+    lint:
+        permissions:
+            contents: read
+
+        runs-on: macos-latest
+
+        steps:
+            - name: Set Xcode version
+              uses: maxim-lobanov/setup-xcode@v1
+              with:
+                  xcode-version: latest-stable
+
+            - name: Checkout Hydra
+              uses: actions/checkout@v6
+              with:
+                  repository: SamoZ256/hydra
+                  submodules: recursive
+                  path: hydra
+                  fetch-depth: ${{ inputs.diff-base != '' && '0' || '1' }}
+
+            - name: Install dependencies
+              run: brew install llvm boost fmt sdl3
+
+            - name: Configure
+              run: |
+                  dirs=""
+                  for config in ${{ inputs.configs }}; do
+                    frontend=${config%%:*}
+                    build_type=${config##*:}
+                    cmake hydra -B "build-$frontend-$build_type" \
+                      -DCMAKE_BUILD_TYPE=$build_type \
+                      -DCLANG_TIDY_ENABLED=OFF \
+                      -DFRONTEND=$frontend \
+                      -GNinja
+                    dirs="$dirs build-$frontend-$build_type"
+                  done
+                  echo "BUILD_DIRS=$dirs" >> $GITHUB_ENV
+
+            - name: Lint
+              run: |
+                  cd hydra
+                  dirs=()
+                  for d in $BUILD_DIRS; do dirs+=("../$d"); done
+                  if [[ -n "${{ inputs.diff-base }}" ]]; then
+                    git fetch --no-tags origin ${{ github.base_ref }}
+                    scope=(--diff "${{ inputs.diff-base }}")
+                  else
+                    scope=(--sources "$PWD/src/.*\.(cpp|mm)" --header-filter "$PWD/src/.*")
+                  fi
+                  python3 src/ztd/tools/lint.py "${dirs[@]}" "${scope[@]}" \
+                    --color always -warnings-as-errors='*'

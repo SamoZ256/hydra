@@ -1,0 +1,15 @@
+name: Nightly lint
+
+on:
+    workflow_dispatch:
+    schedule:
+        - cron: "0 3 * * *"
+
+jobs:
+    lint-full:
+        permissions:
+            contents: read
+
+        uses: ./.github/workflows/lint.yml
+        with:
+            configs: "SwiftUI:Release SDL3:Debug"

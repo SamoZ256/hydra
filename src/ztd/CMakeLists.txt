@@ -118,6 +118,7 @@ if (ZTD_LINT_TARGET AND Python3_FOUND)
         COMMAND ${Python3_EXECUTABLE} ${ZTD_LINT_SCRIPT} ${CMAKE_BINARY_DIR}
                 --sources "${CMAKE_CURRENT_SOURCE_DIR}/.*\\.(cpp|mm)"
                 --header-filter "${CMAKE_CURRENT_SOURCE_DIR}/.*"
+                --changed
         USES_TERMINAL
         VERBATIM
     )
