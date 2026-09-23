@@ -19,7 +19,7 @@ class SmallCache {
         friend class SmallCache;
 
       public:
-        using map_iter = typename std::map<KeyT, T>::iterator;
+        using map_iter = std::map<KeyT, T>::iterator;
 
         using iterator_category = std::forward_iterator_tag;
         using value_type = std::pair<const KeyT, T>;

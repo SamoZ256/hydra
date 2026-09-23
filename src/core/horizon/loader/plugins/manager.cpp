@@ -17,11 +17,11 @@ void Manager::refresh() {
             continue;
         }
 
-        ZTD_ASSIGN_OR(
+        ZTD_ASSIGN_WITH_ERROR_OR(
             auto plugin,
             Plugin::create(plugin_config.path, plugin_config.options), {
-                LOG_ERROR(Loader, "Failed to initialize plugin \"{}\"",
-                          plugin_config.path);
+                LOG_ERROR(Loader, "Failed to initialize plugin \"{}\": {}",
+                          plugin_config.path, error);
                 continue;
             });
         plugins.emplace_back(std::move(plugin));

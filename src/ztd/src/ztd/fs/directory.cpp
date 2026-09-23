@@ -9,7 +9,7 @@ auto Directory::openDirectory(const std::string& rel_path,
     if (fd == -1)
         return std::unexpected(getPosixError());
 
-    return {fd};
+    return Directory{fd};
 }
 
 auto Directory::openFile(const std::string& rel_path,
@@ -20,7 +20,7 @@ auto Directory::openFile(const std::string& rel_path,
     if (fd == -1)
         return std::unexpected(getPosixError());
 
-    return {fd};
+    return File{fd};
 }
 
 auto Directory::createFile(const std::string& rel_path,
@@ -32,7 +32,7 @@ auto Directory::createFile(const std::string& rel_path,
     if (fd == -1)
         return std::unexpected(getPosixError());
 
-    return {fd};
+    return File{fd};
 }
 
 auto Directory::getPosixOpenFlags(OpenFlags flags) noexcept -> i32 {

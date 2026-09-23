@@ -559,12 +559,8 @@ HYDRA_EXPORT void* hydraCreateLoaderPlugin(HydraString path) {
     return hydra::horizon::loader::plugins::Plugin::create(
                std::string(stringViewFromHydraString(path)))
         .transform([](hydra::horizon::loader::plugins::Plugin plugin) {
-            // HACK
-            auto ptr =
-                reinterpret_cast<hydra::horizon::loader::plugins::Plugin*>(
-                    malloc(sizeof(hydra::horizon::loader::plugins::Plugin)));
-            *ptr = std::move(plugin);
-            return ptr;
+            return new hydra::horizon::loader::plugins::Plugin(
+                std::move(plugin));
         })
         .value_or(nullptr);
 }

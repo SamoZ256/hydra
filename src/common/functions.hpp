@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <charconv>
 #include <cxxabi.h>
@@ -85,8 +86,8 @@ constexpr u32 makeMagic4(const char c0, const char c1, const char c2,
 inline std::string toLower(const std::string_view str) {
     // TODO: make this more efficient?
     std::string result;
-    std::transform(str.begin(), str.end(), std::back_inserter(result),
-                   [](unsigned char c) { return std::tolower(c); });
+    std::ranges::transform(str, std::back_inserter(result),
+                           [](unsigned char c) { return std::tolower(c); });
 
     return result;
 }
@@ -94,8 +95,8 @@ inline std::string toLower(const std::string_view str) {
 inline std::string toUpper(const std::string_view str) {
     // TODO: make this more efficient?
     std::string result;
-    std::transform(str.begin(), str.end(), std::back_inserter(result),
-                   [](unsigned char c) { return std::toupper(c); });
+    std::ranges::transform(str, std::back_inserter(result),
+                           [](unsigned char c) { return std::toupper(c); });
 
     return result;
 }

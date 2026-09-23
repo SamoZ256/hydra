@@ -43,7 +43,8 @@ u64 Cursor::getNextEndedTouchId() {
 void Cursor::getTouchPosition(u64 id, i32& out_x, i32& out_y) {
     ASSERT_DEBUG(id == SDL3_CURSOR_TOUCH_ID, SDL3Window,
                  "Invalid SDL3 cursor touch id 0x{:016x}", id);
-    f32 cursor_x, cursor_y;
+    f32 cursor_x;
+    f32 cursor_y;
     SDL_GetMouseState(&cursor_x, &cursor_y);
     out_x = static_cast<i32>(cursor_x);
     out_y = static_cast<i32>(cursor_y);

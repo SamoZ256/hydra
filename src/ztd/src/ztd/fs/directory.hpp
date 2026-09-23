@@ -11,7 +11,7 @@ class Directory {
         DontFollowSymlinks = ZTD_BIT(0),
     };
 
-    Directory(i32 handle_) noexcept : handle{handle_} {}
+    explicit Directory(i32 handle_) noexcept : handle{handle_} {}
     ~Directory() noexcept {
         if (handle >= 0)
             close(handle);
@@ -46,7 +46,9 @@ class Directory {
 
 ZTD_ENABLE_ENUM_BITWISE_OPERATORS(Directory::OpenFlags);
 
-[[nodiscard]] constexpr auto cwd() noexcept -> Directory { return {AT_FDCWD}; }
+[[nodiscard]] constexpr auto cwd() noexcept -> Directory {
+    return Directory{AT_FDCWD};
+}
 
 // TODO: allow std::string_view
 [[nodiscard]] auto openDirectoryAbsolute(const std::string& path,

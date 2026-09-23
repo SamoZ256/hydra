@@ -144,12 +144,16 @@ class Config {
     static uuid_t getDefaultUserId() {
         return 0x0; // TODO: INVALID_USER_ID
     }
-    static std::string getDefaultDeviceNickname() { return "Hydra's Switch"; }
+    static constexpr std::string_view getDefaultDeviceNickname() {
+        return "Hydra's Switch";
+    }
     static SystemLanguage getDefaultSystemLanguage() {
         return SystemLanguage::AmericanEnglish;
     }
-    static std::string getDefaultSystemLocation() { return "auto"; }
-    static std::string getDefaultFirmwarePath() { return ""; }
+    static constexpr std::string_view getDefaultSystemLocation() {
+        return "auto";
+    }
+    static constexpr std::string_view getDefaultFirmwarePath() { return ""; }
     std::string getDefaultSdCardPath() const {
         return fmt::format("{}/sdmc", app_data_path);
     }

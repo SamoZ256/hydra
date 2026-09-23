@@ -24,7 +24,7 @@ class AppletBase {
     // Data
     ztd::io::MemoryStream popInDataRaw() {
         auto data = controller.popInData()->getData();
-        return {data};
+        return ztd::io::MemoryStream{data};
     }
 
     template <typename T>
@@ -52,7 +52,7 @@ class AppletBase {
         // TODO: wait
         // controller.GetInteractiveInDataEvent().Wait();
         auto data = controller.popInteractiveInData()->getData();
-        return {data};
+        return ztd::io::MemoryStream{data};
     }
 
     template <typename T>

@@ -310,16 +310,16 @@ void Config::deserialize() {
     }
     if (data.contains("System")) {
         const auto& system = data.at("System");
-        device_nickname = toml::find_or<std::string>(
+        device_nickname = toml::find_or<std::string_view>(
             system, "device_nickname", getDefaultDeviceNickname());
         system_language =
             toml::find_or<std::optional<SystemLanguage>>(
                 system, "system_language", getDefaultSystemLanguage())
                 .value_or(getDefaultSystemLanguage());
-        system_location = toml::find_or<std::string>(
+        system_location = toml::find_or<std::string_view>(
             system, "system_location", getDefaultSystemLocation());
-        firmware_path = toml::find_or<std::string>(system, "firmware_path",
-                                                   getDefaultFirmwarePath());
+        firmware_path = toml::find_or<std::string_view>(
+            system, "firmware_path", getDefaultFirmwarePath());
         sd_card_path = toml::find_or<std::string>(system, "sd_card_path",
                                                   getDefaultSdCardPath());
         save_path = toml::find_or<std::string>(system, "save_path",

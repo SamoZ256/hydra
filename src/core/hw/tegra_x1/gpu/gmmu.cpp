@@ -21,6 +21,7 @@ uptr GMmu::createAddressSpace(ztd::Range<vaddr_t> range, uptr gpu_addr) {
         // Write tracking
         mmu->enableWriteTracking(range);
     } else {
+        // NOLINTNEXTLINE(cppcoreguidelines-no-malloc)
         ptr = reinterpret_cast<uptr>(malloc(range.getSize()));
     }
 

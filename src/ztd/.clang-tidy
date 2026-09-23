@@ -31,10 +31,14 @@ Checks: >
   -readability-else-after-return,
   -readability-avoid-nested-conditional-operator,
   -readability-math-missing-parentheses,
-  -readability-redundant-declaration
+  -readability-redundant-declaration,
+
+  -bugprone-macro-parentheses
 WarningsAsErrors: '*'
 HeaderFilterRegex: '.*'
 CheckOptions:
+  readability-simplify-boolean-expr.IgnoreMacros: true
+
   readability-identifier-naming.FunctionCase: camelBack
   readability-identifier-naming.MethodCase: camelBack
   readability-identifier-naming.IgnoreMainLikeFunctions: true

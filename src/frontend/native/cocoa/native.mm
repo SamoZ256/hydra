@@ -3,7 +3,7 @@
 #import <Cocoa/Cocoa.h>
 #import <dispatch/dispatch.h>
 
-typedef void (*TextInputCallback)(const char* text, void* user_data);
+using TextInputCallback = void (*)(const char* text, void* user_data);
 
 @interface TextInputDelegate : NSObject <NSTextFieldDelegate>
 @property(strong) NSAlert* alert;
@@ -56,7 +56,7 @@ typedef void (*TextInputCallback)(const char* text, void* user_data);
     } else {
         // Cancel button pressed or dialog closed
         if (self.callback != nullptr) {
-            self.callback(NULL, self.userData);
+            self.callback(nullptr, self.userData);
         }
     }
 }
@@ -83,7 +83,7 @@ struct Result {
     bool ok;
 };
 
-static void textInputCallback(const char* text, void* user_data) {
+void textInputCallback(const char* text, void* user_data) {
     auto result = reinterpret_cast<Result*>(user_data);
 
     std::unique_lock lock(result->mutex);

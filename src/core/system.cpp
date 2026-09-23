@@ -277,6 +277,7 @@ void System::loadAndStart(horizon::loader::ILoader* loader) {
                     gpu.getRenderer().allocateTemporaryBuffer(size);
                 std::memcpy(reinterpret_cast<void*>(tmp_buffer->getPtr()), data,
                             size);
+                // NOLINTNEXTLINE(cppcoreguidelines-no-malloc)
                 free(data);
                 texture->copyFrom(command_buffer.get(), tmp_buffer);
                 gpu.getRenderer().freeTemporaryBuffer(tmp_buffer);
@@ -323,6 +324,7 @@ void System::loadAndStart(horizon::loader::ILoader* loader) {
                     startup_movie.push_back(
                         {.base = texture, .view = texture_view});
                 }
+                // NOLINTNEXTLINE(cppcoreguidelines-no-malloc)
                 free(data);
 
                 // Extend the last frame's time

@@ -16,7 +16,8 @@ using hydra::input::apple_gc::DeviceList;
 @implementation DeviceListImpl
 
 - (id)initWithParent:(DeviceList*)parent {
-    if ((self = [super init]) != nullptr) {
+    self = [super init];
+    if (self != nullptr) {
         self.parent = parent;
 
         // Notifications

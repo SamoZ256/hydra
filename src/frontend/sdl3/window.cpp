@@ -79,7 +79,8 @@ void Window::run() {
 
         if (system.isRunning()) {
             // Present
-            i32 width, height;
+            i32 width;
+            i32 height;
             SDL_GetWindowSize(window, &width, &height);
             bool dt_average_updated;
             system.progressFrame(static_cast<u32>(width),

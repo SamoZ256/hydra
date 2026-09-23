@@ -13,6 +13,7 @@ namespace hydra {
 template <typename Underlying, typename T, u64 b, u64 count>
 class BitField {
   public:
+    // NOLINTNEXTLINE(cppcoreguidelines-explicit-constructor)
     operator T() { return get(); }
 
     T get() const { return static_cast<T>(extractBits(raw, b, count)); }
@@ -32,6 +33,7 @@ template <typename T, u32 component_count>
 class Vector {
   public:
     constexpr Vector() = default;
+    // NOLINTBEGIN(cppcoreguidelines-explicit-constructor)
     constexpr Vector(const T& value) {
         for (u32 i = 0; i < component_count; i++)
             components[i] = value;
@@ -44,6 +46,7 @@ class Vector {
         for (u32 i = 0; i < component_count; i++)
             components[i] = static_cast<T>(other[i]);
     }
+    // NOLINTEND(cppcoreguidelines-explicit-constructor)
 
     bool operator==(const Vector<T, component_count>& other) const {
         for (u32 i = 0; i < component_count; i++) {
@@ -222,6 +225,7 @@ struct Rect2D {
         : origin{origin_}, size{size_} {}
 
     template <typename OtherOrigin, typename OtherSize>
+    // NOLINTNEXTLINE(cppcoreguidelines-explicit-constructor)
     Rect2D(const Rect2D<OtherOrigin, OtherSize>& other)
         : origin{other.origin}, size{other.size} {}
 };
@@ -238,6 +242,7 @@ class Aligned {
     static_assert(sizeof(T) <= alignment);
 
     Aligned() = default;
+    // NOLINTBEGIN(cppcoreguidelines-explicit-constructor)
     Aligned(const T& value_) : value{value_} {}
     Aligned& operator=(const T& new_value) {
         value = new_value;
@@ -246,6 +251,7 @@ class Aligned {
 
     operator T&() { return value; }
     operator const T&() const { return value; }
+    // NOLINTEND(cppcoreguidelines-explicit-constructor)
 
     void zeroOutPadding() { std::fill(padding.begin(), padding.end(), 0); }
 
@@ -262,6 +268,7 @@ template <typename T>
 class strong_typedef {
   public:
     strong_typedef() : value{} {}
+    // NOLINTBEGIN(cppcoreguidelines-explicit-constructor)
     strong_typedef(const T& value_) : value{value_} {}
 
     strong_typedef<T>& operator=(const T& new_value) {
@@ -271,6 +278,7 @@ class strong_typedef {
 
     operator T&() { return value; }
     operator const T&() const { return value; }
+    // NOLINTEND(cppcoreguidelines-explicit-constructor)
 
   private:
     T value;
@@ -286,6 +294,7 @@ template <typename T>
 class strong_number_typedef {
   public:
     constexpr strong_number_typedef() : value{} {}
+    // NOLINTBEGIN(cppcoreguidelines-explicit-constructor)
     // HACK: allow casting from any integer
     constexpr strong_number_typedef(u64 value_)
         requires std::is_unsigned_v<T>
@@ -311,6 +320,7 @@ class strong_number_typedef {
 
     operator T&() { return value; }
     operator const T&() const { return value; }
+    // NOLINTEND(cppcoreguidelines-explicit-constructor)
 
   private:
     T value;
@@ -324,8 +334,11 @@ class strong_number_typedef {
 
 template <typename Subclass, typename T, typename DescriptorT>
 class CacheBase {
-  public:
+    friend Subclass;
+
     CacheBase() noexcept = default;
+
+  public:
     ~CacheBase() noexcept {
         for (auto& [key, value] : cache) {
             THIS->destroyElement(value);
@@ -384,7 +397,7 @@ struct fmt::formatter<hydra::Vector<T, component_count>>
             if (i != component_count - 1)
                 str += ", ";
         }
-        str += ")";
+        str += ')';
         return formatter<string_view>::format(str, ctx);
     }
 };

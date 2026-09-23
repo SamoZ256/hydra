@@ -21,8 +21,10 @@ class Memory : public IMemory {
     uptr ptr;
 
     // Helpers
+    // NOLINTBEGIN(cppcoreguidelines-no-malloc)
     void allocate() { ptr = reinterpret_cast<uptr>(malloc(getSize())); }
     void free() const { ::free(reinterpret_cast<void*>(ptr)); }
+    // NOLINTEND(cppcoreguidelines-no-malloc)
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::dynarmic

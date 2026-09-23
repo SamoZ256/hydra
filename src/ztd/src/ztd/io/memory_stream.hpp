@@ -6,7 +6,7 @@ namespace ztd::io {
 
 class MemoryStream : public IContinuousStream {
   public:
-    MemoryStream(std::span<u8> data_) noexcept : data{data_} {}
+    explicit MemoryStream(std::span<u8> data_) noexcept : data{data_} {}
     ~MemoryStream() noexcept override = default;
 
     ZTD_MAKE_DEFAULT_COPYABLE(MemoryStream);

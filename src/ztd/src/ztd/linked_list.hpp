@@ -13,10 +13,12 @@ class LinkedList {
         friend class LinkedList;
 
       public:
-        SinglyNode(T value_) noexcept : value{std::move(value_)} {}
+        explicit SinglyNode(T value_) noexcept : value{std::move(value_)} {}
 
+        // NOLINTBEGIN(cppcoreguidelines-explicit-constructor)
         operator T&() noexcept { return value; }
         operator const T&() const noexcept { return value; }
+        // NOLINTEND(cppcoreguidelines-explicit-constructor)
         auto operator->() const noexcept -> const T* { return &value; }
         auto operator->() noexcept -> T* { return &value; }
 
@@ -37,10 +39,12 @@ class LinkedList {
         friend class LinkedList;
 
       public:
-        DoublyNode(T value_) noexcept : value{std::move(value_)} {}
+        explicit DoublyNode(T value_) noexcept : value{std::move(value_)} {}
 
+        // NOLINTBEGIN(cppcoreguidelines-explicit-constructor)
         operator T&() noexcept { return value; }
         operator const T&() const noexcept { return value; }
+        // NOLINTEND(cppcoreguidelines-explicit-constructor)
         auto operator->() const noexcept -> const T* { return &value; }
         auto operator->() noexcept -> T* { return &value; }
 
@@ -61,10 +65,9 @@ class LinkedList {
         std::optional<DoublyNode*> prev{};
     };
 
-    using Node =
-        typename std::conditional_t<is_doubly_linked, DoublyNode, SinglyNode>;
+    using Node = std::conditional_t<is_doubly_linked, DoublyNode, SinglyNode>;
 
-    LinkedList(
+    explicit LinkedList(
         mem::IAllocator& allocator_ = mem::getDefaultAllocator()) noexcept
         : allocator{allocator_} {}
     ~LinkedList() noexcept { clear(); }

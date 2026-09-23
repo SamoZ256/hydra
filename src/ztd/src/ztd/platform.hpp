@@ -2,7 +2,7 @@
 
 // Compiler
 
-#if defined(__clang__)
+#ifdef __clang__
 #define ZTD_COMPILER_CLANG
 #elifdef __GNUC__
 #define ZTD_COMPILER_GCC

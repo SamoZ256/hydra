@@ -70,6 +70,7 @@ uchar4* loadGif(filesystem::IFile* file,
     out_delays.reserve(static_cast<usize>(out_frame_count));
     for (u32 i = 0; i < out_frame_count; i++)
         out_delays.emplace_back(delays_ms[i]);
+    // NOLINTNEXTLINE(cppcoreguidelines-no-malloc)
     free(delays_ms);
 
     return data;

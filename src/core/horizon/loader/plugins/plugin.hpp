@@ -188,3 +188,9 @@ class Plugin {
 };
 
 } // namespace hydra::horizon::loader::plugins
+
+ENABLE_ENUM_FORMATTING(hydra::horizon::loader::plugins::Plugin::Error,
+                       LoadFailed, "load failed", UnsupportedApiVersion,
+                       "unsupported API version", InvalidOptions,
+                       "invalid options", ContextCreationFailed,
+                       "context creation failed")

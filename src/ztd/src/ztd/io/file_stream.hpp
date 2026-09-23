@@ -8,7 +8,7 @@ namespace ztd::io {
 
 class FileStream : public IStream {
   public:
-    FileStream(const ztd::fs::File& file_) noexcept : file{file_} {}
+    explicit FileStream(const ztd::fs::File& file_) noexcept : file{file_} {}
 
     [[nodiscard]] auto getSeek() const noexcept -> u64 override {
         return static_cast<u64>(lseek(file.getHandle(), 0, SEEK_CUR));

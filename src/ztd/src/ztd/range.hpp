@@ -30,37 +30,42 @@ class Range {
         end -= offset;
     }
 
-    constexpr auto getBegin() const noexcept -> T { return begin; }
+    [[nodiscard]] constexpr auto getBegin() const noexcept -> T {
+        return begin;
+    }
     constexpr auto setBegin(T begin_) noexcept { begin = begin_; }
 
-    constexpr auto getEnd() const noexcept -> T { return end; }
+    [[nodiscard]] constexpr auto getEnd() const noexcept -> T { return end; }
     constexpr auto setEnd(T end_) noexcept { end = end_; }
 
-    constexpr auto getSize() const noexcept -> T { return end - begin; }
+    [[nodiscard]] constexpr auto getSize() const noexcept -> T {
+        return end - begin;
+    }
     constexpr auto setSize(T size) noexcept { end = begin + size; }
 
     // Intersection
-    constexpr auto contains(T value) const noexcept -> bool {
+    [[nodiscard]] constexpr auto contains(T value) const noexcept -> bool {
         return value >= begin && value < end;
     }
-    constexpr auto contains(const ztd::Range<T>& other) const noexcept -> bool {
+    [[nodiscard]] constexpr auto
+    contains(const ztd::Range<T>& other) const noexcept -> bool {
         return other.begin >= begin && other.end <= end;
     }
 
-    constexpr auto intersects(const ztd::Range<T>& other) const noexcept
-        -> bool {
+    [[nodiscard]] constexpr auto
+    intersects(const ztd::Range<T>& other) const noexcept -> bool {
         return begin < other.end && end > other.begin;
     }
 
     // Combining
-    constexpr auto clampedTo(const ztd::Range<T>& bounds) const noexcept
-        -> ztd::Range<T> {
+    [[nodiscard]] constexpr auto
+    clampedTo(const ztd::Range<T>& bounds) const noexcept -> ztd::Range<T> {
         return ztd::Range<T>(std::max(begin, bounds.begin),
                              std::min(end, bounds.end));
     }
 
-    constexpr auto merged(const ztd::Range<T>& other) const noexcept
-        -> ztd::Range<T> {
+    [[nodiscard]] constexpr auto
+    merged(const ztd::Range<T>& other) const noexcept -> ztd::Range<T> {
         return ztd::Range<T>(std::min(begin, other.begin),
                              std::max(end, other.end));
     }

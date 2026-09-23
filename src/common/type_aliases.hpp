@@ -4,20 +4,22 @@
 
 namespace hydra {
 
-using i8 = ztd::i8;
-using i16 = ztd::i16;
-using i32 = ztd::i32;
-using i64 = ztd::i64;
-using i128 = ztd::i128;
-using u8 = ztd::u8;
-using u16 = ztd::u16;
-using u32 = ztd::u32;
-using u64 = ztd::u64;
-using u128 = ztd::u128;
-using usize = ztd::usize;
-using uptr = ztd::uptr;
-using f32 = ztd::f32;
-using f64 = ztd::f64;
+// clang-format off
+using ztd::i8;
+using ztd::i16;
+using ztd::i32;
+using ztd::i64;
+using ztd::i128;
+using ztd::u8;
+using ztd::u16;
+using ztd::u32;
+using ztd::u64;
+using ztd::u128;
+using ztd::usize;
+using ztd::uptr;
+using ztd::f32;
+using ztd::f64;
+// clang-format on
 
 using bool32 = u32;
 

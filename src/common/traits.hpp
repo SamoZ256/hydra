@@ -17,7 +17,7 @@ struct function_traits<R(Args...)> {
 
     template <usize N>
     struct arg {
-        using type = typename std::tuple_element<N, std::tuple<Args...>>::type;
+        using type = std::tuple_element_t<N, std::tuple<Args...>>;
     };
 
     using args_tuple = std::tuple<Args...>;

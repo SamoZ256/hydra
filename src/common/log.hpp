@@ -174,17 +174,17 @@ class Logger {
     ZTD_MAKE_NON_MOVABLE(Logger);
 
     void installCallback(const log_callback_fn_t& callback_) {
-        std::lock_guard lock(mutex);
+        std::scoped_lock lock(mutex);
         callback = callback_;
     }
 
     void uninstallCallback() {
-        std::lock_guard lock(mutex);
+        std::scoped_lock lock(mutex);
         callback = std::nullopt;
     }
 
     void setOutput(const LogOutput output_) {
-        std::lock_guard lock(mutex);
+        std::scoped_lock lock(mutex);
         output = output_;
     }
 
@@ -193,7 +193,7 @@ class Logger {
              const std::string_view function, fmt::format_string<T...> f,
              T&&... args) {
         {
-            std::lock_guard lock(mutex);
+            std::scoped_lock lock(mutex);
 
             switch (output) {
             case LogOutput::None:
@@ -273,6 +273,7 @@ class Logger {
                 is_in_callback = true;
                 (*callback)(LogMessage{
                     level, c, std::string(file), line, std::string(function),
+                    // NOLINTNEXTLINE(bugprone-use-after-move)
                     fmt::format(f, std::forward<T>(args)...)});
                 is_in_callback = false;
             }
@@ -283,12 +284,12 @@ class Logger {
     using clock_t = std::chrono::high_resolution_clock;
 
     std::mutex mutex;
-    std::optional<std::ofstream> ofs{};
+    std::optional<std::ofstream> ofs;
 
-    std::optional<log_callback_fn_t> callback{};
+    std::optional<log_callback_fn_t> callback;
     LogOutput output{LogOutput::StdOut};
 
-    clock_t::time_point start_time{};
+    clock_t::time_point start_time;
 
     void ensureOutputStream();
 };

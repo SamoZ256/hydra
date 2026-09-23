@@ -63,6 +63,8 @@ Checks: >
 WarningsAsErrors: ''
 HeaderFilterRegex: '.*'
 CheckOptions:
+  readability-simplify-boolean-expr.IgnoreMacros: true
+
   readability-identifier-naming.FunctionCase: camelBack
   readability-identifier-naming.MethodCase: camelBack
   readability-identifier-naming.IgnoreMainLikeFunctions: true

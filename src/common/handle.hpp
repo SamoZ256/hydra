@@ -11,6 +11,7 @@ struct Handle {
     }
 
     constexpr Handle() noexcept = default;
+    // NOLINTNEXTLINE(cppcoreguidelines-explicit-constructor)
     constexpr Handle(u32 raw_) noexcept : raw{raw_} {}
 
     bool operator==(Handle other) const noexcept { return raw == other.raw; }

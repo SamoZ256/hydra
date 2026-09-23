@@ -29,7 +29,7 @@ class File {
     };
 
     File() noexcept = default;
-    File(i32 handle_) noexcept : handle{handle_} {}
+    explicit File(i32 handle_) noexcept : handle{handle_} {}
     ~File() noexcept {
         if (handle >= 0)
             close(handle);
