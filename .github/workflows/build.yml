@@ -9,6 +9,7 @@ on:
             - "**"
             - "!.github/**"
             - ".github/workflows/build.yml"
+            - ".github/workflows/lint.yml"
             - "!**.md"
 
     pull_request:
@@ -16,6 +17,7 @@ on:
             - "**"
             - "!.github/**"
             - ".github/workflows/build.yml"
+            - ".github/workflows/lint.yml"
             - "!**.md"
 
 jobs:
@@ -30,9 +32,6 @@ jobs:
             diff-base: origin/${{ github.base_ref }}
 
     build-macos:
-        needs: lint
-        if: ${{ !cancelled() && (needs.lint.result == 'success' || needs.lint.result == 'skipped') }}
-
         permissions:
             contents: read
 
@@ -43,7 +42,6 @@ jobs:
                     - suffix: macOS ARM64 - SwiftUI - Release
                     - suffix: macOS ARM64 - SwiftUI - Debug
                     - suffix: macOS ARM64 - SDL - Release
-                    - suffix: macOS x86-64 - SwiftUI - Release
 
         runs-on: macos-latest
 
@@ -64,27 +62,7 @@ jobs:
 
             - name: Install dependencies
               run: |
-                  echo "Installing dependencies"
-                  brew install llvm dylibbundler
-
-                  if [[ "${{ matrix.suffix }}" == *"x86-64"* ]]; then
-                    echo "Installing x86-64 dependencies under Rosetta"
-
-                    arch -x86_64 /bin/bash -c '
-                      export HOMEBREW_PREFIX=/usr/local
-                      export PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
-
-                      if ! command -v brew >/dev/null; then
-                        echo "Installing Intel Homebrew"
-                        NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-                      fi
-
-                      brew install boost fmt sdl3
-                    '
-                  else
-                    echo "Installing ARM64 dependencies"
-                    brew install boost fmt sdl3
-                  fi
+                  brew install llvm dylibbundler boost fmt sdl3
 
             - name: Verify CMake version
               run: cmake --version
@@ -101,16 +79,11 @@ jobs:
                   else
                     echo "FRONTEND_MODE=SDL3" >> $GITHUB_ENV
                   fi
-                  if [[ "${{ matrix.suffix }}" == *"x86-64"* ]]; then
-                    echo "ARCH=x86_64" >> $GITHUB_ENV
-                  else
-                    echo "ARCH=arm64" >> $GITHUB_ENV
-                  fi
 
             - name: Build Hydra
               run: |
                   cmake hydra -B build \
-                    -DCMAKE_OSX_ARCHITECTURES=${{ env.ARCH }} \
+                    -DCMAKE_OSX_ARCHITECTURES=arm64 \
                     -DCMAKE_BUILD_TYPE=${{ env.BUILD_MODE }} \
                     -DCLANG_TIDY_ENABLED=OFF \
                     -DMACOS_BUNDLE=ON \
