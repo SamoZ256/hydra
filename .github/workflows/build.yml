@@ -5,20 +5,7 @@ on:
     push:
         branches:
             - main
-        paths:
-            - "**"
-            - "!.github/**"
-            - ".github/workflows/build.yml"
-            - ".github/workflows/lint.yml"
-            - "!**.md"
-
     pull_request:
-        paths:
-            - "**"
-            - "!.github/**"
-            - ".github/workflows/build.yml"
-            - ".github/workflows/lint.yml"
-            - "!**.md"
 
 jobs:
     lint:
