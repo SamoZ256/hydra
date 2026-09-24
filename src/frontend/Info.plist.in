@@ -56,14 +56,14 @@
 		</dict>
 		<dict>
 			<key>CFBundleTypeName</key>
-			<string>Hydra pATCH</string>
+			<string>Hydra patch</string>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
 			<key>LSHandlerRank</key>
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>com.samoz256.hatch-document</string>
+				<string>com.samoz256.patch-document</string>
 			</array>
 		</dict>
 	</array>
@@ -91,18 +91,19 @@
         </dict>
         <dict>
             <key>UTTypeIdentifier</key>
-            <string>com.samoz256.hatch-document</string>
+            <string>com.samoz256.patch-document</string>
             <key>UTTypeConformsTo</key>
             <array>
                 <string>public.data</string>
             </array>
             <key>UTTypeDescription</key>
-            <string>Hydra pATCH</string>
+            <string>Hydra patch</string>
             <key>UTTypeTagSpecification</key>
             <dict>
                 <key>public.filename-extension</key>
                 <array>
-                    <string>hatch</string>
+                    <string>pchtxt</string>
+                    <string>ips</string>
                 </array>
             </dict>
         </dict>

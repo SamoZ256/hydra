@@ -147,7 +147,7 @@ endif ()
 include_directories(SYSTEM externals/elf/include)
 
 # toml11
-#add_subdirectory(externals/toml11 SYSTEM) # Hatch already uses toml11
+add_subdirectory(externals/toml11 SYSTEM)
 
 # dynarmic
 add_subdirectory(externals/dynarmic SYSTEM)
@@ -161,9 +161,6 @@ endif ()
 
 # luft
 #add_subdirectory(externals/luft SYSTEM)
-
-# hatch
-add_subdirectory(externals/hatch SYSTEM)
 
 # libyaz0
 add_subdirectory(externals/libyaz0 SYSTEM)
