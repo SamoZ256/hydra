@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/horizon/filesystem/patch/patch.hpp"
 #include "core/horizon/os.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/wall_clock.hpp"
@@ -68,6 +69,9 @@ class System {
 
     bool loading{false};
 
+    // Patches
+    horizon::filesystem::patch::Collection patch_collection;
+
     // Process
     horizon::kernel::Process* main_process{nullptr};
 
@@ -75,11 +79,6 @@ class System {
     f32 last_dt_average{0.0f};
     horizon::display::AccumulatedTime accumulated_dt;
     clock_t::time_point last_dt_averaging_time{clock_t::now()};
-
-    // Helpers
-    static void tryApplyPatch(horizon::kernel::Process* process,
-                              const std::string_view target_filename,
-                              const std::filesystem::path& path);
 
   public:
     GETTER(ui_handler, getUiHandler);
@@ -89,6 +88,7 @@ class System {
     REF_GETTER(input_device_manager, getInputDeviceManager);
     audio::ICore& getAudioCore() { return *audio_core; }
     REF_GETTER(os, getOs);
+    REF_GETTER(patch_collection, getPatchCollection);
 };
 
 } // namespace hydra

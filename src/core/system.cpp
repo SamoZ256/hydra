@@ -3,15 +3,6 @@
 #include <fmt/chrono.h>
 #include <stb_image_write.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-
-#include <cstddef>
-#include <hatch/hatch.hpp>
-
-#pragma GCC diagnostic pop
-
 #include "core/audio/null/core.hpp"
 #include "core/horizon/applets/album/const.hpp"
 #include "core/horizon/applets/const.hpp"
@@ -101,6 +92,7 @@ void System::loadAndStart(horizon::loader::ILoader* loader) {
     ASSERT(main_process == nullptr, Other, "Process already exists");
     main_process =
         os.getKernel().getProcessManager().createProcess("Guest process");
+    patch_collection.scan(CONFIG_INSTANCE.getPatchPaths());
     loader->loadProcess(*this, main_process);
 
     // Check for firmware applets
@@ -335,30 +327,6 @@ void System::loadAndStart(horizon::loader::ILoader* loader) {
 
     LOG_INFO(Other, "-------- Title info --------");
     LOG_INFO(Other, "Title ID: {:016x}", loader->getTitleId());
-
-    // Patch
-    const auto target_patch_filename =
-        fmt::format("{:016x}.hatch", loader->getTitleId());
-    // TODO: iterate recursively
-    for (const auto& patch_path : CONFIG_INSTANCE.getPatchPaths()) {
-        if (!std::filesystem::exists(patch_path)) {
-            LOG_ERROR(Other, "Patch path does not exist: {}", patch_path);
-            continue;
-        }
-
-        if (!std::filesystem::is_directory(patch_path)) {
-            // File
-            tryApplyPatch(main_process, target_patch_filename, patch_path);
-        } else {
-            // Directory
-            // TODO: iterate recursively
-            for (const auto& dir_entry :
-                 std::filesystem::directory_iterator{patch_path}) {
-                tryApplyPatch(main_process, target_patch_filename,
-                              dir_entry.path().string());
-            }
-        }
-    }
 
     LOG_INFO(Other, "-------- Config --------");
     CONFIG_INSTANCE.log();
@@ -636,29 +604,6 @@ void System::takeScreenshot() {
 void System::captureGpuFrame() {
     // TODO: allow multiple frames
     gpu.getRenderer().captureFrames(1);
-}
-
-void System::tryApplyPatch(horizon::kernel::Process* process,
-                           const std::string_view target_filename,
-                           const std::filesystem::path& path) {
-    if (toLower(path.filename().string()) != target_filename)
-        return;
-
-    LOG_INFO(Other, "Applying patch \"{}\"", path.string());
-
-    std::ifstream ifs(path);
-
-    // Deserialize
-    Hatch::Deserializer deserializer;
-    deserializer.Deserialize(ifs);
-
-    const auto& hatch = deserializer.GetHatch();
-
-    // Memory patch
-    for (const auto& entry : hatch.GetMemoryPatch())
-        process->getMmu()->write<u32>(entry.addr, entry.value);
-
-    ifs.close();
 }
 
 } // namespace hydra
