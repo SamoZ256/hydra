@@ -31,7 +31,7 @@ jobs:
         with:
             diff-base: origin/${{ github.base_ref }}
 
-    build-macos:
+    build-macos-matrix:
         permissions:
             contents: read
 
@@ -112,3 +112,19 @@ jobs:
                   name: Hydra - ${{ matrix.suffix }}
                   path: Hydra - ${{ matrix.suffix }}.dmg
                   if-no-files-found: error
+
+    build-macos:
+        needs: build-macos-matrix
+        if: ${{ !cancelled() }}
+
+        permissions: {}
+
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Check build results
+              run: |
+                  if [[ "${{ needs.build-macos-matrix.result }}" != "success" ]]; then
+                    echo "build-macos-matrix: ${{ needs.build-macos-matrix.result }}"
+                    exit 1
+                  fi
