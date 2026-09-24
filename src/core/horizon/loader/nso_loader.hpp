@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/horizon/filesystem/patch/const.hpp"
 #include "core/horizon/loader/loader.hpp"
 
 namespace hydra::horizon::loader {
@@ -29,6 +30,7 @@ class NsoLoader : public ILoader {
     std::string name;
     const bool is_entry_point;
 
+    filesystem::patch::BuildId build_id;
     u32 text_offset;
     u64 executable_size{0};
     struct {

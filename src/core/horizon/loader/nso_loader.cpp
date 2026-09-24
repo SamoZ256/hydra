@@ -1,5 +1,8 @@
 #include "core/horizon/loader/nso_loader.hpp"
 
+#include "core/horizon/filesystem/patch/patch.hpp"
+#include "core/system.hpp"
+
 #include "core/debugger/debugger_manager.hpp"
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/kernel/process.hpp"
@@ -94,6 +97,7 @@ NsoLoader::NsoLoader(filesystem::IFile* file_, const std::string_view name_,
            "Invalid NSO magic");
 
     text_offset = header.text.memory_offset;
+    std::memcpy(build_id.data(), header.module_id, build_id.size());
 
     // Segments
     segments[0] = {.seg = header.text,
@@ -154,6 +158,10 @@ void NsoLoader::loadProcess(System& system, kernel::Process* process) {
         readSegment(stream, ptr, segment.seg, segment.file_size,
                     segment.compressed);
     }
+
+    // Patches
+    system.getPatchCollection().apply(
+        build_id, std::span(reinterpret_cast<u8*>(ptr), executable_size));
 
     // Arg data
     // TODO: don't hardcode

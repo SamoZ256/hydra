@@ -10,9 +10,6 @@
 [submodule "externals/luft"]
 	path = externals/luft
 	url = https://github.com/SamoZ256/luft.git
-[submodule "externals/hatch"]
-	path = externals/hatch
-	url = https://github.com/SamoZ256/hatch.git
 [submodule "externals/cubeb"]
 	path = externals/cubeb
 	url = https://github.com/SamoZ256/cubeb.git
