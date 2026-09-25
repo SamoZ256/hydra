@@ -360,7 +360,7 @@ void MslEmitter::emitBitfieldExtract(const ir::Value& dst,
                                      const ir::Value& src_a,
                                      const ir::Value& src_b,
                                      const ir::Value& src_c) {
-    storeValue(dst, "extractBits({}, {}, {})", getValueStr(src_a),
+    storeValue(dst, "extract_bits({}, {}, {})", getValueStr(src_a),
                getValueStr(src_b), getValueStr(src_c));
 }
 
