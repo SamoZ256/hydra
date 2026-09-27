@@ -7,7 +7,7 @@ struct GeneralSettingsView: View {
     @State private var patchPaths: [String] = []
 
     private let switchType = UTType(exportedAs: "com.samoz256.switch-document", conformingTo: .data)
-    private let hatchType = UTType(exportedAs: "com.samoz256.hatch-document", conformingTo: .data)
+    private let patchType = UTType(exportedAs: "com.samoz256.patch-document", conformingTo: .data)
 
     var body: some View {
         Spacer()
@@ -32,7 +32,7 @@ struct GeneralSettingsView: View {
 
                 Section("Patch paths") {
                     EditablePathList(
-                        allowedContentTypes: [.folder, self.hatchType], items: self.$patchPaths
+                        allowedContentTypes: [.folder, self.patchType], items: self.$patchPaths
                     )
                     .onChange(of: self.patchPaths) { _, newValue in
                         let patchPathsOption = configGetPatchPaths()

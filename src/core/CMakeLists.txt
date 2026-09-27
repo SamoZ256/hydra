@@ -68,6 +68,13 @@ add_library(hydra-core
     horizon/filesystem/romfs/builder.hpp
     horizon/filesystem/romfs/romfs.cpp
     horizon/filesystem/romfs/romfs.hpp
+    horizon/filesystem/patch/const.hpp
+    horizon/filesystem/patch/patch.cpp
+    horizon/filesystem/patch/patch.hpp
+    horizon/filesystem/patch/pchtxt.cpp
+    horizon/filesystem/patch/pchtxt.hpp
+    horizon/filesystem/patch/ips.cpp
+    horizon/filesystem/patch/ips.hpp
     horizon/loader/loader.cpp
     horizon/loader/loader.hpp
     horizon/loader/nro_loader.cpp
@@ -709,7 +716,7 @@ endif ()
 
 target_include_directories(hydra-core SYSTEM PRIVATE ${CMAKE_SOURCE_DIR}/externals/libyaz0/include)
 # TODO: only link Apple frameworks if Apple
-target_link_libraries(hydra-core PRIVATE hydra_compile_options "-framework Foundation" "-framework Metal" "-framework QuartzCore" "-framework GameController" dynarmic hatch libyaz0 nx2elf date::date date::date-tz hydra-common)
+target_link_libraries(hydra-core PRIVATE hydra_compile_options "-framework Foundation" "-framework Metal" "-framework QuartzCore" "-framework GameController" dynarmic libyaz0 nx2elf date::date date::date-tz hydra-common)
 
 if (HYPERVISOR_ENABLED)
     target_link_libraries(hydra-core PRIVATE "-framework Hypervisor")
