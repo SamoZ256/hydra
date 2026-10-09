@@ -1,10 +1,7 @@
 #pragma once
 
 #include "core/debugger/gdb_server.hpp"
-
-namespace hydra {
-class System;
-}
+#include "core/debugger/target.hpp"
 
 namespace hydra::horizon::kernel {
 class GuestThread;
@@ -69,7 +66,6 @@ enum class ThreadStatus {
 };
 
 class Thread {
-    friend class GdbServer;
     friend class Debugger;
 
   public:
@@ -93,6 +89,7 @@ class Thread {
 
     ThreadStatus status{ThreadStatus::Running};
     std::string break_reason;
+    thread_id_t target_thread_id{invalid<thread_id_t>()};
 
     std::mutex msg_mutex;
     std::vector<Message> messages;
@@ -131,12 +128,11 @@ class SymbolTable {
 };
 
 class Debugger {
-    friend class GdbServer;
     friend class DebuggerManager;
 
   public:
-    Debugger(const std::string_view name_, horizon::kernel::Process* process_)
-        : name{name_}, process{process_} {}
+    Debugger(const std::string_view name_,
+             horizon::kernel::Process* process_);
     ~Debugger() noexcept = default;
 
     void registerExecutable(const std::string_view exe_name,
@@ -158,11 +154,16 @@ class Debugger {
     SymbolTable& getModuleTable() { return module_table; }
     SymbolTable& getFunctionTable() { return function_table; }
 
-    // GDB
-    void activateGdbServer(System& system);
-    void notifySupervisorPaused(horizon::kernel::GuestThread* thread,
-                                Signal signal);
-    void breakpointHit(horizon::kernel::GuestThread* thread);
+    // Execution
+    void activateGdbServer();
+    void notifyHalted(horizon::kernel::GuestThread* thread,
+                      hw::tegra_x1::cpu::HaltReason reason);
+
+    bool hasTarget() const { return target.has_value(); }
+    Target& getTarget() {
+        ASSERT_DEBUG(target.has_value(), Debugger, "No target");
+        return target.value();
+    }
 
     // API
     void lock() { mutex.lock(); }
@@ -187,6 +188,7 @@ class Debugger {
     SymbolTable module_table;
     SymbolTable function_table;
 
+    std::optional<Target> target;
     std::optional<GdbServer> gdb_server;
 
     void logOnThisThread(const LogMessage& msg);
@@ -194,9 +196,14 @@ class Debugger {
 
     // Helpers
     StackTrace getStackTrace(Thread& thread);
+    void onHaltStateChanged(thread_id_t id,
+                            std::optional<hw::tegra_x1::cpu::HaltReason> reason,
+                            bool first_stop);
+    Thread* findThreadByTargetId(thread_id_t id);
 
   public:
     CONST_REF_GETTER(name, getName);
+    CONST_REF_GETTER(executables, getExecutables);
 };
 
 } // namespace hydra::debugger

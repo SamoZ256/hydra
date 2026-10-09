@@ -48,6 +48,8 @@ class Thread : public IThread {
 
     void run() override;
 
+    void notifyMemoryChanged(ztd::Range<vaddr_t> mem_range) override;
+
     void setupVTimer();
 
     void updateVTimer();

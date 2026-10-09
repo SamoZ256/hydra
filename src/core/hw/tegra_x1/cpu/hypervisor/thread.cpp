@@ -1,5 +1,7 @@
 #include "core/hw/tegra_x1/cpu/hypervisor/thread.hpp"
 
+#include <libkern/OSCacheControl.h>
+
 #include <mach/mach_time.h>
 #include <thread>
 
@@ -227,16 +229,15 @@ void Thread::run() {
                 LOG_FATAL(Hypervisor, "SMC");
                 break;
             case ExceptionClass::BrkAarch64:
-                GET_CURRENT_PROCESS_DEBUGGER().breakOnThisThread(
-                    "BRK instruction");
-                return;
+                callbacks.halted(HaltReason::BrkInstruction);
+                break;
             case ExceptionClass::DataAbortLowerEl: {
                 LOG_FATAL(Hypervisor, "This should not happen");
                 break;
             }
             case ExceptionClass::BreakpointLowerEl: {
                 // Callback
-                callbacks.breakpoint_hit();
+                callbacks.halted(HaltReason::Breakpoint);
                 break;
             }
             case ExceptionClass::SoftwareStepLowerEl: {
@@ -252,7 +253,7 @@ void Thread::run() {
                 setSysReg(HV_SYS_REG_MDSCR_EL1, mdscr_el1);
 
                 // Callback
-                callbacks.supervisor_pause();
+                callbacks.halted(HaltReason::StepComplete);
                 break;
             }
             default:
@@ -282,6 +283,21 @@ void Thread::run() {
 
         if (callbacks.stop_requested())
             break;
+    }
+}
+
+void Thread::notifyMemoryChanged(ztd::Range<vaddr_t> mem_range) {
+    auto va = mem_range.getBegin();
+    while (va < mem_range.getEnd()) {
+        const auto next_page = (va / GUEST_PAGE_SIZE + 1) * GUEST_PAGE_SIZE;
+        const auto chunk_end = std::min(next_page, mem_range.getEnd());
+
+        const auto ptr = MMU.unmapAddr(va);
+        if (ptr != 0x0)
+            sys_icache_invalidate(reinterpret_cast<void*>(ptr),
+                                  chunk_end - va);
+
+        va = chunk_end;
     }
 }
 
@@ -399,12 +415,6 @@ void Thread::processMessages() {
         case ThreadMessageType::RemoveBreakpoint: {
             const auto addr = message.payload.remove_breakpoint.addr;
 
-            // Disable breakpoints
-            // TODO: disable when no breakpoints are active?
-            u64 mdscr_el1 = getSysReg(HV_SYS_REG_MDSCR_EL1);
-            mdscr_el1 &= ~MDSCR_EL1_MDE;
-            setSysReg(HV_SYS_REG_MDSCR_EL1, mdscr_el1);
-
             // Find the breakpoint slot
             bool found = false;
             for (u32 slot = 0; slot < MAX_BREAKPOINTS; ++slot) {
@@ -430,6 +440,14 @@ void Thread::processMessages() {
                     "Failed to remove breakpoint at address 0x{:08x}: no such "
                     "breakpoint",
                     addr);
+
+            // Disable breakpoints if none remain
+            if (std::ranges::all_of(breakpoints,
+                                    [](vaddr_t bp) { return bp == 0x0; })) {
+                u64 mdscr_el1 = getSysReg(HV_SYS_REG_MDSCR_EL1);
+                mdscr_el1 &= ~MDSCR_EL1_MDE;
+                setSysReg(HV_SYS_REG_MDSCR_EL1, mdscr_el1);
+            }
             break;
         }
         case ThreadMessageType::SingleStep: {

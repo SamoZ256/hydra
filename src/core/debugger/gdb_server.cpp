@@ -11,16 +11,7 @@
 
 #include "core/debugger/debugger_manager.hpp"
 #include "core/horizon/filesystem/file.hpp"
-#include "core/horizon/kernel/guest_thread.hpp"
-#include "core/horizon/kernel/process.hpp"
-#include "core/hw/tegra_x1/cpu/cpu.hpp"
-#include "core/hw/tegra_x1/cpu/mmu.hpp"
 #include "core/hw/tegra_x1/cpu/thread.hpp"
-#include "core/system.hpp"
-
-#define GET_THREAD_ID(thread) reinterpret_cast<u64>(thread)
-#define GET_THREAD_FROM_ID(id)                                                 \
-    reinterpret_cast<horizon::kernel::GuestThread*>(id)
 
 namespace hydra::debugger {
 
@@ -46,8 +37,6 @@ constexpr u32 PC_REGISTER = 32;
 [[maybe_unused]] constexpr u32 Q0_REGISTER = 34;
 [[maybe_unused]] constexpr u32 FPSR_REGISTER = 66;
 [[maybe_unused]] constexpr u32 FPCR_REGISTER = 67;
-
-constexpr u32 BRK = 0xd4200000;
 
 enum class BreakpointType {
     Software = 0,
@@ -228,8 +217,7 @@ ENABLE_ENUM_FORMATTING(hydra::debugger::BreakpointType, Software, "software",
 
 namespace hydra::debugger {
 
-GdbServer::GdbServer(System& system_, Debugger& debugger_)
-    : system{system_}, debugger{debugger_} {
+GdbServer::GdbServer(Debugger& debugger_) : debugger{debugger_} {
     const u16 port = CONFIG_INSTANCE.getGdbPort();
 
     // Create the socket
@@ -272,8 +260,9 @@ GdbServer::GdbServer(System& system_, Debugger& debugger_)
     LOG_INFO(Debugger, "GDB server started on port {}", port);
 
     // Thread ID
-    ASSERT(!debugger.threads.empty(), Debugger, "No active thread");
-    crnt_thread = debugger.threads.begin()->second.guest_thread;
+    const auto thread_ids = getTarget().getThreadIds();
+    ASSERT(!thread_ids.empty(), Debugger, "No active thread");
+    crnt_thread_id = thread_ids.front();
 }
 
 GdbServer::~GdbServer() {
@@ -282,33 +271,16 @@ GdbServer::~GdbServer() {
     close(server_socket);
 }
 
-void GdbServer::notifySupervisorPaused(horizon::kernel::GuestThread* thread,
-                                       Signal signal) {
+void GdbServer::notifyHalted(thread_id_t id,
+                            hw::tegra_x1::cpu::HaltReason reason) {
     std::scoped_lock lock(mutex);
-    notifySupervisorPausedImpl(thread, signal);
-}
+    if (client_socket == -1)
+        return;
 
-void GdbServer::registerThread(Thread& thread) {
-    if (system.getCpu().getFeatures().supports_native_breakpoints) {
-        std::scoped_lock lock(mutex);
-        for (const auto addr : breakpoint_addresses)
-            thread.guest_thread->getThread()->insertBreakpoint(addr);
-    }
-}
+    crnt_thread_id = id;
 
-void GdbServer::breakpointHit(horizon::kernel::GuestThread* thread) {
-    while (breakpoint_hit.exchange(true))
-        thread->processMessages();
-
-    // We got the lock
-    {
-        std::scoped_lock lock(mutex);
-        breakpoint_thread = thread;
-
-        debugger.process->supervisorPause();
-
-        notifySupervisorPausedImpl(thread, Signal::SigTrap);
-    }
+    if (const auto status = getThreadStatus(id, signalFromHaltReason(reason)))
+        sendPacket(status.value());
 }
 
 void GdbServer::closeClientSocket() {
@@ -339,7 +311,7 @@ void GdbServer::poll() {
         if (new_client != -1) {
             client_socket = new_client;
             setNonBlocking(client_socket);
-            debugger.process->supervisorPause();
+            getTarget().pauseAll();
         }
     } else {
         char buffer[1024];
@@ -398,7 +370,7 @@ void GdbServer::handleCommand(std::string_view command) {
         handleQuery(body);
         break;
     case 'k':
-        debugger.process->stop();
+        getTarget().stop();
         closeClientSocket();
         break;
     case 'H':
@@ -410,13 +382,20 @@ void GdbServer::handleCommand(std::string_view command) {
     case 'p':
         handleRegRead(body);
         break;
+    case 'g':
+        handleRegReadAll();
+        break;
+    case 'P':
+        handleRegWrite(body);
+        break;
     case 'm':
         handleMemRead(body);
         break;
+    case 'M':
+        handleMemWrite(body);
+        break;
     case 'c':
-        debugger.process->supervisorResume();
-        breakpoint_thread = nullptr;
-        breakpoint_hit = false;
+        getTarget().resumeAll();
         break;
     case 'Z':
         handleInsertBreakpoint(body);
@@ -437,7 +416,7 @@ void GdbServer::handleVCont(std::string_view command) {
         return;
     }
 
-    horizon::kernel::GuestThread* thread = nullptr;
+    auto step_thread_id = invalid<thread_id_t>();
     bool lock_execution = true; // TODO: what is this?
 
     usize pos = 1;
@@ -457,9 +436,10 @@ void GdbServer::handleVCont(std::string_view command) {
         case 'S': {
             const auto thread_id_str = entry.substr(entry.find(':') + 1);
             ZTD_ASSIGN_OR(
-                const auto thread_id, fromChars<u64>(thread_id_str, 16),
+                const auto thread_id, fromChars<i64>(thread_id_str, 16),
                 LOG_FATAL(Debugger, "Invalid thread ID {}", thread_id_str));
-            thread = GET_THREAD_FROM_ID(thread_id);
+            if (thread_id > 0)
+                step_thread_id = static_cast<thread_id_t>(thread_id);
             break;
         }
         default:
@@ -470,22 +450,16 @@ void GdbServer::handleVCont(std::string_view command) {
     } while (pos != std::string::npos);
 
     // TODO: how does this work?
-    if (thread != nullptr) {
+    if (step_thread_id != invalid<thread_id_t>()) {
         // TODO: implement
         ASSERT_DEBUG(lock_execution, Debugger,
                      "Non-locked execution not implemented");
-        crnt_thread = thread;
+        crnt_thread_id = step_thread_id;
 
-        thread->getThread()->singleStep();
-        if (system.getCpu().getFeatures().supports_synchronous_single_step) {
-            // Single-stepping already finished
-            notifySupervisorPausedImpl(thread, Signal::SigTrap);
-        } else {
-            // Resume the thread for asynchronous single-stepping
-            thread->supervisorResume();
-        }
+        if (!getTarget().stepThread(step_thread_id))
+            sendPacket(GDB_ERROR);
     } else {
-        debugger.process->supervisorResume();
+        getTarget().resumeAll();
     }
 }
 
@@ -499,11 +473,11 @@ void GdbServer::handleQuery(std::string_view command) {
                    "qXfer:libraries:read+;"
                    "vContSupported+;QStartNoAckMode+");
     } else if (command.starts_with("fThreadInfo")) { // TODO: ==?
+        const auto ids = getTarget().getThreadIds();
         std::vector<std::string> thread_ids;
-        thread_ids.reserve(debugger.threads.size());
-        for (const auto& [_, thread] : debugger.threads)
-            thread_ids.push_back(
-                fmt::format("{:x}", GET_THREAD_ID(thread.guest_thread)));
+        thread_ids.reserve(ids.size());
+        for (const auto id : ids)
+            thread_ids.push_back(fmt::format("{:x}", id));
         sendPacket(fmt::format("m{}", fmt::join(thread_ids, ",")));
     } else if (command.starts_with("sThreadInfo")) { // TODO: ==?
         // TODO: why?
@@ -513,7 +487,7 @@ void GdbServer::handleQuery(std::string_view command) {
         sendPacket(pageFromBuffer(target_xml, command.substr(30)));
     } else if (command.starts_with("Xfer:libraries:read::")) {
         std::string output = R"(<?xml version="1.0"?><library-list>)";
-        for (const auto& symbol : debugger.module_table.getSymbols()) {
+        for (const auto& symbol : debugger.getModuleTable().getSymbols()) {
             // TODO: what's the purpose of this?
             // TODO: number_to_hex?
             output += fmt::format(
@@ -532,30 +506,99 @@ void GdbServer::handleQuery(std::string_view command) {
 
 void GdbServer::handleSetActiveThread(std::string_view command) {
     const auto thread_id_str = command.substr(1);
-    ZTD_ASSIGN_OR(const auto thread_id, fromChars<u64>(thread_id_str, 16),
+    ZTD_ASSIGN_OR(const auto thread_id, fromChars<i64>(thread_id_str, 16),
                   LOG_FATAL(Debugger, "Invalid thread ID {}", thread_id_str));
-    const auto thread = GET_THREAD_FROM_ID(thread_id);
-    if (thread != nullptr) {
-        // TODO: check if thread is valid
-        // if (debugger.threads.contains(thread)) {
-        //    crnt_thread = thread;
-        //    SendPacket(GDB_OK);
-        //} else {
-        //    SendPacket(GDB_ERROR);
-        //}
-        crnt_thread = thread;
+
+    // Any thread
+    if (thread_id <= 0) {
         sendPacket(GDB_OK);
+        return;
     }
+
+    const auto id = static_cast<thread_id_t>(thread_id);
+    if (!getTarget().hasThread(id)) {
+        sendPacket(GDB_ERROR);
+        return;
+    }
+
+    crnt_thread_id = id;
+    sendPacket(GDB_OK);
 }
 
 void GdbServer::handleThreadStatus() {
-    sendPacket(getThreadStatus(crnt_thread, Signal::SigTrap));
+    auto reason = hw::tegra_x1::cpu::HaltReason::Fault;
+    const auto signal = getTarget().tryGetHaltReason(crnt_thread_id, reason)
+                            ? signalFromHaltReason(reason)
+                            : Signal::SigTrap;
+
+    if (const auto status = getThreadStatus(crnt_thread_id, signal))
+        sendPacket(status.value());
+    else
+        sendPacket(GDB_ERROR);
 }
 
 void GdbServer::handleRegRead(std::string_view command) {
     ZTD_ASSIGN_OR(const auto id, fromChars<u32>(command, 16),
                   LOG_FATAL(Debugger, "Invalid reg ID {}", command));
-    sendPacket(readReg(id));
+
+    std::optional<std::string> hex;
+    {
+        auto stopped = getTarget().tryAcquireStoppedThread(crnt_thread_id);
+        if (stopped)
+            hex = formatReg(stopped->getState(), id);
+    }
+
+    if (hex)
+        sendPacket(hex.value());
+    else
+        sendPacket(GDB_ERROR);
+}
+
+void GdbServer::handleRegReadAll() {
+    std::optional<std::string> output;
+    {
+        auto stopped = getTarget().tryAcquireStoppedThread(crnt_thread_id);
+        if (stopped) {
+            output.emplace();
+            output->reserve(static_cast<usize>(FPCR_REGISTER + 1) * 16);
+            for (u32 id = 0; id <= FPCR_REGISTER; id++) {
+                const auto hex = formatReg(stopped->getState(), id);
+                if (!hex) {
+                    output.reset();
+                    break;
+                }
+
+                *output += hex.value();
+            }
+        }
+    }
+
+    if (output)
+        sendPacket(output.value());
+    else
+        sendPacket(GDB_ERROR);
+}
+
+void GdbServer::handleRegWrite(std::string_view command) {
+    const auto eq_pos = command.find('=');
+    if (eq_pos == std::string_view::npos) {
+        sendPacket(GDB_ERROR);
+        return;
+    }
+
+    const auto id_str = command.substr(0, eq_pos);
+    const auto value_str = command.substr(eq_pos + 1);
+    ZTD_ASSIGN_OR(const auto id, fromChars<u32>(id_str, 16),
+                  LOG_FATAL(Debugger, "Invalid reg ID {}", id_str));
+
+    bool ok = false;
+    {
+        auto stopped = getTarget().tryAcquireStoppedThread(crnt_thread_id);
+        if (stopped)
+            ok = tryParseReg(stopped->getState(), id, value_str);
+    }
+
+    sendPacket(ok ? GDB_OK : GDB_ERROR);
 }
 
 void GdbServer::handleMemRead(std::string_view command) {
@@ -567,31 +610,54 @@ void GdbServer::handleMemRead(std::string_view command) {
     ZTD_ASSIGN_OR(const auto size, fromChars<u64>(size_str, 16),
                   LOG_FATAL(Debugger, "Invalid size {}", size_str));
 
+    std::vector<u8> data(size);
+    if (!getTarget().tryReadMemory(addr, std::span(data))) {
+        sendPacket(GDB_ERROR);
+        return;
+    }
+
     std::string output;
     output.reserve(size * 2);
-    const auto mmu = debugger.process->getMmu();
+    for (const auto value : data)
+        output += fmt::format("{:02x}", value);
+
+    sendPacket(output);
+}
+
+void GdbServer::handleMemWrite(std::string_view command) {
+    const auto comma_pos = command.find(',');
+    const auto colon_pos = command.find(':', comma_pos);
+    if (comma_pos == std::string_view::npos ||
+        colon_pos == std::string_view::npos) {
+        sendPacket(GDB_ERROR);
+        return;
+    }
+
+    const auto addr_str = command.substr(0, comma_pos);
+    const auto size_str =
+        command.substr(comma_pos + 1, colon_pos - comma_pos - 1);
+    const auto data_str = command.substr(colon_pos + 1);
+    ZTD_ASSIGN_OR(const auto addr, fromChars<u64>(addr_str, 16),
+                  LOG_FATAL(Debugger, "Invalid address {}", addr_str));
+    ZTD_ASSIGN_OR(const auto size, fromChars<u64>(size_str, 16),
+                  LOG_FATAL(Debugger, "Invalid size {}", size_str));
+
+    if (data_str.size() < size * 2) {
+        sendPacket(GDB_ERROR);
+        return;
+    }
+
+    std::vector<u8> data(size);
     for (u64 i = 0; i < size; i++) {
-        const auto crnt_addr = addr + i;
-
-        // Check for replaced instructions
-        const auto it = replaced_instructions.find(crnt_addr);
-        if (it != replaced_instructions.end()) {
-            const u8* inst = reinterpret_cast<const u8*>(&it->second);
-            const auto count = std::min(size - i, 4ull);
-            for (u32 j = 0; j < count; j++)
-                output += fmt::format("{:02x}", inst[j]);
-            i += count - 1;
-            continue;
-        }
-
-        u8 value;
-        if (!mmu->tryRead(crnt_addr, value)) {
+        ZTD_ASSIGN_OR(data[i], fromChars<u8>(data_str.substr(i * 2, 2), 16), {
             sendPacket(GDB_ERROR);
             return;
-        }
-        output += fmt::format("{:02x}", value);
+        });
     }
-    sendPacket(output);
+
+    sendPacket(getTarget().tryWriteMemory(addr, std::span<const u8>(data))
+                   ? GDB_OK
+                   : GDB_ERROR);
 }
 
 void GdbServer::handleInsertBreakpoint(std::string_view command) {
@@ -615,18 +681,7 @@ void GdbServer::handleInsertBreakpoint(std::string_view command) {
         ASSERT_DEBUG(size == 4, Debugger,
                      "Invalid software breakpoint size 0x{:x}", size);
 
-        if (system.getCpu().getFeatures().supports_native_breakpoints) {
-            breakpoint_addresses.push_back(addr);
-            for (const auto& [_, thread] : debugger.threads)
-                thread.guest_thread->getThread()->insertBreakpoint(addr);
-        } else {
-            const auto mmu = debugger.process->getMmu();
-            replaced_instructions.insert({addr, mmu->read<u32>(addr)});
-            mmu->write(addr, BRK);
-            notifyMemoryChanged(ztd::Range<vaddr_t>(addr, 4));
-        }
-
-        sendPacket(GDB_OK);
+        sendPacket(getTarget().insertBreakpoint(addr) ? GDB_OK : GDB_ERROR);
         break;
     default:
         LOG_NOT_IMPLEMENTED(Debugger, "Breakpoint type {}", type);
@@ -656,23 +711,7 @@ void GdbServer::handleRemoveBreakpoint(std::string_view command) {
         ASSERT_DEBUG(size == 4, Debugger,
                      "Invalid software breakpoint size 0x{:x}", size);
 
-        if (system.getCpu().getFeatures().supports_native_breakpoints) {
-            breakpoint_addresses.erase(std::ranges::find(breakpoint_addresses,
-
-                                                         addr));
-            for (const auto& [_, thread] : debugger.threads)
-                thread.guest_thread->getThread()->removeBreakpoint(addr);
-        } else {
-            const auto mmu = debugger.process->getMmu();
-            auto it = replaced_instructions.find(addr);
-            ASSERT(it != replaced_instructions.end(), Debugger,
-                   "Breakpoint not found at address {:#x}", addr);
-            mmu->write(addr, it->second);
-            notifyMemoryChanged(ztd::Range<vaddr_t>(addr, 4));
-            replaced_instructions.erase(it);
-        }
-
-        sendPacket(GDB_OK);
+        sendPacket(getTarget().removeBreakpoint(addr) ? GDB_OK : GDB_ERROR);
         break;
     default:
         LOG_NOT_IMPLEMENTED(Debugger, "Breakpoint type {}", type);
@@ -703,7 +742,7 @@ void GdbServer::handleRcmd(std::string_view cmd) {
 
 void GdbServer::handleGetExecutables() {
     std::string dir_path = fmt::format("/tmp/hydra/dump/executables/{:016x}",
-                                       debugger.process->getTitleId());
+                                       getTarget().getTitleId());
     std::filesystem::create_directories(dir_path);
 
     std::string output;
@@ -725,7 +764,7 @@ void GdbServer::handleGetExecutables() {
         }
 
         // Load the executable
-        auto file = debugger.executables.at(module_.name);
+        auto file = debugger.getExecutables().at(module_.name);
         auto stream = file->open(horizon::filesystem::FileOpenFlags::Read);
 
         std::vector<u8> data(stream->getSize());
@@ -768,8 +807,8 @@ void GdbServer::setNonBlocking(i32 socket) {
     fcntl(socket, F_SETFL, flags | O_NONBLOCK);
 }
 
-std::string GdbServer::readReg(u32 id) {
-    const auto& state = crnt_thread->getThread()->getState();
+std::optional<std::string>
+GdbServer::formatReg(const hw::tegra_x1::cpu::ThreadState& state, u32 id) {
     switch (id) {
     case 0 ... 28:
         return numberToHex(state.r[id]);
@@ -784,23 +823,86 @@ std::string GdbServer::readReg(u32 id) {
     case 33:
         return numberToHex(state.pstate);
     case 34 ... 65:
-        return numberToHex(state.v[id]);
+        return numberToHex(state.v[id - Q0_REGISTER]);
     case 66:
         return numberToHex(state.fpsr);
     case 67:
         return numberToHex(state.fpcr);
     default:
-        return GDB_ERROR;
+        return std::nullopt;
     }
 }
 
-std::string GdbServer::getThreadStatus(horizon::kernel::GuestThread* thread,
-                                       Signal signal) {
-    const auto& state = thread->getThread()->getState();
-    return fmt::format("T{:02x}{:02x}:{};{:02x}:{};{:02x}:{};thread:{:x};",
-                       static_cast<u8>(signal), PC_REGISTER, state.pc,
-                       SP_REGISTER, state.sp, LR_REGISTER, state.lr,
-                       GET_THREAD_ID(thread));
+bool GdbServer::tryParseReg(hw::tegra_x1::cpu::ThreadState& state, u32 id,
+                            std::string_view hex) {
+    switch (id) {
+    case 0 ... 28: {
+        ZTD_ASSIGN_OR_RETURN_VALUE(state.r[id], hexToNumber<u64>(hex), false);
+        return true;
+    }
+    case 29: {
+        ZTD_ASSIGN_OR_RETURN_VALUE(state.fp, hexToNumber<u64>(hex), false);
+        return true;
+    }
+    case 30: {
+        ZTD_ASSIGN_OR_RETURN_VALUE(state.lr, hexToNumber<u64>(hex), false);
+        return true;
+    }
+    case 31: {
+        ZTD_ASSIGN_OR_RETURN_VALUE(state.sp, hexToNumber<u64>(hex), false);
+        return true;
+    }
+    case 32: {
+        ZTD_ASSIGN_OR_RETURN_VALUE(state.pc, hexToNumber<u64>(hex), false);
+        return true;
+    }
+    case 33: {
+        ZTD_ASSIGN_OR_RETURN_VALUE(state.pstate, hexToNumber<u32>(hex), false);
+        return true;
+    }
+    case 34 ... 65: {
+        ZTD_ASSIGN_OR_RETURN_VALUE(state.v[id - Q0_REGISTER],
+                                   hexToNumber<u128>(hex), false);
+        return true;
+    }
+    case 66: {
+        ZTD_ASSIGN_OR_RETURN_VALUE(state.fpsr, hexToNumber<u32>(hex), false);
+        return true;
+    }
+    case 67: {
+        ZTD_ASSIGN_OR_RETURN_VALUE(state.fpcr, hexToNumber<u32>(hex), false);
+        return true;
+    }
+    default:
+        return false;
+    }
+}
+
+Signal GdbServer::signalFromHaltReason(hw::tegra_x1::cpu::HaltReason reason) {
+    switch (reason) {
+    case hw::tegra_x1::cpu::HaltReason::Breakpoint:
+    case hw::tegra_x1::cpu::HaltReason::BrkInstruction:
+    case hw::tegra_x1::cpu::HaltReason::StepComplete:
+        return Signal::SigTrap;
+    case hw::tegra_x1::cpu::HaltReason::Fault:
+        return Signal::SigSegv;
+    }
+}
+
+Target& GdbServer::getTarget() const { return debugger.getTarget(); }
+
+std::optional<std::string> GdbServer::getThreadStatus(thread_id_t id,
+                                                      Signal signal) {
+    auto stopped = getTarget().tryAcquireStoppedThread(id);
+    if (!stopped)
+        return std::nullopt;
+
+    const auto& state = stopped->getState();
+    return fmt::format(
+        "T{:02x}{:02x}:{};{:02x}:{};{:02x}:{};thread:{:x};",
+        static_cast<u8>(signal), PC_REGISTER, numberToHex(state.pc),
+        SP_REGISTER, numberToHex(state.sp), LR_REGISTER, numberToHex(state.lr),
+        id);
 }
 
 std::string GdbServer::pageFromBuffer(std::string_view buffer,
@@ -817,16 +919,6 @@ std::string GdbServer::pageFromBuffer(std::string_view buffer,
         return fmt::format("m{}", buffer.substr(offset, size));
     else
         return fmt::format("l{}", buffer.substr(offset));
-}
-
-void GdbServer::notifySupervisorPausedImpl(horizon::kernel::GuestThread* thread,
-                                           Signal signal) {
-    sendPacket(getThreadStatus(thread, signal));
-}
-
-void GdbServer::notifyMemoryChanged(ztd::Range<vaddr_t> mem_range) {
-    for (const auto& [_, thread] : debugger.threads)
-        thread.guest_thread->getThread()->notifyMemoryChanged(mem_range);
 }
 
 } // namespace hydra::debugger

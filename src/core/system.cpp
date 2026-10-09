@@ -369,7 +369,7 @@ void System::loadAndStart(horizon::loader::ILoader* loader) {
             std::this_thread::yield();
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         DEBUGGER_MANAGER_INSTANCE.getDebugger(main_process)
-            .activateGdbServer(*this);
+            .activateGdbServer();
     }
 
     // Loading screen

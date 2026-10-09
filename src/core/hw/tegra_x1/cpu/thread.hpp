@@ -15,8 +15,7 @@ class IThread;
 struct ThreadCallbacks {
     std::function<void(IThread*, u64)> svc_handler;
     std::function<bool()> stop_requested;
-    std::function<void()> supervisor_pause;
-    std::function<void()> breakpoint_hit;
+    std::function<void(HaltReason)> halted;
 };
 
 using stack_frame_callback_fn_t = std::function<void(vaddr_t)>;

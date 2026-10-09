@@ -1,0 +1,129 @@
+#pragma once
+
+#include "core/hw/tegra_x1/cpu/thread.hpp"
+
+namespace hydra::horizon::kernel {
+class GuestThread;
+class Process;
+} // namespace hydra::horizon::kernel
+
+namespace hydra::hw::tegra_x1::cpu {
+class IMmu;
+} // namespace hydra::hw::tegra_x1::cpu
+
+namespace hydra::debugger {
+
+using thread_id_t = u32;
+
+constexpr i64 DEFAULT_STOP_TIMEOUT_NS = 100ll * 1000ll * 1000ll;
+
+class Target;
+
+class StoppedThread {
+    friend class Target;
+
+  public:
+    ZTD_MAKE_NON_COPYABLE(StoppedThread);
+    ZTD_MAKE_DEFAULT_MOVABLE(StoppedThread);
+    ~StoppedThread() noexcept = default;
+
+    hw::tegra_x1::cpu::ThreadState& getState() const {
+        return cpu_thread->getState();
+    }
+
+  private:
+    StoppedThread(std::unique_lock<std::mutex>&& lock_,
+                  hw::tegra_x1::cpu::IThread* cpu_thread_)
+        : lock{std::move(lock_)}, cpu_thread{cpu_thread_} {}
+
+    std::unique_lock<std::mutex> lock;
+    hw::tegra_x1::cpu::IThread* cpu_thread;
+};
+
+struct Breakpoint {
+    u32 replaced_instruction{0};
+};
+
+using halt_state_observer_fn_t = std::function<void(
+    thread_id_t, std::optional<hw::tegra_x1::cpu::HaltReason>, bool)>;
+
+class Target {
+  public:
+    explicit Target(horizon::kernel::Process& process_);
+    ~Target() noexcept = default;
+
+    ZTD_MAKE_NON_COPYABLE(Target);
+    ZTD_MAKE_NON_MOVABLE(Target);
+
+    // Threads
+    thread_id_t registerThread(horizon::kernel::GuestThread* guest_thread);
+    void unregisterThread(thread_id_t id);
+
+    std::vector<thread_id_t> getThreadIds() const;
+    bool hasThread(thread_id_t id) const;
+    bool tryGetHaltReason(thread_id_t id,
+                          hw::tegra_x1::cpu::HaltReason& out_reason) const;
+
+    // Execution
+    void pauseAll();
+    void resumeAll();
+    bool resumeThread(thread_id_t id);
+    bool stepThread(thread_id_t id);
+    void stop();
+
+    void notifyHalted(horizon::kernel::GuestThread* guest_thread,
+                      hw::tegra_x1::cpu::HaltReason reason);
+
+    // Registers
+    std::optional<StoppedThread>
+    tryAcquireStoppedThread(thread_id_t id,
+                            i64 timeout_ns = DEFAULT_STOP_TIMEOUT_NS);
+
+    // Memory
+    bool tryReadMemory(vaddr_t addr, std::span<u8> out_data) const;
+    bool tryWriteMemory(vaddr_t addr, std::span<const u8> data);
+
+    // Breakpoints
+    bool insertBreakpoint(vaddr_t addr);
+    bool removeBreakpoint(vaddr_t addr);
+    bool hasBreakpoint(vaddr_t addr) const;
+
+    u64 getTitleId() const;
+
+  private:
+    struct ThreadEntry {
+        horizon::kernel::GuestThread* guest_thread;
+        hw::tegra_x1::cpu::IThread* cpu_thread;
+        std::optional<hw::tegra_x1::cpu::HaltReason> halt_reason{std::nullopt};
+    };
+
+    horizon::kernel::Process& process;
+    const bool native_breakpoints;
+    const bool synchronous_single_step;
+
+    mutable std::mutex mutex;
+    std::map<thread_id_t, ThreadEntry> threads;
+    thread_id_t next_thread_id{1};
+    std::map<vaddr_t, Breakpoint> breakpoints;
+    bool stop_reported{false};
+    halt_state_observer_fn_t halt_state_observer;
+
+    // Helpers
+    ThreadEntry* findEntry(thread_id_t id);
+    const ThreadEntry* findEntry(thread_id_t id) const;
+    bool isParked(const ThreadEntry& entry) const;
+    bool isStateAccessible(const ThreadEntry& entry) const;
+
+    bool tryReadMemoryRaw(vaddr_t addr, std::span<u8> out_data) const;
+    bool tryWriteMemoryRaw(vaddr_t addr, std::span<const u8> data);
+    void readBreakpointShadow(vaddr_t addr, std::span<u8> data) const;
+    void writeBreakpointShadow(vaddr_t addr, std::span<const u8> data);
+    void notifyMemoryChanged(ztd::Range<vaddr_t> mem_range);
+
+    hw::tegra_x1::cpu::IMmu* getMmu() const;
+
+  public:
+    CONST_REF_SETTER(halt_state_observer, setHaltStateObserver);
+};
+
+} // namespace hydra::debugger

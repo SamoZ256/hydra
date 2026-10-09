@@ -39,16 +39,11 @@ void GuestThread::run() {
                  at_safe_point.store(false, std::memory_order_release);
                  return getState() == ThreadState::Stopping;
              },
-         .supervisor_pause =
-             [this] {
+         .halted =
+             [this](hw::tegra_x1::cpu::HaltReason reason) {
                  supervisorPause();
-                 DEBUGGER_MANAGER_INSTANCE.getDebugger(process)
-                     .notifySupervisorPaused(this, debugger::Signal::SigTrap);
-             },
-         .breakpoint_hit =
-             [this] {
-                 DEBUGGER_MANAGER_INSTANCE.getDebugger(process).breakpointHit(
-                     this);
+                 DEBUGGER_MANAGER_INSTANCE.getDebugger(process).notifyHalted(
+                     this, reason);
              }},
         tls_mem, tls_addr);
 

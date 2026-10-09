@@ -154,7 +154,7 @@ void Thread::ExceptionRaised([[maybe_unused]] u64 pc,
     switch (exception) {
     case Dynarmic::A64::Exception::Breakpoint:
         state.pc -= 4;
-        callbacks.breakpoint_hit();
+        callbacks.halted(HaltReason::BrkInstruction);
         break;
     case Dynarmic::A64::Exception::Yield:
         // TODO: correct?

@@ -43,6 +43,21 @@ void Thread::log(const Message& msg) {
         msg_tail = (msg_tail + 1) % messages.size();
 }
 
+Debugger::Debugger(const std::string_view name_,
+                   horizon::kernel::Process* process_)
+    : name{name_}, process{process_} {
+    if (process == nullptr)
+        return;
+
+    target.emplace(*process);
+    target->setHaltStateObserver(
+        [this](thread_id_t id,
+               std::optional<hw::tegra_x1::cpu::HaltReason> reason,
+               bool first_stop) {
+            onHaltStateChanged(id, reason, first_stop);
+        });
+}
+
 void Debugger::registerThisThread(const std::string_view thread_name) {
     std::unique_lock lock(mutex);
     ASSERT(threads.try_emplace(std::this_thread::get_id(), thread_name).second,
@@ -56,31 +71,41 @@ void Debugger::unregisterThisThread() {
 
 void Debugger::registerGuestThreadForThisThread(
     horizon::kernel::GuestThread* guest_thread) {
-    GET_THIS_THREAD();
-    thread.guest_thread = guest_thread;
+    {
+        GET_THIS_THREAD();
+        thread.guest_thread = guest_thread;
+    }
 
-    if (gdb_server.has_value())
-        gdb_server->registerThread(thread);
+    if (!target.has_value())
+        return;
+
+    const auto id = target->registerThread(guest_thread);
+
+    GET_THIS_THREAD();
+    thread.target_thread_id = id;
 }
 
 void Debugger::unregisterGuestThreadForThisThread() {
-    GET_THIS_THREAD();
-    thread.guest_thread = nullptr;
+    thread_id_t id;
+    {
+        GET_THIS_THREAD();
+        thread.guest_thread = nullptr;
+        id = thread.target_thread_id;
+        thread.target_thread_id = invalid<thread_id_t>();
+    }
+
+    if (target.has_value() && id != invalid<thread_id_t>())
+        target->unregisterThread(id);
 }
 
-void Debugger::activateGdbServer(System& system) {
-    gdb_server.emplace(system, *this);
-}
+void Debugger::activateGdbServer() { gdb_server.emplace(*this); }
 
-void Debugger::notifySupervisorPaused(horizon::kernel::GuestThread* thread,
-                                      Signal signal) {
-    if (gdb_server.has_value())
-        gdb_server->notifySupervisorPaused(thread, signal);
-}
+void Debugger::notifyHalted(horizon::kernel::GuestThread* thread,
+                            hw::tegra_x1::cpu::HaltReason reason) {
+    if (thread == nullptr || !target.has_value())
+        return;
 
-void Debugger::breakpointHit(horizon::kernel::GuestThread* thread) {
-    if (gdb_server.has_value())
-        gdb_server->breakpointHit(thread);
+    target->notifyHalted(thread, reason);
 }
 
 void Debugger::logOnThisThread(const LogMessage& msg) {
@@ -102,10 +127,10 @@ void Debugger::breakOnThisThreadImpl(const std::string_view reason) {
         guest_thread = thread.guest_thread;
     }
 
-    process->supervisorPause();
-    notifySupervisorPaused(
-        guest_thread,
-        Signal::SigHup); // TODO: make the signal configurable
+    if (guest_thread != nullptr)
+        notifyHalted(guest_thread, hw::tegra_x1::cpu::HaltReason::Fault);
+    else if (process != nullptr)
+        process->supervisorPause();
 }
 
 StackTrace Debugger::getStackTrace(Thread& thread) {
@@ -122,6 +147,52 @@ StackTrace Debugger::getStackTrace(Thread& thread) {
     }
 
     return stack_trace;
+}
+
+void Debugger::onHaltStateChanged(
+    thread_id_t id, std::optional<hw::tegra_x1::cpu::HaltReason> reason,
+    bool first_stop) {
+    {
+        std::unique_lock lock(mutex);
+        auto* thread = findThreadByTargetId(id);
+        if (thread == nullptr)
+            return;
+
+        if (reason) {
+            thread->status = ThreadStatus::Break;
+            if (thread->break_reason.empty())
+                thread->break_reason = fmt::format("{}", reason.value());
+        } else {
+            thread->status = ThreadStatus::Running;
+            thread->break_reason.clear();
+        }
+    }
+
+    if (!reason)
+        return;
+
+    switch (reason.value()) {
+    case hw::tegra_x1::cpu::HaltReason::BrkInstruction:
+    case hw::tegra_x1::cpu::HaltReason::Fault:
+        LOG_ERROR(Debugger, "Thread halted ({})", reason.value());
+        break;
+    case hw::tegra_x1::cpu::HaltReason::Breakpoint:
+    case hw::tegra_x1::cpu::HaltReason::StepComplete:
+        LOG_INFO(Debugger, "Thread halted ({})", reason.value());
+        break;
+    }
+
+    if (first_stop && gdb_server.has_value())
+        gdb_server->notifyHalted(id, reason.value());
+}
+
+Thread* Debugger::findThreadByTargetId(thread_id_t id) {
+    for (auto& [_, thread] : threads) {
+        if (thread.target_thread_id == id)
+            return &thread;
+    }
+
+    return nullptr;
 }
 
 } // namespace hydra::debugger
