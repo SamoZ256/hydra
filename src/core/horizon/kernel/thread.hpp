@@ -139,7 +139,7 @@ class IThread : public SynchronizationObject {
     ztd::DoublyLinkedList<IThread*> mutex_wait_list;
 
     // Synchronization
-    bool supervisor_pause{false};
+    std::atomic<bool> supervisor_pause{false};
     bool guest_pause{false};
     std::optional<ThreadSyncInfo> sync_info{std::nullopt};
 
@@ -159,6 +159,10 @@ class IThread : public SynchronizationObject {
   public:
     GETTER(process, getProcess);
     GETTER(state, getState);
+
+    bool isSupervisorPaused() const {
+        return supervisor_pause.load(std::memory_order_acquire);
+    }
 };
 
 inline thread_local IThread* tls_current_thread = nullptr;

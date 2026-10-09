@@ -189,6 +189,7 @@ class Process : public SynchronizationObject {
     void signalStateChange(ProcessState new_state);
 
   public:
+    REF_GETTER(system, getSystem);
     REF_GETTER(gmmu, getGMmu);
     REF_GETTER(applet_state, getAppletState);
     GETTER_AND_SETTER(title_id, getTitleId, setTitleId);
