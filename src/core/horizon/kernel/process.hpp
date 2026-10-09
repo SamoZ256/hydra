@@ -59,6 +59,8 @@ class Process : public SynchronizationObject {
     void registerThread(IThread* thread) {
         std::scoped_lock lock(thread_mutex);
         threads.push_back(thread);
+        if (state == ProcessState::DebugSuspended)
+            thread->supervisorPause();
     }
     void unregisterThread(IThread* thread) {
         std::scoped_lock lock(thread_mutex);
