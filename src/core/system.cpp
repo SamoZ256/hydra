@@ -357,20 +357,15 @@ void System::loadAndStart(horizon::loader::ILoader* loader) {
         LOG_INFO(Other, "Preselected user with ID {:032x}", user_id);
     }
 
+    if (CONFIG_INSTANCE.getGdbEnabled() &&
+        CONFIG_INSTANCE.getGdbWaitForClient())
+        main_process->getMainThread()->supervisorPause();
+
     main_process->start();
 
     // Activate GDB server
-    if (CONFIG_INSTANCE.getGdbEnabled()) {
-        if (CONFIG_INSTANCE.getGdbWaitForClient())
-            main_process->getMainThread()->supervisorPause();
-
-        // HACK: spinlock until the main thread is running
-        while (!main_process->isRunning())
-            std::this_thread::yield();
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        DEBUGGER_MANAGER_INSTANCE.getDebugger(main_process)
-            .activateGdbServer();
-    }
+    if (CONFIG_INSTANCE.getGdbEnabled())
+        DEBUGGER_MANAGER_INSTANCE.getDebugger(main_process).activateGdbServer();
 
     // Loading screen
     loading = true;
