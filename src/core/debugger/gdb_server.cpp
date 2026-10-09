@@ -526,10 +526,9 @@ void GdbServer::handleSetActiveThread(std::string_view command) {
 }
 
 void GdbServer::handleThreadStatus() {
-    auto reason = hw::tegra_x1::cpu::HaltReason::Fault;
-    const auto signal = getTarget().tryGetHaltReason(crnt_thread_id, reason)
-                            ? signalFromHaltReason(reason)
-                            : Signal::SigTrap;
+    const auto reason = getTarget().getHaltReason(crnt_thread_id);
+    const auto signal =
+        reason ? signalFromHaltReason(reason.value()) : Signal::SigTrap;
 
     if (const auto status = getThreadStatus(crnt_thread_id, signal))
         sendPacket(status.value());

@@ -11,6 +11,7 @@ namespace hydra::debugger {
 namespace {
 
 constexpr u32 BRK = 0xd4200000;
+constexpr u32 BRK_MASK = 0xffe0001f;
 constexpr usize NATIVE_BREAKPOINT_SLOTS = 16;
 constexpr i64 STOP_POLL_INTERVAL_NS = 1000ll * 1000ll;
 
@@ -65,20 +66,27 @@ bool Target::hasThread(thread_id_t id) const {
     return threads.contains(id);
 }
 
-bool Target::tryGetHaltReason(thread_id_t id, HaltReason& out_reason) const {
+std::optional<HaltReason> Target::getHaltReason(thread_id_t id) const {
     std::scoped_lock lock(mutex);
 
     const auto* entry = findEntry(id);
-    if (entry == nullptr || !entry->halt_reason)
-        return false;
+    if (entry == nullptr)
+        return std::nullopt;
 
-    out_reason = entry->halt_reason.value();
-    return true;
+    return entry->halt_reason;
 }
 
-void Target::pauseAll() { process.supervisorPause(); }
+void Target::pauseAll() {
+    if (!isProcessRunning())
+        return;
+
+    process.supervisorPause();
+}
 
 void Target::resumeAll() {
+    if (!isProcessRunning())
+        return;
+
     std::vector<thread_id_t> resumed;
     {
         std::scoped_lock lock(mutex);
@@ -126,7 +134,7 @@ bool Target::stepThread(thread_id_t id) {
     {
         std::scoped_lock lock(mutex);
         auto* entry = findEntry(id);
-        if (entry == nullptr || !isParked(*entry))
+        if (entry == nullptr || !isSteppable(*entry))
             return false;
 
         entry->halt_reason = std::nullopt;
@@ -165,12 +173,16 @@ void Target::notifyHalted(horizon::kernel::GuestThread* guest_thread,
     {
         std::scoped_lock lock(mutex);
 
-        if (reason == HaltReason::BrkInstruction) {
-            auto* cpu_thread = guest_thread->getThread();
-            if (cpu_thread != nullptr &&
-                breakpoints.contains(cpu_thread->getState().pc))
-                reason = HaltReason::Breakpoint;
+        auto* cpu_thread = guest_thread->getThread();
+        if (cpu_thread != nullptr &&
+            isStaleBreakpointTrap(reason, cpu_thread->getState().pc)) {
+            guest_thread->supervisorResume();
+            return;
         }
+
+        if (reason == HaltReason::BrkInstruction &&
+            breakpoints.contains(cpu_thread->getState().pc))
+            reason = HaltReason::Breakpoint;
 
         for (auto& [entry_id, entry] : threads) {
             if (entry.guest_thread == guest_thread) {
@@ -245,15 +257,12 @@ bool Target::insertBreakpoint(vaddr_t addr) {
         return true;
 
     if (native_breakpoints) {
+        if (addr == 0 || breakpoints.size() >= NATIVE_BREAKPOINT_SLOTS)
+            return false;
+
         breakpoints.emplace(addr, Breakpoint{});
         for (const auto& [_, entry] : threads)
             entry.cpu_thread->insertBreakpoint(addr);
-
-        if (breakpoints.size() > NATIVE_BREAKPOINT_SLOTS)
-            LOG_WARN(Debugger,
-                     "More than {} breakpoints, the CPU backend cannot apply "
-                     "them all",
-                     NATIVE_BREAKPOINT_SLOTS);
     } else {
         u32 original_instruction;
         if (!getMmu()->tryRead(addr, original_instruction))
@@ -277,18 +286,19 @@ bool Target::removeBreakpoint(vaddr_t addr) {
     if (it == breakpoints.end())
         return false;
 
-    if (native_breakpoints) {
-        for (const auto& [_, entry] : threads)
-            entry.cpu_thread->removeBreakpoint(addr);
-    } else {
-        if (!getMmu()->tryWrite(addr, it->second.replaced_instruction))
-            return false;
+    return removeBreakpointLocked(it);
+}
 
-        notifyMemoryChanged(ztd::Range<vaddr_t>::fromSize(addr, sizeof(u32)));
+void Target::removeAllBreakpoints() {
+    std::scoped_lock lock(mutex);
+
+    for (auto it = breakpoints.begin(); it != breakpoints.end();) {
+        const auto next = std::next(it);
+        if (!removeBreakpointLocked(it))
+            LOG_WARN(Debugger, "Failed to remove breakpoint at 0x{:08x}",
+                     it->first);
+        it = next;
     }
-
-    breakpoints.erase(it);
-    return true;
 }
 
 bool Target::hasBreakpoint(vaddr_t addr) const {
@@ -311,11 +321,52 @@ bool Target::isParked(const ThreadEntry& entry) const {
            entry.guest_thread->isSupervisorPaused();
 }
 
+bool Target::isSteppable(const ThreadEntry& entry) const {
+    if (synchronous_single_step)
+        return isParked(entry);
+
+    return entry.guest_thread->isSupervisorPaused();
+}
+
+bool Target::isStaleBreakpointTrap(HaltReason reason, vaddr_t pc) const {
+    if (breakpoints.contains(pc))
+        return false;
+
+    switch (reason) {
+    case HaltReason::Breakpoint:
+        return true;
+    case HaltReason::BrkInstruction: {
+        u32 instruction;
+        return !native_breakpoints && getMmu()->tryRead(pc, instruction) &&
+               (instruction & BRK_MASK) != BRK;
+    }
+    default:
+        return false;
+    }
+}
+
 bool Target::isStateAccessible(const ThreadEntry& entry) const {
     if (entry.guest_thread == horizon::kernel::tls_current_thread)
         return true;
 
     return entry.guest_thread->isSupervisorPaused();
+}
+
+bool Target::removeBreakpointLocked(
+    std::map<vaddr_t, Breakpoint>::iterator it) {
+    const auto addr = it->first;
+    if (native_breakpoints) {
+        for (const auto& [_, entry] : threads)
+            entry.cpu_thread->removeBreakpoint(addr);
+    } else {
+        if (!getMmu()->tryWrite(addr, it->second.replaced_instruction))
+            return false;
+
+        notifyMemoryChanged(ztd::Range<vaddr_t>::fromSize(addr, sizeof(u32)));
+    }
+
+    breakpoints.erase(it);
+    return true;
 }
 
 bool Target::tryReadMemoryRaw(vaddr_t addr, std::span<u8> out_data) const {
@@ -387,6 +438,16 @@ void Target::notifyMemoryChanged(ztd::Range<vaddr_t> mem_range) {
 }
 
 hw::tegra_x1::cpu::IMmu* Target::getMmu() const { return process.getMmu(); }
+
+bool Target::isProcessRunning() const {
+    switch (process.getState()) {
+    case horizon::kernel::ProcessState::Started:
+    case horizon::kernel::ProcessState::DebugSuspended:
+        return true;
+    default:
+        return false;
+    }
+}
 
 u64 Target::getTitleId() const { return process.getTitleId(); }
 

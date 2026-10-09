@@ -61,8 +61,8 @@ class Target {
 
     std::vector<thread_id_t> getThreadIds() const;
     bool hasThread(thread_id_t id) const;
-    bool tryGetHaltReason(thread_id_t id,
-                          hw::tegra_x1::cpu::HaltReason& out_reason) const;
+    std::optional<hw::tegra_x1::cpu::HaltReason>
+    getHaltReason(thread_id_t id) const;
 
     // Execution
     void pauseAll();
@@ -86,8 +86,10 @@ class Target {
     // Breakpoints
     bool insertBreakpoint(vaddr_t addr);
     bool removeBreakpoint(vaddr_t addr);
+    void removeAllBreakpoints();
     bool hasBreakpoint(vaddr_t addr) const;
 
+    bool isProcessRunning() const;
     u64 getTitleId() const;
 
   private:
@@ -112,7 +114,11 @@ class Target {
     ThreadEntry* findEntry(thread_id_t id);
     const ThreadEntry* findEntry(thread_id_t id) const;
     bool isParked(const ThreadEntry& entry) const;
+    bool isSteppable(const ThreadEntry& entry) const;
+    bool isStaleBreakpointTrap(hw::tegra_x1::cpu::HaltReason reason,
+                               vaddr_t pc) const;
     bool isStateAccessible(const ThreadEntry& entry) const;
+    bool removeBreakpointLocked(std::map<vaddr_t, Breakpoint>::iterator it);
 
     bool tryReadMemoryRaw(vaddr_t addr, std::span<u8> out_data) const;
     bool tryWriteMemoryRaw(vaddr_t addr, std::span<const u8> data);
@@ -123,6 +129,7 @@ class Target {
     hw::tegra_x1::cpu::IMmu* getMmu() const;
 
   public:
+    GETTER(native_breakpoints, hasNativeBreakpoints);
     CONST_REF_SETTER(halt_state_observer, setHaltStateObserver);
 };
 
