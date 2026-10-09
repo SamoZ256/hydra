@@ -77,7 +77,10 @@ Thread::~Thread() { delete jit; }
 void Thread::run() {
     while (true) {
         deserializeState();
-        jit->Run();
+        const auto reason = jit->Run();
+        if (Dynarmic::Has(reason, Dynarmic::HaltReason::CacheInvalidation) &&
+            !Dynarmic::Has(reason, Dynarmic::HaltReason::UserDefined1))
+            serializeState();
         if (callbacks.stop_requested())
             break;
     }
