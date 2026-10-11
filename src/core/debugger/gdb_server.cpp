@@ -755,9 +755,11 @@ void GdbServer::handleCommand(std::string_view command) {
         handleMemWriteBinary(body);
         break;
     case 'c':
+    case 'C':
         resumeTarget();
         break;
     case 's':
+    case 'S':
         stepTargetThread(resolveCurrentThreadId());
         break;
     case 'Z':
@@ -791,8 +793,11 @@ void GdbServer::handleVCont(std::string_view command) {
         return;
     }
 
-    std::optional<thread_id_t> step_thread_id;
-    bool resume = false;
+    struct Action {
+        ResumeKind kind;
+        std::optional<thread_id_t> thread_id;
+    };
+    std::vector<Action> parsed;
 
     usize pos = 1;
     while (pos <= command.size()) {
@@ -807,47 +812,80 @@ void GdbServer::handleVCont(std::string_view command) {
             return;
         }
 
-        std::optional<thread_id_t> thread_id;
-        const auto colon_pos = entry.find(':');
-        if (colon_pos != std::string_view::npos) {
-            ZTD_ASSIGN_OR(const auto value,
-                          fromChars<i64>(entry.substr(colon_pos + 1), 16), {
-                              sendPacket(GDB_ERROR);
-                              return;
-                          });
-            if (value > 0)
-                thread_id = static_cast<thread_id_t>(value);
-        }
-
+        ResumeKind kind;
+        bool has_signal = false;
         switch (entry[0]) {
         case 'c':
+            kind = ResumeKind::Continue;
+            break;
         case 'C':
-            resume = true;
+            kind = ResumeKind::Continue;
+            has_signal = true;
             break;
         case 's':
+            kind = ResumeKind::Step;
+            break;
         case 'S':
-            if (!step_thread_id)
-                step_thread_id =
-                    thread_id ? thread_id.value() : resolveCurrentThreadId();
+            kind = ResumeKind::Step;
+            has_signal = true;
             break;
         default:
             sendPacket(GDB_ERROR);
             return;
         }
-    }
 
-    if (step_thread_id) {
-        if (!getTarget().hasThread(step_thread_id.value())) {
-            sendPacket(GDB_ERROR);
-            return;
+        auto rest = entry.substr(1);
+        if (has_signal) {
+            if (rest.size() < 2 || !fromChars<u8>(rest.substr(0, 2), 16)) {
+                sendPacket(GDB_ERROR);
+                return;
+            }
+
+            rest = rest.substr(2);
         }
 
-        stepTargetThread(step_thread_id.value());
-    } else if (resume) {
-        resumeTarget();
-    } else {
-        sendPacket(GDB_ERROR);
+        std::optional<thread_id_t> thread_id;
+        if (!rest.empty()) {
+            if (rest[0] != ':') {
+                sendPacket(GDB_ERROR);
+                return;
+            }
+
+            auto tid = rest.substr(1);
+            if (tid.starts_with('p')) {
+                const auto dot = tid.find('.');
+                if (dot == std::string_view::npos) {
+                    sendPacket(GDB_ERROR);
+                    return;
+                }
+
+                tid = tid.substr(dot + 1);
+            }
+
+            ZTD_ASSIGN_OR(const auto value, fromChars<i64>(tid, 16), {
+                sendPacket(GDB_ERROR);
+                return;
+            });
+            if (value == 0)
+                thread_id = resolveCurrentThreadId();
+            else if (value > 0)
+                thread_id = static_cast<thread_id_t>(value);
+        }
+
+        parsed.push_back({.kind = kind, .thread_id = thread_id});
     }
+
+    std::vector<ResumeAction> actions;
+    for (const auto id : getTarget().getThreadIds()) {
+        for (const auto& action : parsed) {
+            if (!action.thread_id || action.thread_id.value() == id) {
+                actions.push_back({.id = id, .kind = action.kind});
+                break;
+            }
+        }
+    }
+
+    resumeTarget(actions);
 }
 
 void GdbServer::handleQuery(std::string_view command) {
