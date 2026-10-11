@@ -24,7 +24,7 @@ constexpr char GDB_END = '#';
 constexpr char GDB_ACK = '+';
 constexpr char GDB_NACK = '-';
 
-[[maybe_unused]] constexpr char GDB_INT3 = 0x03;
+constexpr char GDB_INT3 = 0x03;
 
 constexpr char GDB_OK[] = "OK";
 constexpr char GDB_ERROR[] = "E01";
@@ -662,6 +662,13 @@ void GdbServer::processPackets() {
     usize str_start = 0;
     while (session_end == SessionEnd::None) {
         const auto start = receive_buffer.find(GDB_START, str_start);
+        const auto scan_end =
+            start == std::string::npos ? receive_buffer.size() : start;
+        if (std::string_view(receive_buffer)
+                .substr(str_start, scan_end - str_start)
+                .contains(GDB_INT3))
+            handleInterrupt();
+
         if (start == std::string::npos) {
             str_start = receive_buffer.size();
             break;
@@ -764,6 +771,13 @@ void GdbServer::handleCommand(std::string_view command) {
         sendPacket(GDB_EMPTY);
         break;
     }
+}
+
+void GdbServer::handleInterrupt() {
+    if (!awaiting_stop_reply)
+        return;
+
+    getTarget().pauseAll();
 }
 
 void GdbServer::handleVCont(std::string_view command) {

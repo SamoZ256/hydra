@@ -50,6 +50,7 @@ class GdbServer {
 
     void processPackets();
     void handleCommand(std::string_view command);
+    void handleInterrupt();
 
     // Commands
     void handleVCont(std::string_view command);
