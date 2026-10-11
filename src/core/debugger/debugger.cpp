@@ -99,11 +99,11 @@ void Debugger::unregisterGuestThreadForThisThread() {
 void Debugger::activateGdbServer() { gdb_server.emplace(*this); }
 
 void Debugger::notifyHalted(horizon::kernel::GuestThread* thread,
-                            hw::tegra_x1::cpu::HaltReason reason) {
+                            const hw::tegra_x1::cpu::HaltInfo& halt) {
     if (thread == nullptr || !target.has_value())
         return;
 
-    target->notifyHalted(thread, reason);
+    target->notifyHalted(thread, halt);
 }
 
 void Debugger::logOnThisThread(const LogMessage& msg) {
@@ -126,7 +126,8 @@ void Debugger::breakOnThisThreadImpl(const std::string_view reason) {
     }
 
     if (guest_thread != nullptr)
-        notifyHalted(guest_thread, hw::tegra_x1::cpu::HaltReason::Fault);
+        notifyHalted(guest_thread,
+                     {.reason = hw::tegra_x1::cpu::HaltReason::Fault});
     else if (target.has_value())
         target->pauseAll();
 }
@@ -175,6 +176,7 @@ void Debugger::onHaltStateChanged(thread_id_t id,
         break;
     case hw::tegra_x1::cpu::HaltReason::Breakpoint:
     case hw::tegra_x1::cpu::HaltReason::StepComplete:
+    case hw::tegra_x1::cpu::HaltReason::Watchpoint:
         LOG_INFO(Debugger, "Thread halted ({})", stop->reason);
         break;
     }

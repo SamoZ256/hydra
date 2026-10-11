@@ -38,9 +38,9 @@ void GuestThread::run() {
                  return getState() == ThreadState::Stopping;
              },
          .halted =
-             [this](hw::tegra_x1::cpu::HaltReason reason) {
+             [this](const hw::tegra_x1::cpu::HaltInfo& halt) {
                  DEBUGGER_MANAGER_INSTANCE.getDebugger(process).notifyHalted(
-                     this, reason);
+                     this, halt);
              }},
         tls_mem, tls_addr);
 

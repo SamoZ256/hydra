@@ -31,6 +31,14 @@ class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
     void removeBreakpoint([[maybe_unused]] vaddr_t addr) override {
         LOG_FATAL(Dynarmic, "This should not happen");
     }
+    void
+    insertWatchpoint([[maybe_unused]] const Watchpoint& watchpoint) override {
+        LOG_FATAL(Dynarmic, "This should not happen");
+    }
+    void
+    removeWatchpoint([[maybe_unused]] const Watchpoint& watchpoint) override {
+        LOG_FATAL(Dynarmic, "This should not happen");
+    }
     void singleStep() override {
         step_requested.store(true, std::memory_order_release);
     }

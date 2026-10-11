@@ -23,6 +23,11 @@ constexpr u32 MDSCR_EL1_MDE = (1u << 15);
 constexpr u32 DBGBCR_E = (1u << 0);     // Enable bit
 constexpr u32 DBGBCR_BAS = (0xfu << 5); // Byte address select
 
+constexpr u64 DBGWCR_E = (1ull << 0);
+constexpr u64 DBGWCR_PAC_EL0_EL1 = (0x3ull << 1);
+constexpr u32 DBGWCR_LSC_SHIFT = 3;
+constexpr u32 DBGWCR_BAS_SHIFT = 5;
+
 constexpr u64 INTERRUPT_TIME = 16ull * 1000ull * 1000ull; // 16ms
 
 enum class ExceptionClass {
@@ -230,7 +235,7 @@ void Thread::run() {
                 break;
             case ExceptionClass::BrkAarch64:
                 disarmSingleStep();
-                callbacks.halted(HaltReason::BrkInstruction);
+                callbacks.halted({.reason = HaltReason::BrkInstruction});
                 break;
             case ExceptionClass::DataAbortLowerEl: {
                 LOG_FATAL(Hypervisor, "This should not happen");
@@ -238,7 +243,14 @@ void Thread::run() {
             }
             case ExceptionClass::BreakpointLowerEl: {
                 disarmSingleStep();
-                callbacks.halted(HaltReason::Breakpoint);
+                callbacks.halted({.reason = HaltReason::Breakpoint});
+                break;
+            }
+            case ExceptionClass::WatchpointLowerEl: {
+                disarmSingleStep();
+                callbacks.halted(
+                    {.reason = HaltReason::Watchpoint,
+                     .access_addr = exit->exception.virtual_address});
                 break;
             }
             case ExceptionClass::SoftwareStepLowerEl: {
@@ -249,7 +261,7 @@ void Thread::run() {
                 }
 
                 disarmSingleStep();
-                callbacks.halted(HaltReason::StepComplete);
+                callbacks.halted({.reason = HaltReason::StepComplete});
                 break;
             }
             default:
@@ -295,6 +307,21 @@ void Thread::notifyMemoryChanged(ztd::Range<vaddr_t> mem_range) {
 
         va = chunk_end;
     }
+}
+
+void Thread::updateMonitorDebug() {
+    const bool any_breakpoint =
+        std::ranges::any_of(breakpoints, [](vaddr_t bp) { return bp != 0x0; });
+    const bool any_watchpoint = std::ranges::any_of(
+        watchpoints,
+        [](const std::optional<Watchpoint>& wp) { return wp.has_value(); });
+
+    u64 mdscr_el1 = getSysReg(HV_SYS_REG_MDSCR_EL1);
+    if (any_breakpoint || any_watchpoint)
+        mdscr_el1 |= MDSCR_EL1_MDE;
+    else
+        mdscr_el1 &= ~MDSCR_EL1_MDE;
+    setSysReg(HV_SYS_REG_MDSCR_EL1, mdscr_el1);
 }
 
 void Thread::disarmSingleStep() {
@@ -387,12 +414,6 @@ void Thread::processMessages() {
         case ThreadMessageType::InsertBreakpoint: {
             const auto addr = message.payload.insert_breakpoint.addr;
 
-            // Enable breakpoints
-            // TODO: only do once?
-            u64 mdscr_el1 = getSysReg(HV_SYS_REG_MDSCR_EL1);
-            mdscr_el1 |= MDSCR_EL1_MDE;
-            setSysReg(HV_SYS_REG_MDSCR_EL1, mdscr_el1);
-
             // Find a breakpoint slot
             bool found = false;
             for (u32 slot = 0; slot < cpu.getFeatures().breakpoint_slots;
@@ -419,6 +440,8 @@ void Thread::processMessages() {
                     "Failed to set breakpoint at address 0x{:08x}: no free "
                     "breakpoint slots",
                     addr);
+
+            updateMonitorDebug();
             break;
         }
         case ThreadMessageType::RemoveBreakpoint: {
@@ -451,13 +474,79 @@ void Thread::processMessages() {
                     "breakpoint",
                     addr);
 
-            // Disable breakpoints if none remain
-            if (std::ranges::all_of(breakpoints,
-                                    [](vaddr_t bp) { return bp == 0x0; })) {
-                u64 mdscr_el1 = getSysReg(HV_SYS_REG_MDSCR_EL1);
-                mdscr_el1 &= ~MDSCR_EL1_MDE;
-                setSysReg(HV_SYS_REG_MDSCR_EL1, mdscr_el1);
+            updateMonitorDebug();
+            break;
+        }
+        case ThreadMessageType::InsertWatchpoint: {
+            const auto& watchpoint = message.payload.watchpoint;
+
+            bool found = false;
+            for (u32 slot = 0; slot < cpu.getFeatures().watchpoint_slots;
+                 ++slot) {
+                if (watchpoints[slot])
+                    continue;
+
+                watchpoints[slot] = watchpoint;
+
+                u64 lsc;
+                switch (watchpoint.type) {
+                case WatchpointType::Read:
+                    lsc = 0b01;
+                    break;
+                case WatchpointType::Write:
+                    lsc = 0b10;
+                    break;
+                case WatchpointType::Access:
+                    lsc = 0b11;
+                    break;
+                }
+                const u64 bas = ((1ull << watchpoint.size) - 1)
+                                << (watchpoint.addr & 0x7);
+
+                setSysReg(hv_sys_reg_t(HV_SYS_REG_DBGWVR0_EL1 + slot * 8),
+                          watchpoint.addr & ~0x7ull);
+                setSysReg(hv_sys_reg_t(HV_SYS_REG_DBGWCR0_EL1 + slot * 8),
+                          DBGWCR_E | DBGWCR_PAC_EL0_EL1 |
+                              (lsc << DBGWCR_LSC_SHIFT) |
+                              (bas << DBGWCR_BAS_SHIFT));
+
+                found = true;
+                break;
             }
+
+            if (!found)
+                LOG_ERROR(Hypervisor,
+                          "Failed to set watchpoint at address 0x{:08x}: no "
+                          "free watchpoint slots",
+                          watchpoint.addr);
+
+            updateMonitorDebug();
+            break;
+        }
+        case ThreadMessageType::RemoveWatchpoint: {
+            const auto& watchpoint = message.payload.watchpoint;
+
+            bool found = false;
+            for (u32 slot = 0; slot < cpu.getFeatures().watchpoint_slots;
+                 ++slot) {
+                if (watchpoints[slot] != watchpoint)
+                    continue;
+
+                watchpoints[slot] = std::nullopt;
+                setSysReg(hv_sys_reg_t(HV_SYS_REG_DBGWVR0_EL1 + slot * 8), 0x0);
+                setSysReg(hv_sys_reg_t(HV_SYS_REG_DBGWCR0_EL1 + slot * 8), 0x0);
+
+                found = true;
+                break;
+            }
+
+            if (!found)
+                LOG_ERROR(Hypervisor,
+                          "Failed to remove watchpoint at address 0x{:08x}: "
+                          "no such watchpoint",
+                          watchpoint.addr);
+
+            updateMonitorDebug();
             break;
         }
         case ThreadMessageType::SingleStep: {

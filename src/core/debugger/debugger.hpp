@@ -157,7 +157,7 @@ class Debugger {
     // Execution
     void activateGdbServer();
     void notifyHalted(horizon::kernel::GuestThread* thread,
-                      hw::tegra_x1::cpu::HaltReason reason);
+                      const hw::tegra_x1::cpu::HaltInfo& halt);
 
     bool hasTarget() const { return target.has_value(); }
     Target& getTarget() {

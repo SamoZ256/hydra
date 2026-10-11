@@ -15,7 +15,7 @@ class IThread;
 struct ThreadCallbacks {
     std::function<void(IThread*, u64)> svc_handler;
     std::function<bool()> stop_requested;
-    std::function<void(HaltReason)> halted;
+    std::function<void(const HaltInfo&)> halted;
 };
 
 using stack_frame_callback_fn_t = std::function<void(vaddr_t)>;
@@ -50,6 +50,8 @@ class IThread {
 
     virtual void insertBreakpoint(vaddr_t addr) = 0;
     virtual void removeBreakpoint(vaddr_t addr) = 0;
+    virtual void insertWatchpoint(const Watchpoint& watchpoint) = 0;
+    virtual void removeWatchpoint(const Watchpoint& watchpoint) = 0;
     virtual void singleStep() = 0;
     virtual void requestHalt() = 0;
 

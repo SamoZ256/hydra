@@ -180,7 +180,7 @@ u64 Thread::GetCNTPCT() { return wall_clock.getCntpct(); }
 
 void Thread::reportHalt(HaltReason reason) {
     halt_reported = true;
-    callbacks.halted(reason);
+    callbacks.halted({.reason = reason});
 }
 
 void Thread::serializeState() {

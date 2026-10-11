@@ -94,7 +94,7 @@ class Target {
     bool isAllStopped() const;
 
     void notifyHalted(horizon::kernel::GuestThread* guest_thread,
-                      hw::tegra_x1::cpu::HaltReason reason);
+                      const hw::tegra_x1::cpu::HaltInfo& halt);
 
     // Registers
     std::optional<StoppedThread>

@@ -203,7 +203,8 @@ bool Target::isAllStopped() const {
 }
 
 void Target::notifyHalted(horizon::kernel::GuestThread* guest_thread,
-                          HaltReason reason) {
+                          const hw::tegra_x1::cpu::HaltInfo& halt) {
+    auto reason = halt.reason;
     thread_id_t id = invalid<thread_id_t>();
     std::optional<StopInfo> stop;
     {

@@ -17,10 +17,13 @@ class Cpu;
 class Mmu;
 
 constexpr u32 MAX_BREAKPOINTS = 16;
+constexpr u32 MAX_WATCHPOINTS = 16;
 
 enum class ThreadMessageType {
     InsertBreakpoint,
     RemoveBreakpoint,
+    InsertWatchpoint,
+    RemoveWatchpoint,
     SingleStep,
 };
 
@@ -36,6 +39,9 @@ struct ThreadMessage {
         struct {
             vaddr_t addr;
         } remove_breakpoint;
+
+        // Insert/remove watchpoint
+        Watchpoint watchpoint;
     } payload{};
 };
 
@@ -56,6 +62,8 @@ class Thread : public IThread {
 
     void disarmSingleStep();
 
+    void updateMonitorDebug();
+
     // Debug
     void insertBreakpoint(vaddr_t addr) override {
         sendMessage({.type = ThreadMessageType::InsertBreakpoint,
@@ -64,6 +72,14 @@ class Thread : public IThread {
     void removeBreakpoint(vaddr_t addr) override {
         sendMessage({.type = ThreadMessageType::RemoveBreakpoint,
                      .payload = {.remove_breakpoint = {addr}}});
+    }
+    void insertWatchpoint(const Watchpoint& watchpoint) override {
+        sendMessage({.type = ThreadMessageType::InsertWatchpoint,
+                     .payload = {.watchpoint = watchpoint}});
+    }
+    void removeWatchpoint(const Watchpoint& watchpoint) override {
+        sendMessage({.type = ThreadMessageType::RemoveWatchpoint,
+                     .payload = {.watchpoint = watchpoint}});
     }
     void singleStep() override {
         sendMessage({.type = ThreadMessageType::SingleStep});
@@ -81,6 +97,7 @@ class Thread : public IThread {
 
     // Debug
     vaddr_t breakpoints[MAX_BREAKPOINTS] = {0x0};
+    std::optional<Watchpoint> watchpoints[MAX_WATCHPOINTS];
 
     // Messages
     std::mutex msg_mutex;
