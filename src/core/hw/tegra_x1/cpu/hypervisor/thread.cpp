@@ -152,7 +152,7 @@ void Thread::run() {
         // Run
         deserializeState();
         HV_ASSERT_SUCCESS(hv_vcpu_run(vcpu));
-        exception = (getReg(HV_REG_PC) >= cpu.getKernelPageTable().getBase());
+        exception = (getReg(HV_REG_PC) >= KERNEL_REGION_BASE);
         serializeState();
 
         // Handle exit
