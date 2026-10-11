@@ -124,6 +124,8 @@ class Target {
     };
 
     horizon::kernel::Process& process;
+    const u32 breakpoint_slots;
+    const u32 watchpoint_slots;
     const bool native_breakpoints;
 
     mutable std::mutex mutex;
@@ -151,6 +153,8 @@ class Target {
     hw::tegra_x1::cpu::IMmu* getMmu() const;
 
   public:
+    GETTER(breakpoint_slots, getBreakpointSlotCount);
+    GETTER(watchpoint_slots, getWatchpointSlotCount);
     GETTER(native_breakpoints, hasNativeBreakpoints);
     CONST_REF_SETTER(halt_state_observer, setHaltStateObserver);
 };

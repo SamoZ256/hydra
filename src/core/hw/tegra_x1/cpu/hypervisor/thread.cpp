@@ -395,7 +395,8 @@ void Thread::processMessages() {
 
             // Find a breakpoint slot
             bool found = false;
-            for (u32 slot = 0; slot < MAX_BREAKPOINTS; ++slot) {
+            for (u32 slot = 0; slot < cpu.getFeatures().breakpoint_slots;
+                 ++slot) {
                 if (breakpoints[slot] == 0x0) {
                     breakpoints[slot] = addr;
 
@@ -425,7 +426,8 @@ void Thread::processMessages() {
 
             // Find the breakpoint slot
             bool found = false;
-            for (u32 slot = 0; slot < MAX_BREAKPOINTS; ++slot) {
+            for (u32 slot = 0; slot < cpu.getFeatures().breakpoint_slots;
+                 ++slot) {
                 if (breakpoints[slot] == addr) {
                     breakpoints[slot] = 0x0;
 

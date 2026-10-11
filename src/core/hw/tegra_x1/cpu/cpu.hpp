@@ -13,7 +13,8 @@ class IMmu;
 class IThread;
 
 struct CpuFeatures {
-    bool supports_native_breakpoints;
+    u32 breakpoint_slots;
+    u32 watchpoint_slots;
 };
 
 class ICpu {

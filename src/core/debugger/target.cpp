@@ -12,7 +12,6 @@ namespace {
 
 constexpr u32 BRK = 0xd4200000;
 constexpr u32 BRK_MASK = 0xffe0001f;
-constexpr usize NATIVE_BREAKPOINT_SLOTS = 16;
 constexpr i64 STOP_POLL_INTERVAL_NS = 1000ll * 1000ll;
 
 } // namespace
@@ -20,10 +19,12 @@ constexpr i64 STOP_POLL_INTERVAL_NS = 1000ll * 1000ll;
 using hw::tegra_x1::cpu::HaltReason;
 
 Target::Target(horizon::kernel::Process& process_)
-    : process{process_}, native_breakpoints{process_.getSystem()
-                                                .getCpu()
-                                                .getFeatures()
-                                                .supports_native_breakpoints} {}
+    : process{process_},
+      breakpoint_slots{
+          process_.getSystem().getCpu().getFeatures().breakpoint_slots},
+      watchpoint_slots{
+          process_.getSystem().getCpu().getFeatures().watchpoint_slots},
+      native_breakpoints{breakpoint_slots != 0} {}
 
 thread_id_t Target::registerThread(horizon::kernel::GuestThread* guest_thread) {
     std::scoped_lock lock(mutex);
@@ -300,7 +301,7 @@ bool Target::insertBreakpoint(vaddr_t addr) {
         return true;
 
     if (native_breakpoints) {
-        if (addr == 0 || breakpoints.size() >= NATIVE_BREAKPOINT_SLOTS)
+        if (addr == 0 || breakpoints.size() >= breakpoint_slots)
             return false;
 
         breakpoints.emplace(addr, Breakpoint{});

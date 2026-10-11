@@ -1,5 +1,7 @@
 #include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 
+#include <sys/sysctl.h>
+
 #include "core/debugger/debugger_manager.hpp"
 #include "core/horizon/os.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/mmu.hpp"
@@ -10,6 +12,30 @@ namespace hydra::hw::tegra_x1::cpu::hypervisor {
 namespace {
 
 constexpr u64 KERNEL_MEM_SIZE = 0x1000;
+constexpr u32 MIN_DEBUG_SLOTS = 2;
+constexpr u32 MAX_DEBUG_SLOTS = 16;
+constexpr u32 DFR0_BRPS_SHIFT = 12;
+constexpr u32 DFR0_WRPS_SHIFT = 20;
+
+u32 debugSlotCount(u32 dfr0_shift, const char* sysctl_name) {
+    std::optional<u32> count;
+
+    auto config = hv_vcpu_config_create();
+    u64 dfr0;
+    if (hv_vcpu_config_get_feature_reg(config, HV_FEATURE_REG_ID_AA64DFR0_EL1,
+                                       &dfr0) == HV_SUCCESS)
+        count = static_cast<u32>((dfr0 >> dfr0_shift) & 0xf) + 1;
+    os_release(config);
+
+    i32 host_count;
+    usize size = sizeof(host_count);
+    if (sysctlbyname(sysctl_name, &host_count, &size, nullptr, 0) == 0 &&
+        host_count > 0)
+        count = std::min(count.value_or(MAX_DEBUG_SLOTS),
+                         static_cast<u32>(host_count));
+
+    return std::min(count.value_or(MIN_DEBUG_SLOTS), MAX_DEBUG_SLOTS);
+}
 
 const u32 exception_handler[] = {
     0xd41fffe2u, // hvc #0xFFFF
@@ -93,7 +119,12 @@ Cpu::Cpu()
     */
 
     // Features
-    features = {.supports_native_breakpoints = true};
+    features = {.breakpoint_slots =
+                    debugSlotCount(DFR0_BRPS_SHIFT, "hw.optional.breakpoint"),
+                .watchpoint_slots =
+                    debugSlotCount(DFR0_WRPS_SHIFT, "hw.optional.watchpoint")};
+    LOG_INFO(Hypervisor, "Debug slots: {} breakpoints, {} watchpoints",
+             features.breakpoint_slots, features.watchpoint_slots);
 }
 
 IMmu* Cpu::createMmu(System& system) { return new Mmu(system); }
