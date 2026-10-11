@@ -1,5 +1,7 @@
 #pragma once
 
+#include <set>
+
 #include "core/hw/tegra_x1/cpu/thread.hpp"
 
 namespace hydra::horizon::kernel {
@@ -47,6 +49,7 @@ struct Breakpoint {
 struct StopInfo {
     hw::tegra_x1::cpu::HaltReason reason;
     u64 sequence;
+    std::optional<hw::tegra_x1::cpu::Watchpoint> watchpoint{std::nullopt};
 };
 
 struct ThreadSnapshot {
@@ -111,6 +114,11 @@ class Target {
     void removeAllBreakpoints();
     bool hasBreakpoint(vaddr_t addr) const;
 
+    // Watchpoints
+    bool insertWatchpoint(const hw::tegra_x1::cpu::Watchpoint& watchpoint);
+    bool removeWatchpoint(const hw::tegra_x1::cpu::Watchpoint& watchpoint);
+    void removeAllWatchpoints();
+
     bool isProcessRunning() const;
     u64 getTitleId() const;
 
@@ -132,6 +140,7 @@ class Target {
     std::map<thread_id_t, ThreadEntry> threads;
     thread_id_t next_thread_id{1};
     std::map<vaddr_t, Breakpoint> breakpoints;
+    std::set<hw::tegra_x1::cpu::Watchpoint> watchpoints;
     bool stopping{false};
     u64 stop_sequence{0};
     halt_state_observer_fn_t halt_state_observer;
@@ -143,6 +152,8 @@ class Target {
     bool isStateAccessible(const ThreadEntry& entry) const;
     void kickRunningThreads();
     bool removeBreakpointLocked(std::map<vaddr_t, Breakpoint>::iterator it);
+    std::optional<hw::tegra_x1::cpu::Watchpoint>
+    findWatchpoint(vaddr_t access_addr) const;
 
     bool tryReadMemoryRaw(vaddr_t addr, std::span<u8> out_data) const;
     bool tryWriteMemoryRaw(vaddr_t addr, std::span<const u8> data);

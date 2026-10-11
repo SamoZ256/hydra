@@ -178,6 +178,38 @@ parseBreakpointRequest(std::string_view command) {
         .type = static_cast<BreakpointType>(type), .addr = addr, .size = size};
 }
 
+std::optional<hw::tegra_x1::cpu::Watchpoint>
+toWatchpoint(const BreakpointRequest& request) {
+    hw::tegra_x1::cpu::WatchpointType type;
+    switch (request.type) {
+    case BreakpointType::WriteWatch:
+        type = hw::tegra_x1::cpu::WatchpointType::Write;
+        break;
+    case BreakpointType::ReadWatch:
+        type = hw::tegra_x1::cpu::WatchpointType::Read;
+        break;
+    case BreakpointType::AccessWatch:
+        type = hw::tegra_x1::cpu::WatchpointType::Access;
+        break;
+    default:
+        return std::nullopt;
+    }
+
+    return hw::tegra_x1::cpu::Watchpoint{
+        .addr = request.addr, .size = request.size, .type = type};
+}
+
+std::string_view watchpointKey(hw::tegra_x1::cpu::WatchpointType type) {
+    switch (type) {
+    case hw::tegra_x1::cpu::WatchpointType::Write:
+        return "watch";
+    case hw::tegra_x1::cpu::WatchpointType::Read:
+        return "rwatch";
+    case hw::tegra_x1::cpu::WatchpointType::Access:
+        return "awatch";
+    }
+}
+
 std::optional<std::vector<u8>> unescapeBinary(std::string_view in,
                                               usize expected_size) {
     std::vector<u8> out;
@@ -601,6 +633,7 @@ void GdbServer::finishSession() {
     case SessionEnd::Disconnected:
     case SessionEnd::Detached:
         getTarget().removeAllBreakpoints();
+        getTarget().removeAllWatchpoints();
         getTarget().resumeAll();
         break;
     case SessionEnd::Killed:
@@ -907,6 +940,9 @@ void GdbServer::handleQuery(std::string_view command) {
         sendPacket("1");
     } else if (command == "Offsets") {
         sendPacket(GDB_EMPTY);
+    } else if (command.starts_with("WatchpointSupportInfo")) {
+        sendPacket(
+            fmt::format("num:{};", getTarget().getWatchpointSlotCount()));
     } else if (command.starts_with("ThreadStopInfo")) {
         handleThreadStopInfo(command.substr(14));
     } else if (command == "HostInfo") {
@@ -1212,10 +1248,16 @@ void GdbServer::handleInsertBreakpoint(std::string_view command) {
             sendPacket(getTarget().insertBreakpoint(request->addr) ? GDB_OK
                                                                    : GDB_ERROR);
         break;
-    default:
-        LOG_NOT_IMPLEMENTED(Debugger, "Breakpoint type {}", request->type);
-        sendPacket(GDB_EMPTY);
+    default: {
+        const auto watchpoint = toWatchpoint(request.value());
+        if (!watchpoint || getTarget().getWatchpointSlotCount() == 0)
+            sendPacket(GDB_EMPTY);
+        else
+            sendPacket(getTarget().insertWatchpoint(watchpoint.value())
+                           ? GDB_OK
+                           : GDB_ERROR);
         break;
+    }
     }
 }
 
@@ -1240,10 +1282,16 @@ void GdbServer::handleRemoveBreakpoint(std::string_view command) {
             sendPacket(getTarget().removeBreakpoint(request->addr) ? GDB_OK
                                                                    : GDB_ERROR);
         break;
-    default:
-        LOG_NOT_IMPLEMENTED(Debugger, "Breakpoint type {}", request->type);
-        sendPacket(GDB_EMPTY);
+    default: {
+        const auto watchpoint = toWatchpoint(request.value());
+        if (!watchpoint || getTarget().getWatchpointSlotCount() == 0)
+            sendPacket(GDB_EMPTY);
+        else
+            sendPacket(getTarget().removeWatchpoint(watchpoint.value())
+                           ? GDB_OK
+                           : GDB_ERROR);
         break;
+    }
     }
 }
 
@@ -1458,6 +1506,12 @@ bool GdbServer::tryParseReg(hw::tegra_x1::cpu::ThreadState& state, u32 id,
 
 std::string GdbServer::formatStopReply(thread_id_t id, Signal signal) {
     std::string reply = fmt::format("T{:02x}", static_cast<u8>(signal));
+    if (const auto stop = getTarget().getStopInfo(id);
+        stop && stop->watchpoint) {
+        reply += fmt::format("{}:{:x};", watchpointKey(stop->watchpoint->type),
+                             stop->watchpoint->addr);
+    }
+
     if (const auto stopped = getTarget().tryAcquireStoppedThread(id)) {
         const auto& state = stopped->getState();
         reply += fmt::format("{:02x}:{};{:02x}:{};{:02x}:{};", PC_REGISTER,
@@ -1481,12 +1535,10 @@ Signal GdbServer::signalForThread(thread_id_t id, Signal fallback) const {
 }
 
 Signal GdbServer::signalFromStop(const StopInfo& stop) {
-    switch (stop.reason) {
-    case hw::tegra_x1::cpu::HaltReason::Fault:
+    if (stop.reason == hw::tegra_x1::cpu::HaltReason::Fault)
         return Signal::SigSegv;
-    default:
-        return Signal::SigTrap;
-    }
+
+    return Signal::SigTrap;
 }
 
 Target& GdbServer::getTarget() const { return debugger.getTarget(); }

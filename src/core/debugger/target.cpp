@@ -12,11 +12,14 @@ namespace {
 
 constexpr u32 BRK = 0xd4200000;
 constexpr u32 BRK_MASK = 0xffe0001f;
+constexpr u64 WATCHPOINT_MAX_SIZE = 8;
+constexpr vaddr_t WATCHPOINT_OFFSET_MASK = 0x7;
 constexpr i64 STOP_POLL_INTERVAL_NS = 1000ll * 1000ll;
 
 } // namespace
 
 using hw::tegra_x1::cpu::HaltReason;
+using hw::tegra_x1::cpu::Watchpoint;
 
 Target::Target(horizon::kernel::Process& process_)
     : process{process_},
@@ -39,6 +42,8 @@ thread_id_t Target::registerThread(horizon::kernel::GuestThread* guest_thread) {
         for (const auto& [addr, _] : breakpoints)
             cpu_thread->insertBreakpoint(addr);
     }
+    for (const auto& watchpoint : watchpoints)
+        cpu_thread->insertWatchpoint(watchpoint);
 
     if (stopping) {
         guest_thread->supervisorPause();
@@ -236,7 +241,13 @@ void Target::notifyHalted(horizon::kernel::GuestThread* guest_thread,
         if (reason == HaltReason::BrkInstruction && breakpoints.contains(pc))
             reason = HaltReason::Breakpoint;
 
-        entry->stop = StopInfo{.reason = reason, .sequence = ++stop_sequence};
+        std::optional<Watchpoint> watchpoint;
+        if (reason == HaltReason::Watchpoint)
+            watchpoint = findWatchpoint(halt.access_addr);
+
+        entry->stop = StopInfo{.reason = reason,
+                               .sequence = ++stop_sequence,
+                               .watchpoint = watchpoint};
         entry->stepping = false;
         stopping = true;
         stop = entry->stop;
@@ -351,6 +362,50 @@ bool Target::hasBreakpoint(vaddr_t addr) const {
     return breakpoints.contains(addr);
 }
 
+bool Target::insertWatchpoint(const Watchpoint& watchpoint) {
+    std::scoped_lock lock(mutex);
+
+    if (watchpoint_slots == 0 || watchpoint.size == 0 ||
+        watchpoint.size > WATCHPOINT_MAX_SIZE ||
+        (watchpoint.addr & WATCHPOINT_OFFSET_MASK) + watchpoint.size >
+            WATCHPOINT_MAX_SIZE)
+        return false;
+
+    if (watchpoints.contains(watchpoint))
+        return true;
+
+    if (watchpoints.size() >= watchpoint_slots)
+        return false;
+
+    watchpoints.insert(watchpoint);
+    for (const auto& [_, entry] : threads)
+        entry.cpu_thread->insertWatchpoint(watchpoint);
+
+    return true;
+}
+
+bool Target::removeWatchpoint(const Watchpoint& watchpoint) {
+    std::scoped_lock lock(mutex);
+
+    if (watchpoints.erase(watchpoint) == 0)
+        return false;
+
+    for (const auto& [_, entry] : threads)
+        entry.cpu_thread->removeWatchpoint(watchpoint);
+
+    return true;
+}
+
+void Target::removeAllWatchpoints() {
+    std::scoped_lock lock(mutex);
+
+    for (const auto& watchpoint : watchpoints) {
+        for (const auto& [_, entry] : threads)
+            entry.cpu_thread->removeWatchpoint(watchpoint);
+    }
+    watchpoints.clear();
+}
+
 Target::ThreadEntry* Target::findEntry(thread_id_t id) {
     const auto it = threads.find(id);
     return it == threads.end() ? nullptr : &it->second;
@@ -368,6 +423,8 @@ bool Target::isStaleTrap(HaltReason reason, vaddr_t pc) const {
     switch (reason) {
     case HaltReason::Breakpoint:
         return true;
+    case HaltReason::Watchpoint:
+        return watchpoints.empty();
     case HaltReason::BrkInstruction: {
         u32 instruction;
         return !native_breakpoints && getMmu()->tryRead(pc, instruction) &&
@@ -482,6 +539,32 @@ void Target::writeBreakpointShadow(vaddr_t addr, std::span<const u8> data) {
 void Target::notifyMemoryChanged(ztd::Range<vaddr_t> mem_range) {
     for (const auto& [_, entry] : threads)
         entry.cpu_thread->notifyMemoryChanged(mem_range);
+}
+
+std::optional<Watchpoint> Target::findWatchpoint(vaddr_t access_addr) const {
+    if (watchpoints.empty())
+        return std::nullopt;
+
+    for (const auto& watchpoint : watchpoints) {
+        if (access_addr >= watchpoint.addr &&
+            access_addr < watchpoint.addr + watchpoint.size)
+            return watchpoint;
+    }
+
+    for (const auto& watchpoint : watchpoints) {
+        if ((access_addr & ~WATCHPOINT_OFFSET_MASK) ==
+            (watchpoint.addr & ~WATCHPOINT_OFFSET_MASK))
+            return watchpoint;
+    }
+
+    return *std::ranges::min_element(
+        watchpoints, [access_addr](const auto& a, const auto& b) {
+            const auto da = a.addr > access_addr ? a.addr - access_addr
+                                                 : access_addr - a.addr;
+            const auto db = b.addr > access_addr ? b.addr - access_addr
+                                                 : access_addr - b.addr;
+            return da < db;
+        });
 }
 
 hw::tegra_x1::cpu::IMmu* Target::getMmu() const { return process.getMmu(); }
