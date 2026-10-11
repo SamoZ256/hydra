@@ -45,11 +45,11 @@ thread_id_t Target::registerThread(horizon::kernel::GuestThread* guest_thread) {
     for (const auto& watchpoint : watchpoints)
         cpu_thread->insertWatchpoint(watchpoint);
 
-    if (stopping) {
+    if (stopping &&
+        process.getState() == horizon::kernel::ProcessState::DebugSuspended) {
         guest_thread->supervisorPause();
         cpu_thread->requestHalt();
-    } else if (process.getState() ==
-               horizon::kernel::ProcessState::DebugSuspended) {
+    } else if (partial_resume) {
         guest_thread->supervisorResume();
     }
 
@@ -58,7 +58,18 @@ thread_id_t Target::registerThread(horizon::kernel::GuestThread* guest_thread) {
 
 void Target::unregisterThread(thread_id_t id) {
     std::scoped_lock lock(mutex);
-    threads.erase(id);
+
+    const auto it = threads.find(id);
+    if (it == threads.end())
+        return;
+
+    const bool was_resumed = it->second.resumed;
+    threads.erase(it);
+
+    if (was_resumed && !stopping &&
+        std::ranges::none_of(
+            threads, [](const auto& pair) { return pair.second.resumed; }))
+        stopping = true;
 }
 
 std::vector<thread_id_t> Target::getThreadIds() const {
@@ -100,12 +111,14 @@ std::vector<ThreadSnapshot> Target::getThreadSnapshots() const {
 }
 
 void Target::pauseAll() {
+    std::scoped_lock run_lock(run_control_mutex);
     if (!isProcessRunning())
         return;
 
     {
         std::scoped_lock lock(mutex);
         stopping = true;
+        partial_resume = false;
     }
 
     process.supervisorPause();
@@ -113,23 +126,27 @@ void Target::pauseAll() {
 }
 
 void Target::resumeAll() {
-    if (!isProcessRunning())
-        return;
-
     std::vector<thread_id_t> resumed;
     {
-        std::scoped_lock lock(mutex);
-        for (auto& [id, entry] : threads) {
-            if (entry.stop)
-                resumed.push_back(id);
-            entry.stop = std::nullopt;
-            entry.stepping = false;
-            entry.resumed = true;
-        }
-        stopping = false;
-    }
+        std::scoped_lock run_lock(run_control_mutex);
+        if (!isProcessRunning())
+            return;
 
-    process.supervisorResume();
+        {
+            std::scoped_lock lock(mutex);
+            for (auto& [id, entry] : threads) {
+                if (entry.stop)
+                    resumed.push_back(id);
+                entry.stop = std::nullopt;
+                entry.stepping = false;
+                entry.resumed = true;
+            }
+            stopping = false;
+            partial_resume = false;
+        }
+
+        process.supervisorResume();
+    }
 
     if (halt_state_observer) {
         for (const auto id : resumed)
@@ -138,6 +155,7 @@ void Target::resumeAll() {
 }
 
 bool Target::resume(std::span<const ResumeAction> actions) {
+    std::scoped_lock run_lock(run_control_mutex);
     if (!isProcessRunning())
         return false;
 
@@ -175,6 +193,7 @@ bool Target::resume(std::span<const ResumeAction> actions) {
 
         all = entries.size() == threads.size();
         stopping = false;
+        partial_resume = !all;
 
         if (!all) {
             for (auto& [entry, _] : entries)
@@ -210,8 +229,9 @@ bool Target::isAllStopped() const {
 void Target::notifyHalted(horizon::kernel::GuestThread* guest_thread,
                           const hw::tegra_x1::cpu::HaltInfo& halt) {
     auto reason = halt.reason;
-    thread_id_t id = invalid<thread_id_t>();
+    auto id = invalid<thread_id_t>();
     std::optional<StopInfo> stop;
+    std::scoped_lock run_lock(run_control_mutex);
     {
         std::scoped_lock lock(mutex);
 
@@ -250,6 +270,7 @@ void Target::notifyHalted(horizon::kernel::GuestThread* guest_thread,
                                .watchpoint = watchpoint};
         entry->stepping = false;
         stopping = true;
+        partial_resume = false;
         stop = entry->stop;
     }
 
@@ -554,6 +575,11 @@ std::optional<Watchpoint> Target::findWatchpoint(vaddr_t access_addr) const {
     for (const auto& watchpoint : watchpoints) {
         if ((access_addr & ~WATCHPOINT_OFFSET_MASK) ==
             (watchpoint.addr & ~WATCHPOINT_OFFSET_MASK))
+            return watchpoint;
+    }
+
+    for (const auto& watchpoint : watchpoints) {
+        if (watchpoint.addr + watchpoint.size > access_addr)
             return watchpoint;
     }
 

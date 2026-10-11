@@ -136,12 +136,14 @@ class Target {
     const u32 watchpoint_slots;
     const bool native_breakpoints;
 
+    mutable std::mutex run_control_mutex;
     mutable std::mutex mutex;
     std::map<thread_id_t, ThreadEntry> threads;
     thread_id_t next_thread_id{1};
     std::map<vaddr_t, Breakpoint> breakpoints;
     std::set<hw::tegra_x1::cpu::Watchpoint> watchpoints;
     bool stopping{false};
+    bool partial_resume{false};
     u64 stop_sequence{0};
     halt_state_observer_fn_t halt_state_observer;
 
