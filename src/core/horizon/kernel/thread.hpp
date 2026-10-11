@@ -79,6 +79,7 @@ class IThread : public SynchronizationObject {
 
     // Must not be called from a different thread
     bool processMessages(i64 pause_timeout_ns = INFINITE_TIMEOUT);
+    void waitForMessage(std::chrono::steady_clock::time_point deadline);
     bool wasSignalled() const {
         ASSERT_DEBUG(sync_info, Kernel, "No signal info present");
         const auto& sync_info_value = sync_info.value();

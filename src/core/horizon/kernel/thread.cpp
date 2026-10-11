@@ -60,6 +60,11 @@ bool IThread::processMessages(i64 pause_timeout_ns) {
     return true;
 }
 
+void IThread::waitForMessage(std::chrono::steady_clock::time_point deadline) {
+    std::unique_lock<std::mutex> lock(msg_mutex);
+    msg_cv.wait_until(lock, deadline, [this] { return !msg_queue.empty(); });
+}
+
 void IThread::sendMessage(ThreadMessage msg) {
     std::scoped_lock lock(msg_mutex);
     if (msg.supervisor) {

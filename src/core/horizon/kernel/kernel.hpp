@@ -73,7 +73,7 @@ class Kernel {
                           i32 priority, i32 processor_id, IThread*& out_thread);
     result_t startThread(IThread* thread);
     void exitThread(IThread* crnt_thread);
-    void sleepThread(i64 nano);
+    void sleepThread(IThread* crnt_thread, i64 nano);
     result_t getThreadPriority(IThread* thread, i32& out_priority);
     result_t setThreadPriority(IThread* thread, i32 priority);
     result_t getThreadCoreMask(IThread* thread, i32& out_core_mask0,

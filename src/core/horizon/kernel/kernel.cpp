@@ -16,6 +16,12 @@
 
 namespace hydra::horizon::kernel {
 
+namespace {
+
+constexpr auto MAX_SLEEP_WAIT = std::chrono::hours(1);
+
+} // namespace
+
 Kernel::Kernel(System& system_) : system{system_}, process_manager(system) {}
 
 void Kernel::supervisorCall(Process* crnt_process, IThread* crnt_thread,
@@ -77,7 +83,7 @@ void Kernel::supervisorCall(Process* crnt_process, IThread* crnt_thread,
         exitThread(crnt_thread);
         break;
     case 0xb:
-        sleepThread(std::bit_cast<i64>(state.r[0]));
+        sleepThread(crnt_thread, std::bit_cast<i64>(state.r[0]));
         break;
     case 0xc:
         state.r[0] = getThreadPriority(
@@ -467,13 +473,30 @@ void Kernel::exitThread(IThread* crnt_thread) {
     crnt_thread->stop();
 }
 
-void Kernel::sleepThread(i64 nano) {
+void Kernel::sleepThread(IThread* crnt_thread, i64 nano) {
     LOG_DEBUG(Kernel, "SleepThread called (nano: {})", nano);
 
-    if (nano == 0 || nano == -1 || nano == -2)
+    if (nano == 0 || nano == -1 || nano == -2) {
         std::this_thread::yield();
-    else
-        std::this_thread::sleep_for(std::chrono::nanoseconds(nano));
+        return;
+    }
+
+    const auto start = std::chrono::steady_clock::now();
+    const auto max_wait = std::chrono::steady_clock::time_point::max() - start;
+    const auto deadline = std::chrono::nanoseconds(nano) >= max_wait
+                              ? std::chrono::steady_clock::time_point::max()
+                              : start + std::chrono::nanoseconds(nano);
+    while (true) {
+        crnt_thread->processMessages();
+        if (crnt_thread->getState() == ThreadState::Stopping)
+            return;
+
+        const auto now = std::chrono::steady_clock::now();
+        if (now >= deadline)
+            return;
+
+        crnt_thread->waitForMessage(std::min(deadline, now + MAX_SLEEP_WAIT));
+    }
 }
 
 result_t Kernel::getThreadPriority(IThread* thread, i32& out_priority) {
