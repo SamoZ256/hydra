@@ -229,6 +229,7 @@ void Thread::run() {
                 LOG_FATAL(Hypervisor, "SMC");
                 break;
             case ExceptionClass::BrkAarch64:
+                disarmSingleStep();
                 callbacks.halted(HaltReason::BrkInstruction);
                 break;
             case ExceptionClass::DataAbortLowerEl: {
@@ -236,7 +237,7 @@ void Thread::run() {
                 break;
             }
             case ExceptionClass::BreakpointLowerEl: {
-                // Callback
+                disarmSingleStep();
                 callbacks.halted(HaltReason::Breakpoint);
                 break;
             }
@@ -247,12 +248,7 @@ void Thread::run() {
                     break;
                 }
 
-                // Disable SW step
-                u64 mdscr_el1 = getSysReg(HV_SYS_REG_MDSCR_EL1);
-                mdscr_el1 &= ~MDSCR_EL1_SS;
-                setSysReg(HV_SYS_REG_MDSCR_EL1, mdscr_el1);
-
-                // Callback
+                disarmSingleStep();
                 callbacks.halted(HaltReason::StepComplete);
                 break;
             }
@@ -299,6 +295,12 @@ void Thread::notifyMemoryChanged(ztd::Range<vaddr_t> mem_range) {
 
         va = chunk_end;
     }
+}
+
+void Thread::disarmSingleStep() {
+    state.pstate &= ~PSTATE_SS;
+    setSysReg(HV_SYS_REG_MDSCR_EL1,
+              getSysReg(HV_SYS_REG_MDSCR_EL1) & ~MDSCR_EL1_SS);
 }
 
 void Thread::requestHalt() {

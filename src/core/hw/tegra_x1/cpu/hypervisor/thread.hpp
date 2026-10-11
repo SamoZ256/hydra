@@ -54,6 +54,8 @@ class Thread : public IThread {
 
     void updateVTimer();
 
+    void disarmSingleStep();
+
     // Debug
     void insertBreakpoint(vaddr_t addr) override {
         sendMessage({.type = ThreadMessageType::InsertBreakpoint,
