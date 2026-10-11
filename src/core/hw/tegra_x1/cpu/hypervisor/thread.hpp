@@ -66,6 +66,7 @@ class Thread : public IThread {
     void singleStep() override {
         sendMessage({.type = ThreadMessageType::SingleStep});
     }
+    void requestHalt() override;
 
   private:
     Cpu& cpu;

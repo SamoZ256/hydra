@@ -7,6 +7,7 @@
 
 namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
-;
+constexpr auto HALT_STATE_SERIALIZED = Dynarmic::HaltReason::UserDefined1;
+constexpr auto HALT_REQUESTED = Dynarmic::HaltReason::UserDefined2;
 
 } // namespace hydra::hw::tegra_x1::cpu::dynarmic

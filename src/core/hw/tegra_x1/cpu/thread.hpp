@@ -51,6 +51,7 @@ class IThread {
     virtual void insertBreakpoint(vaddr_t addr) = 0;
     virtual void removeBreakpoint(vaddr_t addr) = 0;
     virtual void singleStep() = 0;
+    virtual void requestHalt() = 0;
 
     // Getters
     IMemory* getTlsMemory() const { return tls_mem; }

@@ -78,8 +78,7 @@ void Thread::run() {
     while (true) {
         deserializeState();
         const auto reason = jit->Run();
-        if (Dynarmic::Has(reason, Dynarmic::HaltReason::CacheInvalidation) &&
-            !Dynarmic::Has(reason, Dynarmic::HaltReason::UserDefined1))
+        if (!Dynarmic::Has(reason, HALT_STATE_SERIALIZED))
             serializeState();
         if (callbacks.stop_requested())
             break;
@@ -147,7 +146,7 @@ bool Thread::MemoryWriteExclusive128(u64 addr, Dynarmic::A64::Vector value,
 void Thread::CallSVC(u32 svc) {
     serializeState();
     callbacks.svc_handler(this, svc);
-    jit->HaltExecution();
+    jit->HaltExecution(HALT_STATE_SERIALIZED);
 }
 
 void Thread::ExceptionRaised([[maybe_unused]] u64 pc,
@@ -167,7 +166,7 @@ void Thread::ExceptionRaised([[maybe_unused]] u64 pc,
         LOG_FATAL(Dynarmic, "Unhandled exception: {}", exception);
     }
 
-    jit->HaltExecution();
+    jit->HaltExecution(HALT_STATE_SERIALIZED);
 }
 
 u64 Thread::GetCNTPCT() { return wall_clock.getCntpct(); }

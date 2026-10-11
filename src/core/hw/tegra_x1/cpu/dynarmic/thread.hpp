@@ -36,6 +36,7 @@ class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
         jit->Step();
         serializeState();
     }
+    void requestHalt() override { jit->HaltExecution(HALT_REQUESTED); }
 
   private:
     vaddr_t tpidrro_el0;

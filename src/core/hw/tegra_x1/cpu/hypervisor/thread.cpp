@@ -271,7 +271,7 @@ void Thread::run() {
             }
         } else if (exit->reason == HV_EXIT_REASON_VTIMER_ACTIVATED) {
             updateVTimer();
-        } else {
+        } else if (exit->reason != HV_EXIT_REASON_CANCELED) {
             // TODO: don't cast to u32
             LOG_ERROR(Hypervisor, "Unexpected VM exit reason {}",
                       static_cast<u32>(exit->reason));
@@ -299,6 +299,12 @@ void Thread::notifyMemoryChanged(ztd::Range<vaddr_t> mem_range) {
 
         va = chunk_end;
     }
+}
+
+void Thread::requestHalt() {
+    const auto res = hv_vcpus_exit(&vcpu, 1);
+    if (res != HV_SUCCESS)
+        LOG_WARN(Hypervisor, "Failed to exit vCPU: 0x{:x}", u64(res));
 }
 
 void Thread::setupVTimer() {
