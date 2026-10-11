@@ -51,10 +51,8 @@ Debugger::Debugger(const std::string_view name_,
 
     target.emplace(*process);
     target->setHaltStateObserver(
-        [this](thread_id_t id,
-               std::optional<hw::tegra_x1::cpu::HaltReason> reason,
-               bool first_stop) {
-            onHaltStateChanged(id, reason, first_stop);
+        [this](thread_id_t id, const std::optional<StopInfo>& stop) {
+            onHaltStateChanged(id, stop);
         });
 }
 
@@ -129,8 +127,8 @@ void Debugger::breakOnThisThreadImpl(const std::string_view reason) {
 
     if (guest_thread != nullptr)
         notifyHalted(guest_thread, hw::tegra_x1::cpu::HaltReason::Fault);
-    else if (process != nullptr)
-        process->supervisorPause();
+    else if (target.has_value())
+        target->pauseAll();
 }
 
 StackTrace Debugger::getStackTrace(Thread& thread) {
@@ -149,41 +147,37 @@ StackTrace Debugger::getStackTrace(Thread& thread) {
     return stack_trace;
 }
 
-void Debugger::onHaltStateChanged(
-    thread_id_t id, std::optional<hw::tegra_x1::cpu::HaltReason> reason,
-    bool first_stop) {
+void Debugger::onHaltStateChanged(thread_id_t id,
+                                  const std::optional<StopInfo>& stop) {
     {
         std::unique_lock lock(mutex);
         auto* thread = findThreadByTargetId(id);
         if (thread == nullptr)
             return;
 
-        if (reason) {
+        if (stop) {
             thread->status = ThreadStatus::Break;
             if (thread->break_reason.empty())
-                thread->break_reason = fmt::format("{}", reason.value());
+                thread->break_reason = fmt::format("{}", stop->reason);
         } else {
             thread->status = ThreadStatus::Running;
             thread->break_reason.clear();
         }
     }
 
-    if (!reason)
+    if (!stop)
         return;
 
-    switch (reason.value()) {
+    switch (stop->reason) {
     case hw::tegra_x1::cpu::HaltReason::BrkInstruction:
     case hw::tegra_x1::cpu::HaltReason::Fault:
-        LOG_ERROR(Debugger, "Thread halted ({})", reason.value());
+        LOG_ERROR(Debugger, "Thread halted ({})", stop->reason);
         break;
     case hw::tegra_x1::cpu::HaltReason::Breakpoint:
     case hw::tegra_x1::cpu::HaltReason::StepComplete:
-        LOG_INFO(Debugger, "Thread halted ({})", reason.value());
+        LOG_INFO(Debugger, "Thread halted ({})", stop->reason);
         break;
     }
-
-    if (first_stop && gdb_server.has_value())
-        gdb_server->notifyHalted(id, reason.value());
 }
 
 Thread* Debugger::findThreadByTargetId(thread_id_t id) {

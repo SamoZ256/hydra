@@ -197,8 +197,7 @@ class Debugger {
     // Helpers
     StackTrace getStackTrace(Thread& thread);
     void onHaltStateChanged(thread_id_t id,
-                            std::optional<hw::tegra_x1::cpu::HaltReason> reason,
-                            bool first_stop);
+                            const std::optional<StopInfo>& stop);
     Thread* findThreadByTargetId(thread_id_t id);
 
   public:

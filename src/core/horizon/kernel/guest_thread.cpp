@@ -39,7 +39,6 @@ void GuestThread::run() {
              },
          .halted =
              [this](hw::tegra_x1::cpu::HaltReason reason) {
-                 supervisorPause();
                  DEBUGGER_MANAGER_INSTANCE.getDebugger(process).notifyHalted(
                      this, reason);
              }},

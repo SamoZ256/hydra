@@ -12,8 +12,6 @@ class GdbServer {
     explicit GdbServer(Debugger& debugger_);
     ~GdbServer();
 
-    void notifyHalted(thread_id_t id, hw::tegra_x1::cpu::HaltReason reason);
-
   private:
     enum class SessionEnd {
         None,
@@ -23,15 +21,7 @@ class GdbServer {
         ProcessExited,
     };
 
-    struct PendingStop {
-        thread_id_t id;
-        hw::tegra_x1::cpu::HaltReason reason;
-    };
-
     Debugger& debugger;
-
-    std::mutex mutex;
-    std::optional<PendingStop> pending_stop;
 
     i32 server_socket{-1};
     i32 client_socket{-1};
@@ -42,14 +32,17 @@ class GdbServer {
     bool awaiting_stop_reply{false};
     SessionEnd session_end{SessionEnd::None};
     thread_id_t crnt_thread_id{invalid<thread_id_t>()};
+    std::optional<std::chrono::steady_clock::time_point> stop_deadline;
+    std::optional<thread_id_t> interrupted_thread;
 
     void serverLoop();
     void poll();
     void acceptClient();
     void receiveFromClient();
-    void flushPendingStop();
+    void pollStop();
     void finishSession();
     void waitForAnyThread();
+    bool waitForAllStopped(i64 timeout_ns);
 
     bool trySendAll(std::span<const char> bytes);
     void sendPacket(std::string_view data);
@@ -63,6 +56,7 @@ class GdbServer {
     void handleQuery(std::string_view command);
     void handleSetActiveThread(std::string_view command);
     void handleThreadStatus();
+    void handleThreadStopInfo(std::string_view command);
     void handleThreadAlive(std::string_view command);
     void handleDetach();
     void handleKill();
@@ -80,7 +74,10 @@ class GdbServer {
     void handleGetExecutables();
 
     void resumeTarget();
+    void resumeTarget(std::span<const ResumeAction> actions);
     void stepTargetThread(thread_id_t id);
+    void replyCurrentStop();
+    void beginResume();
     thread_id_t resolveCurrentThreadId();
 
     // Helpers
@@ -89,10 +86,9 @@ class GdbServer {
     formatReg(const hw::tegra_x1::cpu::ThreadState& state, u32 id);
     static bool tryParseReg(hw::tegra_x1::cpu::ThreadState& state, u32 id,
                             std::string_view hex);
-    std::optional<std::string>
-    getThreadStatus(thread_id_t id, Signal signal,
-                    i64 timeout_ns = DEFAULT_STOP_TIMEOUT_NS);
-    static Signal signalFromHaltReason(hw::tegra_x1::cpu::HaltReason reason);
+    std::string formatStopReply(thread_id_t id, Signal signal);
+    Signal signalForThread(thread_id_t id, Signal fallback) const;
+    static Signal signalFromStop(const StopInfo& stop);
 
     Target& getTarget() const;
     static std::optional<std::string> pageFromBuffer(std::string_view buffer,

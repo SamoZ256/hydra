@@ -31,11 +31,20 @@ thread_id_t Target::registerThread(horizon::kernel::GuestThread* guest_thread) {
     const auto id = next_thread_id++;
     auto* cpu_thread = guest_thread->getThread();
     threads.emplace(id, ThreadEntry{.guest_thread = guest_thread,
-                                    .cpu_thread = cpu_thread});
+                                    .cpu_thread = cpu_thread,
+                                    .resumed = !stopping});
 
     if (native_breakpoints) {
         for (const auto& [addr, _] : breakpoints)
             cpu_thread->insertBreakpoint(addr);
+    }
+
+    if (stopping) {
+        guest_thread->supervisorPause();
+        cpu_thread->requestHalt();
+    } else if (process.getState() ==
+               horizon::kernel::ProcessState::DebugSuspended) {
+        guest_thread->supervisorResume();
     }
 
     return id;
@@ -62,21 +71,39 @@ bool Target::hasThread(thread_id_t id) const {
     return threads.contains(id);
 }
 
-std::optional<HaltReason> Target::getHaltReason(thread_id_t id) const {
+std::optional<StopInfo> Target::getStopInfo(thread_id_t id) const {
     std::scoped_lock lock(mutex);
 
     const auto* entry = findEntry(id);
     if (entry == nullptr)
         return std::nullopt;
 
-    return entry->halt_reason;
+    return entry->stop;
+}
+
+std::vector<ThreadSnapshot> Target::getThreadSnapshots() const {
+    std::scoped_lock lock(mutex);
+
+    std::vector<ThreadSnapshot> snapshots;
+    snapshots.reserve(threads.size());
+    for (const auto& [id, entry] : threads)
+        snapshots.push_back(
+            {.id = id, .stop = entry.stop, .resumed = entry.resumed});
+
+    return snapshots;
 }
 
 void Target::pauseAll() {
     if (!isProcessRunning())
         return;
 
+    {
+        std::scoped_lock lock(mutex);
+        stopping = true;
+    }
+
     process.supervisorPause();
+    kickRunningThreads();
 }
 
 void Target::resumeAll() {
@@ -86,107 +113,139 @@ void Target::resumeAll() {
     std::vector<thread_id_t> resumed;
     {
         std::scoped_lock lock(mutex);
-        stop_reported = false;
         for (auto& [id, entry] : threads) {
-            if (entry.halt_reason) {
-                entry.halt_reason = std::nullopt;
+            if (entry.stop)
                 resumed.push_back(id);
-            }
+            entry.stop = std::nullopt;
+            entry.stepping = false;
+            entry.resumed = true;
         }
+        stopping = false;
     }
 
     process.supervisorResume();
 
     if (halt_state_observer) {
         for (const auto id : resumed)
-            halt_state_observer(id, std::nullopt, false);
+            halt_state_observer(id, std::nullopt);
     }
 }
 
-bool Target::resumeThread(thread_id_t id) {
-    horizon::kernel::GuestThread* guest_thread;
+bool Target::resume(std::span<const ResumeAction> actions) {
+    if (!isProcessRunning())
+        return false;
+
+    std::vector<thread_id_t> resumed;
+    bool all;
     {
         std::scoped_lock lock(mutex);
-        auto* entry = findEntry(id);
-        if (entry == nullptr)
+
+        std::vector<std::pair<ThreadEntry*, ResumeKind>> entries;
+        for (const auto& action : actions) {
+            auto* entry = findEntry(action.id);
+            if (entry == nullptr ||
+                std::ranges::any_of(entries, [entry](const auto& pair) {
+                    return pair.first == entry;
+                }))
+                continue;
+
+            entries.emplace_back(entry, action.kind);
+            resumed.push_back(action.id);
+        }
+
+        if (entries.empty())
             return false;
 
-        entry->halt_reason = std::nullopt;
-        stop_reported = false;
-        guest_thread = entry->guest_thread;
+        for (auto& [_, entry] : threads)
+            entry.resumed = false;
+
+        for (auto& [entry, kind] : entries) {
+            entry->stop = std::nullopt;
+            entry->stepping = kind == ResumeKind::Step;
+            entry->resumed = true;
+            if (entry->stepping)
+                entry->cpu_thread->singleStep();
+        }
+
+        all = entries.size() == threads.size();
+        stopping = false;
+
+        if (!all) {
+            for (auto& [entry, _] : entries)
+                entry->guest_thread->supervisorResume();
+        }
     }
 
-    guest_thread->supervisorResume();
+    if (all)
+        process.supervisorResume();
 
-    if (halt_state_observer)
-        halt_state_observer(id, std::nullopt, false);
-
-    return true;
-}
-
-bool Target::stepThread(thread_id_t id) {
-    horizon::kernel::GuestThread* guest_thread;
-    hw::tegra_x1::cpu::IThread* cpu_thread;
-    {
-        std::scoped_lock lock(mutex);
-        auto* entry = findEntry(id);
-        if (entry == nullptr || !entry->guest_thread->isSupervisorPaused())
-            return false;
-
-        entry->halt_reason = std::nullopt;
-        stop_reported = false;
-        guest_thread = entry->guest_thread;
-        cpu_thread = entry->cpu_thread;
+    if (halt_state_observer) {
+        for (const auto id : resumed)
+            halt_state_observer(id, std::nullopt);
     }
-
-    if (halt_state_observer)
-        halt_state_observer(id, std::nullopt, false);
-
-    cpu_thread->singleStep();
-    guest_thread->supervisorResume();
 
     return true;
 }
 
 void Target::stop() { process.stop(); }
 
+bool Target::isStopping() const {
+    std::scoped_lock lock(mutex);
+    return stopping;
+}
+
+bool Target::isAllStopped() const {
+    std::scoped_lock lock(mutex);
+    return std::ranges::all_of(threads, [this](const auto& pair) {
+        return isStateAccessible(pair.second);
+    });
+}
+
 void Target::notifyHalted(horizon::kernel::GuestThread* guest_thread,
                           HaltReason reason) {
-    std::optional<thread_id_t> id;
-    bool first_stop = false;
+    thread_id_t id = invalid<thread_id_t>();
+    std::optional<StopInfo> stop;
     {
         std::scoped_lock lock(mutex);
 
-        auto* cpu_thread = guest_thread->getThread();
-        if (cpu_thread != nullptr &&
-            isStaleBreakpointTrap(reason, cpu_thread->getState().pc)) {
-            guest_thread->supervisorResume();
-            return;
-        }
-
-        if (reason == HaltReason::BrkInstruction &&
-            breakpoints.contains(cpu_thread->getState().pc))
-            reason = HaltReason::Breakpoint;
-
-        for (auto& [entry_id, entry] : threads) {
-            if (entry.guest_thread == guest_thread) {
+        ThreadEntry* entry = nullptr;
+        for (auto& [entry_id, candidate] : threads) {
+            if (candidate.guest_thread == guest_thread) {
                 id = entry_id;
-                entry.halt_reason = reason;
+                entry = &candidate;
                 break;
             }
         }
 
-        if (!id)
+        if (entry == nullptr)
             return;
 
-        first_stop = !stop_reported;
-        stop_reported = true;
+        const auto pc = entry->cpu_thread->getState().pc;
+        if (reason == HaltReason::StepComplete && !entry->stepping)
+            return;
+
+        if (isStaleTrap(reason, pc)) {
+            if (!entry->stepping)
+                return;
+
+            reason = HaltReason::StepComplete;
+        }
+
+        if (reason == HaltReason::BrkInstruction && breakpoints.contains(pc))
+            reason = HaltReason::Breakpoint;
+
+        entry->stop = StopInfo{.reason = reason, .sequence = ++stop_sequence};
+        entry->stepping = false;
+        stopping = true;
+        stop = entry->stop;
     }
 
-    process.supervisorPause();
+    if (isProcessRunning())
+        process.supervisorPause();
+    kickRunningThreads();
 
     if (halt_state_observer)
-        halt_state_observer(id.value(), reason, first_stop);
+        halt_state_observer(id, stop);
 }
 
 std::optional<StoppedThread>
@@ -300,7 +359,7 @@ const Target::ThreadEntry* Target::findEntry(thread_id_t id) const {
     return it == threads.end() ? nullptr : &it->second;
 }
 
-bool Target::isStaleBreakpointTrap(HaltReason reason, vaddr_t pc) const {
+bool Target::isStaleTrap(HaltReason reason, vaddr_t pc) const {
     if (breakpoints.contains(pc))
         return false;
 
@@ -322,6 +381,20 @@ bool Target::isStateAccessible(const ThreadEntry& entry) const {
         return true;
 
     return entry.guest_thread->isSupervisorPaused();
+}
+
+void Target::kickRunningThreads() {
+    std::scoped_lock lock(mutex);
+    if (!stopping)
+        return;
+
+    for (const auto& [_, entry] : threads) {
+        if (entry.guest_thread == horizon::kernel::tls_current_thread)
+            continue;
+
+        if (!entry.guest_thread->isSupervisorPaused())
+            entry.cpu_thread->requestHalt();
+    }
 }
 
 bool Target::removeBreakpointLocked(

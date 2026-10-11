@@ -44,8 +44,29 @@ struct Breakpoint {
     u32 replaced_instruction{0};
 };
 
-using halt_state_observer_fn_t = std::function<void(
-    thread_id_t, std::optional<hw::tegra_x1::cpu::HaltReason>, bool)>;
+struct StopInfo {
+    hw::tegra_x1::cpu::HaltReason reason;
+    u64 sequence;
+};
+
+struct ThreadSnapshot {
+    thread_id_t id;
+    std::optional<StopInfo> stop;
+    bool resumed;
+};
+
+enum class ResumeKind {
+    Continue,
+    Step,
+};
+
+struct ResumeAction {
+    thread_id_t id;
+    ResumeKind kind;
+};
+
+using halt_state_observer_fn_t =
+    std::function<void(thread_id_t, const std::optional<StopInfo>&)>;
 
 class Target {
   public:
@@ -61,15 +82,16 @@ class Target {
 
     std::vector<thread_id_t> getThreadIds() const;
     bool hasThread(thread_id_t id) const;
-    std::optional<hw::tegra_x1::cpu::HaltReason>
-    getHaltReason(thread_id_t id) const;
+    std::optional<StopInfo> getStopInfo(thread_id_t id) const;
+    std::vector<ThreadSnapshot> getThreadSnapshots() const;
 
     // Execution
     void pauseAll();
     void resumeAll();
-    bool resumeThread(thread_id_t id);
-    bool stepThread(thread_id_t id);
+    bool resume(std::span<const ResumeAction> actions);
     void stop();
+    bool isStopping() const;
+    bool isAllStopped() const;
 
     void notifyHalted(horizon::kernel::GuestThread* guest_thread,
                       hw::tegra_x1::cpu::HaltReason reason);
@@ -96,7 +118,9 @@ class Target {
     struct ThreadEntry {
         horizon::kernel::GuestThread* guest_thread;
         hw::tegra_x1::cpu::IThread* cpu_thread;
-        std::optional<hw::tegra_x1::cpu::HaltReason> halt_reason{std::nullopt};
+        std::optional<StopInfo> stop{std::nullopt};
+        bool stepping{false};
+        bool resumed{true};
     };
 
     horizon::kernel::Process& process;
@@ -106,15 +130,16 @@ class Target {
     std::map<thread_id_t, ThreadEntry> threads;
     thread_id_t next_thread_id{1};
     std::map<vaddr_t, Breakpoint> breakpoints;
-    bool stop_reported{false};
+    bool stopping{false};
+    u64 stop_sequence{0};
     halt_state_observer_fn_t halt_state_observer;
 
     // Helpers
     ThreadEntry* findEntry(thread_id_t id);
     const ThreadEntry* findEntry(thread_id_t id) const;
-    bool isStaleBreakpointTrap(hw::tegra_x1::cpu::HaltReason reason,
-                               vaddr_t pc) const;
+    bool isStaleTrap(hw::tegra_x1::cpu::HaltReason reason, vaddr_t pc) const;
     bool isStateAccessible(const ThreadEntry& entry) const;
+    void kickRunningThreads();
     bool removeBreakpointLocked(std::map<vaddr_t, Breakpoint>::iterator it);
 
     bool tryReadMemoryRaw(vaddr_t addr, std::span<u8> out_data) const;

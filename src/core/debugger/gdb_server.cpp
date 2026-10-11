@@ -36,6 +36,9 @@ constexpr usize MAX_LOGGED_PACKET_SIZE = 128;
 constexpr i32 SEND_POLL_TIMEOUT_MS = 1000;
 constexpr i32 SERVER_POLL_INTERVAL_MS = 10;
 constexpr i64 INITIAL_STOP_TIMEOUT_NS = 3000ll * 1000ll * 1000ll;
+constexpr i64 ALL_STOP_TIMEOUT_NS = 2000ll * 1000ll * 1000ll;
+constexpr i32 STOP_POLL_INTERVAL_MS = 1;
+constexpr std::string_view HOST_TRIPLE = "aarch64-unknown-none";
 
 [[maybe_unused]] constexpr u32 FP_REGISTER = 29;
 constexpr u32 LR_REGISTER = 30;
@@ -76,6 +79,15 @@ std::string_view loggedPacket(std::string_view packet) {
         return packet.substr(0, packet.find(':'));
 
     return packet.substr(0, MAX_LOGGED_PACKET_SIZE);
+}
+
+std::string hexEncode(std::string_view str) {
+    std::string hex;
+    hex.reserve(str.size() * 2);
+    for (const char c : str)
+        hex += fmt::format("{:02x}", static_cast<u8>(c));
+
+    return hex;
 }
 
 template <typename T>
@@ -391,12 +403,6 @@ GdbServer::~GdbServer() {
         close(server_socket);
 }
 
-void GdbServer::notifyHalted(thread_id_t id,
-                             hw::tegra_x1::cpu::HaltReason reason) {
-    std::scoped_lock lock(mutex);
-    pending_stop = PendingStop{.id = id, .reason = reason};
-}
-
 void GdbServer::serverLoop() {
     GET_CURRENT_PROCESS_DEBUGGER().registerThisThread("GDB server");
     while (running) {
@@ -415,7 +421,7 @@ void GdbServer::poll() {
 
     receiveFromClient();
     if (session_end == SessionEnd::None)
-        flushPendingStop();
+        pollStop();
     if (session_end != SessionEnd::None)
         finishSession();
 }
@@ -434,11 +440,8 @@ void GdbServer::acceptClient() {
     setsockopt(client_socket, SOL_SOCKET, SO_NOSIGPIPE,
                reinterpret_cast<char*>(&opt), sizeof(opt));
 
-    {
-        std::scoped_lock lock(mutex);
-        pending_stop.reset();
-    }
-
+    stop_deadline.reset();
+    interrupted_thread.reset();
     getTarget().pauseAll();
     waitForAnyThread();
     crnt_thread_id = resolveCurrentThreadId();
@@ -480,45 +483,102 @@ void GdbServer::receiveFromClient() {
         processPackets();
 }
 
-void GdbServer::flushPendingStop() {
-    std::optional<PendingStop> stop;
-    {
-        std::scoped_lock lock(mutex);
-        stop = pending_stop;
-        pending_stop.reset();
+bool GdbServer::waitForAllStopped(i64 timeout_ns) {
+    const auto deadline =
+        std::chrono::steady_clock::now() + std::chrono::nanoseconds(timeout_ns);
+    while (!getTarget().isAllStopped()) {
+        if (std::chrono::steady_clock::now() >= deadline)
+            return false;
+
+        std::this_thread::sleep_for(
+            std::chrono::milliseconds(STOP_POLL_INTERVAL_MS));
     }
 
+    return true;
+}
+
+void GdbServer::pollStop() {
     if (!awaiting_stop_reply)
         return;
 
     auto& target = getTarget();
-    if (stop) {
-        crnt_thread_id = stop->id;
-        const auto signal = signalFromHaltReason(stop->reason);
-        if (!target.hasThread(stop->id)) {
-            sendPacket(fmt::format("T{:02x}thread:{:x};",
-                                   static_cast<u8>(signal), stop->id));
-            awaiting_stop_reply = false;
-            return;
-        }
-
-        if (const auto status = getThreadStatus(stop->id, signal)) {
-            sendPacket(status.value());
-            awaiting_stop_reply = false;
-            return;
-        }
-
-        std::scoped_lock lock(mutex);
-        if (!pending_stop)
-            pending_stop = stop;
-        return;
-    }
-
     if (!target.isProcessRunning()) {
         sendPacket("W00");
         awaiting_stop_reply = false;
         session_end = SessionEnd::ProcessExited;
+        return;
     }
+
+    if (!target.isStopping())
+        return;
+
+    const auto now = std::chrono::steady_clock::now();
+    if (!stop_deadline)
+        stop_deadline = now + std::chrono::nanoseconds(ALL_STOP_TIMEOUT_NS);
+
+    if (!target.isAllStopped()) {
+        if (now < stop_deadline.value())
+            return;
+
+        LOG_WARN(Debugger, "Reporting a stop before all threads parked");
+    }
+
+    const auto snapshots = target.getThreadSnapshots();
+    if (snapshots.empty())
+        return;
+
+    const ThreadSnapshot* chosen = nullptr;
+    for (const auto& snapshot : snapshots) {
+        if (!snapshot.resumed || !snapshot.stop)
+            continue;
+
+        if (chosen == nullptr) {
+            chosen = &snapshot;
+            continue;
+        }
+
+        const bool step = snapshot.stop->reason ==
+                          hw::tegra_x1::cpu::HaltReason::StepComplete;
+        const bool chosen_step =
+            chosen->stop->reason == hw::tegra_x1::cpu::HaltReason::StepComplete;
+        if (step != chosen_step) {
+            if (step)
+                chosen = &snapshot;
+            continue;
+        }
+
+        if (snapshot.stop->sequence < chosen->stop->sequence)
+            chosen = &snapshot;
+    }
+
+    thread_id_t id;
+    Signal signal;
+    if (chosen != nullptr) {
+        id = chosen->id;
+        signal = signalFromStop(chosen->stop.value());
+    } else {
+        const auto resumed =
+            std::ranges::find_if(snapshots, [this](const auto& snapshot) {
+                return snapshot.resumed && snapshot.id == crnt_thread_id;
+            });
+        if (resumed != snapshots.end()) {
+            id = resumed->id;
+        } else {
+            const auto first_resumed =
+                std::ranges::find_if(snapshots, [](const auto& snapshot) {
+                    return snapshot.resumed;
+                });
+            id = first_resumed != snapshots.end() ? first_resumed->id
+                                                  : snapshots.front().id;
+        }
+        signal = Signal::SigInt;
+        interrupted_thread = id;
+    }
+
+    sendPacket(formatStopReply(id, signal));
+    crnt_thread_id = id;
+    awaiting_stop_reply = false;
+    stop_deadline.reset();
 }
 
 void GdbServer::finishSession() {
@@ -534,10 +594,8 @@ void GdbServer::finishSession() {
     do_ack = true;
     awaiting_stop_reply = false;
     crnt_thread_id = invalid<thread_id_t>();
-    {
-        std::scoped_lock lock(mutex);
-        pending_stop.reset();
-    }
+    stop_deadline.reset();
+    interrupted_thread.reset();
 
     switch (end) {
     case SessionEnd::Disconnected:
@@ -797,6 +855,12 @@ void GdbServer::handleQuery(std::string_view command) {
         sendPacket("1");
     } else if (command == "Offsets") {
         sendPacket(GDB_EMPTY);
+    } else if (command.starts_with("ThreadStopInfo")) {
+        handleThreadStopInfo(command.substr(14));
+    } else if (command == "HostInfo") {
+        sendPacket(fmt::format("triple:{};ptrsize:8;endian:little;"
+                               "watchpoint_exceptions_received:before;",
+                               hexEncode(HOST_TRIPLE)));
     } else if (command == "fThreadInfo") {
         const auto ids = getTarget().getThreadIds();
         std::vector<std::string> thread_ids;
@@ -862,16 +926,28 @@ void GdbServer::handleSetActiveThread(std::string_view command) {
 }
 
 void GdbServer::handleThreadStatus() {
+    waitForAllStopped(INITIAL_STOP_TIMEOUT_NS);
     const auto id = resolveCurrentThreadId();
-    const auto reason = getTarget().getHaltReason(id);
-    const auto signal =
-        reason ? signalFromHaltReason(reason.value()) : Signal::SigTrap;
-
-    if (const auto status =
-            getThreadStatus(id, signal, INITIAL_STOP_TIMEOUT_NS))
-        sendPacket(status.value());
-    else
+    if (id == invalid<thread_id_t>()) {
         sendPacket(GDB_ERROR);
+        return;
+    }
+
+    sendPacket(formatStopReply(id, signalForThread(id, Signal::SigTrap)));
+}
+
+void GdbServer::handleThreadStopInfo(std::string_view command) {
+    ZTD_ASSIGN_OR(const auto id, fromChars<thread_id_t>(command, 16), {
+        sendPacket(GDB_ERROR);
+        return;
+    });
+
+    if (!getTarget().hasThread(id)) {
+        sendPacket(GDB_ERROR);
+        return;
+    }
+
+    sendPacket(formatStopReply(id, signalForThread(id, Signal::SigZero)));
 }
 
 void GdbServer::handleThreadAlive(std::string_view command) {
@@ -1185,27 +1261,50 @@ void GdbServer::handleGetExecutables() {
 }
 
 void GdbServer::resumeTarget() {
-    awaiting_stop_reply = true;
+    beginResume();
     getTarget().resumeAll();
 }
 
-void GdbServer::stepTargetThread(thread_id_t id) {
-    if (!getTarget().hasThread(id)) {
-        sendPacket(GDB_ERROR);
+void GdbServer::resumeTarget(std::span<const ResumeAction> actions) {
+    if (actions.empty() || !getTarget().resume(actions)) {
+        replyCurrentStop();
         return;
     }
 
-    crnt_thread_id = id;
-    awaiting_stop_reply = true;
-    if (getTarget().stepThread(id))
-        return;
+    beginResume();
+    for (const auto& action : actions) {
+        if (action.kind == ResumeKind::Step) {
+            crnt_thread_id = action.id;
+            break;
+        }
+    }
+}
 
-    awaiting_stop_reply = false;
-    LOG_WARN(Debugger, "Thread {} is not at a steppable point", id);
-    if (const auto status = getThreadStatus(id, Signal::SigTrap))
-        sendPacket(status.value());
-    else
-        sendPacket(GDB_ERROR);
+void GdbServer::stepTargetThread(thread_id_t id) {
+    const ResumeAction action{.id = id, .kind = ResumeKind::Step};
+    resumeTarget(std::span<const ResumeAction>(&action, 1));
+}
+
+void GdbServer::replyCurrentStop() {
+    if (!getTarget().isProcessRunning()) {
+        sendPacket("W00");
+        session_end = SessionEnd::ProcessExited;
+        return;
+    }
+
+    const auto id = resolveCurrentThreadId();
+    if (id == invalid<thread_id_t>()) {
+        sendPacket("T05");
+        return;
+    }
+
+    sendPacket(formatStopReply(id, signalForThread(id, Signal::SigTrap)));
+}
+
+void GdbServer::beginResume() {
+    awaiting_stop_reply = true;
+    stop_deadline.reset();
+    interrupted_thread.reset();
 }
 
 thread_id_t GdbServer::resolveCurrentThreadId() {
@@ -1217,7 +1316,7 @@ thread_id_t GdbServer::resolveCurrentThreadId() {
     crnt_thread_id = invalid<thread_id_t>();
     const auto ids = target.getThreadIds();
     for (const auto id : ids) {
-        if (target.getHaltReason(id)) {
+        if (target.getStopInfo(id)) {
             crnt_thread_id = id;
             return id;
         }
@@ -1305,32 +1404,40 @@ bool GdbServer::tryParseReg(hw::tegra_x1::cpu::ThreadState& state, u32 id,
     }
 }
 
-Signal GdbServer::signalFromHaltReason(hw::tegra_x1::cpu::HaltReason reason) {
-    switch (reason) {
-    case hw::tegra_x1::cpu::HaltReason::Breakpoint:
-    case hw::tegra_x1::cpu::HaltReason::BrkInstruction:
-    case hw::tegra_x1::cpu::HaltReason::StepComplete:
-        return Signal::SigTrap;
+std::string GdbServer::formatStopReply(thread_id_t id, Signal signal) {
+    std::string reply = fmt::format("T{:02x}", static_cast<u8>(signal));
+    if (const auto stopped = getTarget().tryAcquireStoppedThread(id)) {
+        const auto& state = stopped->getState();
+        reply += fmt::format("{:02x}:{};{:02x}:{};{:02x}:{};", PC_REGISTER,
+                             numberToHex(state.pc), SP_REGISTER,
+                             numberToHex(state.sp), LR_REGISTER,
+                             numberToHex(state.lr));
+    }
+
+    reply += fmt::format("thread:{:x};", id);
+    return reply;
+}
+
+Signal GdbServer::signalForThread(thread_id_t id, Signal fallback) const {
+    if (const auto stop = getTarget().getStopInfo(id))
+        return signalFromStop(stop.value());
+
+    if (interrupted_thread == id)
+        return Signal::SigInt;
+
+    return fallback;
+}
+
+Signal GdbServer::signalFromStop(const StopInfo& stop) {
+    switch (stop.reason) {
     case hw::tegra_x1::cpu::HaltReason::Fault:
         return Signal::SigSegv;
+    default:
+        return Signal::SigTrap;
     }
 }
 
 Target& GdbServer::getTarget() const { return debugger.getTarget(); }
-
-std::optional<std::string>
-GdbServer::getThreadStatus(thread_id_t id, Signal signal, i64 timeout_ns) {
-    auto stopped = getTarget().tryAcquireStoppedThread(id, timeout_ns);
-    if (!stopped)
-        return std::nullopt;
-
-    const auto& state = stopped->getState();
-    return fmt::format("T{:02x}{:02x}:{};{:02x}:{};{:02x}:{};thread:{:x};",
-                       static_cast<u8>(signal), PC_REGISTER,
-                       numberToHex(state.pc), SP_REGISTER,
-                       numberToHex(state.sp), LR_REGISTER,
-                       numberToHex(state.lr), id);
-}
 
 std::optional<std::string> GdbServer::pageFromBuffer(std::string_view buffer,
                                                      std::string_view page) {
