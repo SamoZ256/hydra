@@ -40,6 +40,7 @@ bool IThread::processMessages(i64 pause_timeout_ns) {
                               std::chrono::nanoseconds(pause_timeout_ns);
 
     std::unique_lock<std::mutex> lock(msg_mutex);
+    const auto has_message = [this] { return !msg_queue.empty(); };
     while (!msg_queue.empty()) {
         if (!processMessagesImpl())
             return true;
@@ -48,12 +49,11 @@ bool IThread::processMessages(i64 pause_timeout_ns) {
             return true;
 
         if (supervisor_pause || pause_timeout_ns == INFINITE_TIMEOUT) {
-            msg_cv.wait(lock);
-        } else {
-            msg_cv.wait_until(lock, timeout_time);
-            const auto crnt_time = std::chrono::steady_clock::now();
-            if (crnt_time >= timeout_time)
-                return false;
+            msg_cv.wait(lock, has_message);
+        } else if (!msg_cv.wait_until(lock, timeout_time, has_message)) {
+            guest_pause = false;
+            state = ThreadState::Running;
+            return false;
         }
     }
 
