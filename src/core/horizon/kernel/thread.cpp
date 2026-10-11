@@ -62,6 +62,12 @@ bool IThread::processMessages(i64 pause_timeout_ns) {
 
 void IThread::sendMessage(ThreadMessage msg) {
     std::scoped_lock lock(msg_mutex);
+    if (msg.supervisor) {
+        if (msg.type == ThreadMessageType::Pause)
+            supervisor_pause_requested = true;
+        else if (msg.type == ThreadMessageType::Resume)
+            supervisor_pause_requested = false;
+    }
     msg_queue.push(msg);
     msg_cv.notify_all(); // TODO: notify one?
 }

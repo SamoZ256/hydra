@@ -119,6 +119,7 @@ class IThread : public SynchronizationObject {
         cond_var_wait_addr = 0x0;
         mutex_wait_list.clear();
         supervisor_pause = false;
+        supervisor_pause_requested = false;
         guest_pause = false;
     }
 
@@ -127,7 +128,7 @@ class IThread : public SynchronizationObject {
 
     ThreadState state{ThreadState::Created}; // TODO: atomic?
 
-    std::mutex msg_mutex;
+    mutable std::mutex msg_mutex;
     std::condition_variable msg_cv;
     std::queue<ThreadMessage> msg_queue;
 
@@ -139,7 +140,8 @@ class IThread : public SynchronizationObject {
     ztd::DoublyLinkedList<IThread*> mutex_wait_list;
 
     // Synchronization
-    std::atomic<bool> supervisor_pause{false};
+    bool supervisor_pause{false};
+    bool supervisor_pause_requested{false};
     bool guest_pause{false};
     std::optional<ThreadSyncInfo> sync_info{std::nullopt};
 
@@ -161,7 +163,8 @@ class IThread : public SynchronizationObject {
     GETTER(state, getState);
 
     bool isSupervisorPaused() const {
-        return supervisor_pause.load(std::memory_order_acquire);
+        std::scoped_lock lock(msg_mutex);
+        return supervisor_pause && supervisor_pause_requested;
     }
 };
 
