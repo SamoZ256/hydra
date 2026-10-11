@@ -46,14 +46,9 @@ class GuestThread : public IThread {
     vaddr_t stack_top_addr;
 
     hw::tegra_x1::cpu::IThread* thread{nullptr};
-    std::atomic<bool> at_safe_point{false};
 
   public:
     GETTER(thread, getThread);
-
-    bool isAtSafePoint() const {
-        return at_safe_point.load(std::memory_order_acquire);
-    }
 };
 
 } // namespace hydra::horizon::kernel

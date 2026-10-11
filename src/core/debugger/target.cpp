@@ -23,11 +23,7 @@ Target::Target(horizon::kernel::Process& process_)
     : process{process_}, native_breakpoints{process_.getSystem()
                                                 .getCpu()
                                                 .getFeatures()
-                                                .supports_native_breakpoints},
-      synchronous_single_step{process_.getSystem()
-                                  .getCpu()
-                                  .getFeatures()
-                                  .supports_synchronous_single_step} {}
+                                                .supports_native_breakpoints} {}
 
 thread_id_t Target::registerThread(horizon::kernel::GuestThread* guest_thread) {
     std::scoped_lock lock(mutex);
@@ -134,7 +130,7 @@ bool Target::stepThread(thread_id_t id) {
     {
         std::scoped_lock lock(mutex);
         auto* entry = findEntry(id);
-        if (entry == nullptr || !isSteppable(*entry))
+        if (entry == nullptr || !entry->guest_thread->isSupervisorPaused())
             return false;
 
         entry->halt_reason = std::nullopt;
@@ -147,19 +143,7 @@ bool Target::stepThread(thread_id_t id) {
         halt_state_observer(id, std::nullopt, false);
 
     cpu_thread->singleStep();
-
-    if (synchronous_single_step) {
-        bool already_reported;
-        {
-            std::scoped_lock lock(mutex);
-            already_reported = stop_reported;
-        }
-
-        if (!already_reported)
-            notifyHalted(guest_thread, HaltReason::StepComplete);
-    } else {
-        guest_thread->supervisorResume();
-    }
+    guest_thread->supervisorResume();
 
     return true;
 }
@@ -314,18 +298,6 @@ Target::ThreadEntry* Target::findEntry(thread_id_t id) {
 const Target::ThreadEntry* Target::findEntry(thread_id_t id) const {
     const auto it = threads.find(id);
     return it == threads.end() ? nullptr : &it->second;
-}
-
-bool Target::isParked(const ThreadEntry& entry) const {
-    return entry.guest_thread->isAtSafePoint() &&
-           entry.guest_thread->isSupervisorPaused();
-}
-
-bool Target::isSteppable(const ThreadEntry& entry) const {
-    if (synchronous_single_step)
-        return isParked(entry);
-
-    return entry.guest_thread->isSupervisorPaused();
 }
 
 bool Target::isStaleBreakpointTrap(HaltReason reason, vaddr_t pc) const {

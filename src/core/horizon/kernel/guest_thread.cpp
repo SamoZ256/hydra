@@ -34,9 +34,7 @@ void GuestThread::run() {
              },
          .stop_requested =
              [this] {
-                 at_safe_point.store(true, std::memory_order_release);
                  processMessages();
-                 at_safe_point.store(false, std::memory_order_release);
                  return getState() == ThreadState::Stopping;
              },
          .halted =

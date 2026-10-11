@@ -14,7 +14,6 @@ class IThread;
 
 struct CpuFeatures {
     bool supports_native_breakpoints;
-    bool supports_synchronous_single_step;
 };
 
 class ICpu {

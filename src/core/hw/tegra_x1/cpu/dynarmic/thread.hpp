@@ -32,9 +32,7 @@ class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
         LOG_FATAL(Dynarmic, "This should not happen");
     }
     void singleStep() override {
-        deserializeState();
-        jit->Step();
-        serializeState();
+        step_requested.store(true, std::memory_order_release);
     }
     void requestHalt() override { jit->HaltExecution(HALT_REQUESTED); }
 
@@ -44,6 +42,8 @@ class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
 
     Dynarmic::A64::Jit* jit;
     u64 ticks_left{1000};
+    std::atomic<bool> step_requested{false};
+    bool halt_reported{false};
 
     // Dynarmic
     u8 MemoryRead8(u64 addr) override;
@@ -91,6 +91,8 @@ class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
     // State
     void serializeState();
     void deserializeState();
+
+    void reportHalt(HaltReason reason);
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::dynarmic

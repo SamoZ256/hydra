@@ -101,7 +101,6 @@ class Target {
 
     horizon::kernel::Process& process;
     const bool native_breakpoints;
-    const bool synchronous_single_step;
 
     mutable std::mutex mutex;
     std::map<thread_id_t, ThreadEntry> threads;
@@ -113,8 +112,6 @@ class Target {
     // Helpers
     ThreadEntry* findEntry(thread_id_t id);
     const ThreadEntry* findEntry(thread_id_t id) const;
-    bool isParked(const ThreadEntry& entry) const;
-    bool isSteppable(const ThreadEntry& entry) const;
     bool isStaleBreakpointTrap(hw::tegra_x1::cpu::HaltReason reason,
                                vaddr_t pc) const;
     bool isStateAccessible(const ThreadEntry& entry) const;

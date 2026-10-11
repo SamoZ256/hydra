@@ -93,8 +93,7 @@ Cpu::Cpu()
     */
 
     // Features
-    features = {.supports_native_breakpoints = true,
-                .supports_synchronous_single_step = false};
+    features = {.supports_native_breakpoints = true};
 }
 
 IMmu* Cpu::createMmu(System& system) { return new Mmu(system); }

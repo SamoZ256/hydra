@@ -76,10 +76,17 @@ Thread::~Thread() { delete jit; }
 
 void Thread::run() {
     while (true) {
+        const bool stepping = step_requested.load(std::memory_order_acquire);
+        halt_reported = false;
         deserializeState();
-        const auto reason = jit->Run();
+        const auto reason = stepping ? jit->Step() : jit->Run();
         if (!Dynarmic::Has(reason, HALT_STATE_SERIALIZED))
             serializeState();
+        if (stepping && Dynarmic::Has(reason, Dynarmic::HaltReason::Step)) {
+            step_requested.store(false, std::memory_order_release);
+            if (!halt_reported)
+                reportHalt(HaltReason::StepComplete);
+        }
         if (callbacks.stop_requested())
             break;
     }
@@ -156,7 +163,7 @@ void Thread::ExceptionRaised([[maybe_unused]] u64 pc,
     switch (exception) {
     case Dynarmic::A64::Exception::Breakpoint:
         state.pc -= 4;
-        callbacks.halted(HaltReason::BrkInstruction);
+        reportHalt(HaltReason::BrkInstruction);
         break;
     case Dynarmic::A64::Exception::Yield:
         // TODO: correct?
@@ -170,6 +177,11 @@ void Thread::ExceptionRaised([[maybe_unused]] u64 pc,
 }
 
 u64 Thread::GetCNTPCT() { return wall_clock.getCntpct(); }
+
+void Thread::reportHalt(HaltReason reason) {
+    halt_reported = true;
+    callbacks.halted(reason);
+}
 
 void Thread::serializeState() {
     for (u32 i = 0; i < 29; i++)
