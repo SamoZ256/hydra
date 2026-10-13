@@ -142,6 +142,49 @@ void Process::supervisorPause() {
     signalStateChange(ProcessState::DebugSuspended);
 }
 
+void Process::notifyHalted(GuestThread* thread,
+                           const hw::tegra_x1::cpu::HaltInfo& halt) {
+    halt_observer_fn_t observer;
+    {
+        std::scoped_lock lock(halt_observer_mutex);
+        observer = halt_observer;
+    }
+
+    if (observer) {
+        observer(thread, halt);
+        return;
+    }
+
+    switch (halt.reason) {
+    case hw::tegra_x1::cpu::HaltReason::BrkInstruction:
+    case hw::tegra_x1::cpu::HaltReason::Fault:
+        LOG_ERROR(Kernel, "Thread {} halted ({}), pausing the process",
+                  thread != nullptr ? thread->getDebugName() : "?",
+                  halt.reason);
+        if (state == ProcessState::Started)
+            supervisorPause();
+        break;
+    case hw::tegra_x1::cpu::HaltReason::Breakpoint:
+    case hw::tegra_x1::cpu::HaltReason::StepComplete:
+    case hw::tegra_x1::cpu::HaltReason::Watchpoint:
+        LOG_WARN(Kernel, "Unexpected halt ({})", halt.reason);
+        break;
+    }
+}
+
+void Process::reportFault(IThread* thread, const std::string_view reason) {
+    LOG_ERROR(Kernel, "BREAK on {}: {}",
+              thread != nullptr ? thread->getDebugName() : "host thread",
+              reason);
+    notifyHalted(thread != nullptr ? thread->asGuestThread() : nullptr,
+                 {.reason = hw::tegra_x1::cpu::HaltReason::Fault});
+}
+
+void Process::setHaltObserver(halt_observer_fn_t observer) {
+    std::scoped_lock lock(halt_observer_mutex);
+    halt_observer = std::move(observer);
+}
+
 void Process::supervisorResume() {
     std::scoped_lock lock(thread_mutex);
     for (auto thread : threads)

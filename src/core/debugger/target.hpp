@@ -74,7 +74,7 @@ using halt_state_observer_fn_t =
 class Target {
   public:
     explicit Target(horizon::kernel::Process& process_);
-    ~Target() noexcept = default;
+    ~Target() noexcept;
 
     ZTD_MAKE_NON_COPYABLE(Target);
     ZTD_MAKE_NON_MOVABLE(Target);

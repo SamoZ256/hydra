@@ -27,7 +27,14 @@ Target::Target(horizon::kernel::Process& process_)
           process_.getSystem().getCpu().getFeatures().breakpoint_slots},
       watchpoint_slots{
           process_.getSystem().getCpu().getFeatures().watchpoint_slots},
-      native_breakpoints{breakpoint_slots != 0} {}
+      native_breakpoints{breakpoint_slots != 0} {
+    process.setHaltObserver([this](horizon::kernel::GuestThread* guest_thread,
+                                   const hw::tegra_x1::cpu::HaltInfo& halt) {
+        notifyHalted(guest_thread, halt);
+    });
+}
+
+Target::~Target() noexcept { process.setHaltObserver({}); }
 
 thread_id_t Target::registerThread(horizon::kernel::GuestThread* guest_thread) {
     std::scoped_lock lock(mutex);
@@ -228,6 +235,11 @@ bool Target::isAllStopped() const {
 
 void Target::notifyHalted(horizon::kernel::GuestThread* guest_thread,
                           const hw::tegra_x1::cpu::HaltInfo& halt) {
+    if (guest_thread == nullptr) {
+        pauseAll();
+        return;
+    }
+
     auto reason = halt.reason;
     auto id = invalid<thread_id_t>();
     std::optional<StopInfo> stop;

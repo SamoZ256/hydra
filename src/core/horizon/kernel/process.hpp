@@ -4,6 +4,7 @@
 #include "core/horizon/kernel/applet_state.hpp"
 #include "core/horizon/kernel/synchronization_object.hpp"
 #include "core/horizon/kernel/thread.hpp"
+#include "core/hw/tegra_x1/cpu/const.hpp"
 #include "core/hw/tegra_x1/cpu/memory.hpp"
 #include "core/hw/tegra_x1/gpu/gmmu.hpp"
 
@@ -33,6 +34,9 @@ struct CodeSet {
     ztd::Range<u64> ro_data;
     ztd::Range<u64> data;
 };
+
+using halt_observer_fn_t =
+    std::function<void(GuestThread*, const hw::tegra_x1::cpu::HaltInfo&)>;
 
 class Process : public SynchronizationObject {
   public:
@@ -76,6 +80,11 @@ class Process : public SynchronizationObject {
 
     void supervisorPause();
     void supervisorResume();
+
+    void notifyHalted(GuestThread* thread,
+                      const hw::tegra_x1::cpu::HaltInfo& halt);
+    void reportFault(IThread* thread, std::string_view reason);
+    void setHaltObserver(halt_observer_fn_t observer);
 
     bool isRunning() {
         std::scoped_lock lock(thread_mutex);
@@ -185,6 +194,9 @@ class Process : public SynchronizationObject {
         handle_pool; // TODO: get the size from capabilities
 
     std::atomic<ProcessState> state{ProcessState::Created};
+
+    std::mutex halt_observer_mutex;
+    halt_observer_fn_t halt_observer;
 
     void cleanUp();
 

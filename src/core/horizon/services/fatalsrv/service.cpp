@@ -1,6 +1,6 @@
 #include "core/horizon/services/fatalsrv/service.hpp"
 
-#include "core/debugger/debugger_manager.hpp"
+#include "core/horizon/kernel/fault.hpp"
 
 namespace hydra::horizon::services::fatalsrv {
 
@@ -18,7 +18,7 @@ IService::throwFatalWithCpuContext(u64 code, u64 _unknown_x8,
     // TODO: stack trace and other stuff in the buffer
     (void)in_buffer;
 
-    GET_CURRENT_PROCESS_DEBUGGER().breakOnThisThread(
+    kernel::reportFaultOnThisThread(
         "fatalsrv::IService::ThrowFatalWithCpuContext");
 
     return RESULT_SUCCESS;

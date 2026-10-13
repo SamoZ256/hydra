@@ -14,22 +14,6 @@ namespace hydra::horizon::filesystem {
 class IFile;
 } // namespace hydra::horizon::filesystem
 
-#define DEBUGGER_ASSERT(condition, c, f, ...)                                  \
-    if (!(condition)) {                                                        \
-        /* TODO: log class? */                                                 \
-        GET_CURRENT_PROCESS_DEBUGGER().breakOnThisThread(                      \
-            f ZTD_PASS_VA_ARGS(__VA_ARGS__));                                  \
-    }
-
-#ifdef HYDRA_DEBUG
-#define DEBUGGER_ASSERT_DEBUG(condition, c, ...)                               \
-    DEBUGGER_ASSERT(condition, c, __VA_ARGS__)
-#else
-#define DEBUGGER_ASSERT_DEBUG(condition, c, ...)                               \
-    if (condition) {                                                           \
-    }
-#endif
-
 namespace hydra::debugger {
 
 class Debugger;
@@ -123,11 +107,6 @@ class Debugger {
         horizon::kernel::GuestThread* guest_thread);
     void unregisterGuestThreadForThisThread();
 
-    template <typename... T>
-    void breakOnThisThread(fmt::format_string<T...> f, T&&... args) {
-        breakOnThisThreadImpl(fmt::format(f, std::forward<T>(args)...));
-    }
-
     SymbolTable& getModuleTable() { return module_table; }
     SymbolTable& getFunctionTable() { return function_table; }
 
@@ -139,8 +118,6 @@ class Debugger {
 
     // Execution
     void activateGdbServer();
-    void notifyHalted(horizon::kernel::GuestThread* thread,
-                      const hw::tegra_x1::cpu::HaltInfo& halt);
 
     bool hasTarget() const { return target.has_value(); }
     Target& getTarget() {
@@ -178,7 +155,6 @@ class Debugger {
     std::unique_ptr<IDisassembler> disassembler;
 
     void logOnThisThread(const LogMessage& msg);
-    void breakOnThisThreadImpl(const std::string_view reason);
 
     // Helpers
     StackTrace getStackTrace(Thread& thread);

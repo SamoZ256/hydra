@@ -5,7 +5,6 @@
 #include <mach/mach_time.h>
 #include <thread>
 
-#include "core/debugger/debugger_manager.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/mmu.hpp"
 #include "core/hw/wall_clock.hpp"
@@ -201,9 +200,12 @@ void Thread::run() {
                         // Just move on to the next instruction
                         state.pc += 4;
                     } else {
-                        GET_CURRENT_PROCESS_DEBUGGER().breakOnThisThread(
+                        LOG_ERROR(
+                            Hypervisor,
                             "Data abort (PC: 0x{:08x}, address: 0x{:08x})",
                             state.pc, far);
+                        callbacks.halted(
+                            {.reason = HaltReason::Fault, .access_addr = far});
                     }
                     break;
                 }
@@ -219,8 +221,7 @@ void Thread::run() {
                         exit->exception.physical_address,
                         MMU.read<u32>(state.pc));
 
-                    GET_CURRENT_PROCESS_DEBUGGER().breakOnThisThread(
-                        "unknown HVC code");
+                    callbacks.halted({.reason = HaltReason::Fault});
                     break;
                 }
 
@@ -265,16 +266,18 @@ void Thread::run() {
                 break;
             }
             default:
-                GET_CURRENT_PROCESS_DEBUGGER().breakOnThisThread(
-                    "Unexpected VM exception 0x{:08x} (EC: {}, ESR: "
-                    "0x{:08x}, PC: 0x{:08x}, "
-                    "VA: "
-                    "0x{:08x}, PA: 0x{:08x}, "
-                    "instruction: "
-                    "0x{:08x})",
-                    syndrome, hv_ec, getSysReg(HV_SYS_REG_ESR_EL1), state.pc,
-                    exit->exception.virtual_address,
-                    exit->exception.physical_address, MMU.read<u32>(state.pc));
+                LOG_ERROR(Hypervisor,
+                          "Unexpected VM exception 0x{:08x} (EC: {}, ESR: "
+                          "0x{:08x}, PC: 0x{:08x}, "
+                          "VA: "
+                          "0x{:08x}, PA: 0x{:08x}, "
+                          "instruction: "
+                          "0x{:08x})",
+                          syndrome, hv_ec, getSysReg(HV_SYS_REG_ESR_EL1),
+                          state.pc, exit->exception.virtual_address,
+                          exit->exception.physical_address,
+                          MMU.read<u32>(state.pc));
+                callbacks.halted({.reason = HaltReason::Fault});
                 break;
             }
         } else if (exit->reason == HV_EXIT_REASON_VTIMER_ACTIVATED) {
@@ -284,8 +287,7 @@ void Thread::run() {
             LOG_ERROR(Hypervisor, "Unexpected VM exit reason {}",
                       static_cast<u32>(exit->reason));
 
-            GET_CURRENT_PROCESS_DEBUGGER().breakOnThisThread(
-                "unexpected VM exit reason");
+            callbacks.halted({.reason = HaltReason::Fault});
             break;
         }
 

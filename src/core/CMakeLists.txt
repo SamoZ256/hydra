@@ -24,6 +24,8 @@ add_library(hydra-core
     horizon/kernel/host_thread.hpp
     horizon/kernel/process.cpp
     horizon/kernel/process.hpp
+    horizon/kernel/fault.cpp
+    horizon/kernel/fault.hpp
     horizon/kernel/process_manager.cpp
     horizon/kernel/process_manager.hpp
     horizon/kernel/hipc/const.cpp

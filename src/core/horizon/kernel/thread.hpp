@@ -4,6 +4,7 @@
 
 namespace hydra::horizon::kernel {
 
+class GuestThread;
 class Process;
 
 constexpr u64 TLS_SIZE = 0x20000; // TODO: what should this be?
@@ -105,6 +106,7 @@ class IThread : public SynchronizationObject {
     }
 
     virtual uptr getTlsPtr() const = 0;
+    virtual GuestThread* asGuestThread() { return nullptr; }
 
   protected:
     Process* process;

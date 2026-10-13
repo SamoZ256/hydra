@@ -1,7 +1,7 @@
 #include "core/horizon/kernel/kernel.hpp"
 
-#include "core/debugger/debugger_manager.hpp"
 #include "core/horizon/kernel/code_memory.hpp"
+#include "core/horizon/kernel/fault.hpp"
 #include "core/horizon/kernel/hipc/client_session.hpp"
 #include "core/horizon/kernel/hipc/server_port.hpp"
 #include "core/horizon/kernel/hipc/server_session.hpp"
@@ -941,7 +941,7 @@ result_t Kernel::break_(BreakReason reason, uptr buffer_ptr, u64 buffer_size) {
     }
 
     if (!reason.notification_only)
-        GET_CURRENT_PROCESS_DEBUGGER().breakOnThisThread("Break");
+        reportFaultOnThisThread("Break");
 
     return RESULT_SUCCESS;
 }

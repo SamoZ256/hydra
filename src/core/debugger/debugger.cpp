@@ -149,38 +149,12 @@ Debugger::disassembleFunction(vaddr_t addr, std::optional<vaddr_t> pc) {
                         .pc = pc});
 }
 
-void Debugger::notifyHalted(horizon::kernel::GuestThread* thread,
-                            const hw::tegra_x1::cpu::HaltInfo& halt) {
-    if (thread == nullptr || !target.has_value())
-        return;
-
-    target->notifyHalted(thread, halt);
-}
-
 void Debugger::logOnThisThread(const LogMessage& msg) {
     GET_THIS_THREAD();
     lock.unlock();
     auto stack_trace = getStackTrace(thread);
     lock.lock();
     thread.log({.log = msg, .stack_trace = stack_trace});
-}
-
-void Debugger::breakOnThisThreadImpl(const std::string_view reason) {
-    LOG_ERROR(Debugger, "BREAK ({})", reason);
-
-    horizon::kernel::GuestThread* guest_thread;
-    {
-        GET_THIS_THREAD();
-        thread.status = ThreadStatus::Break;
-        thread.break_reason = reason;
-        guest_thread = thread.guest_thread;
-    }
-
-    if (guest_thread != nullptr)
-        notifyHalted(guest_thread,
-                     {.reason = hw::tegra_x1::cpu::HaltReason::Fault});
-    else if (target.has_value())
-        target->pauseAll();
 }
 
 std::vector<u8> Debugger::readCode(vaddr_t addr, usize size) {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/debugger/debugger_manager.hpp"
+#include "core/horizon/kernel/fault.hpp"
 
 namespace hydra::hw {
 
@@ -48,8 +48,7 @@ class GenericMmu {
     const Impl& findAddrImpl(uptr addr, uptr& out_base) const {
         auto impl =
             const_cast<GenericMmu*>(this)->findAddrImplRef(addr, out_base);
-        DEBUGGER_ASSERT_DEBUG(impl, Mmu,
-                              "Failed to find impl for addr 0x{:08x}", addr);
+        FAULT_ASSERT_DEBUG(impl, "Failed to find impl for addr 0x{:08x}", addr);
 
         return *impl;
     }

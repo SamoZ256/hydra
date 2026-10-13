@@ -4,6 +4,7 @@
 #include <stb_image_write.h>
 
 #include "core/audio/null/core.hpp"
+#include "core/debugger/debugger_manager.hpp"
 #include "core/horizon/applets/album/const.hpp"
 #include "core/horizon/applets/const.hpp"
 #include "core/horizon/applets/controller/const.hpp"

@@ -30,6 +30,7 @@ class GuestThread : public IThread {
     }
 
     uptr getTlsPtr() const override;
+    GuestThread* asGuestThread() override { return this; }
 
   protected:
     vaddr_t entry_point{invalid<vaddr_t>()};
