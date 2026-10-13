@@ -672,6 +672,8 @@ add_library(hydra-core
     debugger/disassembler.hpp
     debugger/capstone/disassembler.cpp
     debugger/capstone/disassembler.hpp
+    debugger/listing.cpp
+    debugger/listing.hpp
     system.cpp
     system.hpp
     title.hpp

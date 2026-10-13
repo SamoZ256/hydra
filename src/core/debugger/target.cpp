@@ -383,6 +383,17 @@ bool Target::hasBreakpoint(vaddr_t addr) const {
     return breakpoints.contains(addr);
 }
 
+std::vector<vaddr_t> Target::getBreakpoints() const {
+    std::scoped_lock lock(mutex);
+
+    std::vector<vaddr_t> addrs;
+    addrs.reserve(breakpoints.size());
+    for (const auto& [addr, _] : breakpoints)
+        addrs.push_back(addr);
+
+    return addrs;
+}
+
 bool Target::insertWatchpoint(const Watchpoint& watchpoint) {
     std::scoped_lock lock(mutex);
 

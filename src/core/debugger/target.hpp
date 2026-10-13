@@ -113,6 +113,7 @@ class Target {
     bool removeBreakpoint(vaddr_t addr);
     void removeAllBreakpoints();
     bool hasBreakpoint(vaddr_t addr) const;
+    std::vector<vaddr_t> getBreakpoints() const;
 
     // Watchpoints
     bool insertWatchpoint(const hw::tegra_x1::cpu::Watchpoint& watchpoint);

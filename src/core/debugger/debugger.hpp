@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/debugger/gdb_server.hpp"
+#include "core/debugger/listing.hpp"
 #include "core/debugger/symbol_table.hpp"
 #include "core/debugger/target.hpp"
 
@@ -130,6 +131,12 @@ class Debugger {
     SymbolTable& getModuleTable() { return module_table; }
     SymbolTable& getFunctionTable() { return function_table; }
 
+    // Disassembly
+    std::expected<Listing, DisassemblyError>
+    disassemble(const DisassemblyRequest& request);
+    std::expected<Listing, DisassemblyError>
+    disassembleFunction(vaddr_t addr, std::optional<vaddr_t> pc = std::nullopt);
+
     // Execution
     void activateGdbServer();
     void notifyHalted(horizon::kernel::GuestThread* thread,
@@ -167,11 +174,15 @@ class Debugger {
     std::optional<Target> target;
     std::optional<GdbServer> gdb_server;
 
+    std::mutex disassembler_mutex;
+    std::unique_ptr<IDisassembler> disassembler;
+
     void logOnThisThread(const LogMessage& msg);
     void breakOnThisThreadImpl(const std::string_view reason);
 
     // Helpers
     StackTrace getStackTrace(Thread& thread);
+    std::vector<u8> readCode(vaddr_t addr, usize size);
     void onHaltStateChanged(thread_id_t id,
                             const std::optional<StopInfo>& stop);
     Thread* findThreadByTargetId(thread_id_t id);
