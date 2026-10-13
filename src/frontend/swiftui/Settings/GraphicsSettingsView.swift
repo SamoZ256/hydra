@@ -1,10 +1,10 @@
 import SwiftUI
 
 struct GraphicsSettingsView: View {
-    @State private var gpuRenderer = HydraGpuRenderer(rawValue: configGetGpuRenderer().pointee)
-    @State private var shaderBackend = HydraShaderBackend(rawValue: configGetShaderBackend().pointee)
-    @State private var displayResolution = HydraResolution(rawValue: configGetDisplayResolution().pointee)
-    @State private var customDisplayResolution = configGetCustomDisplayResolution().pointee
+    @State private var gpuRenderer = HydraConfig.global.gpuRenderer
+    @State private var shaderBackend = HydraConfig.global.shaderBackend
+    @State private var displayResolution = HydraConfig.global.displayResolution
+    @State private var customDisplayResolution = HydraConfig.global.customDisplayResolution
 
     var body: some View {
         Spacer()
@@ -16,16 +16,16 @@ struct GraphicsSettingsView: View {
                         Text("Null").tag(HYDRA_GPU_RENDERER_NULL.rawValue)
                         Text("Metal (recommended)").tag(HYDRA_GPU_RENDERER_METAL.rawValue)
                     }
-                    .onChange(of: self.gpuRenderer.rawValue) { _, newValue in
-                        configGetGpuRenderer().pointee = newValue
+                    .onChange(of: self.gpuRenderer) { _, newValue in
+                        HydraConfig.global.gpuRenderer = newValue
                     }
 
                     Picker("Shader backend", selection: self.$shaderBackend.rawValue) {
                         Text("MSL (recommended)").tag(HYDRA_SHADER_BACKEND_MSL.rawValue)
                         Text("AIR (broken)").tag(HYDRA_SHADER_BACKEND_AIR.rawValue)
                     }
-                    .onChange(of: self.shaderBackend.rawValue) { _, newValue in
-                        configGetShaderBackend().pointee = newValue
+                    .onChange(of: self.shaderBackend) { _, newValue in
+                        HydraConfig.global.shaderBackend = newValue
                     }
 
                     Picker("Display resolution", selection: self.$displayResolution.rawValue) {
@@ -39,8 +39,8 @@ struct GraphicsSettingsView: View {
                             HYDRA_RESOLUTION_AUTO_EXACT.rawValue)
                         Text("Custom (not recommended)").tag(HYDRA_RESOLUTION_CUSTOM.rawValue)
                     }
-                    .onChange(of: self.displayResolution.rawValue) { _, newValue in
-                        configGetDisplayResolution().pointee = newValue
+                    .onChange(of: self.displayResolution) { _, newValue in
+                        HydraConfig.global.displayResolution = newValue
                     }
                 }
 
@@ -54,7 +54,7 @@ struct GraphicsSettingsView: View {
                             format: .number
                         )
                         .onChange(of: self.customDisplayResolution) { _, newValue in
-                            configGetCustomDisplayResolution().pointee = newValue
+                            HydraConfig.global.customDisplayResolution = newValue
                         }
                     }
                 }

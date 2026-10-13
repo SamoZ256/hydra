@@ -1,16 +1,16 @@
 import SwiftUI
 
 struct SystemSettingsView: View {
-    @State private var deviceNickname = configGetDeviceNickname()
-    @State private var systemLanguage = HydraSystemLanguage(rawValue: configGetSystemLanguage().pointee)
-    @State private var systemLocation = configGetSystemLocation()
+    @State private var deviceNickname = HydraConfig.global.deviceNickname
+    @State private var systemLanguage = HydraConfig.global.systemLanguage
+    @State private var systemLocation = HydraConfig.global.systemLocation
     #if os(macOS)
-        @State private var firmwarePath = configGetFirmwarePath()
-        @State private var sdCardPath = configGetSdCardPath()
-        @State private var savePath = configGetSavePath()
-        @State private var sysmodulesPath = configGetSysmodulesPath()
+        @State private var firmwarePath = HydraConfig.global.firmwarePath
+        @State private var sdCardPath = HydraConfig.global.sdCardPath
+        @State private var savePath = HydraConfig.global.savePath
+        @State private var sysmodulesPath = HydraConfig.global.sysmodulesPath
     #else
-        @State private var handheldMode = configGetHandheldMode().pointee
+        @State private var handheldMode = HydraConfig.global.handheldMode
     #endif
 
     @State private var systemLocations: [String] = []
@@ -22,7 +22,7 @@ struct SystemSettingsView: View {
             Form {
                 TextField("Device nickname", text: $deviceNickname)
                     .onChange(of: deviceNickname) { _, newValue in
-                        configSetDeviceNickname(newValue)
+                        HydraConfig.global.deviceNickname = newValue
                     }
 
                 Picker("System language", selection: self.$systemLanguage.rawValue) {
@@ -31,7 +31,8 @@ struct SystemSettingsView: View {
                     Text("Japanese").tag(HYDRA_SYSTEM_LANGUAGE_JAPANESE.rawValue)
                     Text("French").tag(HYDRA_SYSTEM_LANGUAGE_FRENCH.rawValue)
                     Text("German").tag(HYDRA_SYSTEM_LANGUAGE_GERMAN.rawValue)
-                    Text("Latin American Spanish").tag(HYDRA_SYSTEM_LANGUAGE_LATIN_AMERICAN_SPANISH.rawValue)
+                    Text("Latin American Spanish").tag(
+                        HYDRA_SYSTEM_LANGUAGE_LATIN_AMERICAN_SPANISH.rawValue)
                     Text("Spanish").tag(HYDRA_SYSTEM_LANGUAGE_SPANISH.rawValue)
                     Text("Italian").tag(HYDRA_SYSTEM_LANGUAGE_ITALIAN.rawValue)
                     Text("Dutch").tag(HYDRA_SYSTEM_LANGUAGE_DUTCH.rawValue)
@@ -39,14 +40,17 @@ struct SystemSettingsView: View {
                     Text("Portuguese").tag(HYDRA_SYSTEM_LANGUAGE_PORUGUESE.rawValue)
                     Text("Russian").tag(HYDRA_SYSTEM_LANGUAGE_RUSSIAN.rawValue)
                     Text("Korean").tag(HYDRA_SYSTEM_LANGUAGE_KOREAN.rawValue)
-                    Text("Traditional Chinese").tag(HYDRA_SYSTEM_LANGUAGE_TRADITIONAL_CHINESE.rawValue)
-                    Text("Simplified Chinese").tag(HYDRA_SYSTEM_LANGUAGE_SIMPLIFIED_CHINESE.rawValue)
-                    Text("Brazilian Portuguese").tag(HYDRA_SYSTEM_LANGUAGE_BRAZILIAN_PORTUGUESE.rawValue)
+                    Text("Traditional Chinese").tag(
+                        HYDRA_SYSTEM_LANGUAGE_TRADITIONAL_CHINESE.rawValue)
+                    Text("Simplified Chinese").tag(
+                        HYDRA_SYSTEM_LANGUAGE_SIMPLIFIED_CHINESE.rawValue)
+                    Text("Brazilian Portuguese").tag(
+                        HYDRA_SYSTEM_LANGUAGE_BRAZILIAN_PORTUGUESE.rawValue)
                     Text("Polish").tag(HYDRA_SYSTEM_LANGUAGE_POLISH.rawValue)
                     Text("Thai").tag(HYDRA_SYSTEM_LANGUAGE_THAI.rawValue)
                 }
-                .onChange(of: self.systemLanguage.rawValue) { _, newValue in
-                    configGetSystemLanguage().pointee = newValue
+                .onChange(of: self.systemLanguage) { _, newValue in
+                    HydraConfig.global.systemLanguage = newValue
                     // TODO: reload titles and icons
                 }
 
@@ -60,7 +64,7 @@ struct SystemSettingsView: View {
                     }
                 }
                 .onChange(of: self.systemLocation) { _, newValue in
-                    configSetSystemLocation(newValue)
+                    HydraConfig.global.systemLocation = newValue
                 }
                 .onAppear {
                     let filesystem = HydraFilesystem()
@@ -76,26 +80,26 @@ struct SystemSettingsView: View {
                         // TODO: use file importers
                         TextField("Firmware Path", text: $firmwarePath)
                             .onChange(of: firmwarePath) { _, newValue in
-                                configSetFirmwarePath(newValue)
+                                HydraConfig.global.firmwarePath = newValue
                             }
                         TextField("SD Card Path", text: $sdCardPath)
                             .onChange(of: sdCardPath) { _, newValue in
-                                configSetSdCardPath(newValue)
+                                HydraConfig.global.sdCardPath = newValue
                             }
                         TextField("Save Path", text: $savePath)
                             .onChange(of: savePath) { _, newValue in
-                                configSetSavePath(newValue)
+                                HydraConfig.global.savePath = newValue
                             }
                         TextField("Sysmodules Path", text: $sysmodulesPath)
                             .onChange(of: sysmodulesPath) { _, newValue in
-                                configSetSysmodulesPath(newValue)
+                                HydraConfig.global.sysmodulesPath = newValue
                             }
                     }
                 #else
                     Section {
                         Toggle("Handheld mode", isOn: self.$handheldMode)
                             .onChange(of: self.handheldMode) { _, newValue in
-                                configGetHandheldMode().pointee = newValue
+                                HydraConfig.global.handheldMode = newValue
                             }
                     }
                 #endif

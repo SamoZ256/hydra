@@ -354,168 +354,280 @@ struct HydraLoaderPluginConfigList {
 }
 
 // Config
-func configSerialize() {
-    hydraConfigSerialize()
-}
+struct HydraConfig {
+    internal let handle: UnsafeMutableRawPointer
 
-func configDeserialize() {
-    hydraConfigDeserialize()
-}
-
-func configGetAppDataPath() -> String {
-    String(withHydraString: hydraConfigGetAppDataPath())
-}
-
-func configGetLogsPath() -> String {
-    String(withHydraString: hydraConfigGetLogsPath())
-}
-
-func configGetGamePaths() -> HydraStringList {
-    HydraStringList(handle: hydraConfigGetGamePaths())
-}
-
-func configGetLoaderPlugins() -> HydraLoaderPluginConfigList {
-    HydraLoaderPluginConfigList(handle: hydraConfigGetLoaderPlugins())
-}
-
-func configGetPatchPaths() -> HydraStringList {
-    HydraStringList(handle: hydraConfigGetPatchPaths())
-}
-
-func configGetInputBackend() -> UnsafeMutablePointer<UInt32> {
-    hydraConfigGetInputBackend()
-}
-
-func configGetInputProfiles() -> HydraStringList {
-    HydraStringList(handle: hydraConfigGetInputProfiles())
-}
-
-func configGetCpuBackend() -> UnsafeMutablePointer<UInt32> {
-    hydraConfigGetCpuBackend()
-}
-
-func configGetGpuRenderer() -> UnsafeMutablePointer<UInt32> {
-    hydraConfigGetGpuRenderer()
-}
-
-func configGetShaderBackend() -> UnsafeMutablePointer<UInt32> {
-    hydraConfigGetShaderBackend()
-}
-
-func configGetDisplayResolution() -> UnsafeMutablePointer<UInt32> {
-    hydraConfigGetDisplayResolution()
-}
-
-func configGetCustomDisplayResolution() -> UnsafeMutablePointer<HydraUint2> {
-    hydraConfigGetCustomDisplayResolution()
-}
-
-func configGetAudioBackend() -> UnsafeMutablePointer<UInt32> {
-    hydraConfigGetAudioBackend()
-}
-
-func configGetUserId() -> UnsafeMutablePointer<HydraU128> {
-    hydraConfigGetUserId()
-}
-
-func configGetDeviceNickname() -> String {
-    String.init(withHydraString: hydraConfigGetDeviceNickname())
-}
-
-func configSetDeviceNickname(_ value: String) {
-    value.withHydraString { hydraString in
-        hydraConfigSetDeviceNickname(hydraString)
+    static var global: HydraConfig {
+        return .init(handle: hydraGetGlobalConfig())
     }
-}
 
-func configGetSystemLanguage() -> UnsafeMutablePointer<UInt32> {
-    hydraConfigGetSystemLanguage()
-}
-
-func configGetSystemLocation() -> String {
-    String.init(withHydraString: hydraConfigGetSystemLocation())
-}
-
-func configSetSystemLocation(_ value: String) {
-    value.withHydraString { hydraString in
-        hydraConfigSetSystemLocation(hydraString)
+    fileprivate init(handle: UnsafeMutableRawPointer) {
+        self.handle = handle
     }
-}
 
-func configGetFirmwarePath() -> String {
-    String.init(withHydraString: hydraConfigGetFirmwarePath())
-}
-
-func configSetFirmwarePath(_ value: String) {
-    value.withHydraString { hydraString in
-        hydraConfigSetFirmwarePath(hydraString)
+    func serialize() {
+        hydraConfigSerialize(self.handle)
     }
-}
 
-func configGetSdCardPath() -> String {
-    String.init(withHydraString: hydraConfigGetSdCardPath())
-}
-
-func configSetSdCardPath(_ value: String) {
-    value.withHydraString { hydraString in
-        hydraConfigSetSdCardPath(hydraString)
+    func deserialize() {
+        hydraConfigDeserialize(self.handle)
     }
-}
 
-func configGetSavePath() -> String {
-    String.init(withHydraString: hydraConfigGetSavePath())
-}
-
-func configSetSavePath(_ value: String) {
-    value.withHydraString { hydraString in
-        hydraConfigSetSavePath(hydraString)
+    var appDataPath: String {
+        String(withHydraString: hydraConfigGetAppDataPath(self.handle))
     }
-}
 
-func configGetSysmodulesPath() -> String {
-    String.init(withHydraString: hydraConfigGetSysmodulesPath())
-}
-
-func configSetSysmodulesPath(_ value: String) {
-    value.withHydraString { hydraString in
-        hydraConfigSetSysmodulesPath(hydraString)
+    var logsPath: String {
+        String(withHydraString: hydraConfigGetLogsPath(self.handle))
     }
-}
 
-func configGetHandheldMode() -> UnsafeMutablePointer<Bool> {
-    hydraConfigGetHandheldMode()
-}
+    var gamePaths: HydraStringList {
+        HydraStringList(handle: hydraConfigGetGamePaths(self.handle))
+    }
 
-func configGetLogOutput() -> UnsafeMutablePointer<UInt32> {
-    hydraConfigGetLogOutput()
-}
+    var loaderPlugins: HydraLoaderPluginConfigList {
+        HydraLoaderPluginConfigList(handle: hydraConfigGetLoaderPlugins(self.handle))
+    }
 
-func configGetLogFsAccess() -> UnsafeMutablePointer<Bool> {
-    hydraConfigGetLogFsAccess()
-}
+    var patchPaths: HydraStringList {
+        HydraStringList(handle: hydraConfigGetPatchPaths(self.handle))
+    }
 
-func configGetDebugLogging() -> UnsafeMutablePointer<Bool> {
-    hydraConfigGetDebugLogging()
-}
+    var inputBackend: HydraInputBackend {
+        get {
+            hydraConfigGetInputBackend(self.handle).pointee
+        }
+        nonmutating set {
+            hydraConfigGetInputBackend(self.handle).pointee = newValue
+        }
+    }
 
-func configGetProcessArgs() -> HydraStringList {
-    HydraStringList(handle: hydraConfigGetProcessArgs())
-}
+    var inputProfiles: HydraStringList {
+        HydraStringList(handle: hydraConfigGetInputProfiles(self.handle))
+    }
 
-func configGetRecoverFromSegfault() -> UnsafeMutablePointer<Bool> {
-    hydraConfigGetRecoverFromSegfault()
-}
+    var cpuBackend: HydraCpuBackend {
+        get {
+            hydraConfigGetCpuBackend(self.handle).pointee
+        }
+        nonmutating set {
+            hydraConfigGetCpuBackend(self.handle).pointee = newValue
+        }
+    }
 
-func configGetGdbEnabled() -> UnsafeMutablePointer<Bool> {
-    hydraConfigGetGdbEnabled()
-}
+    var gpuRenderer: HydraGpuRenderer {
+        get {
+            hydraConfigGetGpuRenderer(self.handle).pointee
+        }
+        nonmutating set {
+            hydraConfigGetGpuRenderer(self.handle).pointee = newValue
+        }
+    }
 
-func configGetGdbPort() -> UnsafeMutablePointer<UInt16> {
-    hydraConfigGetGdbPort()
-}
+    var shaderBackend: HydraShaderBackend {
+        get {
+            hydraConfigGetShaderBackend(self.handle).pointee
+        }
+        nonmutating set {
+            hydraConfigGetShaderBackend(self.handle).pointee = newValue
+        }
+    }
 
-func configGetGdbWaitForClient() -> UnsafeMutablePointer<Bool> {
-    hydraConfigGetGdbWaitForClient()
+    var displayResolution: HydraResolution {
+        get {
+            hydraConfigGetDisplayResolution(self.handle).pointee
+        }
+        nonmutating set {
+            hydraConfigGetDisplayResolution(self.handle).pointee = newValue
+        }
+    }
+
+    var customDisplayResolution: HydraUint2 {
+        get {
+            hydraConfigGetCustomDisplayResolution(self.handle).pointee
+        }
+        nonmutating set {
+            hydraConfigGetCustomDisplayResolution(self.handle).pointee = newValue
+        }
+    }
+
+    var audioBackend: HydraAudioBackend {
+        get {
+            hydraConfigGetAudioBackend(self.handle).pointee
+        }
+        nonmutating set {
+            hydraConfigGetAudioBackend(self.handle).pointee = newValue
+        }
+    }
+
+    var userId: HydraU128 {
+        get {
+            hydraConfigGetUserId(self.handle).pointee
+        }
+        nonmutating set {
+            hydraConfigGetUserId(self.handle).pointee = newValue
+        }
+    }
+
+    var deviceNickname: String {
+        get {
+            String(withHydraString: hydraConfigGetDeviceNickname(self.handle))
+        }
+        nonmutating set {
+            newValue.withHydraString { hydraString in
+                hydraConfigSetDeviceNickname(self.handle, hydraString)
+            }
+        }
+    }
+
+    var systemLanguage: HydraSystemLanguage {
+        get {
+            hydraConfigGetSystemLanguage(self.handle).pointee
+        }
+        nonmutating set {
+            hydraConfigGetSystemLanguage(self.handle).pointee = newValue
+        }
+    }
+
+    var systemLocation: String {
+        get {
+            String(withHydraString: hydraConfigGetSystemLocation(self.handle))
+        }
+        nonmutating set {
+            newValue.withHydraString { hydraString in
+                hydraConfigSetSystemLocation(self.handle, hydraString)
+            }
+        }
+    }
+
+    var firmwarePath: String {
+        get {
+            String(withHydraString: hydraConfigGetFirmwarePath(self.handle))
+        }
+        nonmutating set {
+            newValue.withHydraString { hydraString in
+                hydraConfigSetFirmwarePath(self.handle, hydraString)
+            }
+        }
+    }
+
+    var sdCardPath: String {
+        get {
+            String(withHydraString: hydraConfigGetSdCardPath(self.handle))
+        }
+        nonmutating set {
+            newValue.withHydraString { hydraString in
+                hydraConfigSetSdCardPath(self.handle, hydraString)
+            }
+        }
+    }
+
+    var savePath: String {
+        get {
+            String(withHydraString: hydraConfigGetSavePath(self.handle))
+        }
+        nonmutating set {
+            newValue.withHydraString { hydraString in
+                hydraConfigSetSavePath(self.handle, hydraString)
+            }
+        }
+    }
+
+    var sysmodulesPath: String {
+        get {
+            String(withHydraString: hydraConfigGetSysmodulesPath(self.handle))
+        }
+        nonmutating set {
+            newValue.withHydraString { hydraString in
+                hydraConfigSetSysmodulesPath(self.handle, hydraString)
+            }
+        }
+    }
+
+    var handheldMode: Bool {
+        get {
+            hydraConfigGetHandheldMode(self.handle).pointee
+        }
+        nonmutating set {
+            hydraConfigGetHandheldMode(self.handle).pointee = newValue
+        }
+    }
+
+    var logOutput: HydraLogOutput {
+        get {
+            hydraConfigGetLogOutput(self.handle).pointee
+        }
+        nonmutating set {
+            hydraConfigGetLogOutput(self.handle).pointee = newValue
+        }
+    }
+
+    var logFsAccess: Bool {
+        get {
+            hydraConfigGetLogFsAccess(self.handle).pointee
+        }
+        nonmutating set {
+            hydraConfigGetLogFsAccess(self.handle).pointee = newValue
+        }
+    }
+
+    var debugLogging: Bool {
+        get {
+            hydraConfigGetDebugLogging(self.handle).pointee
+        }
+        nonmutating set {
+            hydraConfigGetDebugLogging(self.handle).pointee = newValue
+        }
+    }
+
+    var processArgs: HydraStringList {
+        HydraStringList(handle: hydraConfigGetProcessArgs(self.handle))
+    }
+
+    var recoverFromSegfault: Bool {
+        get {
+            hydraConfigGetRecoverFromSegfault(self.handle).pointee
+        }
+        nonmutating set {
+            hydraConfigGetRecoverFromSegfault(self.handle).pointee = newValue
+        }
+    }
+
+    var disassemblerBackend: HydraDisassemblerBackend {
+        get {
+            hydraConfigGetDisassemblerBackend(self.handle).pointee
+        }
+        nonmutating set {
+            hydraConfigGetDisassemblerBackend(self.handle).pointee = newValue
+        }
+    }
+
+    var gdbEnabled: Bool {
+        get {
+            hydraConfigGetGdbEnabled(self.handle).pointee
+        }
+        nonmutating set {
+            hydraConfigGetGdbEnabled(self.handle).pointee = newValue
+        }
+    }
+
+    var gdbPort: UInt16 {
+        get {
+            hydraConfigGetGdbPort(self.handle).pointee
+        }
+        nonmutating set {
+            hydraConfigGetGdbPort(self.handle).pointee = newValue
+        }
+    }
+
+    var gdbWaitForClient: Bool {
+        get {
+            hydraConfigGetGdbWaitForClient(self.handle).pointee
+        }
+        nonmutating set {
+            hydraConfigGetGdbWaitForClient(self.handle).pointee = newValue
+        }
+    }
 }
 
 // Filesystem
@@ -531,9 +643,10 @@ class HydraFilesystem: MutableHandleClass {
 
 class HydraFile: MutableHandleClass {
     init(path: String) {
-        super.init(handle: path.withHydraString { hydraPath in
-            hydraOpenFile(hydraPath)
-        })
+        super.init(
+            handle: path.withHydraString { hydraPath in
+                hydraOpenFile(hydraPath)
+            })
     }
 
     deinit {
@@ -987,7 +1100,8 @@ class HydraSystem: MutableHandleClass {
     }
 
     func textureCacheGetTextureMemory(at index: Int) -> HydraTextureMemory {
-        HydraTextureMemory(handle: hydraSystemTextureCacheGetTextureMemory(self.handle, UInt32(index)))
+        HydraTextureMemory(
+            handle: hydraSystemTextureCacheGetTextureMemory(self.handle, UInt32(index)))
     }
 }
 

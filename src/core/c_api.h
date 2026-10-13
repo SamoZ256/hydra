@@ -91,6 +91,11 @@ typedef enum : uint32_t {
 } HydraSystemLanguage;
 
 typedef enum : uint32_t {
+    HYDRA_DISASSEMBLER_BACKEND_NONE,
+    HYDRA_DISASSEMBLER_BACKEND_CAPSTONE,
+} HydraDisassemblerBackend;
+
+typedef enum : uint32_t {
     HYDRA_LOG_OUTPUT_NONE,
     HYDRA_LOG_OUTPUT_STD_OUT,
     HYDRA_LOG_OUTPUT_FILE,
@@ -165,7 +170,7 @@ uint32_t hydraStringToStringMapGetCount(const void* map);
 HydraString hydraStringToStringMapGetKey(const void* map, uint32_t index);
 HydraString hydraStringToStringMapGetValue(const void* map, uint32_t index);
 HydraString hydraStringToStringMapGetValueByKey(const void* map,
-                                                 HydraString key);
+                                                HydraString key);
 void hydraStringToStringMapRemoveAll(void* map);
 void hydraStringToStringMapSetByKey(void* map, HydraString key,
                                     HydraString value);
@@ -180,46 +185,49 @@ void* hydraLoaderPluginListGet(void* list, uint32_t index);
 void hydraLoaderPluginListResize(void* list, uint32_t size);
 
 // Config
-void hydraConfigSerialize();
-void hydraConfigDeserialize();
+void* hydraGetGlobalConfig();
 
-HydraString hydraConfigGetAppDataPath();
-HydraString hydraConfigGetLogsPath();
+void hydraConfigSerialize(void* config);
+void hydraConfigDeserialize(void* config);
 
-void* hydraConfigGetGamePaths();
-void* hydraConfigGetLoaderPlugins();
-void* hydraConfigGetPatchPaths();
-uint32_t* hydraConfigGetInputBackend();
-void* hydraConfigGetInputProfiles();
-uint32_t* hydraConfigGetCpuBackend();
-uint32_t* hydraConfigGetGpuRenderer();
-uint32_t* hydraConfigGetShaderBackend();
-uint32_t* hydraConfigGetDisplayResolution();
-HydraUint2* hydraConfigGetCustomDisplayResolution();
-uint32_t* hydraConfigGetAudioBackend();
-HydraU128* hydraConfigGetUserId();
-HydraString hydraConfigGetDeviceNickname();
-void hydraConfigSetDeviceNickname(HydraString value);
-uint32_t* hydraConfigGetSystemLanguage();
-HydraString hydraConfigGetSystemLocation();
-void hydraConfigSetSystemLocation(HydraString value);
-HydraString hydraConfigGetFirmwarePath();
-void hydraConfigSetFirmwarePath(HydraString value);
-HydraString hydraConfigGetSdCardPath();
-void hydraConfigSetSdCardPath(HydraString value);
-HydraString hydraConfigGetSavePath();
-void hydraConfigSetSavePath(HydraString value);
-HydraString hydraConfigGetSysmodulesPath();
-void hydraConfigSetSysmodulesPath(HydraString value);
-bool* hydraConfigGetHandheldMode();
-uint32_t* hydraConfigGetLogOutput();
-bool* hydraConfigGetLogFsAccess();
-bool* hydraConfigGetDebugLogging();
-void* hydraConfigGetProcessArgs();
-bool* hydraConfigGetRecoverFromSegfault();
-bool* hydraConfigGetGdbEnabled();
-uint16_t* hydraConfigGetGdbPort();
-bool* hydraConfigGetGdbWaitForClient();
+HydraString hydraConfigGetAppDataPath(void* config);
+HydraString hydraConfigGetLogsPath(void* config);
+
+void* hydraConfigGetGamePaths(void* config);
+void* hydraConfigGetLoaderPlugins(void* config);
+void* hydraConfigGetPatchPaths(void* config);
+HydraInputBackend* hydraConfigGetInputBackend(void* config);
+void* hydraConfigGetInputProfiles(void* config);
+HydraCpuBackend* hydraConfigGetCpuBackend(void* config);
+HydraGpuRenderer* hydraConfigGetGpuRenderer(void* config);
+HydraShaderBackend* hydraConfigGetShaderBackend(void* config);
+HydraResolution* hydraConfigGetDisplayResolution(void* config);
+HydraUint2* hydraConfigGetCustomDisplayResolution(void* config);
+HydraAudioBackend* hydraConfigGetAudioBackend(void* config);
+HydraU128* hydraConfigGetUserId(void* config);
+HydraString hydraConfigGetDeviceNickname(void* config);
+void hydraConfigSetDeviceNickname(void* config, HydraString value);
+HydraSystemLanguage* hydraConfigGetSystemLanguage(void* config);
+HydraString hydraConfigGetSystemLocation(void* config);
+void hydraConfigSetSystemLocation(void* config, HydraString value);
+HydraString hydraConfigGetFirmwarePath(void* config);
+void hydraConfigSetFirmwarePath(void* config, HydraString value);
+HydraString hydraConfigGetSdCardPath(void* config);
+void hydraConfigSetSdCardPath(void* config, HydraString value);
+HydraString hydraConfigGetSavePath(void* config);
+void hydraConfigSetSavePath(void* config, HydraString value);
+HydraString hydraConfigGetSysmodulesPath(void* config);
+void hydraConfigSetSysmodulesPath(void* config, HydraString value);
+bool* hydraConfigGetHandheldMode(void* config);
+HydraLogOutput* hydraConfigGetLogOutput(void* config);
+bool* hydraConfigGetLogFsAccess(void* config);
+bool* hydraConfigGetDebugLogging(void* config);
+void* hydraConfigGetProcessArgs(void* config);
+bool* hydraConfigGetRecoverFromSegfault(void* config);
+HydraDisassemblerBackend* hydraConfigGetDisassemblerBackend(void* config);
+bool* hydraConfigGetGdbEnabled(void* config);
+uint16_t* hydraConfigGetGdbPort(void* config);
+bool* hydraConfigGetGdbWaitForClient(void* config);
 
 // Option config
 typedef enum HydraLoaderPluginOptionType : uint32_t {
@@ -290,7 +298,7 @@ HydraString hydraLoaderPluginGetName(const void* plugin);
 HydraString hydraLoaderPluginGetDisplayVersion(const void* plugin);
 uint32_t hydraLoaderPluginGetSupportedFormatCount(const void* plugin);
 HydraString hydraLoaderPluginGetSupportedFormat(const void* plugin,
-                                                 uint32_t index);
+                                                uint32_t index);
 uint32_t hydraLoaderPluginGetOptionConfigCount(const void* plugin);
 const void* hydraLoaderPluginGetOptionConfig(const void* plugin,
                                              uint32_t index);

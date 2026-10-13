@@ -16,7 +16,8 @@ struct Game: Hashable {
     }
 
     init(url: URL, loaderPluginManager: HydraLoaderPluginManager?) throws {
-        let loader = try HydraLoader(path: url.path(percentEncoded: false), pluginManager: loaderPluginManager)
+        let loader = try HydraLoader(
+            path: url.path(percentEncoded: false), pluginManager: loaderPluginManager)
 
         // Get name and author
         var name = ""
@@ -24,7 +25,7 @@ struct Game: Hashable {
         var version = ""
         let nacp = loader.loadNacp()
         if let nacp = nacp {
-            let title = nacp.getTitle(language: HydraSystemLanguage(rawValue: configGetSystemLanguage().pointee))
+            let title = nacp.getTitle(language: HydraConfig.global.systemLanguage)
             name = title.name
             author = title.author
             version = nacp.displayVersion

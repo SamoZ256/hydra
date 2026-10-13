@@ -51,24 +51,29 @@ enum class AudioBackend : u32 {
 };
 
 enum class SystemLanguage : u32 {
-    AmericanEnglish = 0,
-    BritishEnglish = 1,
-    Japanese = 2,
-    French = 3,
-    German = 4,
-    LatinAmericanSpanish = 5,
-    Spanish = 6,
-    Italian = 7,
-    Dutch = 8,
-    CanadianFrench = 9,
-    Portuguese = 10,
-    Russian = 11,
-    Korean = 12,
-    TraditionalChinese = 13,
-    SimplifiedChinese = 14,
-    BrazilianPortuguese = 15,
-    Polish = 16,
-    Thai = 17,
+    AmericanEnglish,
+    BritishEnglish,
+    Japanese,
+    French,
+    German,
+    LatinAmericanSpanish,
+    Spanish,
+    Italian,
+    Dutch,
+    CanadianFrench,
+    Portuguese,
+    Russian,
+    Korean,
+    TraditionalChinese,
+    SimplifiedChinese,
+    BrazilianPortuguese,
+    Polish,
+    Thai,
+};
+
+enum class DisassemblerBackend : u32 {
+    None,
+    Capstone,
 };
 
 struct LoaderPlugin {
@@ -169,6 +174,9 @@ class Config {
     static bool getDefaultDebugLogging() { return false; }
     static std::vector<std::string> getDefaultProcessArgs() { return {}; }
     static bool getDefaultRecoverFromSegfault() { return false; }
+    static DisassemblerBackend getDefaultDisassemblerBackend() {
+        return DisassemblerBackend::Capstone;
+    }
     static bool getDefaultGdbEnabled() { return false; }
     static u16 getDefaultGdbPort() { return 1234; }
     static bool getDefaultGdbWaitForClient() { return false; }
@@ -204,6 +212,7 @@ class Config {
     bool debug_logging;
     std::vector<std::string> process_args;
     bool recover_from_segfault;
+    DisassemblerBackend disassembler_backend;
     bool gdb_enabled;
     u16 gdb_port;
     bool gdb_wait_for_client;
@@ -234,6 +243,7 @@ class Config {
     REF_GETTER(debug_logging, getDebugLogging);
     REF_GETTER(process_args, getProcessArgs);
     REF_GETTER(recover_from_segfault, getRecoverFromSegfault);
+    REF_GETTER(disassembler_backend, getDisassemblerBackend);
     REF_GETTER(gdb_enabled, getGdbEnabled);
     REF_GETTER(gdb_port, getGdbPort);
     REF_GETTER(gdb_wait_for_client, getGdbWaitForClient);
@@ -264,3 +274,5 @@ ENABLE_ENUM_FORMATTING_AND_CASTING(
     BrazilianPortuguese, "Brazilian Portuguese", Polish, "Polish", Thai, "Thai")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, LogOutput, None, "none", StdOut,
                                    "stdout", File, "file")
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, DisassemblerBackend, None, "none",
+                                   Capstone, "Capstone")

@@ -1,13 +1,13 @@
 import SwiftUI
 
 #if HYDRA_CUBEB_ENABLED
-let cubebEnabled = true
+    let cubebEnabled = true
 #else
-let cubebEnabled = false
+    let cubebEnabled = false
 #endif
 
 struct AudioSettingsView: View {
-    @State private var audioBackend = HydraAudioBackend(rawValue: configGetAudioBackend().pointee)
+    @State private var audioBackend = HydraConfig.global.audioBackend
 
     var body: some View {
         Spacer()
@@ -22,8 +22,8 @@ struct AudioSettingsView: View {
                             .tag(HYDRA_AUDIO_BACKEND_CUBEB.rawValue)
                             .selectionDisabled(!cubebEnabled)
                     }
-                    .onChange(of: self.audioBackend.rawValue) { _, newValue in
-                        configGetAudioBackend().pointee = newValue
+                    .onChange(of: self.audioBackend) { _, newValue in
+                        HydraConfig.global.audioBackend = newValue
                     }
                 }
             }

@@ -66,7 +66,7 @@ HYDRA_EXPORT uint32_t hydraStringViewListGetCount(const void* list) {
 }
 
 HYDRA_EXPORT HydraString hydraStringViewListGet(const void* list,
-                                                 uint32_t index) {
+                                                uint32_t index) {
     return hydraStringFromStringView(
         reinterpret_cast<const std::vector<std::string_view>*>(list)->at(
             index));
@@ -103,7 +103,7 @@ HYDRA_EXPORT uint32_t hydraStringToStringMapGetCount(const void* map) {
 }
 
 HYDRA_EXPORT HydraString hydraStringToStringMapGetKey(const void* map,
-                                                       uint32_t index) {
+                                                      uint32_t index) {
     auto it = reinterpret_cast<const std::map<std::string, std::string>*>(map)
                   ->begin();
     std::advance(it, index);
@@ -111,15 +111,15 @@ HYDRA_EXPORT HydraString hydraStringToStringMapGetKey(const void* map,
 }
 
 HYDRA_EXPORT HydraString hydraStringToStringMapGetValue(const void* map,
-                                                         uint32_t index) {
+                                                        uint32_t index) {
     auto it = reinterpret_cast<const std::map<std::string, std::string>*>(map)
                   ->begin();
     std::advance(it, index);
     return hydraStringFromStringView(it->second);
 }
 
-HYDRA_EXPORT HydraString
-hydraStringToStringMapGetValueByKey(const void* map, HydraString key) {
+HYDRA_EXPORT HydraString hydraStringToStringMapGetValueByKey(const void* map,
+                                                             HydraString key) {
     return hydraStringFromStringView(
         reinterpret_cast<const std::map<std::string, std::string>*>(map)->at(
             std::string(stringViewFromHydraString(key))));
@@ -167,167 +167,192 @@ HYDRA_EXPORT void hydraLoaderPluginListResize(void* list, uint32_t size) {
 }
 
 // Config
-HYDRA_EXPORT void hydraConfigSerialize() { hydra::CONFIG_INSTANCE.serialize(); }
+HYDRA_EXPORT void* hydraGetGlobalConfig() { return &hydra::CONFIG_INSTANCE; }
 
-HYDRA_EXPORT void hydraConfigDeserialize() {
-    hydra::CONFIG_INSTANCE.deserialize();
+HYDRA_EXPORT void hydraConfigSerialize(void* config) {
+    reinterpret_cast<hydra::Config*>(config)->serialize();
 }
 
-HYDRA_EXPORT HydraString hydraConfigGetAppDataPath() {
-    return hydraStringFromStringView(hydra::CONFIG_INSTANCE.getAppDataPath());
+HYDRA_EXPORT void hydraConfigDeserialize(void* config) {
+    reinterpret_cast<hydra::Config*>(config)->deserialize();
 }
 
-HYDRA_EXPORT HydraString hydraConfigGetLogsPath() {
-    return hydraStringFromStringView(hydra::CONFIG_INSTANCE.getLogsPath());
+HYDRA_EXPORT HydraString hydraConfigGetAppDataPath(void* config) {
+    return hydraStringFromStringView(
+        reinterpret_cast<hydra::Config*>(config)->getAppDataPath());
 }
 
-HYDRA_EXPORT void* hydraConfigGetGamePaths() {
-    return &hydra::CONFIG_INSTANCE.getGamePaths();
+HYDRA_EXPORT HydraString hydraConfigGetLogsPath(void* config) {
+    return hydraStringFromStringView(
+        reinterpret_cast<hydra::Config*>(config)->getLogsPath());
 }
 
-HYDRA_EXPORT void* hydraConfigGetLoaderPlugins() {
-    return &hydra::CONFIG_INSTANCE.getLoaderPlugins();
+HYDRA_EXPORT void* hydraConfigGetGamePaths(void* config) {
+    return &reinterpret_cast<hydra::Config*>(config)->getGamePaths();
 }
 
-HYDRA_EXPORT void* hydraConfigGetPatchPaths() {
-    return &hydra::CONFIG_INSTANCE.getPatchPaths();
+HYDRA_EXPORT void* hydraConfigGetLoaderPlugins(void* config) {
+    return &reinterpret_cast<hydra::Config*>(config)->getLoaderPlugins();
 }
 
-HYDRA_EXPORT uint32_t* hydraConfigGetInputBackend() {
-    return reinterpret_cast<uint32_t*>(
-        &hydra::CONFIG_INSTANCE.getInputBackend());
+HYDRA_EXPORT void* hydraConfigGetPatchPaths(void* config) {
+    return &reinterpret_cast<hydra::Config*>(config)->getPatchPaths();
 }
 
-HYDRA_EXPORT void* hydraConfigGetInputProfiles() {
-    return &hydra::CONFIG_INSTANCE.getInputProfiles();
+HYDRA_EXPORT HydraInputBackend* hydraConfigGetInputBackend(void* config) {
+    return reinterpret_cast<HydraInputBackend*>(
+        &reinterpret_cast<hydra::Config*>(config)->getInputBackend());
 }
 
-HYDRA_EXPORT uint32_t* hydraConfigGetCpuBackend() {
-    return reinterpret_cast<uint32_t*>(&hydra::CONFIG_INSTANCE.getCpuBackend());
+HYDRA_EXPORT void* hydraConfigGetInputProfiles(void* config) {
+    return &reinterpret_cast<hydra::Config*>(config)->getInputProfiles();
 }
 
-HYDRA_EXPORT uint32_t* hydraConfigGetGpuRenderer() {
-    return reinterpret_cast<uint32_t*>(
-        &hydra::CONFIG_INSTANCE.getGpuRenderer());
+HYDRA_EXPORT HydraCpuBackend* hydraConfigGetCpuBackend(void* config) {
+    return reinterpret_cast<HydraCpuBackend*>(
+        &reinterpret_cast<hydra::Config*>(config)->getCpuBackend());
 }
 
-HYDRA_EXPORT uint32_t* hydraConfigGetShaderBackend() {
-    return reinterpret_cast<uint32_t*>(
-        &hydra::CONFIG_INSTANCE.getShaderBackend());
+HYDRA_EXPORT HydraGpuRenderer* hydraConfigGetGpuRenderer(void* config) {
+    return reinterpret_cast<HydraGpuRenderer*>(
+        &reinterpret_cast<hydra::Config*>(config)->getGpuRenderer());
 }
 
-HYDRA_EXPORT uint32_t* hydraConfigGetDisplayResolution() {
-    return reinterpret_cast<uint32_t*>(
-        &hydra::CONFIG_INSTANCE.getDisplayResolution());
+HYDRA_EXPORT HydraShaderBackend* hydraConfigGetShaderBackend(void* config) {
+    return reinterpret_cast<HydraShaderBackend*>(
+        &reinterpret_cast<hydra::Config*>(config)->getShaderBackend());
 }
 
-HYDRA_EXPORT HydraUint2* hydraConfigGetCustomDisplayResolution() {
+HYDRA_EXPORT HydraResolution* hydraConfigGetDisplayResolution(void* config) {
+    return reinterpret_cast<HydraResolution*>(
+        &reinterpret_cast<hydra::Config*>(config)->getDisplayResolution());
+}
+
+HYDRA_EXPORT HydraUint2* hydraConfigGetCustomDisplayResolution(void* config) {
     return reinterpret_cast<HydraUint2*>(
-        &hydra::CONFIG_INSTANCE.getCustomDisplayResolution());
+        &reinterpret_cast<hydra::Config*>(config)
+             ->getCustomDisplayResolution());
 }
 
-HYDRA_EXPORT uint32_t* hydraConfigGetAudioBackend() {
-    return reinterpret_cast<uint32_t*>(
-        &hydra::CONFIG_INSTANCE.getAudioBackend());
+HYDRA_EXPORT HydraAudioBackend* hydraConfigGetAudioBackend(void* config) {
+    return reinterpret_cast<HydraAudioBackend*>(
+        &reinterpret_cast<hydra::Config*>(config)->getAudioBackend());
 }
 
-HYDRA_EXPORT HydraU128* hydraConfigGetUserId() {
-    return reinterpret_cast<HydraU128*>(&hydra::CONFIG_INSTANCE.getUserId());
+HYDRA_EXPORT HydraU128* hydraConfigGetUserId(void* config) {
+    return reinterpret_cast<HydraU128*>(
+        &reinterpret_cast<hydra::Config*>(config)->getUserId());
 }
 
-HYDRA_EXPORT HydraString hydraConfigGetDeviceNickname() {
+HYDRA_EXPORT HydraString hydraConfigGetDeviceNickname(void* config) {
     return hydraStringFromStringView(
-        hydra::CONFIG_INSTANCE.getDeviceNickname());
+        reinterpret_cast<hydra::Config*>(config)->getDeviceNickname());
 }
 
-HYDRA_EXPORT void hydraConfigSetDeviceNickname(HydraString value) {
-    hydra::CONFIG_INSTANCE.getDeviceNickname() =
+HYDRA_EXPORT void hydraConfigSetDeviceNickname(void* config,
+                                               HydraString value) {
+    reinterpret_cast<hydra::Config*>(config)->getDeviceNickname() =
         stringViewFromHydraString(value);
 }
 
-HYDRA_EXPORT uint32_t* hydraConfigGetSystemLanguage() {
-    return reinterpret_cast<uint32_t*>(
-        &hydra::CONFIG_INSTANCE.getSystemLanguage());
+HYDRA_EXPORT HydraSystemLanguage* hydraConfigGetSystemLanguage(void* config) {
+    return reinterpret_cast<HydraSystemLanguage*>(
+        &reinterpret_cast<hydra::Config*>(config)->getSystemLanguage());
 }
 
-HYDRA_EXPORT HydraString hydraConfigGetSystemLocation() {
+HYDRA_EXPORT HydraString hydraConfigGetSystemLocation(void* config) {
     return hydraStringFromStringView(
-        hydra::CONFIG_INSTANCE.getSystemLocation());
+        reinterpret_cast<hydra::Config*>(config)->getSystemLocation());
 }
 
-HYDRA_EXPORT void hydraConfigSetSystemLocation(HydraString value) {
-    hydra::CONFIG_INSTANCE.getSystemLocation() =
+HYDRA_EXPORT void hydraConfigSetSystemLocation(void* config,
+                                               HydraString value) {
+    reinterpret_cast<hydra::Config*>(config)->getSystemLocation() =
         stringViewFromHydraString(value);
 }
 
-HYDRA_EXPORT HydraString hydraConfigGetFirmwarePath() {
-    return hydraStringFromStringView(hydra::CONFIG_INSTANCE.getFirmwarePath());
-}
-
-HYDRA_EXPORT void hydraConfigSetFirmwarePath(HydraString value) {
-    hydra::CONFIG_INSTANCE.getFirmwarePath() = stringViewFromHydraString(value);
-}
-
-HYDRA_EXPORT HydraString hydraConfigGetSdCardPath() {
-    return hydraStringFromStringView(hydra::CONFIG_INSTANCE.getSdCardPath());
-}
-
-HYDRA_EXPORT void hydraConfigSetSdCardPath(HydraString value) {
-    hydra::CONFIG_INSTANCE.getSdCardPath() = stringViewFromHydraString(value);
-}
-
-HYDRA_EXPORT HydraString hydraConfigGetSavePath() {
-    return hydraStringFromStringView(hydra::CONFIG_INSTANCE.getSavePath());
-}
-
-HYDRA_EXPORT void hydraConfigSetSavePath(HydraString value) {
-    hydra::CONFIG_INSTANCE.getSavePath() = stringViewFromHydraString(value);
-}
-
-HYDRA_EXPORT HydraString hydraConfigGetSysmodulesPath() {
+HYDRA_EXPORT HydraString hydraConfigGetFirmwarePath(void* config) {
     return hydraStringFromStringView(
-        hydra::CONFIG_INSTANCE.getSysmodulesPath());
+        reinterpret_cast<hydra::Config*>(config)->getFirmwarePath());
 }
 
-HYDRA_EXPORT void hydraConfigSetSysmodulesPath(HydraString value) {
-    hydra::CONFIG_INSTANCE.getSysmodulesPath() =
+HYDRA_EXPORT void hydraConfigSetFirmwarePath(void* config, HydraString value) {
+    reinterpret_cast<hydra::Config*>(config)->getFirmwarePath() =
         stringViewFromHydraString(value);
 }
 
-HYDRA_EXPORT bool* hydraConfigGetHandheldMode() {
-    return &hydra::CONFIG_INSTANCE.getHandheldMode();
+HYDRA_EXPORT HydraString hydraConfigGetSdCardPath(void* config) {
+    return hydraStringFromStringView(
+        reinterpret_cast<hydra::Config*>(config)->getSdCardPath());
 }
 
-HYDRA_EXPORT uint32_t* hydraConfigGetLogOutput() {
-    return reinterpret_cast<uint32_t*>(&hydra::CONFIG_INSTANCE.getLogOutput());
+HYDRA_EXPORT void hydraConfigSetSdCardPath(void* config, HydraString value) {
+    reinterpret_cast<hydra::Config*>(config)->getSdCardPath() =
+        stringViewFromHydraString(value);
 }
 
-HYDRA_EXPORT bool* hydraConfigGetLogFsAccess() {
-    return &hydra::CONFIG_INSTANCE.getLogFsAccess();
+HYDRA_EXPORT HydraString hydraConfigGetSavePath(void* config) {
+    return hydraStringFromStringView(
+        reinterpret_cast<hydra::Config*>(config)->getSavePath());
 }
 
-HYDRA_EXPORT bool* hydraConfigGetDebugLogging() {
-    return &hydra::CONFIG_INSTANCE.getDebugLogging();
+HYDRA_EXPORT void hydraConfigSetSavePath(void* config, HydraString value) {
+    reinterpret_cast<hydra::Config*>(config)->getSavePath() =
+        stringViewFromHydraString(value);
 }
 
-HYDRA_EXPORT void* hydraConfigGetProcessArgs() {
-    return &hydra::CONFIG_INSTANCE.getProcessArgs();
+HYDRA_EXPORT HydraString hydraConfigGetSysmodulesPath(void* config) {
+    return hydraStringFromStringView(
+        reinterpret_cast<hydra::Config*>(config)->getSysmodulesPath());
 }
 
-HYDRA_EXPORT bool* hydraConfigGetRecoverFromSegfault() {
-    return &hydra::CONFIG_INSTANCE.getRecoverFromSegfault();
+HYDRA_EXPORT void hydraConfigSetSysmodulesPath(void* config,
+                                               HydraString value) {
+    reinterpret_cast<hydra::Config*>(config)->getSysmodulesPath() =
+        stringViewFromHydraString(value);
 }
 
-HYDRA_EXPORT bool* hydraConfigGetGdbEnabled() {
-    return &hydra::CONFIG_INSTANCE.getGdbEnabled();
+HYDRA_EXPORT bool* hydraConfigGetHandheldMode(void* config) {
+    return &reinterpret_cast<hydra::Config*>(config)->getHandheldMode();
 }
 
-HYDRA_EXPORT uint16_t* hydraConfigGetGdbPort() {
-    return &hydra::CONFIG_INSTANCE.getGdbPort();
+HYDRA_EXPORT HydraLogOutput* hydraConfigGetLogOutput(void* config) {
+    return reinterpret_cast<HydraLogOutput*>(
+        &reinterpret_cast<hydra::Config*>(config)->getLogOutput());
 }
 
-HYDRA_EXPORT bool* hydraConfigGetGdbWaitForClient() {
-    return &hydra::CONFIG_INSTANCE.getGdbWaitForClient();
+HYDRA_EXPORT bool* hydraConfigGetLogFsAccess(void* config) {
+    return &reinterpret_cast<hydra::Config*>(config)->getLogFsAccess();
+}
+
+HYDRA_EXPORT bool* hydraConfigGetDebugLogging(void* config) {
+    return &reinterpret_cast<hydra::Config*>(config)->getDebugLogging();
+}
+
+HYDRA_EXPORT void* hydraConfigGetProcessArgs(void* config) {
+    return &reinterpret_cast<hydra::Config*>(config)->getProcessArgs();
+}
+
+HYDRA_EXPORT bool* hydraConfigGetRecoverFromSegfault(void* config) {
+    return &reinterpret_cast<hydra::Config*>(config)->getRecoverFromSegfault();
+}
+
+HYDRA_EXPORT HydraDisassemblerBackend*
+hydraConfigGetDisassemblerBackend(void* config) {
+    return reinterpret_cast<HydraDisassemblerBackend*>(
+        &reinterpret_cast<hydra::Config*>(config)->getDisassemblerBackend());
+}
+
+HYDRA_EXPORT bool* hydraConfigGetGdbEnabled(void* config) {
+    return &reinterpret_cast<hydra::Config*>(config)->getGdbEnabled();
+}
+
+HYDRA_EXPORT uint16_t* hydraConfigGetGdbPort(void* config) {
+    return &reinterpret_cast<hydra::Config*>(config)->getGdbPort();
+}
+
+HYDRA_EXPORT bool* hydraConfigGetGdbWaitForClient(void* config) {
+    return &reinterpret_cast<hydra::Config*>(config)->getGdbWaitForClient();
 }
 
 // Option config
@@ -444,7 +469,7 @@ HYDRA_EXPORT uint32_t hydraTimeZoneManagerGetLocationCount(void* manager) {
 }
 
 HYDRA_EXPORT HydraString hydraTimeZoneManagerGetLocation(void* manager,
-                                                          uint32_t index) {
+                                                         uint32_t index) {
     // HACK
     auto it =
         static_cast<
@@ -496,8 +521,7 @@ HYDRA_EXPORT bool hydraLoaderHasIcon(const void* loader) {
         ->hasIcon();
 }
 
-HYDRA_EXPORT void hydraLoaderExtractIcon(const void* loader,
-                                         HydraString path) {
+HYDRA_EXPORT void hydraLoaderExtractIcon(const void* loader, HydraString path) {
     reinterpret_cast<const hydra::horizon::loader::ILoader*>(loader)
         ->extractIcon(stringViewFromHydraString(path));
 }
@@ -590,8 +614,8 @@ hydraLoaderPluginGetSupportedFormatCount(const void* plugin) {
             .size());
 }
 
-HYDRA_EXPORT HydraString
-hydraLoaderPluginGetSupportedFormat(const void* plugin, uint32_t index) {
+HYDRA_EXPORT HydraString hydraLoaderPluginGetSupportedFormat(const void* plugin,
+                                                             uint32_t index) {
     return hydraStringFromStringView(
         reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
             ->getSupportedFormats()[index]);
@@ -681,7 +705,7 @@ HYDRA_EXPORT uint32_t hydraUserManagerGetUserCount(void* user_manager) {
 }
 
 HYDRA_EXPORT HydraU128 hydraUserManagerGetUserId(void* user_manager,
-                                                  uint32_t index) {
+                                                 uint32_t index) {
     return std::bit_cast<HydraU128>(
         reinterpret_cast<
             hydra::horizon::services::account::internal::UserManager*>(
@@ -725,7 +749,7 @@ HYDRA_EXPORT uint32_t hydraUserManagerGetAvatarCount(void* user_manager) {
 }
 
 HYDRA_EXPORT HydraString hydraUserManagerGetAvatarPath(void* user_manager,
-                                                        uint32_t index) {
+                                                       uint32_t index) {
     return hydraStringFromStringView(
         reinterpret_cast<
             hydra::horizon::services::account::internal::UserManager*>(

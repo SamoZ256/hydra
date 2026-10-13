@@ -44,9 +44,9 @@ struct SettingsView: View {
             }
             .scenePadding()
             .frame(maxWidth: 660, minHeight: 100)
-            .frame(width: 660, height: 440) // TODO: Don't hardcode
+            .frame(width: 660, height: 440)  // TODO: Don't hardcode
             .onDisappear {
-                configSerialize()
+                HydraConfig.global.serialize()
             }
         #else
             NavigationView {
@@ -84,7 +84,7 @@ struct SettingsView: View {
                 .navigationTitle("Settings")
             }
             .onDisappear {
-                configSerialize()
+                HydraConfig.global.serialize()
             }
         #endif
     }

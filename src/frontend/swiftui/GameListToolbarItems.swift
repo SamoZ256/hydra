@@ -38,7 +38,7 @@ struct GameListToolbarItems: ToolbarContent {
             }
         #endif
 
-        let firmwarePath = configGetFirmwarePath()
+        let firmwarePath = HydraConfig.global.firmwarePath
         if firmwarePath.isEmpty {
             ToolbarItem(placement: installFirmwarePlacement) {
                 Button("Install Firmware") {
@@ -60,9 +60,10 @@ struct GameListToolbarItems: ToolbarContent {
                             defer { fileURL.stopAccessingSecurityScopedResource() }
 
                             #if os(macOS)
-                                configSetFirmwarePath(fileURL.path(percentEncoded: false))
+                                HydraConfig.global.firmwarePath = fileURL.path(
+                                    percentEncoded: false)
                             #else
-                                let path = "\(configGetAppDataPath())/firmware"
+                                let path = "\(HydraConfig.global.appDataPath)/firmware"
                                 do {
                                     try FileManager.default.copyItem(
                                         atPath: fileURL.path(percentEncoded: false),
@@ -71,10 +72,10 @@ struct GameListToolbarItems: ToolbarContent {
                                     showingFirmwareImportError = true
                                 }
 
-                                configSetFirmwarePath(path)
+                                HydraConfig.global.firmwarePath = path
                             #endif
 
-                            configSerialize()
+                            HydraConfig.global.serialize()
                         }
                     case .failure(let error):
                         print(error)
@@ -107,10 +108,10 @@ struct GameListToolbarItems: ToolbarContent {
 
                         // TODO: isn't there a better way?
                         globalState.gamePaths.append(fileURL.path(percentEncoded: false))
-                        let gamePathsOption = configGetGamePaths()
+                        let gamePathsOption = HydraConfig.global.gamePaths
                         gamePathsOption.append(
                             value: fileURL.path(percentEncoded: false))
-                        configSerialize()
+                        HydraConfig.global.serialize()
                     }
                 case .failure(let error):
                     print(error)

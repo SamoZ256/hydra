@@ -23,6 +23,8 @@ TOML11_DEFINE_CONVERSION_ENUM(
     BrazilianPortuguese, "Brazilian Portuguese", Polish, "Polish", Thai, "Thai")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::LogOutput, None, "none", StdOut, "stdout",
                               File, "file")
+TOML11_DEFINE_CONVERSION_ENUM(hydra::DisassemblerBackend, None, "none",
+                              Capstone, "Capstone")
 
 ENABLE_STRUCT_FORMATTING_AND_TOML11(hydra::LoaderPlugin, path, options)
 
@@ -150,6 +152,7 @@ void Config::loadDefaults() {
     debug_logging = getDefaultDebugLogging();
     process_args = getDefaultProcessArgs();
     recover_from_segfault = getDefaultRecoverFromSegfault();
+    disassembler_backend = getDefaultDisassemblerBackend();
     gdb_enabled = getDefaultGdbEnabled();
     gdb_port = getDefaultGdbPort();
     gdb_wait_for_client = getDefaultGdbWaitForClient();
@@ -236,6 +239,7 @@ void Config::serialize() {
         debug["debug_logging"] = debug_logging;
         debug["process_args"] = process_args;
         debug["recover_from_segfault"] = recover_from_segfault;
+        debug["disassembler_backend"] = disassembler_backend;
         debug["gdb_enabled"] = gdb_enabled;
         debug["gdb_port"] = gdb_port;
         debug["gdb_wait_for_client"] = gdb_wait_for_client;
@@ -342,6 +346,10 @@ void Config::deserialize() {
             debug, "process_args", getDefaultProcessArgs());
         recover_from_segfault = toml::find_or<bool>(
             debug, "recover_from_segfault", getDefaultRecoverFromSegfault());
+        disassembler_backend =
+            toml::find_or<std::optional<DisassemblerBackend>>(
+                debug, "disassembler_backend", getDefaultDisassemblerBackend())
+                .value_or(getDefaultDisassemblerBackend());
         gdb_enabled =
             toml::find_or<bool>(debug, "gdb_enabled", getDefaultGdbEnabled());
         gdb_port = toml::find_or<u16>(debug, "gdb_port", getDefaultGdbPort());
@@ -377,6 +385,7 @@ void Config::log() {
     LOG_INFO(Other, "Debug logging: {}", debug_logging);
     LOG_INFO(Other, "Process arguments: {}", process_args);
     LOG_INFO(Other, "Recover from segfault: {}", recover_from_segfault);
+    LOG_INFO(Other, "Disassembler backend: {}", disassembler_backend);
     LOG_INFO(Other, "GDB enabled: {}", gdb_enabled);
     LOG_INFO(Other, "GDB port: {}", gdb_port);
     LOG_INFO(Other, "GDB wait for client: {}", gdb_wait_for_client);
