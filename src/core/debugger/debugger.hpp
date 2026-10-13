@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/debugger/gdb_server.hpp"
+#include "core/debugger/symbol_table.hpp"
 #include "core/debugger/target.hpp"
 
 namespace hydra::horizon::kernel {
@@ -100,31 +101,6 @@ class Thread {
 
   public:
     SETTER(guest_thread, setGuestThread);
-};
-
-struct Symbol {
-    std::string name;
-    ztd::Range<vaddr_t> guest_mem_range;
-};
-
-class SymbolTable {
-  public:
-    void registerSymbol(const Symbol& symbol) { symbols.push_back(symbol); }
-
-    std::string findSymbol(vaddr_t addr) {
-        for (const auto& symbol : symbols) {
-            if (symbol.guest_mem_range.contains(addr))
-                return symbol.name;
-        }
-
-        return "";
-    }
-
-  private:
-    std::vector<Symbol> symbols;
-
-  public:
-    CONST_REF_GETTER(symbols, getSymbols);
 };
 
 class Debugger {

@@ -1325,14 +1325,15 @@ void GdbServer::handleGetExecutables() {
     std::filesystem::create_directories(dir_path);
 
     std::string output;
-    for (u32 i = 0; i < debugger.getModuleTable().getSymbols().size(); i++) {
-        const auto& module_ = debugger.getModuleTable().getSymbols()[i];
+    const auto modules = debugger.getModuleTable().getSymbols();
+    for (u32 i = 0; i < modules.size(); i++) {
+        const auto& module_ = modules[i];
         std::string path = fmt::format("{}/{}.elf", dir_path, module_.name);
 
         // Output
         output += fmt::format("\"{}\":{:#x}", path,
                               module_.guest_mem_range.getBegin());
-        if (i < debugger.getModuleTable().getSymbols().size() - 1)
+        if (i < modules.size() - 1)
             output += ';';
 
         // Save the executable

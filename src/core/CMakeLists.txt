@@ -666,6 +666,8 @@ add_library(hydra-core
     debugger/debugger_manager.hpp
     debugger/target.cpp
     debugger/target.hpp
+    debugger/symbol_table.cpp
+    debugger/symbol_table.hpp
     system.cpp
     system.hpp
     title.hpp
