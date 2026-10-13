@@ -1325,16 +1325,21 @@ void GdbServer::handleGetExecutables() {
     std::filesystem::create_directories(dir_path);
 
     std::string output;
-    const auto modules = debugger.getModuleTable().getSymbols();
-    for (u32 i = 0; i < modules.size(); i++) {
-        const auto& module_ = modules[i];
+    for (const auto& module_ : debugger.getModuleTable().getSymbols()) {
+        const auto file_it = debugger.getExecutables().find(module_.name);
+        if (file_it == debugger.getExecutables().end()) {
+            LOG_WARN(Debugger, "No executable registered for module {}",
+                     module_.name);
+            continue;
+        }
+
         std::string path = fmt::format("{}/{}.elf", dir_path, module_.name);
 
         // Output
+        if (!output.empty())
+            output += ';';
         output += fmt::format("\"{}\":{:#x}", path,
                               module_.guest_mem_range.getBegin());
-        if (i < modules.size() - 1)
-            output += ';';
 
         // Save the executable
         if (std::filesystem::exists(path)) {
@@ -1344,8 +1349,8 @@ void GdbServer::handleGetExecutables() {
         }
 
         // Load the executable
-        auto file = debugger.getExecutables().at(module_.name);
-        auto stream = file->open(horizon::filesystem::FileOpenFlags::Read);
+        auto stream =
+            file_it->second->open(horizon::filesystem::FileOpenFlags::Read);
 
         std::vector<u8> data(stream->getSize());
         stream->readToSpan(std::span(data));
