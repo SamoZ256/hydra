@@ -81,6 +81,36 @@ std::string_view loggedPacket(std::string_view packet) {
     return packet.substr(0, MAX_LOGGED_PACKET_SIZE);
 }
 
+constexpr usize MAX_CONSOLE_CHUNK_SIZE = 0x1000;
+
+std::string_view nextWord(std::string_view& args) {
+    const auto begin = args.find_first_not_of(' ');
+    if (begin == std::string_view::npos) {
+        args = {};
+        return {};
+    }
+
+    args.remove_prefix(begin);
+    const auto end = std::min(args.find(' '), args.size());
+    const auto word = args.substr(0, end);
+    args.remove_prefix(end);
+    return word;
+}
+
+std::optional<u64> parseMonitorNumber(std::string_view arg, bool hex) {
+    if (arg.starts_with("0x")) {
+        arg.remove_prefix(2);
+        hex = true;
+    }
+
+    if (arg.empty())
+        return std::nullopt;
+
+    ZTD_ASSIGN_OR(const auto value, fromChars<u64>(arg, hex ? 16 : 10),
+                  { return std::nullopt; });
+    return value;
+}
+
 std::string hexEncode(std::string_view str) {
     std::string hex;
     hex.reserve(str.size() * 2);
@@ -1313,10 +1343,110 @@ void GdbServer::handleRcmd(std::string_view cmd) {
 
     if (command == "getExecutables") {
         handleGetExecutables();
+        return;
+    }
+
+    std::string_view args = command;
+    const auto name = nextWord(args);
+    if (name == "help") {
+        handleMonitorHelp();
+    } else if (name == "disassemble") {
+        handleMonitorDisassemble(args, false);
+    } else if (name == "disassemble-function") {
+        handleMonitorDisassemble(args, true);
     } else {
         LOG_WARN(Debugger, "Unhandled GDB RCMD: {}", command);
         sendPacket(GDB_EMPTY);
     }
+}
+
+void GdbServer::handleMonitorHelp() {
+    sendConsoleOutput("disassemble [addr|pc] [count]\n"
+                      "disassemble-function [addr|pc]\n"
+                      "getExecutables\n");
+    sendPacket(GDB_OK);
+}
+
+void GdbServer::handleMonitorDisassemble(std::string_view args, bool function) {
+    const auto addr = resolveMonitorAddress(nextWord(args));
+    if (!addr) {
+        sendMonitorError(addr.error());
+        return;
+    }
+
+    const auto pc = tryGetCurrentPc();
+    std::expected<Listing, DisassemblyError> listing;
+    if (function) {
+        listing = debugger.disassembleFunction(*addr, pc);
+    } else {
+        u64 count = DEFAULT_LISTING_INSTRUCTIONS;
+        if (const auto count_arg = nextWord(args); !count_arg.empty()) {
+            const auto parsed = parseMonitorNumber(count_arg, false);
+            if (!parsed || *parsed == 0) {
+                sendMonitorError("invalid count");
+                return;
+            }
+
+            count = *parsed;
+        }
+
+        listing =
+            debugger.disassemble({.addr = *addr,
+                                  .count = static_cast<u32>(std::min<u64>(
+                                      count, std::numeric_limits<u32>::max())),
+                                  .pc = pc});
+    }
+
+    if (!listing) {
+        sendMonitorError(fmt::format("{}", listing.error()));
+        return;
+    }
+
+    auto text = formatListing(*listing);
+    if (listing->truncated)
+        text += "(truncated)\n";
+    sendConsoleOutput(text);
+    sendPacket(GDB_OK);
+}
+
+void GdbServer::sendConsoleOutput(std::string_view text) {
+    for (usize offset = 0; offset < text.size();
+         offset += MAX_CONSOLE_CHUNK_SIZE) {
+        const auto chunk = text.substr(offset, MAX_CONSOLE_CHUNK_SIZE);
+        sendPacket(fmt::format("O{}", hexEncode(chunk)));
+    }
+}
+
+void GdbServer::sendMonitorError(std::string_view message) {
+    sendConsoleOutput(fmt::format("error: {}\n", message));
+    sendPacket(GDB_ERROR);
+}
+
+std::expected<vaddr_t, std::string_view>
+GdbServer::resolveMonitorAddress(std::string_view arg) {
+    if (arg.empty() || arg == "pc") {
+        if (const auto pc = tryGetCurrentPc())
+            return *pc;
+
+        return std::unexpected("no stopped thread for pc");
+    }
+
+    if (const auto addr = parseMonitorNumber(arg, true))
+        return *addr;
+
+    return std::unexpected("invalid address");
+}
+
+std::optional<vaddr_t> GdbServer::tryGetCurrentPc() {
+    const auto id = resolveCurrentThreadId();
+    if (id == invalid<thread_id_t>())
+        return std::nullopt;
+
+    const auto stopped = getTarget().tryAcquireStoppedThread(id);
+    if (!stopped)
+        return std::nullopt;
+
+    return stopped->getState().pc;
 }
 
 void GdbServer::handleGetExecutables() {

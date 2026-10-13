@@ -73,6 +73,13 @@ class GdbServer {
 
     void handleRcmd(std::string_view cmd);
     void handleGetExecutables();
+    void handleMonitorHelp();
+    void handleMonitorDisassemble(std::string_view args, bool function);
+    void sendConsoleOutput(std::string_view text);
+    void sendMonitorError(std::string_view message);
+    std::expected<vaddr_t, std::string_view>
+    resolveMonitorAddress(std::string_view arg);
+    std::optional<vaddr_t> tryGetCurrentPc();
 
     void resumeTarget();
     void resumeTarget(std::span<const ResumeAction> actions);
