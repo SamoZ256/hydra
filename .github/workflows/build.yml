@@ -58,8 +58,10 @@ jobs:
               run: |
                   if [[ "${{ matrix.suffix }}" == *"Release"* ]]; then
                     echo "BUILD_MODE=Release" >> $GITHUB_ENV
+                    echo "DEBUGGER_MODE=OFF" >> $GITHUB_ENV
                   else
                     echo "BUILD_MODE=Debug" >> $GITHUB_ENV
+                    echo "DEBUGGER_MODE=ON" >> $GITHUB_ENV
                   fi
                   if [[ "${{ matrix.suffix }}" == *"SwiftUI"* ]]; then
                     echo "FRONTEND_MODE=SwiftUI" >> $GITHUB_ENV
@@ -75,6 +77,7 @@ jobs:
                     -DCLANG_TIDY_ENABLED=OFF \
                     -DMACOS_BUNDLE=ON \
                     -DFRONTEND=${{ env.FRONTEND_MODE }} \
+                    -DDEBUGGER_ENABLED=${{ env.DEBUGGER_MODE }} \
                     -GNinja
                   ninja -C build
                   dylibbundler -of -cd -b -x build/bin/Hydra.app/Contents/MacOS/Hydra -d build/bin/Hydra.app/Contents/libs
