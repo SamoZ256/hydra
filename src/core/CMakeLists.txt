@@ -668,6 +668,10 @@ add_library(hydra-core
     debugger/target.hpp
     debugger/symbol_table.cpp
     debugger/symbol_table.hpp
+    debugger/disassembler.cpp
+    debugger/disassembler.hpp
+    debugger/capstone/disassembler.cpp
+    debugger/capstone/disassembler.hpp
     system.cpp
     system.hpp
     title.hpp
