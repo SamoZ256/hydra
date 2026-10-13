@@ -211,17 +211,21 @@ void NsoLoader::loadProcess(System& system, kernel::Process* process) {
            dyn_sym_size);
 
     // Register
+    std::vector<debugger::Symbol> symbols;
+    symbols.reserve(dyn_sym.size());
     for (const auto& symbol : dyn_sym) {
+        if (symbol.st_shndx == SHN_UNDEF || symbol.st_shndx == SHN_ABS ||
+            symbol.st_name >= dyn_str.size())
+            continue;
+
         std::string_view symbol_name(dyn_str.data() + symbol.st_name);
-        if (symbol.st_shndx != 0) {
-            DEBUGGER_MANAGER_INSTANCE.getDebugger(process)
-                .getFunctionTable()
-                .registerSymbol({.name = demangle(std::string(symbol_name)),
-                                 .guest_mem_range = ztd::Range<vaddr_t>(
-                                     base + symbol.st_value,
-                                     base + symbol.st_value + symbol.st_size)});
-        }
+        symbols.push_back({.name = demangle(std::string(symbol_name)),
+                           .guest_mem_range = ztd::Range<vaddr_t>::fromSize(
+                               base + symbol.st_value, symbol.st_size)});
     }
+    DEBUGGER_MANAGER_INSTANCE.getDebugger(process)
+        .getFunctionTable()
+        .registerSymbols(symbols);
 
     delete stream;
 
