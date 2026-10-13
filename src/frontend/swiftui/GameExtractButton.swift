@@ -38,13 +38,18 @@ struct GameExtractButton: View {
                     }
 
                     DispatchQueue.global(qos: .userInitiated).async {
-                        hydraDebuggerManagerGetDebuggerForCurrentProcess().registerThisThread(
-                            name: "Content extract")
+                        #if HYDRA_DEBUGGER_ENABLED
+                            hydraDebuggerManagerGetDebuggerForCurrentProcess()
+                                .registerThisThread(name: "Content extract")
+                        #endif
                         self.game.loader.extractContent(
                             self.content, to: url.path(percentEncoded: false))
                         self.alertMessage = "\(self.name) extracted successfully"
                         self.showAlert = true
-                        hydraDebuggerManagerGetDebuggerForCurrentProcess().unregisterThisThread()
+                        #if HYDRA_DEBUGGER_ENABLED
+                            hydraDebuggerManagerGetDebuggerForCurrentProcess()
+                                .unregisterThisThread()
+                        #endif
                     }
                 }
             #else

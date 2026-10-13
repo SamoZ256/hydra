@@ -1,6 +1,5 @@
 #include "core/hw/tegra_x1/cpu/hypervisor/mmu.hpp"
 
-#include "core/debugger/debugger_manager.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/const.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/memory.hpp"

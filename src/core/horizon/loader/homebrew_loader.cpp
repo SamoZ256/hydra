@@ -2,7 +2,6 @@
 
 #include <random>
 
-#include "core/debugger/debugger_manager.hpp"
 #include "core/horizon/const.hpp"
 #include "core/horizon/filesystem/disk_file.hpp"
 #include "core/horizon/filesystem/file_view.hpp"

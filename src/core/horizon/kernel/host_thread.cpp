@@ -1,6 +1,5 @@
 #include "core/horizon/kernel/host_thread.hpp"
 
-#include "core/debugger/debugger_manager.hpp"
 
 namespace hydra::horizon::kernel {
 

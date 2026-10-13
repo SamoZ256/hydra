@@ -1,7 +1,6 @@
 #include "core/hw/tegra_x1/cpu/hypervisor/page_table.hpp"
 
 #include "common/type_aliases.hpp"
-#include "core/debugger/debugger_manager.hpp"
 
 namespace hydra::hw::tegra_x1::cpu::hypervisor {
 

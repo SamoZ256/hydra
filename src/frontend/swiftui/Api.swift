@@ -1106,175 +1106,183 @@ class HydraSystem: MutableHandleClass {
 }
 
 // Debugger
-func debuggerManagerLock() {
-    hydraDebuggerManagerLock()
-}
+#if HYDRA_DEBUGGER_ENABLED
+    let debuggerEnabled = true
+#else
+    let debuggerEnabled = false
+#endif
 
-func debuggerManagerUnlock() {
-    hydraDebuggerManagerUnlock()
-}
-
-func debuggerManagerGetDebuggerCount() -> Int {
-    Int(hydraDebuggerManagerGetDebuggerCount())
-}
-
-func debuggerManagerGetDebugger(at index: Int) -> HydraDebugger {
-    HydraDebugger(handle: hydraDebuggerManagerGetDebugger(UInt32(index)))
-}
-
-// TODO: debugger for any process
-func hydraDebuggerManagerGetDebuggerForCurrentProcess() -> HydraDebugger {
-    HydraDebugger(handle: hydraDebuggerManagerGetDebuggerForProcess(nil))
-}
-
-struct HydraDebugger: MutableHandleStruct {
-    internal let handle: UnsafeMutableRawPointer
-
-    init(handle: UnsafeMutableRawPointer) {
-        self.handle = handle
+#if HYDRA_DEBUGGER_ENABLED
+    func debuggerManagerLock() {
+        hydraDebuggerManagerLock()
     }
 
-    var name: String {
-        String(withHydraString: hydraDebuggerGetName(self.handle))
+    func debuggerManagerUnlock() {
+        hydraDebuggerManagerUnlock()
     }
 
-    func lock() {
-        hydraDebuggerLock(self.handle)
+    func debuggerManagerGetDebuggerCount() -> Int {
+        Int(hydraDebuggerManagerGetDebuggerCount())
     }
 
-    func unlock() {
-        hydraDebuggerUnlock(self.handle)
+    func debuggerManagerGetDebugger(at index: Int) -> HydraDebugger {
+        HydraDebugger(handle: hydraDebuggerManagerGetDebugger(UInt32(index)))
     }
 
-    func registerThisThread(name: String) {
-        name.withHydraString { hydraName in
-            hydraDebuggerRegisterThisThread(self.handle, hydraName)
+    // TODO: debugger for any process
+    func hydraDebuggerManagerGetDebuggerForCurrentProcess() -> HydraDebugger {
+        HydraDebugger(handle: hydraDebuggerManagerGetDebuggerForProcess(nil))
+    }
+
+    struct HydraDebugger: MutableHandleStruct {
+        internal let handle: UnsafeMutableRawPointer
+
+        init(handle: UnsafeMutableRawPointer) {
+            self.handle = handle
+        }
+
+        var name: String {
+            String(withHydraString: hydraDebuggerGetName(self.handle))
+        }
+
+        func lock() {
+            hydraDebuggerLock(self.handle)
+        }
+
+        func unlock() {
+            hydraDebuggerUnlock(self.handle)
+        }
+
+        func registerThisThread(name: String) {
+            name.withHydraString { hydraName in
+                hydraDebuggerRegisterThisThread(self.handle, hydraName)
+            }
+        }
+
+        func unregisterThisThread() {
+            hydraDebuggerUnregisterThisThread(self.handle)
+        }
+
+        var threadCount: Int {
+            Int(hydraDebuggerGetThreadCount(self.handle))
+        }
+
+        func getThread(at index: Int) -> HydraDebuggerThread {
+            HydraDebuggerThread(handle: hydraDebuggerGetThread(self.handle, UInt32(index)))
         }
     }
 
-    func unregisterThisThread() {
-        hydraDebuggerUnregisterThisThread(self.handle)
+    struct HydraDebuggerThread: MutableHandleStruct {
+        internal let handle: UnsafeMutableRawPointer
+
+        init(handle: UnsafeMutableRawPointer) {
+            self.handle = handle
+        }
+
+        var name: String {
+            String(withHydraString: hydraDebuggerThreadGetName(self.handle))
+        }
+
+        func lock() {
+            hydraDebuggerThreadLock(self.handle)
+        }
+
+        func unlock() {
+            hydraDebuggerThreadUnlock(self.handle)
+        }
+
+        var status: HydraDebuggerThreadStatus {
+            hydraDebuggerThreadGetStatus(self.handle)
+        }
+
+        var breakReason: String {
+            String(withHydraString: hydraDebuggerThreadGetBreakReason(self.handle))
+        }
+
+        var messageCount: Int {
+            Int(hydraDebuggerThreadGetMessageCount(self.handle))
+        }
+
+        func getMessage(at index: Int) -> HydraDebuggerMessage {
+            HydraDebuggerMessage(handle: hydraDebuggerThreadGetMessage(self.handle, UInt32(index)))
+        }
     }
 
-    var threadCount: Int {
-        Int(hydraDebuggerGetThreadCount(self.handle))
+    struct HydraDebuggerMessage: HandleStruct {
+        internal let handle: UnsafeRawPointer
+
+        var logLevel: HydraLogLevel {
+            hydraDebuggerMessageGetLogLevel(self.handle)
+        }
+
+        var logClass: HydraLogClass {
+            hydraDebuggerMessageGetLogClass(self.handle)
+        }
+
+        var file: String {
+            String(withHydraString: hydraDebuggerMessageGetFile(self.handle))
+        }
+
+        var line: UInt32 {
+            hydraDebuggerMessageGetLine(self.handle)
+        }
+
+        var function: String {
+            String(withHydraString: hydraDebuggerMessageGetFunction(self.handle))
+        }
+
+        var str: String {
+            String(withHydraString: hydraDebuggerMessageGetString(self.handle))
+        }
+
+        var stackTrace: HydraDebuggerStackTrace {
+            HydraDebuggerStackTrace(
+                handle: hydraDebuggerStackTraceCopy(
+                    hydraDebuggerMessageGetStackTrace(self.handle)))
+        }
     }
 
-    func getThread(at index: Int) -> HydraDebuggerThread {
-        HydraDebuggerThread(handle: hydraDebuggerGetThread(self.handle, UInt32(index)))
-    }
-}
+    class HydraDebuggerStackTrace: MutableHandleClass {
+        deinit {
+            hydraDebuggerStackTraceDestroy(self.handle)
+        }
 
-struct HydraDebuggerThread: MutableHandleStruct {
-    internal let handle: UnsafeMutableRawPointer
+        var frameCount: Int {
+            Int(hydraDebuggerStackTraceGetFrameCount(self.handle))
+        }
 
-    init(handle: UnsafeMutableRawPointer) {
-        self.handle = handle
-    }
-
-    var name: String {
-        String(withHydraString: hydraDebuggerThreadGetName(self.handle))
-    }
-
-    func lock() {
-        hydraDebuggerThreadLock(self.handle)
+        func getFrame(at index: Int) -> HydraDebuggerStackFrame {
+            HydraDebuggerStackFrame(
+                handle: hydraDebuggerStackTraceGetFrame(self.handle, UInt32(index)))
+        }
     }
 
-    func unlock() {
-        hydraDebuggerThreadUnlock(self.handle)
+    struct HydraDebuggerStackFrame: HandleStruct {
+        internal let handle: UnsafeRawPointer
+
+        func resolve() -> HydraDebuggerResolvedStackFrame {
+            HydraDebuggerResolvedStackFrame(handle: hydraDebuggerStackFrameResolve(self.handle))
+        }
     }
 
-    var status: HydraDebuggerThreadStatus {
-        hydraDebuggerThreadGetStatus(self.handle)
+    class HydraDebuggerResolvedStackFrame: MutableHandleClass {
+        deinit {
+            hydraDebuggerResolvedStackFrameDestroy(self.handle)
+        }
+
+        var module: String {
+            String(withHydraString: hydraDebuggerResolvedStackFrameGetModule(self.handle))
+        }
+
+        var function: String {
+            String(withHydraString: hydraDebuggerResolvedStackFrameGetFunction(self.handle))
+        }
+
+        var address: UInt64 {
+            hydraDebuggerResolvedStackFrameGetAddress(self.handle)
+        }
     }
-
-    var breakReason: String {
-        String(withHydraString: hydraDebuggerThreadGetBreakReason(self.handle))
-    }
-
-    var messageCount: Int {
-        Int(hydraDebuggerThreadGetMessageCount(self.handle))
-    }
-
-    func getMessage(at index: Int) -> HydraDebuggerMessage {
-        HydraDebuggerMessage(handle: hydraDebuggerThreadGetMessage(self.handle, UInt32(index)))
-    }
-}
-
-struct HydraDebuggerMessage: HandleStruct {
-    internal let handle: UnsafeRawPointer
-
-    var logLevel: HydraLogLevel {
-        hydraDebuggerMessageGetLogLevel(self.handle)
-    }
-
-    var logClass: HydraLogClass {
-        hydraDebuggerMessageGetLogClass(self.handle)
-    }
-
-    var file: String {
-        String(withHydraString: hydraDebuggerMessageGetFile(self.handle))
-    }
-
-    var line: UInt32 {
-        hydraDebuggerMessageGetLine(self.handle)
-    }
-
-    var function: String {
-        String(withHydraString: hydraDebuggerMessageGetFunction(self.handle))
-    }
-
-    var str: String {
-        String(withHydraString: hydraDebuggerMessageGetString(self.handle))
-    }
-
-    var stackTrace: HydraDebuggerStackTrace {
-        HydraDebuggerStackTrace(
-            handle: hydraDebuggerStackTraceCopy(
-                hydraDebuggerMessageGetStackTrace(self.handle)))
-    }
-}
-
-class HydraDebuggerStackTrace: MutableHandleClass {
-    deinit {
-        hydraDebuggerStackTraceDestroy(self.handle)
-    }
-
-    var frameCount: Int {
-        Int(hydraDebuggerStackTraceGetFrameCount(self.handle))
-    }
-
-    func getFrame(at index: Int) -> HydraDebuggerStackFrame {
-        HydraDebuggerStackFrame(
-            handle: hydraDebuggerStackTraceGetFrame(self.handle, UInt32(index)))
-    }
-}
-
-struct HydraDebuggerStackFrame: HandleStruct {
-    internal let handle: UnsafeRawPointer
-
-    func resolve() -> HydraDebuggerResolvedStackFrame {
-        HydraDebuggerResolvedStackFrame(handle: hydraDebuggerStackFrameResolve(self.handle))
-    }
-}
-
-class HydraDebuggerResolvedStackFrame: MutableHandleClass {
-    deinit {
-        hydraDebuggerResolvedStackFrameDestroy(self.handle)
-    }
-
-    var module: String {
-        String(withHydraString: hydraDebuggerResolvedStackFrameGetModule(self.handle))
-    }
-
-    var function: String {
-        String(withHydraString: hydraDebuggerResolvedStackFrameGetFunction(self.handle))
-    }
-
-    var address: UInt64 {
-        hydraDebuggerResolvedStackFrameGetAddress(self.handle)
-    }
-}
+#endif
 
 // Texture cache
 

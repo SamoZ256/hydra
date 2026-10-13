@@ -70,6 +70,7 @@ struct DebugSettingsView: View {
                     .onChange(of: self.disassemblerBackend) { _, newValue in
                         HydraConfig.global.disassemblerBackend = newValue
                     }
+                    .disabled(!debuggerEnabled)
                 }
 
                 Section("GDB") {
@@ -77,7 +78,8 @@ struct DebugSettingsView: View {
                         .onChange(of: self.gdbEnabled) { _, newValue in
                             HydraConfig.global.gdbEnabled = newValue
                         }
-                    if self.gdbEnabled {
+                        .disabled(!debuggerEnabled)
+                    if debuggerEnabled && self.gdbEnabled {
                         TextField("Port", value: self.$gdbPort, formatter: NumberFormatter())
                             .onChange(of: self.gdbPort) { _, newValue in
                                 HydraConfig.global.gdbPort = newValue

@@ -358,15 +358,23 @@ void System::loadAndStart(horizon::loader::ILoader* loader) {
         LOG_INFO(Other, "Preselected user with ID {:032x}", user_id);
     }
 
+#ifdef HYDRA_DEBUGGER_ENABLED
     if (CONFIG_INSTANCE.getGdbEnabled() &&
         CONFIG_INSTANCE.getGdbWaitForClient())
         main_process->getMainThread()->supervisorPause();
+#endif
 
     main_process->start();
 
     // Activate GDB server
+#ifdef HYDRA_DEBUGGER_ENABLED
     if (CONFIG_INSTANCE.getGdbEnabled())
         DEBUGGER_MANAGER_INSTANCE.getDebugger(main_process).activateGdbServer();
+#else
+    if (CONFIG_INSTANCE.getGdbEnabled())
+        LOG_WARN(Other, "GDB is enabled in the config, but this build has no "
+                        "debugger support");
+#endif
 
     // Loading screen
     loading = true;

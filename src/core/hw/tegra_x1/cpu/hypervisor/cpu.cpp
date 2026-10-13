@@ -2,7 +2,6 @@
 
 #include <sys/sysctl.h>
 
-#include "core/debugger/debugger_manager.hpp"
 #include "core/horizon/os.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/mmu.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/thread.hpp"

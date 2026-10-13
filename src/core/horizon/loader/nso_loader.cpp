@@ -187,6 +187,7 @@ void NsoLoader::loadProcess(System& system, kernel::Process* process) {
     out.close();
 #endif
 
+#ifdef HYDRA_DEBUGGER_ENABLED
     // Debug symbols
 
     // TODO: the ROM may also contain DWARF symbols?
@@ -226,6 +227,7 @@ void NsoLoader::loadProcess(System& system, kernel::Process* process) {
     DEBUGGER_MANAGER_INSTANCE.getDebugger(process)
         .getFunctionTable()
         .registerSymbols(symbols);
+#endif
 
     delete stream;
 

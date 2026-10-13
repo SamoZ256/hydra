@@ -71,13 +71,18 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/settings/SystemSettingsView.swift
         swiftui/settings/DebugSettingsView.swift
         swiftui/settings/SettingsView.swift
-        swiftui/debugger/Message.swift
-        swiftui/debugger/MessageView.swift
-        swiftui/debugger/ThreadDebuggerView.swift
-        swiftui/debugger/DebuggerView.swift
-        swiftui/debugger/DebuggerListView.swift
-        swiftui/debugger/DebuggersView.swift
     )
+
+    if (DEBUGGER_ENABLED)
+        target_sources(hydra PRIVATE
+            swiftui/debugger/Message.swift
+            swiftui/debugger/MessageView.swift
+            swiftui/debugger/ThreadDebuggerView.swift
+            swiftui/debugger/DebuggerView.swift
+            swiftui/debugger/DebuggerListView.swift
+            swiftui/debugger/DebuggersView.swift
+        )
+    endif ()
 
     if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         target_sources(hydra PRIVATE

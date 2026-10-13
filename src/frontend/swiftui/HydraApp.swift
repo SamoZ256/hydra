@@ -55,10 +55,18 @@ struct HydraApp: App {
                 MenuCommands(globalState: $globalState)
             }
 
-            Window("Debugger", id: "debugger") {
-                DebuggersView()
-            }
-            .defaultLaunchBehavior(.suppressed)
+            #if HYDRA_DEBUGGER_ENABLED
+                Window("Debugger", id: "debugger") {
+                    DebuggersView()
+                }
+                .defaultLaunchBehavior(.suppressed)
+            #else
+                Window("Debugger", id: "debugger") {
+                    Text("The debugger is not available in this build")
+                }
+                .defaultLaunchBehavior(.suppressed)
+                .restorationBehavior(.disabled)
+            #endif
 
             Window("Texture Viewer", id: "texture-viewer") {
                 TextureViewer()

@@ -658,24 +658,7 @@ add_library(hydra-core
     input/apple_gc/controller.hpp
     input/apple_gc/device_list.mm
     input/apple_gc/device_list.hpp
-    # TODO: only build the debugger on debug builds
-    debugger/const.hpp
-    debugger/gdb_server.cpp
-    debugger/gdb_server.hpp
-    debugger/debugger.cpp
-    debugger/debugger.hpp
-    debugger/debugger_manager.cpp
     debugger/debugger_manager.hpp
-    debugger/target.cpp
-    debugger/target.hpp
-    debugger/symbol_table.cpp
-    debugger/symbol_table.hpp
-    debugger/disassembler.cpp
-    debugger/disassembler.hpp
-    debugger/capstone/disassembler.cpp
-    debugger/capstone/disassembler.hpp
-    debugger/listing.cpp
-    debugger/listing.hpp
     system.cpp
     system.hpp
     title.hpp
@@ -726,12 +709,37 @@ if (SDL_ENABLED)
     )
 endif ()
 
+if (DEBUGGER_ENABLED)
+    target_sources(hydra-core PRIVATE
+        debugger/const.hpp
+        debugger/gdb_server.cpp
+        debugger/gdb_server.hpp
+        debugger/debugger.cpp
+        debugger/debugger.hpp
+        debugger/debugger_manager.cpp
+        debugger/target.cpp
+        debugger/target.hpp
+        debugger/symbol_table.cpp
+        debugger/symbol_table.hpp
+        debugger/disassembler.cpp
+        debugger/disassembler.hpp
+        debugger/capstone/disassembler.cpp
+        debugger/capstone/disassembler.hpp
+        debugger/listing.cpp
+        debugger/listing.hpp
+    )
+endif ()
+
 target_include_directories(hydra-core SYSTEM PRIVATE ${CMAKE_SOURCE_DIR}/externals/libyaz0/include)
 # TODO: only link Apple frameworks if Apple
-target_link_libraries(hydra-core PRIVATE hydra_compile_options "-framework Foundation" "-framework Metal" "-framework QuartzCore" "-framework GameController" dynarmic libyaz0 nx2elf capstone_static date::date date::date-tz hydra-common)
+target_link_libraries(hydra-core PRIVATE hydra_compile_options "-framework Foundation" "-framework Metal" "-framework QuartzCore" "-framework GameController" dynarmic libyaz0 nx2elf date::date date::date-tz hydra-common)
 
 if (HYPERVISOR_ENABLED)
     target_link_libraries(hydra-core PRIVATE "-framework Hypervisor")
+endif ()
+
+if (DEBUGGER_ENABLED)
+    target_link_libraries(hydra-core PRIVATE capstone_static)
 endif ()
 
 if (CUBEB_ENABLED)

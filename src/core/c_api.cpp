@@ -916,6 +916,7 @@ hydraSystemTextureCacheGetTextureMemory(void* system, uint32_t index) {
                 .getMemory(index);
 }
 
+#ifdef HYDRA_DEBUGGER_ENABLED
 // Debugger
 
 // Debugger manager
@@ -1104,6 +1105,7 @@ hydraDebuggerResolvedStackFrameGetAddress(const void* resolved_stack_frame) {
                resolved_stack_frame)
         ->addr;
 }
+#endif
 
 // Texture cache
 
