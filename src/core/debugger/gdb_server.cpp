@@ -1354,6 +1354,10 @@ void GdbServer::handleRcmd(std::string_view cmd) {
         handleMonitorDisassemble(args, false);
     } else if (name == "disassemble-function") {
         handleMonitorDisassemble(args, true);
+    } else if (name == "symbol") {
+        handleMonitorSymbol(args);
+    } else if (name == "add-symbol") {
+        handleMonitorAddSymbol(args);
     } else {
         LOG_WARN(Debugger, "Unhandled GDB RCMD: {}", command);
         sendPacket(GDB_EMPTY);
@@ -1363,6 +1367,8 @@ void GdbServer::handleRcmd(std::string_view cmd) {
 void GdbServer::handleMonitorHelp() {
     sendConsoleOutput("disassemble [addr|pc] [count]\n"
                       "disassemble-function [addr|pc]\n"
+                      "symbol [addr|pc]\n"
+                      "add-symbol <addr> <size> <name>\n"
                       "getExecutables\n");
     sendPacket(GDB_OK);
 }
@@ -1406,6 +1412,38 @@ void GdbServer::handleMonitorDisassemble(std::string_view args, bool function) {
     if (listing->truncated)
         text += "(truncated)\n";
     sendConsoleOutput(text);
+    sendPacket(GDB_OK);
+}
+
+void GdbServer::handleMonitorSymbol(std::string_view args) {
+    const auto addr = resolveMonitorAddress(nextWord(args));
+    if (!addr) {
+        sendMonitorError(addr.error());
+        return;
+    }
+
+    const auto describe = [](const std::optional<SymbolMatch>& match) {
+        return match ? formatSymbol(*match) : "none";
+    };
+    sendConsoleOutput(
+        fmt::format("module: {}\nfunction: {}\n",
+                    describe(debugger.getModuleTable().tryResolve(*addr)),
+                    describe(debugger.getFunctionTable().tryResolve(*addr))));
+    sendPacket(GDB_OK);
+}
+
+void GdbServer::handleMonitorAddSymbol(std::string_view args) {
+    const auto addr = parseMonitorNumber(nextWord(args), true);
+    const auto size = parseMonitorNumber(nextWord(args), true);
+    const auto name_begin = args.find_first_not_of(' ');
+    if (!addr || !size || name_begin == std::string_view::npos) {
+        sendMonitorError("usage: add-symbol <addr> <size> <name>");
+        return;
+    }
+
+    debugger.getFunctionTable().registerSymbol(
+        {.name = std::string(args.substr(name_begin)),
+         .guest_mem_range = ztd::Range<vaddr_t>::fromSize(*addr, *size)});
     sendPacket(GDB_OK);
 }
 

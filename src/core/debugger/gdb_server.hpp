@@ -75,6 +75,8 @@ class GdbServer {
     void handleGetExecutables();
     void handleMonitorHelp();
     void handleMonitorDisassemble(std::string_view args, bool function);
+    void handleMonitorSymbol(std::string_view args);
+    void handleMonitorAddSymbol(std::string_view args);
     void sendConsoleOutput(std::string_view text);
     void sendMonitorError(std::string_view message);
     std::expected<vaddr_t, std::string_view>
