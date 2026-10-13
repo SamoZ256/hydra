@@ -28,3 +28,6 @@
 [submodule "externals/date"]
 	path = externals/date
 	url = https://github.com/HowardHinnant/date.git
+[submodule "externals/capstone"]
+	path = externals/capstone
+	url = https://github.com/capstone-engine/capstone.git

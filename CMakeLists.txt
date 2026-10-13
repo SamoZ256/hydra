@@ -173,6 +173,20 @@ set(BUILD_TZ_LIB ON)
 set(USE_SYSTEM_TZ_DB ON)
 add_subdirectory(externals/date SYSTEM)
 
+# capstone
+block(SCOPE_FOR VARIABLES)
+    set(CAPSTONE_ARCHITECTURE_DEFAULT OFF)
+    set(CAPSTONE_AARCH64_SUPPORT ON)
+    set(CAPSTONE_BUILD_MACOS_THIN ON)
+    set(CAPSTONE_BUILD_LEGACY_TESTS OFF)
+    set(CAPSTONE_BUILD_CSTEST OFF)
+    set(CAPSTONE_BUILD_CSTOOL OFF)
+    set(CAPSTONE_INSTALL OFF)
+    unset(PROJECT_VERSION)
+    add_subdirectory(externals/capstone SYSTEM)
+endblock()
+set_target_properties(fuzz_disasm PROPERTIES EXCLUDE_FROM_ALL ON)
+
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 add_library(hydra_compile_options INTERFACE)
 target_compile_options(hydra_compile_options INTERFACE
